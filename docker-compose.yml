@@ -19,15 +19,15 @@ services:
     container_name: api_gateway
     env_file: .env
     build:
-      context: ./backend/APIgateway
+      context: ./backend/api_gateway
       dockerfile: Dockerfile
     image: api_gateway
     volumes:
-      - "./backend/APIgateway:/app" #only for developement
+      - "./backend/api_gateway:/app" #only for developement
       - "/app/node_modules"
     restart: unless-stopped
     ports:
-      - "443:443"
+      - "443:3000"
     networks:
       - backend
 
