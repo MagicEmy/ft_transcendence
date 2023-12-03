@@ -1,0 +1,15 @@
+version: "3"
+services:
+  APIgateway:
+    container_name: APIgateway
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: APIgateway
+    volumes:
+    - ".:/app" #only for developement
+    - "/app/node_modules"
+    restart: unless-stopped
+    ports:
+      - "443:443"
