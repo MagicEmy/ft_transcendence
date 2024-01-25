@@ -1,0 +1,44 @@
+version: "3"
+services:
+  profile:
+    container_name: profile
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: profile
+    volumes:
+      - ".:/app" #only for developement
+      - "/app/node_modules"
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - "3002:3000" #only for testing porposes
+    depends_on:
+      - postgres
+  
+  postgres:
+    container_name: postgres
+    env_file: .env
+    build:
+      context: ../backend/database
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - "db_volume:/var/lib/postgresql"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+  
+networks:
+  backend:
+    name: backend
+    driver: bridge
+
+volumes:
+  db_volume:
