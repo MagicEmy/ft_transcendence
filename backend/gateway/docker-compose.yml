@@ -1,15 +1,15 @@
 version: "3"
 services:
-  api_gateway:
-    container_name: api_gateway
+  gateway:
+    container_name: gateway
     env_file: .env
     build:
       context: .
       dockerfile: Dockerfile
-    image: api_gateway
+    image: gateway
     volumes:
     - ".:/app" #only for developement
     - "/app/node_modules"
     restart: unless-stopped
     ports:
-      - "443:3000"
+      - "3000:3000"
