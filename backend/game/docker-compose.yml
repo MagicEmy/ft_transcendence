@@ -12,7 +12,7 @@ services:
     - "/app/node_modules"
     restart: unless-stopped
     networks:
-      - game
+      - backend
     ports:
       - "3006:3000" #only for testing porposes
     depends_on:
