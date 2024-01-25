@@ -14,7 +14,7 @@ services:
     networks:
       - backend
     ports:
-      - "3002:3000" #only for testing porposes
+      - "3005:3000" #only for testing porposes
     depends_on:
       - postgres
   
