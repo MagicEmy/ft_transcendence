@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from './user/user.module';
+import { UserModule } from './users/users.module';
 import { ProfileModule } from './profile/profile.module';
 
 @Module({
@@ -14,6 +14,7 @@ import { ProfileModule } from './profile/profile.module';
       database: 'transcendence',
       autoLoadEntities: true,
       synchronize: true,
+      // logging: true,
     }),
     UserModule,
     ProfileModule,

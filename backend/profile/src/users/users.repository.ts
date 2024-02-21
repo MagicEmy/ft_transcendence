@@ -1,12 +1,12 @@
 import { Repository } from 'typeorm';
-import { User } from './user.entity';
+import { Users } from './users.entity';
 import { v4 as uuid } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user-dto';
 
-export class UserRepository extends Repository<User> {
+export class UsersRepository extends Repository<Users> {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Users) private userRepository: Repository<Users>,
   ) {
     super(
       userRepository.target,
@@ -14,13 +14,16 @@ export class UserRepository extends Repository<User> {
       userRepository.queryRunner,
     );
   }
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const { user_name, email } = createUserDto;
 
-    const user: User = {
+  async createUser(createUserDto: CreateUserDto): Promise<Users> {
+    const { user_name, email, avatar_path } = createUserDto;
+    const path = avatar_path ?? '/images/default.jpg';
+
+    const user: Users = {
       user_id: uuid(),
       user_name,
       email,
+      avatar_path: path,
     };
 
     await this.save(user);
