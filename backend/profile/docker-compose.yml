@@ -2,7 +2,7 @@ version: "3"
 services:
   profile:
     container_name: profile
-    env_file: .env
+    env_file: .env.stage.dev
     build:
       context: .
       dockerfile: Dockerfile
@@ -21,7 +21,7 @@ services:
   
   postgres:
     container_name: postgres
-    env_file: .env
+    env_file: .env.stage.dev
     build:
       context: ../database
       dockerfile: Dockerfile
