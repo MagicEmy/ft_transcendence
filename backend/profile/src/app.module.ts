@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { ProfileModule } from './profile/profile.module';
 import { configValidationSchema } from './config.schema';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { configValidationSchema } from './config.schema';
     }),
     UsersModule,
     ProfileModule,
+    StatsModule,
   ],
   controllers: [],
   providers: [],
