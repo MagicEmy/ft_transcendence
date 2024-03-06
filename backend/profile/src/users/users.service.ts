@@ -12,18 +12,7 @@ export class UsersService {
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<Users> {
-    console.log('in createUser service');
-    const { user_name, email, avatar_path } = createUserDto;
-
-    const user = this.userRepository.create({
-      user_name,
-      email,
-      avatar_path: avatar_path ?? '/images/default.jpg',
-    });
-
-    await this.userRepository.save(user);
-
-    return user;
+    return this.userRepository.createUser(createUserDto);
   }
 
   async getUserById(id: string): Promise<Users> {
