@@ -24,4 +24,14 @@ export class UsersService {
 
     return found;
   }
+
+  async changeUserName(id: string, user_name: string): Promise<Users> {
+    const found = await this.getUserById(id);
+    if (!found) {
+      throw new NotFoundException(`User with ID "${id}" not found`);
+    }
+    found.user_name = user_name;
+    this.userRepository.save(found);
+    return found;
+  }
 }
