@@ -13,6 +13,6 @@ export class Users {
   @Column()
   email: string;
 
-  @Column()
-  avatar_path: string; // this will be a base64 version of the image, not a path
+  @Column({ type: 'bytea', nullable: true })
+  avatar: Buffer;
 }

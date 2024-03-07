@@ -16,14 +16,13 @@ export class UsersRepository extends Repository<Users> {
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<Users> {
-    const { user_name, email, avatar_path } = createUserDto;
-    const path = avatar_path ?? '/images/default.jpg';
+    const { user_name, email, avatar } = createUserDto;
 
     const user: Users = {
       user_id: uuid(),
       user_name,
       email,
-      avatar_path: path,
+      avatar,
     };
 
     await this.save(user);
