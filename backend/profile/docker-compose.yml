@@ -2,7 +2,7 @@ version: "3"
 services:
   profile:
     container_name: profile
-    env_file: .env
+    env_file: .env.stage.dev
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,13 +16,14 @@ services:
     ports:
       - "3002:3000" #only for testing porposes
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
   
   postgres:
     container_name: postgres
-    env_file: .env
+    env_file: .env.stage.dev
     build:
-      context: ../backend/database
+      context: ../database
       dockerfile: Dockerfile
     restart: always
     volumes:
