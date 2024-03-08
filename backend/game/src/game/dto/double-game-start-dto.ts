@@ -1,4 +1,4 @@
-export class CreateDoubleGameDto {
+export class DoubleGameStartDto {
   game_id: string;
   left_player_id: string;
   right_player_id: string;

@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 import { SingleGame } from './single-game.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateSingleGameDto } from './dto/create-single-game-dto';
+import { SingleGameStartDto } from './dto/single-game-start-dto';
 
 export class SingleGameRepository extends Repository<SingleGame> {
   constructor(
@@ -16,9 +16,9 @@ export class SingleGameRepository extends Repository<SingleGame> {
   }
 
   async createSingleGame(
-    createSingleGameDto: CreateSingleGameDto,
+    singleGameStartDto: SingleGameStartDto,
   ): Promise<SingleGame> {
-    const { game_id, player_id, game_start } = createSingleGameDto;
+    const { game_id, player_id, game_start } = singleGameStartDto;
 
     const singleGame: SingleGame = {
       game_id,

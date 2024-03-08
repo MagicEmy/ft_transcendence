@@ -1,53 +1,28 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
-import { CreateSingleGameDto } from './dto/create-single-game-dto';
-import { UpdateSingleGameEndDto } from './dto/update-single-game-end-dto';
-import { SingleGame } from './single-game.entity';
+import { Controller } from '@nestjs/common';
 import { StatsService } from './stats.service';
-import { CreateDoubleGameDto } from './dto/create-double-game-dto';
-import { DoubleGame } from './double-game.entity';
-import { UpdateDoubleGameEndDto } from './dto/update-double-game-end-dto';
+import { EventPattern } from '@nestjs/microservices';
 
-@Controller('stats')
+@Controller()
 export class StatsController {
   constructor(private statsService: StatsService) {}
 
-  @Post('single')
-  createSingleGame(
-    @Body() createSingleGameDto: CreateSingleGameDto,
-  ): Promise<SingleGame> {
-    return this.statsService.createSingleGame(createSingleGameDto);
+  @EventPattern('single_game_start')
+  handleSingleGameStart(data: any) {
+    this.statsService.handleSingleGameStart(data);
   }
 
-  @Post('double')
-  createDoubleGame(
-    @Body() createDoubleGameDto: CreateDoubleGameDto,
-  ): Promise<DoubleGame> {
-    return this.statsService.createDoubleGame(createDoubleGameDto);
+  @EventPattern('single_game_end')
+  handleSingleGameEnd(data: any) {
+    this.statsService.handleSingleGameEnd(data);
   }
 
-  @Get('single/:id')
-  getSingleGameById(@Param('id') id: string): Promise<SingleGame> {
-    return this.statsService.getSingleGameById(id);
+  @EventPattern('double_game_start')
+  handleDoubleGameStart(data: any) {
+    this.statsService.handleDoubleGameStart(data);
   }
 
-  @Get('double/:id')
-  getDoubleGameById(@Param('id') id: string): Promise<DoubleGame> {
-    return this.statsService.getDoubleGameById(id);
-  }
-
-  @Patch('single/:id/end')
-  updateSingleGameEnd(
-    @Param('id') id: string,
-    @Body() updateSingleGameEndDto: UpdateSingleGameEndDto,
-  ): Promise<SingleGame> {
-    return this.statsService.updateSingleGameEnd(id, updateSingleGameEndDto);
-  }
-
-  @Patch('double/:id/end')
-  updateDoubleGameEnd(
-    @Param('id') id: string,
-    @Body() updateDoubleGameEndDto: UpdateDoubleGameEndDto,
-  ): Promise<DoubleGame> {
-    return this.statsService.updateDoubleGameEnd(id, updateDoubleGameEndDto);
+  @EventPattern('double_game_end')
+  handleDoubleGameEnd(data: any) {
+    this.statsService.handleDoubleGameEnd(data);
   }
 }
