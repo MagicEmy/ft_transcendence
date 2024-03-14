@@ -2,7 +2,7 @@ version: "3"
 services:
   auth:
     container_name: auth
-    env_file: ../.env.stage.dev
+    env_file: .env
     build:
       context: .
       dockerfile: Dockerfile
@@ -20,11 +20,13 @@ services:
   
   postgres:
     container_name: postgres
-    env_file: ../.env.stage.dev
+    env_file: .env
     build:
       context: ../database
       dockerfile: Dockerfile
     restart: always
+    ports:
+      - "5432:5432" #only for testing porposes
     volumes:
       - "db_volume:/var/lib/postgresql"
     networks:

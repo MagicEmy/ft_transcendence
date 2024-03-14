@@ -7,8 +7,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configValidationSchema } from './config.schema';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
-import { UserService } from './user/user.service';
 import { UserController } from './user/user.controller';
+import { AuthService } from './auth/auth.service';
+import { UserService } from './user/user.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -34,6 +36,6 @@ import { UserController } from './user/user.controller';
     UserModule,
   ],
   controllers: [AppController, AuthController, UserController],
-  providers: [AppService, UserService],
+  providers: [AppService, AuthService, UserService, JwtService],
 })
 export class AppModule {}
