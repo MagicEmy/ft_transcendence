@@ -28,13 +28,9 @@ export class AuthService {
     // or should we return null in some cases?
   }
 
-  async login(jwtPayloadDto: JwtPayloadDto) {
-    const payload = { jwtPayloadDto };
-    const token = this.jwtService.sign(payload);
-    console.log(`in login() in authService, returning ${token}`);
+  async login(jwtPayloadDto: JwtPayloadDto): Promise<{ access_token: string }> {
     return {
-      access_token: token,
-      //   access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(jwtPayloadDto),
     };
   }
 }
