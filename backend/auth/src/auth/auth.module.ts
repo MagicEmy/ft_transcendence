@@ -8,22 +8,17 @@ import { UserRepository } from 'src/user/user.repository';
 import { UserModule } from 'src/user/user.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from './utils/jwt-strategy';
 
 @Module({
   imports: [
     PassportModule.register({ session: false }),
     JwtModule.registerAsync({
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
-        console.log(`key is ${configService.get('JWT_SECRET')}`);
-        const cnf = {
-          secret: configService.get('JWT_SECRET'),
-          signOptions: { expiresIn: 3600 },
-        };
-        console.log(`cnf is`);
-        console.log(cnf);
-        return cnf;
-      },
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+        signOptions: { expiresIn: 3600 },
+      }),
     }),
     UserModule,
   ],
@@ -31,6 +26,7 @@ import { JwtModule } from '@nestjs/jwt';
   providers: [
     AuthService,
     FourtyTwoStrategy,
+    JwtStrategy,
     ConfigService,
     UserService,
     UserRepository,
