@@ -6,23 +6,8 @@ import { EventPattern } from '@nestjs/microservices';
 export class StatsController {
   constructor(private statsService: StatsService) {}
 
-  @EventPattern('single_game_start')
-  handleSingleGameStart(data: any) {
-    this.statsService.handleSingleGameStart(data);
-  }
-
-  @EventPattern('single_game_end')
-  handleSingleGameEnd(data: any) {
-    this.statsService.handleSingleGameEnd(data);
-  }
-
-  @EventPattern('double_game_start')
-  handleDoubleGameStart(data: any) {
-    this.statsService.handleDoubleGameStart(data);
-  }
-
-  @EventPattern('double_game_end')
-  handleDoubleGameEnd(data: any) {
-    this.statsService.handleDoubleGameEnd(data);
+  @EventPattern('game_end')
+  handleGameEnd(data: any): void {
+    this.statsService.handleGameEnd(data);
   }
 }
