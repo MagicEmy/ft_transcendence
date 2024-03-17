@@ -1,16 +1,14 @@
 import { Module } from '@nestjs/common';
 import { StatsController } from './stats.controller';
-import { SingleGameRepository } from './single-game.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SingleGame } from './single-game.entity';
 import { StatsService } from './stats.service';
-import { DoubleGame } from './double-game.entity';
-import { DoubleGameRepository } from './double-game.repository';
+import { Game } from './game.entity';
+import { GameRepository } from './game.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SingleGame, DoubleGame])],
+  imports: [TypeOrmModule.forFeature([Game])],
   controllers: [StatsController],
-  providers: [SingleGameRepository, DoubleGameRepository, StatsService],
-  exports: [SingleGameRepository, DoubleGameRepository],
+  providers: [GameRepository, StatsService],
+  exports: [GameRepository],
 })
 export class StatsModule {}
