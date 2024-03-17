@@ -1,4 +1,5 @@
 export class JwtPayloadDto {
-  username: string;
   sub: string;
+  user_name: string;
+  intra_login: string;
 }
