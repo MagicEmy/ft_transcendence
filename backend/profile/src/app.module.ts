@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { UsersModule } from './users/users.module';
 import { ProfileModule } from './profile/profile.module';
 import { configValidationSchema } from './config.schema';
 import { StatsModule } from './stats/stats.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: [`.env.stage.${process.env.STAGE}`],
+      envFilePath: [`.env`],
       validationSchema: configValidationSchema,
     }),
     TypeOrmModule.forRootAsync({
@@ -26,7 +26,7 @@ import { StatsModule } from './stats/stats.module';
         synchronize: true,
       }),
     }),
-    UsersModule,
+    UserModule,
     ProfileModule,
     StatsModule,
   ],
