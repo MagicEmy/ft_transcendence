@@ -9,12 +9,14 @@ import { UserRepository } from 'src/user/user.repository';
 import { GameRepository } from 'src/stats/game/game.repository';
 import { StatsRepository } from 'src/stats/stats.repository';
 import { ProfileController } from './profile.controller';
+import { StatsService } from 'src/stats/stats.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Game, Stats])],
   providers: [
     ProfileService,
     UserService,
+    StatsService,
     UserRepository,
     GameRepository,
     StatsRepository,

@@ -5,33 +5,24 @@ export class ProfileDto {
   friends: string[];
   leaderboard_position: number;
   total_players: number;
+  games_against_human: GameStatsDto;
+  games_against_bot: GameStatsDto;
+  most_frequent_opponent: string;
+}
 
-  games_against_bot: {
-    total_played_games: number;
-    wins: number;
-    losses: number;
-    draws: number;
-    max_score: number;
-    total_time_played: {
-      days: number;
-      hours: number;
-      minutes: number;
-      seconds: number;
-    };
-    most_frequent_opponent: string;
-  };
+export class GameStatsDto {
+  total_played_games: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  max_score: number;
+  total_time_played: TotalTimePlayedDto;
+}
 
-  games_against_human: {
-    total_played_games: number;
-    wins: number;
-    losses: number;
-    draws: number;
-    max_score: number;
-    total_time_played: {
-      days: number;
-      hours: number;
-      minutes: number;
-      seconds: number;
-    };
-  };
+export class TotalTimePlayedDto {
+  weeks: number;
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
 }

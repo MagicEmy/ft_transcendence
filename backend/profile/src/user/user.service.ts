@@ -3,6 +3,7 @@ import { CreateUserDto } from './dto/create-user-dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ProfileUserInfoDto } from './dto/profile-user-info-dto';
 
 @Injectable()
 export class UserService {
@@ -10,6 +11,11 @@ export class UserService {
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
   ) {}
+
+  async getUserInfoForProfile(user_id: string): Promise<ProfileUserInfoDto> {
+    const user = await this.getUserById(user_id);
+    return { user_id: user_id, user_name: user.user_name, avatar: user.avatar };
+  }
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     return this.userRepository.createUser(createUserDto);
@@ -23,6 +29,10 @@ export class UserService {
     }
 
     return found;
+  }
+
+  async getTotalNoOfUsers(): Promise<number> {
+    return await this.userRepository.count();
   }
 
   async getUserByIntraLogin(intra_login: string): Promise<User> {

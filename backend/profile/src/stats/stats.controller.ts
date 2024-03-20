@@ -15,4 +15,6 @@ export class StatsController {
   createStatsRowNewUser(data: any): void {
     this.statsService.createStatsRowNewUser(data);
   }
+
+  // to be added: function to deliver leaderboard
 }

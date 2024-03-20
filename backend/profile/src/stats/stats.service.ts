@@ -7,7 +7,14 @@ import { StatsRepository } from './stats.repository';
 import { UpdateStatsDto } from './dto/update-stats-dto';
 import { Opponent } from './opponent.enum';
 import { Stats } from './stats.entity';
-import { MILISECONDS_IN_A_DAY } from './constants';
+import {
+  MILISECONDS_IN_A_DAY,
+  MILISECONDS_IN_AN_HOUR,
+  MILISECONDS_IN_A_MINUTE,
+  MILISECONDS_IN_A_SECOND,
+  DAYS_IN_A_WEEK,
+} from './constants';
+import { GameStatsDto, TotalTimePlayedDto } from 'src/profile/dto/profile-dto';
 
 @Injectable()
 export class StatsService {
@@ -113,5 +120,39 @@ export class StatsService {
 
   async createStatsRowNewUser(newUserDto: NewUserDto): Promise<void> {
     this.statsRepository.createStatsRowNewUser(newUserDto);
+  }
+
+  getTotalTimePlayed(days: number, miliseconds: number): TotalTimePlayedDto {
+    const totalTimePlayed = new TotalTimePlayedDto();
+    totalTimePlayed.weeks = Math.floor(days / DAYS_IN_A_WEEK);
+    totalTimePlayed.days = days % DAYS_IN_A_WEEK;
+    totalTimePlayed.hours = Math.floor(miliseconds / MILISECONDS_IN_AN_HOUR);
+    miliseconds -= totalTimePlayed.hours * MILISECONDS_IN_AN_HOUR;
+    totalTimePlayed.minutes = Math.floor(miliseconds / MILISECONDS_IN_A_MINUTE);
+    miliseconds -= totalTimePlayed.minutes * MILISECONDS_IN_A_MINUTE;
+    totalTimePlayed.seconds = Math.round(miliseconds / MILISECONDS_IN_A_SECOND);
+    return totalTimePlayed;
+  }
+
+  async getGamesAgainst(
+    user_id: string,
+    opponent: Opponent,
+  ): Promise<GameStatsDto> {
+    const statsRow: Stats = await this.getStatsRowByIdAndOpponent(
+      user_id,
+      opponent,
+    );
+    const totalTimePlayed: TotalTimePlayedDto = this.getTotalTimePlayed(
+      statsRow.total_time_playing_days,
+      statsRow.total_time_playing_miliseconds,
+    );
+    return {
+      total_played_games: statsRow.games_played,
+      wins: statsRow.wins,
+      losses: statsRow.losses,
+      draws: statsRow.games_played - (statsRow.wins + statsRow.losses),
+      max_score: statsRow.max_score,
+      total_time_played: totalTimePlayed,
+    };
   }
 }
