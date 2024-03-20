@@ -1,6 +1,6 @@
 export enum GameStatus {
-	COMPLETED = 'COMPLETED',
-	INTERRUPTED = 'INTERRUPTED',
+	COMPLETED = 'completed',
+	INTERRUPTED = 'interrupted',
   }
   
   // TBD with Orlando

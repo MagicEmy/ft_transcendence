@@ -10,4 +10,9 @@ export class StatsController {
   handleGameEnd(data: any): void {
     this.statsService.handleGameEnd(data);
   }
+
+  @EventPattern('new_user')
+  createStatsRowNewUser(data: any): void {
+    this.statsService.createStatsRowNewUser(data);
+  }
 }
