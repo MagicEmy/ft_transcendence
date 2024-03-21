@@ -17,19 +17,17 @@ export class StatsRepository extends Repository<Stats> {
 
   async createStatsRowNewUser(newUserDto: NewUserDto): Promise<void> {
     // adding one line for games against another human
-    const statsHuman = new Stats();
-    statsHuman.user_id = newUserDto.user_id;
-    statsHuman.opponent = Opponent.HUMAN;
+    const statsHuman = this.statsRepository.create({
+      user_id: newUserDto.user_id,
+      opponent: Opponent.HUMAN,
+    });
     await this.statsRepository.save(statsHuman);
 
     // adding one line for games against the bot
-    const statsBot = new Stats();
-    statsBot.user_id = newUserDto.user_id;
-    statsBot.opponent = Opponent.BOT;
+    const statsBot = this.statsRepository.create({
+      user_id: newUserDto.user_id,
+      opponent: Opponent.BOT,
+    });
     await this.statsRepository.save(statsBot);
-
-    console.log('New Stats rows added:');
-    console.log(statsHuman);
-    console.log(statsBot);
   }
 }
