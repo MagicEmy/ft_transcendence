@@ -5,6 +5,7 @@ import { ProfileModule } from './profile/profile.module';
 import { configValidationSchema } from './config.schema';
 import { StatsModule } from './stats/stats.module';
 import { UserModule } from './user/user.module';
+import { GameModule } from './game/game.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { UserModule } from './user/user.module';
     UserModule,
     ProfileModule,
     StatsModule,
+    GameModule,
   ],
   controllers: [],
   providers: [],

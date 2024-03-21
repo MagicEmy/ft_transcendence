@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GameRepository } from './game/game.repository';
-import { GameEndDto } from './dto/game-end-dto';
+import { GameEndDto } from '../game/dto/game-end-dto';
 import { NewUserDto } from './dto/new-user-dto';
 import { StatsRepository } from './stats.repository';
 import { UpdateStatsDto } from './dto/update-stats-dto';
@@ -19,16 +18,13 @@ import { GameStatsDto, TotalTimePlayedDto } from 'src/profile/dto/profile-dto';
 @Injectable()
 export class StatsService {
   constructor(
-    @InjectRepository(GameRepository)
-    private gameRepository: GameRepository,
     @InjectRepository(StatsRepository)
-    private statsRepository: StatsRepository,
+    private readonly statsRepository: StatsRepository,
   ) {}
 
   async handleGameEnd(gameEndDto: GameEndDto): Promise<void> {
     const { player1_id, player2_id, player1_score, player2_score, duration } =
       gameEndDto;
-    this.gameRepository.createGame(gameEndDto);
     const player1 = {
       player_id: player1_id,
       opponent: Opponent.HUMAN,

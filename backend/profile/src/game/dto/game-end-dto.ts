@@ -1,4 +1,4 @@
-import { GameStatus } from '../game/game-status.enum';
+import { GameStatus } from '../game-status.enum';
 
 export class GameEndDto {
   player1_id: string;
