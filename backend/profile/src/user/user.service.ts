@@ -4,12 +4,14 @@ import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfileUserInfoDto } from './dto/profile-user-info-dto';
+import { StatsService } from 'src/stats/stats.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
+    private readonly statsService: StatsService,
   ) {}
 
   async getUserInfoForProfile(user_id: string): Promise<ProfileUserInfoDto> {
@@ -49,5 +51,21 @@ export class UserService {
     found.user_name = user_name;
     this.userRepository.save(found);
     return found;
+  }
+
+  // this function creates a random user, this is to make testing easier
+  async createRandomUser(): Promise<User> {
+    const suffix = Math.floor(10000 + Math.random() * 90000);
+    const newUser = await this.createUser({
+      intra_login: 'Rando' + suffix,
+      user_name: 'Rando' + suffix,
+      avatar: null,
+    });
+    this.statsService.createStatsRowNewUser({
+      user_id: newUser.user_id,
+      intra_login: newUser.intra_login,
+      user_name: newUser.user_id,
+    });
+    return newUser;
   }
 }

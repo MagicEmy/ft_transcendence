@@ -6,12 +6,11 @@ import { Game } from './game/game.entity';
 import { GameRepository } from './game/game.repository';
 import { StatsRepository } from './stats.repository';
 import { Stats } from './stats.entity';
-import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Game, Stats]), UserModule],
+  imports: [TypeOrmModule.forFeature([Game, Stats])],
   controllers: [StatsController],
   providers: [GameRepository, StatsService, StatsRepository],
-  exports: [],
+  exports: [StatsService],
 })
 export class StatsModule {}

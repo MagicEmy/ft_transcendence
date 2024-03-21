@@ -24,4 +24,19 @@ export class UserController {
   ): Promise<User> {
     return this.userService.changeUserName(id, user_name);
   }
+
+  // this function creates n number of random users, this is to make testing easier
+  @Post('/batch-create')
+  async createRandomUsers(@Body('n') n: number) {
+    const newRandomUsers: User[] = [];
+    for (let i = 0; i < n; i++) {
+      try {
+        newRandomUsers.push(await this.userService.createRandomUser());
+      } catch (error) {
+        console.log(error);
+        i--;
+      }
+    }
+    return newRandomUsers;
+  }
 }
