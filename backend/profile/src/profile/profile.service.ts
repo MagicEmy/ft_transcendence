@@ -18,6 +18,9 @@ export class ProfileService {
 
   async getFriends(user_id: string): Promise<FriendDto[]> {
     const friendIds = await this.userService.getFriends(user_id);
+    if (friendIds.length === 0) {
+      return [];
+    }
     const friendNamesRaw = await this.userRepository
       .createQueryBuilder('users')
       .select('user_name')
@@ -30,12 +33,21 @@ export class ProfileService {
     return friends;
   }
 
+  async getLeaderboardPosition(user_id: string): Promise<number> {
+    const leaderboard = await this.statsService.createLeaderboard();
+    const pointsList: number[] = leaderboard.map((item) => item.points);
+    const user = leaderboard.find((item) => item.user_id === user_id);
+    console.log(pointsList);
+    console.log(user);
+    return pointsList.indexOf(user.points) + 1;
+  }
+
   async getProfileById(user_id: string): Promise<ProfileDto> {
     const userInfo: ProfileUserInfoDto =
       await this.userService.getUserInfoForProfile(user_id);
 
     const friends = await this.getFriends(user_id);
-    const leaderboardPos = 1; // to be replaced by getLeaderboardPos(user_id) by statsService
+    const leaderboardPos = await this.getLeaderboardPosition(user_id);
     const totalPlayers = await this.userService.getTotalNoOfUsers();
     const gamesAgainstBot: GameStatsDto =
       await this.statsService.getGamesAgainst(user_id, Opponent.BOT);

@@ -14,12 +14,15 @@ import {
   DAYS_IN_A_WEEK,
 } from './constants';
 import { GameStatsDto, TotalTimePlayedDto } from 'src/profile/dto/profile-dto';
+import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class StatsService {
   constructor(
     @InjectRepository(StatsRepository)
     private readonly statsRepository: StatsRepository,
+    private readonly userService: UserService,
   ) {}
 
   async handleGameEnd(gameEndDto: GameEndDto): Promise<void> {
@@ -150,5 +153,21 @@ export class StatsService {
       max_score: statsRow.max_score,
       total_time_played: totalTimePlayed,
     };
+  }
+
+  async createLeaderboard(): Promise<LeaderboardStatsDto[]> {
+    const result = await this.statsRepository
+      .createQueryBuilder('stats')
+      .select('user_id, games_played, wins, losses')
+      .where('opponent LIKE :opponent', { opponent: 'human' })
+      .getRawMany();
+    for (const item of result) {
+      const user_name = await this.userService.getUserName(item.user_id);
+      item.draws = item.games_played - (item.wins + item.losses);
+      item.user_name = user_name;
+      item.points = item.wins * 3 + item.draws;
+    }
+    result.sort((a, b) => b.points - a.points);
+    return result;
   }
 }

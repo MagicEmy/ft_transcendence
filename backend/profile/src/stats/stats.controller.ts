@@ -1,8 +1,9 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { StatsService } from './stats.service';
 import { EventPattern } from '@nestjs/microservices';
+import { LeaderboardStatsDto } from 'src/stats/dto/leaderboard-stats-dto';
 
-@Controller()
+@Controller('stats')
 export class StatsController {
   constructor(private statsService: StatsService) {}
 
@@ -16,5 +17,8 @@ export class StatsController {
     this.statsService.createStatsRowNewUser(data);
   }
 
-  // to be added: function to deliver leaderboard
+  @Get('/leaderboard')
+  getLeaderboard(): Promise<LeaderboardStatsDto[]> {
+    return this.statsService.createLeaderboard();
+  }
 }
