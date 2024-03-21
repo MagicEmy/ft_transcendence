@@ -12,6 +12,7 @@ export class User {
 
   @Column({
     length: 50,
+    unique: true,
   })
   user_name: string;
 
