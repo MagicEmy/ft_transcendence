@@ -2,7 +2,7 @@ export class ProfileDto {
   user_id: string;
   user_name: string;
   avatar: Buffer;
-  friends: string[];
+  friends: FriendDto[];
   leaderboard_position: number;
   total_players: number;
   games_against_human: GameStatsDto;
@@ -25,4 +25,9 @@ export class TotalTimePlayedDto {
   hours: number;
   minutes: number;
   seconds: number;
+}
+
+export class FriendDto {
+  user_id: string;
+  user_name: string;
 }

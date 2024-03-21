@@ -5,12 +5,17 @@ import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfileUserInfoDto } from './dto/profile-user-info-dto';
 import { StatsService } from 'src/stats/stats.service';
+import { FriendRepository } from './friend.repository';
+import { AddFriendDto } from './dto/add-friend-dto';
+import { Friend } from './friend.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserRepository)
-    private userRepository: UserRepository,
+    private readonly userRepository: UserRepository,
+    @InjectRepository(FriendRepository)
+    private readonly friendRepository: FriendRepository,
     private readonly statsService: StatsService,
   ) {}
 
@@ -51,6 +56,21 @@ export class UserService {
     found.user_name = user_name;
     this.userRepository.save(found);
     return found;
+  }
+
+  async addFriend(addFriendDto: AddFriendDto): Promise<Friend> {
+    return this.friendRepository.addFriend(addFriendDto);
+    // find a way to prevent duplicate entries (perhaps in frontend)
+  }
+
+  async getFriends(user_id: string): Promise<string[]> {
+    const friendsRaw = await this.friendRepository
+      .createQueryBuilder('friends')
+      .select('friend_id')
+      .where('user_id LIKE :user_id', { user_id: user_id })
+      .getRawMany();
+    const friends = friendsRaw.map((item) => item.friend_id);
+    return friends;
   }
 
   // this function creates a random user, this is to make testing easier

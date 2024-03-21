@@ -2,6 +2,8 @@ import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user-dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
+import { AddFriendDto } from './dto/add-friend-dto';
+import { Friend } from './friend.entity';
 
 @Controller('user')
 export class UserController {
@@ -25,6 +27,11 @@ export class UserController {
     return this.userService.changeUserName(id, user_name);
   }
 
+  @Post('/friend')
+  addFriend(@Body() addFriendDto: AddFriendDto): Promise<Friend> {
+    return this.userService.addFriend(addFriendDto);
+  }
+
   // this function creates n number of random users, this is to make testing easier
   @Post('/batch-create')
   async createRandomUsers(@Body('n') n: number) {
@@ -38,5 +45,11 @@ export class UserController {
       }
     }
     return newRandomUsers;
+  }
+
+  // for testing purposes (gets all friends of a specific user)
+  @Get('/:id/friends')
+  getFriends(@Param('id') user_id: string) {
+    return this.userService.getFriends(user_id);
   }
 }
