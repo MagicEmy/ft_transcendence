@@ -4,7 +4,6 @@ import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfileUserInfoDto } from './dto/profile-user-info-dto';
-import { StatsService } from 'src/stats/stats.service';
 import { FriendRepository } from './friend.repository';
 import { AddFriendDto } from './dto/add-friend-dto';
 import { Friend } from './friend.entity';
@@ -16,7 +15,6 @@ export class UserService {
     private readonly userRepository: UserRepository,
     @InjectRepository(FriendRepository)
     private readonly friendRepository: FriendRepository,
-    private readonly statsService: StatsService,
   ) {}
 
   async getUserInfoForProfile(user_id: string): Promise<ProfileUserInfoDto> {
@@ -63,7 +61,17 @@ export class UserService {
     // find a way to prevent duplicate entries (perhaps in frontend)
   }
 
+  async getUserName(user_id: string): Promise<string> {
+    const returned = await this.userRepository
+      .createQueryBuilder('users')
+      .select('user_name')
+      .where('user_id = :user_id', { user_id })
+      .getRawOne();
+    return returned.user_name;
+  }
+
   async getFriends(user_id: string): Promise<string[]> {
+    console.log('in getFriends()');
     const friendsRaw = await this.friendRepository
       .createQueryBuilder('friends')
       .select('friend_id')
@@ -71,21 +79,5 @@ export class UserService {
       .getRawMany();
     const friends = friendsRaw.map((item) => item.friend_id);
     return friends;
-  }
-
-  // this function creates a random user, this is to make testing easier
-  async createRandomUser(): Promise<User> {
-    const suffix = Math.floor(10000 + Math.random() * 90000);
-    const newUser = await this.createUser({
-      intra_login: 'Rando' + suffix,
-      user_name: 'Rando' + suffix,
-      avatar: null,
-    });
-    this.statsService.createStatsRowNewUser({
-      user_id: newUser.user_id,
-      intra_login: newUser.intra_login,
-      user_name: newUser.user_id,
-    });
-    return newUser;
   }
 }

@@ -32,24 +32,15 @@ export class UserController {
     return this.userService.addFriend(addFriendDto);
   }
 
-  // this function creates n number of random users, this is to make testing easier
-  @Post('/batch-create')
-  async createRandomUsers(@Body('n') n: number) {
-    const newRandomUsers: User[] = [];
-    for (let i = 0; i < n; i++) {
-      try {
-        newRandomUsers.push(await this.userService.createRandomUser());
-      } catch (error) {
-        console.log(error);
-        i--;
-      }
-    }
-    return newRandomUsers;
-  }
-
   // for testing purposes (gets all friends of a specific user)
   @Get('/:id/friends')
   getFriends(@Param('id') user_id: string) {
     return this.userService.getFriends(user_id);
+  }
+
+  // for testing purposes, returns a user_name
+  @Get('/:id/username')
+  getUserName(@Param('id') user_id: string) {
+    return this.userService.getUserName(user_id);
   }
 }
