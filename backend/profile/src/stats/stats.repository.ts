@@ -3,6 +3,7 @@ import { Stats } from './stats.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NewUserDto } from './dto/new-user-dto';
 import { Opponent } from './opponent.enum';
+import { LeaderboardQueryResultDto } from './dto/leaderboard-query-result-dto';
 
 export class StatsRepository extends Repository<Stats> {
   constructor(
@@ -29,5 +30,12 @@ export class StatsRepository extends Repository<Stats> {
       opponent: Opponent.BOT,
     });
     await this.statsRepository.save(statsBot);
+  }
+
+  async getStatsForLeaderboard(): Promise<LeaderboardQueryResultDto[]> {
+    return this.createQueryBuilder('stats')
+      .select('user_id, games_played, wins, losses')
+      .where('opponent LIKE :opponent', { opponent: 'human' })
+      .getRawMany();
   }
 }

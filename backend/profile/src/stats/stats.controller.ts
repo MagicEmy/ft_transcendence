@@ -19,6 +19,6 @@ export class StatsController {
 
   @Get('/leaderboard')
   getLeaderboard(): Promise<LeaderboardStatsDto[]> {
-    return this.statsService.createLeaderboard();
+    return this.statsService.createLeaderboard({ user_names: true });
   }
 }
