@@ -34,18 +34,19 @@ export class ProfileService {
     return friends;
   }
 
-  async getLeaderboardPosition(user_id: string): Promise<number> {
-    const leaderboard = await this.statsService.createLeaderboard();
-    const pointsList: number[] = leaderboard.map((item) => item.points);
+  async getLeaderboardRank(user_id: string): Promise<number> {
+    const leaderboard = await this.statsService.createLeaderboard({
+      user_names: false,
+    });
     const user = leaderboard.find((item) => item.user_id === user_id);
-    return pointsList.indexOf(user.points) + 1;
+    return user.rank;
   }
 
   async getProfileById(user_id: string): Promise<ProfileDto> {
     const userInfo: ProfileUserInfoDto =
       await this.userService.getUserInfoForProfile(user_id);
     const friends: FriendDto[] = await this.getFriends(user_id);
-    const leaderboardPos: number = await this.getLeaderboardPosition(user_id);
+    const leaderboardPos: number = await this.getLeaderboardRank(user_id);
     const totalPlayers: number = await this.userService.getTotalNoOfUsers();
     const gamesAgainstBot: GameStatsDto =
       await this.statsService.getGamesAgainst(user_id, Opponent.BOT);
