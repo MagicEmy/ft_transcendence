@@ -1,0 +1,50 @@
+.profile-container {
+	display: flex;
+	width: 25%; /* 1/3 of the screen width */
+	height: 80vh; /* Entire screen height */
+	background-color: #f0df94; /* Yellow background color */
+	/* border-radius: 10px; Rounded borders */
+	border-bottom-right-radius:20px;
+	padding: 20px; /* Padding inside the container */
+	box-sizing: border-box; /* Include padding in the width calculation */
+	font-family: "Gill Sans", sans-serif;
+	font-weight: bold;
+	color:#110805;
+	font-size: 2rem;
+  }
+
+  /* Style for profile details */
+  .profile-details {
+	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  }
+  .profile-details ul {
+	list-style: none; /* Remove the list-style (bullets) */
+	margin: 3rem;
+  }
+
+  /* Optionally, you can also remove padding and margin from the list */
+  .profile-details ul,
+  .profile-details ul li {
+	padding: 0;
+	margin: 3rem;
+  }
+
+  .link {
+	display: flex;
+	align-items: bottom;
+  }
+
+  /* Style for NavLink */
+  .nav-link {
+	color: #333; /* Change the color of the link */
+	text-decoration: none; /* Remove underline */
+	padding: 8px 12px; /* Add padding */
+	border-radius: 5px; /* Add rounded corners */
+	margin-bottom: 6rem;
+  }
+
+  /* Style for active NavLink */
+  .nav-link.active {
+	background-color: #f0f0f0; /* Change background color when active */
+	font-weight: bold; /* Make text bold when active */
+  }
