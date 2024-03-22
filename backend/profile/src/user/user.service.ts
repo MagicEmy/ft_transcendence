@@ -11,6 +11,7 @@ import { ProfileUserInfoDto } from './dto/profile-user-info-dto';
 import { FriendRepository } from './friend.repository';
 import { AddFriendDto } from './dto/add-friend-dto';
 import { Friend } from './friend.entity';
+import { UsernameCache } from './usernameCache';
 
 @Injectable()
 export class UserService {
@@ -19,6 +20,7 @@ export class UserService {
     private readonly userRepository: UserRepository,
     @InjectRepository(FriendRepository)
     private readonly friendRepository: FriendRepository,
+    private readonly usernameCache: UsernameCache,
   ) {}
 
   async getUserInfoForProfile(user_id: string): Promise<ProfileUserInfoDto> {
@@ -79,12 +81,23 @@ export class UserService {
   }
 
   async getUserName(user_id: string): Promise<string> {
-    const returned = await this.userRepository
+    let user_name = this.usernameCache.getUsername(user_id);
+    if (user_name) {
+      return user_name;
+    }
+
+    const fromDB = await this.userRepository
       .createQueryBuilder('users')
       .select('user_name')
       .where('user_id = :user_id', { user_id })
       .getRawOne();
-    return returned.user_name;
+    if (!fromDB) {
+      user_name = '<user deleted>';
+    } else {
+      user_name = fromDB.user_name;
+    }
+    this.usernameCache.setUsername(user_id, user_name);
+    return user_name;
   }
 
   async getFriends(user_id: string): Promise<string[]> {
@@ -94,6 +107,9 @@ export class UserService {
       .select('friend_id')
       .where('user_id LIKE :user_id', { user_id: user_id })
       .getRawMany();
+    if (friendsRaw.length === 0) {
+      return [];
+    }
     const friends = friendsRaw.map((item) => item.friend_id);
     return friends;
   }

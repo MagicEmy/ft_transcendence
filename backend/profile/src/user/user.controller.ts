@@ -4,10 +4,14 @@ import { User } from './user.entity';
 import { UserService } from './user.service';
 import { AddFriendDto } from './dto/add-friend-dto';
 import { Friend } from './friend.entity';
+import { UsernameCache } from './usernameCache';
 
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private usernameCache: UsernameCache,
+  ) {}
 
   @Post()
   createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
@@ -42,5 +46,15 @@ export class UserController {
   @Get('/:id/username')
   getUserName(@Param('id') user_id: string) {
     return this.userService.getUserName(user_id);
+  }
+
+  @Post('/cache')
+  putUsernameInCache(@Body() user_id: string, user_name: string) {
+    this.usernameCache.setUsername(user_id, user_name);
+  }
+
+  @Get('/:id/cache')
+  getUsernameFromCache(@Param('id') user_id: string) {
+    return this.usernameCache.getUsername(user_id);
   }
 }
