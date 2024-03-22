@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user-dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
@@ -18,8 +22,21 @@ export class UserService {
   ) {}
 
   async getUserInfoForProfile(user_id: string): Promise<ProfileUserInfoDto> {
-    const user = await this.getUserById(user_id);
-    return { user_id: user_id, user_name: user.user_name, avatar: user.avatar };
+    try {
+      const user = await this.getUserById(user_id);
+      return {
+        user_id: user_id,
+        user_name: user.user_name,
+        avatar: user.avatar,
+      };
+    } catch (error) {
+      console.log(error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else {
+        throw new BadRequestException();
+      }
+    }
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -46,10 +63,10 @@ export class UserService {
     });
   }
 
-  async changeUserName(id: string, user_name: string): Promise<User> {
-    const found = await this.getUserById(id);
+  async changeUserName(user_id: string, user_name: string): Promise<User> {
+    const found = await this.getUserById(user_id);
     if (!found) {
-      throw new NotFoundException(`User with ID "${id}" not found`);
+      throw new NotFoundException(`User with ID "${user_id}" not found`);
     }
     found.user_name = user_name;
     this.userRepository.save(found);
