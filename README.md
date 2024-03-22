@@ -1,4 +1,5 @@
 # ft_transcendence
+testing version frontend using auth
 
 add .env
 
