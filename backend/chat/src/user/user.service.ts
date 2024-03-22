@@ -12,10 +12,22 @@ export class UserService{
         if (findUser == 'Not Existing') {
             const tempUser: User = {userId: user.userId, userName: user.userName, socketId: user.socketId, blockedUsers:[]};
             const newUser = new User(tempUser);
+            console.log(newUser);
             this.users.push(newUser);
+        }
+        else{
+            await this.setUserSocket(user, user.socketId);
         }
     }
 
+    async getUserBySocketId(socketId: string):  Promise <User | 'Not Existing'>
+    {
+        const userList = this.users;
+        const user = userList.find((toFind) => toFind.socketId === socketId);
+        if (user == undefined)
+            return  'Not Existing';
+        return user;
+    }
     async getUserById (user: User['userId']): Promise <User | 'Not Existing'>
     {
         const searchForUserIndex = await this.getUserIndexById(user)
@@ -25,13 +37,6 @@ export class UserService{
         return this.users[searchForUserIndex];
     }
 
-    async setUsername (user: User, username: string)
-    {
-        const searchUser = await this.getUserIndexById(user.userId)
-        if (searchUser !== -1)
-            this.users[searchUser].userName = username
-    }
-
     async getUserIndexById (userId: User['userId']): Promise <number>
     {
         const searchForUserIndex = this.users.findIndex(
@@ -39,5 +44,29 @@ export class UserService{
           );
           return searchForUserIndex;
     }
+
+    async getUserSocketById( userId: UserDto['userId']): Promise<string| undefined>{
+
+        const userList = this.users;
+        const user = userList.find(admin => admin.userId === userId);
+        return user.socketId;
+    }
+
+    async setUsername (user: User, username: string)
+    {
+        const searchUser = await this.getUserIndexById(user.userId)
+        if (searchUser !== -1)
+            this.users[searchUser].userName = username
+    }
+
+    async setUserSocket (user: UserDto, socketId: string)
+    {
+        const searchUser = await this.getUserIndexById(user.userId)
+        if (searchUser !== -1)
+            this.users[searchUser].socketId = socketId;
+    }
+
+
 }
+
 

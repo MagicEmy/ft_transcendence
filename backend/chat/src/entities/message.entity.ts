@@ -10,5 +10,5 @@ export class Message implements MessageDto {
     user: User;
     message: string;
     roomName: string;
-    timesent: number;
+    timesent: string;
 }

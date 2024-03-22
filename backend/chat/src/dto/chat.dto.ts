@@ -15,17 +15,24 @@ export interface RoomDto{
     password: string
 }
 
-export interface JoinRoomDto{
+export interface CreateRoomDto{
     roomName: string
     user: UserDto
     exclusive: boolean
+    exclusiveMember: string[]
+    password: string
+}
+
+export interface JoinRoomDto{
+    roomName: string
+    user: UserDto
     password: string
 }
 
 export interface toDoUserRoomDto{
     roomName: string
     user: UserDto
-    toDoUser: UserDto
+    toDoUser: string
     timer: number
 }
 
@@ -49,6 +56,11 @@ export interface MessageDto {
 }
 
 export interface GetMessageDto {
+    user: UserDto
+    roomName: string
+}
+
+export interface LeaveRoomDto{
     user: UserDto
     roomName: string
 }
