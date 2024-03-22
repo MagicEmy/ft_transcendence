@@ -2,5 +2,5 @@
 
 add .env
 
-docker-compose up
+docker-compose up (root)
 
