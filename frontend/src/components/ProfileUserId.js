@@ -1,13 +1,13 @@
 import React, { useContext, useEffect } from 'react';
-import { UserContext } from '../context/UserContext'; // Assuming you have a UserContext
 import mockUserData from '../data/mockUserData'; // Import mock data
+import { UserContext } from '../context/UserContext';
 import './ProfileUserId.css';
-	
+
 
 function ProfileUserId() {
-  
+
 	const { user, setUser } = useContext(UserContext);
-  
+
 	useEffect(() => {
 	  const fetchData = async () => {
 		try {
@@ -21,11 +21,11 @@ function ProfileUserId() {
 		  console.error(error);
 		}
 	  };
-  
+
 	  fetchData();
 	}, [setUser]);
-  
-  
+
+
 	return (
 	  <>
 	  {user && (
