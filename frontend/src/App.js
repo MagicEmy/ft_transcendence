@@ -1,7 +1,7 @@
 // Routing
 import Router from "./containers/Router/Router";
-import { UserProvider } from "./context/UserContext";
-import { AuthProvider } from "./context/AuthProvider";
+import UserProvider from "./context/UserProvider";
+import AuthProvider from "./context/AuthProvider";
 
 function App() {
   return (

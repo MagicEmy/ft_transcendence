@@ -2,19 +2,15 @@ import {
 	RouterProvider,
 	createBrowserRouter
 } from "react-router-dom";
-import socketIO from 'socket.io-client';
 import Dashboard from "../../pages/Dashboard";
-import ProfileUserId from "../../components/ProfileUserId";
+// import ProfileUserId from "../../components/ProfileUserId";
 import DashLayout from "../../components/DashLayout";
 import Game from "../../pages/Game";
 import Login from "../../pages/Login";
-import ChatPage from "../../pages/ChatPage";
+// import ChatPage from "../../pages/ChatPage";
 import Error from "../../pages/Error";
 import Profile from "../../pages/Profile";
 import Leaderboard from "../../pages/Leaderboard";
-// import { AuthProvider } from "../../context/AuthProvider";
-
-const socket = socketIO.connect('http://localhost:5000');
 
 const router = createBrowserRouter([
 	// {	if not loged in
@@ -35,10 +31,10 @@ const router = createBrowserRouter([
 				children: [
 					{ path: "dashboard", element: <Dashboard /> },
 					{ path: "game", element: <Game />},
-					{ path: "chat", element: <ChatPage socket={socket} />},
+					// { path: "chat", element: <ChatPage />},
 					{ path: "leaderboard", element: <Leaderboard />},
 					{ path: "profile", element: <Profile /> },
-					{ path: "profile/:userId", element: <ProfileUserId /> },
+					// { path: "profile/:userId", element: <ProfileUserId /> },
 				] },
 		]
 	},

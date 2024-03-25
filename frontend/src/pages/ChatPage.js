@@ -10,15 +10,15 @@ const ChatPage = ({ socket }) => {
   const lastMessageRef = useRef(null);
 
   // Fetch initial messages from API
-  useEffect(() => {
-    function fetchMessages() {
-      fetch("http://localhost:5000/api")
-        .then((response) => response.json())
-        .then((data) => setMessages(data.messages))
-        .catch((error) => console.error("Error fetching messages:", error));
-    }
-    fetchMessages();
-  }, []);
+//   useEffect(() => {
+//     function fetchMessages() {
+//       fetch("http://localhost:5000/api")
+//         .then((response) => response.json())
+//         .then((data) => setMessages(data.messages))
+//         .catch((error) => console.error("Error fetching messages:", error));
+//     }
+//     fetchMessages();
+//   }, []);
 
   // Listen for real-time chat messages
   useEffect(() => {

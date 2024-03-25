@@ -1,7 +1,32 @@
+import React, { useContext, useEffect } from 'react';
 import PageContent from '../components/PageContent';
+import { UserContext } from '../context/UserProvider';
 
+function Dashboard() {
 
-function Dashboard({ location }) {
+	const { user, setUser } = useContext(UserContext);
+
+	useEffect(() => {
+	const fetchData = async () => {
+		try {
+		const response = await fetch(`http://localhost:3002/profile/${user.user_id}`, {
+			method: 'GET',
+			credentials: 'include'
+		});
+		if (!response.ok) {
+			throw new Error('Network response was not ok');
+		}
+		const data = await response.json();
+		setUser(data);
+		localStorage.setItem('user', JSON.stringify(data));
+		console.log(localStorage.getItem('user'));
+		} catch (error) {
+		console.error(error);
+		}
+	};
+
+	fetchData();
+	}, [user, setUser]);
 
 	return (
 		<>

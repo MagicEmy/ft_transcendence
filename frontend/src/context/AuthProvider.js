@@ -1,25 +1,48 @@
-import { createContext, useState, } from "react";
+import React, { useState, useEffect } from 'react';
+import AuthContext from './AuthContext';
 
-const AuthContext = createContext({});
+const AuthProvider = ({ children }) => {
+  const [authState, setAuthState] = useState({
+    isLoggedIn: false,
+    user: null,
+    token: null,
+  });
+  // Function to simulate login
+  const login = (userData) => {
+    setAuthState({
+      isLoggedIn: true,
+      user: userData.user,
+      token: userData.token,
+    });
+  };
 
-export const AuthProvider = ({ children }) => {
-  const [auth, setAuth] = useState({});
-//   const [isLogged, setIsLogged] = useState(false);
-
-  // const contextValue = {
-	  //   auth,
-	  //   setAuth,
-	  //   isLogged,
-	  //   setIsLogged,
-	    // };
-
+  // Function to simulate logout
+  const logout = () => {
+    setAuthState({
+      isLoggedIn: false,
+      user: null,
+      token: null,
+    });
+  };
+  useEffect(() => {
+    // Check local storage for auth token on initial load
+    const token = localStorage.getItem('token');
+    if (token) {
+		// Set user and token from local storage
+		setAuthState((prevState) => ({
+		  ...prevState,
+		  isLoggedIn: true,
+		  token: token,
+		  // verify the token on the backend
+		}));
+	  }
+	}, []);
 
   return (
-    // <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
-    <AuthContext.Provider value={{ auth, setAuth }}>
+    <AuthContext.Provider value={{ ...authState, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export default AuthContext;
+export default AuthProvider;
