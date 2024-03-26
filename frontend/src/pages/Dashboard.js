@@ -9,7 +9,7 @@ function Dashboard() {
 	useEffect(() => {
 	const fetchData = async () => {
 		try {
-		const response = await fetch(`http://localhost:3002/profile/${user.user_id}`, {
+		const response = await fetch(`http://localhost:3002/profile/${user.intraId}`, {
 			method: 'GET',
 			credentials: 'include'
 		});

@@ -1,4 +1,4 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { FourtyTwoAuthGuard } from './utils/fourty-two-auth-guard';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './utils/jwt-auth-guard';
@@ -12,14 +12,15 @@ export class AuthController {
 
   @UseGuards(FourtyTwoAuthGuard)
   @Get('42/redirect')
-  handleRedirect(@Req() req) {
+  handleRedirect(@Req() req, @Res() res) {
     console.log('In handleRedirect()');
     console.log(req.user);
-    return this.authService.login({
+    this.authService.login({
       user_name: req.user.user_name,
       sub: req.user.user_id,
       intra_login: req.user.intra_login,
     });
+    res.redirect('http://localhost:3000/dashboard');
   }
 
   @UseGuards(JwtAuthGuard)

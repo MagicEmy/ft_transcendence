@@ -11,6 +11,7 @@ const Login = () => {
   useEffect(() => {
 	const storedUser = localStorage.getItem('user');
 	if(storedUser){
+    console.log('User already logged in, user ', storedUser);
 		window.location.href ='http://localhost:3000/dashboard';
 	}
   }, []);
