@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink } from "react-router-dom";
+// import { NavLink } from "react-router-dom";
 import './Profile.css';
 
 function Profile() {
@@ -19,6 +19,8 @@ function Profile() {
       } catch (error) {
         console.error('Error:', error);
       }
+
+	  console.log(jsonString);
     }
 
 
@@ -27,19 +29,16 @@ function Profile() {
     <>
 	 <div className="profile-container">
       <div className="profile-details">
-          <NavLink
+          {/* <NavLink
             to="/profile/:userId" // Make sure to replace ":userId" with the actual user ID
             className="nav-link" // Apply the nav-link class
             activeClassName="active" // Apply the active class when the NavLink is active
           >
             User Profile
-          </NavLink>
+          </NavLink> */}
           <button className="profile-button" onClick={FetchSelf}>
             Fetch User
           </button>
-          <div>
-          {jsonString}
-          </div>
 		</div>
     </div>
 	</>

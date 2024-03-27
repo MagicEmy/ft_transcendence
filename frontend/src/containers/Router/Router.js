@@ -8,8 +8,8 @@ import Game from "../../pages/Game";
 import Login from "../../pages/Login";
 import Error from "../../pages/Error";
 import Leaderboard from "../../pages/Leaderboard";
+import Profile from "../../pages/Profile";
 // import ChatPage from "../../pages/ChatPage";
-// import Profile from "../../pages/Profile";
 // import ProfileUserId from "../../components/ProfileUserId";
 
 const router = createBrowserRouter([
@@ -26,7 +26,7 @@ const router = createBrowserRouter([
 					{ path: "game", element: <Game />},
 					// { path: "chat", element: <ChatPage />},
 					{ path: "leaderboard", element: <Leaderboard />},
-					// { path: "profile", element: <Profile /> }, fake path
+					{ path: "profile", element: <Profile /> },
 					// { path: "profile/:userId", element: <ProfileUserId /> },
 				] },
 		]

@@ -9,7 +9,7 @@ function Dashboard() {
 	useEffect(() => {
 	const fetchData = async () => {
 		try {
-		const response = await fetch(`http://localhost:3002/profile/${user.intraId}`, {
+		const response = await fetch(`http://localhost:3002/profile`, {
 			method: 'GET',
 			credentials: 'include'
 		});
@@ -19,7 +19,7 @@ function Dashboard() {
 		const data = await response.json();
 		setUser(data);
 		localStorage.setItem('user', JSON.stringify(data));
-		console.log(localStorage.getItem('user'));
+		console.log("LOcAL STOR", localStorage.getItem('user'));
 		} catch (error) {
 		console.error(error);
 		}
