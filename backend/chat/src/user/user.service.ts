@@ -1,72 +1,92 @@
 import { Injectable } from '@nestjs/common';
-import { UserDto } from 'src/dto/chat.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { BlockedUserDto, UserDto } from 'src/dto/chat.dto';
 import { User } from 'src/entities/user.entity';
+import { UserRepository } from './user.repository';
+import { BlockedUserRepository } from './blocked-user.repository';
 
 @Injectable()
-export class UserService{
-    private users: User[] = []
+export class UserService {
+  constructor(
+    @InjectRepository(UserRepository)
+    private readonly userRepository: UserRepository,
+    @InjectRepository(BlockedUserRepository)
+    private readonly blockedUserRepository: BlockedUserRepository,
+  ) {}
 
-    async addUser( user: UserDto)
-    {
-        const findUser = await this.getUserById(user.userId);
-        if (findUser == 'Not Existing') {
-            const tempUser: User = {userId: user.userId, userName: user.userName, socketId: user.socketId, blockedUsers:[]};
-            const newUser = new User(tempUser);
-            console.log(newUser);
-            this.users.push(newUser);
-        }
-        else{
-            await this.setUserSocket(user, user.socketId);
-        }
+  async addUser(userDto: UserDto): Promise<User> {
+    let user = await this.userRepository.getUserById(userDto.userId);
+    if (!user) {
+      try {
+        user = await this.userRepository.createUser(userDto);
+      } catch (error) {
+        console.log(error);
+        // TBD what to throw
+      }
+    } else {
+      await this.setUserSocket(userDto.userId, userDto.socketId);
     }
+    return user;
+  }
 
-    async getUserBySocketId(socketId: string):  Promise <User | 'Not Existing'>
-    {
-        const userList = this.users;
-        const user = userList.find((toFind) => toFind.socketId === socketId);
-        if (user == undefined)
-            return  'Not Existing';
-        return user;
+  // @Debora, you could consider changing these two functions to only return
+  //   Promise<User> instead of Promise<User | 'Not Existing'>
+  //   and then checking in the receiving function whether it is valid or undefined
+
+  async getUserBySocketId(socketId: string): Promise<User | 'Not Existing'> {
+    const user = this.userRepository.getUserBySocketId(socketId);
+    if (!user) {
+      return 'Not Existing';
     }
-    async getUserById (user: User['userId']): Promise <User | 'Not Existing'>
-    {
-        const searchForUserIndex = await this.getUserIndexById(user)
-        if (searchForUserIndex === -1) {
-            return 'Not Existing';
-        }
-        return this.users[searchForUserIndex];
+    return user;
+  }
+
+  async getUserById(userId: string): Promise<User | 'Not Existing'> {
+    // validate userId
+    const found = await this.userRepository.getUserById(userId);
+    if (!found) {
+      return 'Not Existing';
+    } else {
+      return found;
     }
+  }
 
-    async getUserIndexById (userId: User['userId']): Promise <number>
-    {
-        const searchForUserIndex = this.users.findIndex(
-            (user) => user.userId === userId,
-          );
-          return searchForUserIndex;
-    }
+  async getUserSocketById(userId: string): Promise<string | undefined> {
+    return this.userRepository.getSocketIdByUserId(userId);
+  }
 
-    async getUserSocketById( userId: UserDto['userId']): Promise<string| undefined>{
+  async setUserName(userId: string, userName: string): Promise<User> {
+    // validate userId to be uuid
+    const user = await this.userRepository.setUserName(userId, userName);
+    console.log(`User name of user ${userId} set to ${userName}`);
+    return user;
+  }
 
-        const userList = this.users;
-        const user = userList.find(admin => admin.userId === userId);
-        return user.socketId;
-    }
+  async setUserSocket(userId: string, socketId: string): Promise<User> {
+    const user = await this.userRepository.setUserSocket(userId, socketId);
+    console.log(`SocketId of user ${userId} set to ${socketId}`);
+    return user;
+  }
 
-    async setUsername (user: User, username: string)
-    {
-        const searchUser = await this.getUserIndexById(user.userId)
-        if (searchUser !== -1)
-            this.users[searchUser].userName = username
-    }
+  // FUNCTIONS RELATED TO BLOCKING OF USERS
 
-    async setUserSocket (user: UserDto, socketId: string)
-    {
-        const searchUser = await this.getUserIndexById(user.userId)
-        if (searchUser !== -1)
-            this.users[searchUser].socketId = socketId;
-    }
+  blockUser(blockedUserDto: BlockedUserDto) {
+    this.blockedUserRepository.setUserAsBlocked(blockedUserDto);
+  }
 
+  unblockUser(blockedUserDto: BlockedUserDto) {
+    this.blockedUserRepository.setUserAsUnblocked(blockedUserDto);
+  }
 
+  async getAllBlockedUsersByBlockingUserId(
+    blockingUserId: string,
+  ): Promise<string[]> {
+    return this.blockedUserRepository.getAllBlockedUsersByBlockingUserId(
+      blockingUserId,
+    );
+  }
+
+  async isBlockedBy(blockedUserDto: BlockedUserDto): Promise<boolean> {
+    return this.blockedUserRepository.isBlockedBy(blockedUserDto);
+  }
 }
-
-
