@@ -2,7 +2,9 @@ version: "3"
 services:
   chat:
     container_name: chat
-    env_file: .env
+    env_file: 
+      - .env
+      - .env.chat-db
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,22 +13,29 @@ services:
       - ".:/app" #only for developement
       - "/app/node_modules"
     restart: unless-stopped
-    # networks:
-    #   - chat
+    networks:
+      - chat
     ports:
       - "3001:3000" #only for testing porposes
-  #   depends_on:
-  #     - chat_db
+    depends_on:
+      - chat_db
   
-  # chat_db:
-  #   container_name: chat_db
-  #   env_file: .env
-  #   image: postgres:latest
-  #   restart: always
-  #   volumes:
-  #     - "chat_volume:/var/lib/postgresql"
-  #   networks:
-  #     - chat
+  chat_db:
+    container_name: chat_db
+    env_file: 
+      - ../../backend/chat/.env
+      - ../../backend/chat/.env.chat-db
+    build:
+      context: ../../database/chat_db
+      dockerfile: Dockerfile
+    image: postgres:latest
+    restart: always
+    ports:
+      - "5432:5432" #only for testing porposes
+    volumes:
+      - "chat_volume:/var/lib/postgresql"
+    networks:
+      - chat
 
 #   zookeeper:
 #     image: confluentinc/cp-zookeeper:7.3.2
@@ -74,10 +83,10 @@ services:
 #       - chat
 
   
-# networks:
-#   chat:
-#     name: chat
-#     driver: bridge
+networks:
+  chat:
+    name: chat
+    driver: bridge
 
-# volumes:
-#   chat_volume:
+volumes:
+  chat_volume:
