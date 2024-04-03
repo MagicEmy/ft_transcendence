@@ -64,3 +64,8 @@ export interface LeaveRoomDto{
     user: UserDto
     roomName: string
 }
+
+export interface BlockedUserDto {
+	blockingUserId: string;
+	blockedUserId: string;
+}
