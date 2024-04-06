@@ -33,8 +33,8 @@ const router = createBrowserRouter([
 	},
 ]);
 //check again relative path 21 - 334
-function App() {
+function AppRouter() {
 	return <RouterProvider router={router} />;
 }
 
-export default App;
+export default AppRouter;
