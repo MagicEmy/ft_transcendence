@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import logo from "../assets/Atari_Pong.png";
 import "./Login.css";
+// import LoginButton from "../components/auth/LoginButton";
 
 const Login = () => {
 	// const { authState, setAuthState } = useContext(AuthContext);
@@ -47,6 +48,7 @@ const Login = () => {
           <button className="login-button" onClick={handleLogin}>
             LOGIN
           </button>
+		  {/* <LoginButton /> */}
           <div className="loader"></div>
         </main>
       </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import "./LoginButton.css";
 
 const LoginButton = () => {
   const login = async () => {
@@ -19,12 +20,17 @@ const LoginButton = () => {
 
 // domain actual endpoint
   return (
-    <button className="Login-button" onClick={() => login()}>
-      Login
-    </button>
+	<body>
+    <a href="#" class="neon-loader">
+      <span>Click!</span>
+    </a>
+	</body>
   );
 };
 
+{/* <button className="Login-button" onClick={() => login()}>
+  Login
+</button> */}
 export default LoginButton;
 
 //http://localhost:3000/dashboard?error=access_denied&error_description=The+resource+owner+or+authorization+server+denied+the+request.
