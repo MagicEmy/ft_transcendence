@@ -1,52 +1,52 @@
-import React, { useContext, useEffect } from 'react';
+import axios from 'axios';
+import React, { useContext, useState, useEffect } from 'react';
+import AuthContext from './AuthContext';
 import PageContent from '../components/PageContent';
-import { UserContext } from '../context/UserProvider';
-import Cookies from 'js-cookie';
 
+//make this global
+const instance = axios.create({
+	baseURL: 'http://localhost:3001/auth/42/redirect', // Replace with your actual backend URL
+});
 
+export const Dashboard = () => {
+	// const authToken = Cookies.get('access_token');
+	// console.log("AUTH TOKEN", authToken);
+	const [authToken, setAuthToken] = useState(null);
 
-function Dashboard() {
+	useEffect(() => {
+		const fetchToken = async () => {
+			try {
+				const response = await instance.get(`${instance.defaults.baseURL}`);
+				const data = response.data;
+				setAuthToken(data.access_token);
+			} catch (error) {
+				console.error('Error fetching token:', error);
+			}
+		};
 
-	// const { user, setUser } = useContext(UserContext);
+		fetchToken();
+	}, []);
 
-	// useEffect(() => {
-		const authToken = Cookies.get('access_token');
-		const authToken2 = Cookies.get('Authentication');
-		console.log("AUTH TOKEN", authToken);
-		console.log("AUTH TOKEN2", authToken2);
-	// 	const fetchData = async () => {
-	// 	try {
-	// 	const response = await fetch(`http://localhost:3003/auth/profile`, {
-	// 		method: 'GET',
-
-	// 		credentials: 'include'
-	// 	});
-	// 	if (!response.ok) {
-	// 		throw new Error('Network response was not ok');
-	// 	}
-	// 	const data = await response.json();
-	// 	setUser(data);
-	// 	localStorage.setItem('user', JSON.stringify(data));
-	// 	console.log("LOcAL STOR", localStorage.getItem('user'));
-	// 	} catch (error) {
-	// 	console.error(error);
-	// 	}
-	// };
-
-	// fetchData();
-	// }, [user, setUser]);
+	console.log("AUTH TOKEN", authToken); // Access the fetched token
 
 	return (
 		<>
 
-		<PageContent title="Welcome!">
-			<br/>
-		  <p>Play or chat</p>
-		</PageContent>
+			<PageContent title="Welcome!">
+				<br />
+				<p>Play or chat</p>
+			</PageContent>
 
 		</>
-	  );
+	);
 }
 
 export default Dashboard
 
+/*
+
+	Make sure your backend serves the redirect over HTTPS to ensure secure communication.
+	Consider storing the JWT token in local storage with an appropriate expiration time instead of keeping it in memory throughout the session.
+	Explore secure storage mechanisms provided by your frontend framework/library for enhanced security.
+
+*/

@@ -21,22 +21,16 @@ export class AuthController {
       sub: req.user.user_id,
       intra_login: req.user.intra_login,
     });
+
     if (!response) {
       console.log('Bad payload, unauthorized user!');
       req.redirect(`http://localhost:3000/`);
       return;
     }
-    // Setting the cookies
-    res.cookie('access_token', response.access_token, { httpOnly: true });
-    res.cookie('user_id', response.user_id, { httpOnly: true });
-    res.cookie('user_name', response.user_name, { httpOnly: true });
-    // response to the frontend
-    const cookie = `Authentication=${response.access_token}; HttpOnly; Path=/; Max-Age=100000`;
 
-    res
-      .setHeader('Set-Cookie', cookie)
-      .status(302)
-      .redirect('http://localhost:3000/dashboard');
+    // Send the access token in the response body (JSON format)
+    res.json({ access_token: response.access_token });
+    res.redirect('http://localhost:3000/dashboard');
   }
 
   @UseGuards(JwtAuthGuard)

@@ -8,17 +8,7 @@ const Login = () => {
 
   const handleLogin = async () => {
     window.location.href = "http://localhost:3003/auth/42/login";
-    // const response = await fetch("http://localhost:3003/auth/42/login", {
-    //   method: "GET",
-    //   credentials: "include",
-    // });
-    // if (!response.ok) {
-    //   throw new Error("Network response was not ok");
-    // }
-    // const data = await response.json();
-    // console.log(data);
   };
-
 
   return (
     <>
@@ -37,11 +27,3 @@ const Login = () => {
 };
 
 export default Login;
-
-////   "proxy": "http://auth:3000",
-
-//   app.enableCors({
-//     origin: ['http://localhost:3000'],
-//     credentials: true,
-//   });
-
