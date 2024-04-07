@@ -14,24 +14,20 @@ export class AuthController {
   @Get('42/redirect')
   async handleRedirect(@Req() req, @Res() res) {
     console.log('In handleRedirect()');
-    console.log(req.user);
-    // const { access_token, user_id } = await this.authService.login({
     const response = await this.authService.login({
       user_name: req.user.user_name,
       sub: req.user.user_id,
       intra_login: req.user.intra_login,
+	  access_token: req.user.access_token,
     });
-
+	
     if (!response) {
       console.log('Bad payload, unauthorized user!');
-      req.redirect(`http://localhost:3000/`);
+      res.redirect('http://localhost:3000/');
       return;
     }
-
-    // Send the access token in the response body (JSON format)
-    res.json({ access_token: response.access_token });
-    res.redirect('http://localhost:3000/dashboard');
-  }
+	res.redirect('http://localhost:3000/dashboard?token=' + response.access_token);
+}
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
@@ -40,9 +36,6 @@ export class AuthController {
   }
 }
 
-//In this code, res.cookie() is used to set cookies with the names ‘access_token’ and ‘user_id’.
-//The { httpOnly: true } option is used to create HTTP-only cookies, which cannot be accessed by client-side JavaScript.
-//This provides an added layer of security against cross-site scripting (XSS) attacks.
 
 /*
 this is an example of what will be returned after authentication of a user:

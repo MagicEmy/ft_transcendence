@@ -12,25 +12,25 @@ import Profile from "../../pages/Profile";
 // import ChatPage from "../../pages/ChatPage";
 // import ProfileUserId from "../../components/ProfileUserId";
 
-import { AuthContext } from './AuthContext'; // Import your AuthContext
+// import { AuthContext } from './AuthContext'; // Import your AuthContext
 
-const PrivateRoute = ({ children }) => {
-  const { authToken } = useContext(AuthContext);
+// const PrivateRoute = ({ children }) => {
+//   const { authToken } = useContext(AuthContext);
 
-  return authToken ? (
-    // If authenticated, render children
-    children
-  ) : (
-    // If not authenticated, redirect to login
-    <Navigate to="/" replace /> // Assuming login is at path "/"
-  );
-};
+//   return authToken ? (
+//     // If authenticated, render children
+//     children
+//   ) : (
+//     // If not authenticated, redirect to login
+//     <Navigate to="/" replace /> // Assuming login is at path "/"
+//   );
+// };
 
 const router = createBrowserRouter([
 	{
 		path: "/",
 		errorElement: <Error />,
-		element: <PrivateRoute />,
+		// element: <PrivateRoute />,
 		children: [
 			{ index: true, element: <Login /> },
 			{
