@@ -111,6 +111,7 @@ services:
       - backend
     depends_on:
       - postgres
+      - kafdrop
 
   postgres:
     container_name: postgres
