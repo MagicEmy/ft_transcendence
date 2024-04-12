@@ -18,16 +18,33 @@ export class AuthController {
       user_name: req.user.user_name,
       sub: req.user.user_id,
       intra_login: req.user.intra_login,
-	  access_token: req.user.access_token,
+      access_token: req.user.access_token,
     });
-	
+
     if (!response) {
       console.log('Bad payload, unauthorized user!');
       res.redirect('http://localhost:3000/');
       return;
     }
-	res.redirect('http://localhost:3000/dashboard?token=' + response.access_token);
-}
+    res.cookie('token', response.access_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+    }),
+      res.cookie('intraLogin', response.user_id, {
+        httpOnly: false,
+        secure: false,
+      }),
+      res.cookie('username', response.user_name, {
+        httpOnly: false,
+        secure: false,
+      }),
+      res.redirect('http://localhost:3000/dashboard');
+
+    // res.redirect(
+    //   'http://localhost:3000/dashboard?token=' + response.access_token,
+    // );
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
@@ -35,7 +52,6 @@ export class AuthController {
     return req.user;
   }
 }
-
 
 /*
 this is an example of what will be returned after authentication of a user:
