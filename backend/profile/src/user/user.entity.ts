@@ -2,6 +2,9 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'users' })
 export class User {
+  @PrimaryGeneratedColumn()
+  id: string;
+
   @PrimaryGeneratedColumn('uuid')
   user_id: string;
 
