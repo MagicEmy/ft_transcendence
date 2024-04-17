@@ -43,7 +43,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
       if(user.socketId === userOld.socketId)
         return ;
-      await this.userService.setUserSocket(user, user.socketId);
+      await this.userService.setUserSocket(user.userId, user.socketId);
       const userRoom = await this.roomService.getRoomWithUserByUserID(userOld.userId);
       if (userRoom.length === 0){
         this.logger.log(`${user.userId} has not active chat`);
@@ -234,6 +234,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = await this.userService.getUserBySocketId(socket.id);
       this.logger.log(`Socket disconnected: ${socket.id}`);
       if (user !== 'Not Existing')
-        await this.userService.setUserSocket(user, "");
+        await this.userService.setUserSocket(user.userId, "");
     }
 } 
