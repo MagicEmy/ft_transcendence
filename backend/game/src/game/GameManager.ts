@@ -24,16 +24,16 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		{
 			console.log("Connected to Kafka");
 			console.log("Creating test game");
-			this.producer.send(
-			{
-				topic:	"pongNewGame",
-				messages:	[{ value: JSON.stringify(
-				{
-					gameType:	"pong",
-					name1:		"localhost",
-					name2:		"10.10.4.21",
-				}),}]
-			});
+			// this.producer.send(
+			// {
+			// 	topic:	"pongNewGame",
+			// 	messages:	[{ value: JSON.stringify(
+			// 	{
+			// 		gameType:	"pong",
+			// 		name1:		"localhost",
+			// 		name2:		"10.11.2.7",
+			// 	}),}]
+			// });
 		});
 	}
 
@@ -141,6 +141,20 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		{
 			switch (msg.msgType)
 			{
+				case "solo":
+					// if (gameID)
+					// {
+					// 	client.emit("error", "User tried to play solo while already in game");
+					// 	break ;
+					// }
+					// gameID = new GamePong(msg.name, null);
+					// this.games.push(gameID);
+					gameID.connectPlayer(msg.name, client);
+					break ;
+				case "paired":
+					break ;
+				case "match":
+					break ;
 				case "connection":
 					if (gameID.connectPlayer(msg.name, client))
 						console.log(gameID.player1.status, ": ", gameID.player1.name);
@@ -157,7 +171,16 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		}
 		else
 		{
-			client.emit("error", "did not find game");
+			switch (msg.msgType)
+			{
+				case "solo":
+					gameID = new GamePong(msg.name, null);
+					this.games.push(gameID);
+					gameID.connectPlayer(msg.name, client);
+					break ;
+				default:
+					break ;
+			}
 		}
 	}
 }

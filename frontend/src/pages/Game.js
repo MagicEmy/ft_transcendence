@@ -53,15 +53,22 @@ function Game()
 			{
 				client:		window.location.hostname,
 				name:		window.location.hostname,
-				msgType:	"connection"
+				// msgType:	"connection"
+				msgType:	"solo",
+				// msgType:	"paired",
+				// msgType:	"match",
 				// callback:	() =>
 				// {
 				// 	console.log("Callback");
 				// },
 			}
+			// const connectMSG =
+			// {
+			// 	client
+			// }
 			console.log("Sending user Package to Game");
 			socket.emit("connectMSG", JSON.stringify(connectMSG));
-			socket.emit("test");
+			// socket.emit("test");
 		});
 
 		socket.on("disconnect", () =>
@@ -86,6 +93,11 @@ function Game()
 			// console.log("received: ", message);
 			// renderHUD(message);
 		});
+
+		socket.on("pongHUD", (message) =>
+		{
+			renderHUD(message);
+		});
 		
 		
 		handleResizeEvent();
@@ -95,6 +107,9 @@ function Game()
 			const gameDiv = document.getElementById("game");
 			adjustSize(gameDiv, document.getElementById("gameBackground"));
 			adjustSize(gameDiv, document.getElementById("gamePongCanvas"));
+			adjustSize(gameDiv, document.getElementById("gameHUD"));
+
+			renderHUD();
 			
 		}
 		
@@ -117,9 +132,9 @@ function Game()
 			const element = document.getElementById("gamePongCanvas");
 			const context = element.getContext("2d");
 			
-			console.log(message);
+			// console.log(message);
 			const data = JSON.parse(message);
-			console.log("data player1", data.Player1)
+			// console.log("data player1", data.Player1)
 			clearContext(element, context);
 			addPaddle(element, context, data.Player1);
 			addPaddle(element, context, data.Player2);
@@ -141,13 +156,104 @@ function Game()
 
 		}
 
+/* ************************************************************************** *\
+
+	HUD
+
+\* ************************************************************************** */
+
 		function renderHUD(message)
 		{
-			const msg = JSON.parse(message);
+			let msg = {};
 
+			if (message)
+			{
+				console.log(message);
+				msg = JSON.parse(message);
+			}
 
-			console.log("I did a thing");
+			// renderHUD.P1name = msg.P1name  || renderHUD.P1name || "player1";
+			// renderHUD.P1score = msg.P1score || renderHUD.P1score || 0;
+			// renderHUD.P1status = msg.P1status || renderHUD.P1status || "";
+			// renderHUD.P2name = msg.P2name || renderHUD.P2name || "player2";
+			// renderHUD.P2score = msg.P2score || renderHUD.P2score || 0;
+			// renderHUD.P2status = msg.P2status || renderHUD.P2status || "";
+
+			// renderHUD.element = document.getElementById("gameHUD");
+			// const HUD = document.getElementById("gameHUD");
+			// const context = HUD.getContext("2d");
+			HUDinfo(message);
+			clearContext(HUDinfo.element, HUDinfo.context);
+			AddPlayerInfo(0.25, HUDinfo.P1name, HUDinfo.P1score, HUDinfo.P1status);
+			AddPlayerInfo(0.75, HUDinfo.P2name, HUDinfo.P2score, HUDinfo.P2status);
+			// AddPlayerInfo(HUD, context, 0.25, renderHUD.P1name, renderHUD.P1score, "Arial");
+
+			// AddPlayerInfo(HUD, context, 0.75, renderHUD.P2name, renderHUD.P2score, "Arial");
 		}
+
+		function	HUDinfo(message)
+		{
+			HUDinfo.element = document.getElementById("gameHUD");
+			HUDinfo.context = HUDinfo.element.getContext("2d");
+
+			let msg = {};
+			if (message)
+				msg = JSON.parse(message)
+			HUDinfo.P1name = msg.P1name || HUDinfo.P1name || "player1";
+			HUDinfo.P1score = msg.P1score || HUDinfo.P1score || 0;
+			HUDinfo.P1status = msg.P1status || HUDinfo.P1status || "";
+			HUDinfo.P2name = msg.P2name || HUDinfo.P2name || "player2";
+			HUDinfo.P2score = msg.P2score || HUDinfo.P2score || 0;
+			HUDinfo.P2status = msg.P2status || HUDinfo.P2status || "";
+		}
+
+		function	AddPlayerInfo(pos, name, score, status)
+		{
+			const font = "Arial";
+			HUDinfo.context.fillStyle = "rgba(123, 123, 123, 1)";
+
+			HUDinfo.context.font = HUDinfo.element.width / 16 + "px " + font;
+			let posX = HUDinfo.element.width * pos - HUDinfo.context.measureText(name).width / 2;
+			let posY = HUDinfo.context.measureText(name).actualBoundingBoxAscent +
+						HUDinfo.element.height / 23;
+			HUDinfo.context.fillText(name, posX, posY);
+
+			HUDinfo.context.font = HUDinfo.element.width / 8 + "px " + font;
+			posX = HUDinfo.element.width * pos - HUDinfo.context.measureText(score).width / 2;
+			posY += HUDinfo.context.measureText(score).actualBoundingBoxAscent +
+					HUDinfo.element.height / 23;
+			HUDinfo.context.fillText(score, posX, posY);
+
+			HUDinfo.context.font = HUDinfo.element.width / 23 + "px " + font;
+			posX = HUDinfo.element.width * pos - HUDinfo.context.measureText(status).width / 2;
+			posY = HUDinfo.context.measureText(status).actualBoundingBoxAscent +
+						HUDinfo.element.height * 21 / 23;
+			HUDinfo.context.fillText(status, posX, posY);
+		}
+
+		// function	AddPlayerInfo(element, context, pos, name, score, font)
+		// {
+		// 	// renderHUD.element
+		// 	context.fillStyle = "rgba(123, 123, 123, 1)";
+		
+		// 	context.font = element.width / 16 + "px " + font;
+		// 	let posX = renderHUD.element.width * pos - context.measureText(name).width / 2;
+		// 	let posY = context.measureText(name).actualBoundingBoxAscent + 
+		// 				element.height / 23;
+		// 	context.fillText(name, posX, posY);
+		
+		// 	context.font = element.width / 8 + "px " + font;
+		// 	posX = element.width * pos - context.measureText(score).width / 2;
+		// 	posY += context.measureText(name).actualBoundingBoxAscent + 
+		// 			element.height / 23;
+		// 	context.fillText(score, posX, posY);
+		// }
+
+/* ************************************************************************** *\
+
+	-
+
+\* ************************************************************************** */
 
 		function	fillContext(element, context, color)
 		{
@@ -177,10 +283,10 @@ function Game()
 
 		const getImage = () =>
 		{
-			console.log("requesting Image!");
+			// console.log("requesting Image!");
 			socket.emit("image");
 		};
-		const gameInterval = setInterval(getImage, 1000);
+		const gameInterval = setInterval(getImage, 32);
 
 		return () =>
 		{
@@ -197,6 +303,7 @@ function Game()
 				<div id="game">
 					<canvas id="gameBackground"></canvas>
 					<canvas id="gamePongCanvas"></canvas>
+					<canvas id="gameHUD"></canvas>
 				</div>
 				{/* <script src="GameConnect.js"></script> */}
 				{/* <div className="canvas-container"> */}
