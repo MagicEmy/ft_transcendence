@@ -18,4 +18,16 @@ export class FriendRepository extends Repository<Friend> {
     const friend = this.friendRepository.create(addFriendDto);
     return this.friendRepository.save(friend);
   }
+
+  async getFriends(user_id: string): Promise<string[]> {
+    const friendsRaw = await this.createQueryBuilder('friends')
+      .select('friend_id')
+      .where('user_id LIKE :user_id', { user_id: user_id })
+      .getRawMany();
+    if (friendsRaw.length === 0) {
+      return [];
+    }
+    const friends = friendsRaw.map((item) => item.friend_id);
+    return friends;
+  }
 }

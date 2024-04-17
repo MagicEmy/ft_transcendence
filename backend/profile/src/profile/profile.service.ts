@@ -22,7 +22,7 @@ export class ProfileService {
     }
     const friendNames = [];
     for (const item of friendIds) {
-      friendNames.push(await this.userService.getUserName(item));
+      friendNames.push(await this.userService.getUsername(item));
     }
     const friends = [];
     for (let i = 0; i < friendIds.length; i++) {
@@ -55,7 +55,7 @@ export class ProfileService {
     const mostFrequentOpponent: GamesAgainstUserIdDto =
       await this.gameService.mostFrequentOpponent(user_id);
     const mostFrequentOpponentUserName: string =
-      await this.userService.getUserName(user_id);
+      await this.userService.getUsername(user_id);
 
     return {
       user_id: userInfo.user_id,
