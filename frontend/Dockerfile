@@ -1,9 +1,12 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json .
+COPY *.json .
 
 RUN npm install
 
-CMD ["npm", "run", "start:prod"]
+COPY . .
+
+
+CMD ["npm", "start"]

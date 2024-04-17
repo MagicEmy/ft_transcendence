@@ -8,26 +8,19 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     image: frontend
-    volumes:
-      - "./frontend:/app" #only for developement
     restart: unless-stopped
     ports:
       - "3000:3000"
 
 # backend
-  api_gateway:
-    container_name: api_gateway
+  gateway:
+    container_name: gateway
     env_file: .env
     build:
-      context: ./backend/api_gateway
+      context: ./backend/gateway
       dockerfile: Dockerfile
-    image: api_gateway
-    volumes:
-      - "./backend/api_gateway:/app" #only for developement
-      - "/app/node_modules"
+    image: gateway
     restart: unless-stopped
-    ports:
-      - "443:3000"
     networks:
       - backend
 
@@ -38,27 +31,11 @@ services:
       context: ./backend/chat
       dockerfile: Dockerfile
     image: chat
-    volumes:
-      - "./backend/chat:/app" #only for developement
-      - "/app/node_modules"
     restart: unless-stopped
     networks:
       - backend
-    ports:
-      - "3004:3000" #only for testing porposes
     depends_on:
-      - chat_db
-
-  chat_db:
-    container_name: chat_db
-    env_file: .env
-    image: postgres:latest
-    restart: always
-    volumes:
-      - "chat_volume:/var/lib/postgresql"
-    networks:
-      - backend
-
+      - postgres
 
   login:
     container_name: login
@@ -67,27 +44,11 @@ services:
       context: ./backend/login
       dockerfile: Dockerfile
     image: login
-    volumes:
-      - "./backend/login:/app" #only for developement
-      - "/app/node_modules"
     restart: unless-stopped
     networks:
       - backend
-    ports:
-      - "3001:3000" #only for testing porposes
     depends_on:
-      - login_db
-  
-  login_db:
-    container_name: login_db
-    env_file: .env
-    image: postgres:latest
-    restart: always
-    volumes:
-      - "login_volume:/var/lib/postgresql"
-    networks:
-      - backend
-
+      - postgres
 
   profile:
     container_name: profile
@@ -96,27 +57,11 @@ services:
       context: ./backend/profile
       dockerfile: Dockerfile
     image: profile
-    volumes:
-      - "./backend/profile:/app" #only for developement
-      - "/app/node_modules"
     restart: unless-stopped
     networks:
       - backend
-    ports:
-      - "3002:3000" #only for testing porposes
     depends_on:
-      - profile_db
-  
-  profile_db:
-    container_name: profile_db
-    env_file: .env
-    image: postgres:latest
-    restart: always
-    volumes:
-      - "profile_volume:/var/lib/postgresql"
-    networks:
-      - backend
-
+      - postgres
 
   score:
     container_name: score
@@ -125,26 +70,11 @@ services:
       context: ./backend/score
       dockerfile: Dockerfile
     image: "score"
-    volumes:
-      - "./backend/score:/app" #only for developement
-      - "/app/node_modules"
     restart: unless-stopped
     networks:
       - backend
-    ports:
-      - "3003:3000" #only for testing porposes
     depends_on:
-      - score_db
-  
-  score_db:
-    container_name: score_db
-    env_file: .env
-    image: postgres:latest
-    restart: always
-    volumes:
-      - "score_volume:/var/lib/postgresql"
-    networks:
-      - backend
+      - postgres
 
   game:
     container_name: game
@@ -153,32 +83,32 @@ services:
       context: ./backend/game
       dockerfile: Dockerfile
     image: game
-    volumes:
-      - "./backend/game:/app" #only for developement
-      - "/app/node_modules"
     restart: unless-stopped
     networks:
       - backend
-    ports:
-      - "3006:3000" #only for testing porposes
     depends_on:
-      - game_db
+      - postgres
   
-  game_db:
-    container_name: game_db
+  postgres:
+    container_name: postgres
     env_file: .env
-    image: postgres:latest
+    build:
+      context: ./backend/database
+      dockerfile: Dockerfile
     restart: always
     volumes:
-      - "game_volume:/var/lib/postgresql"
+      - "db_volume:/var/lib/postgresql"
     networks:
       - backend
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+  
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.2
     container_name: zookeeper
-    ports:
-      - "2181:2181" #only for dev
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_SERVER_ID: 1
@@ -189,9 +119,6 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.3.2
     container_name: kafka
-    ports:
-      - "9092:9092"
-      - "29092:29092"
     environment:
       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
@@ -206,31 +133,25 @@ services:
     networks:
       - backend
 
-#kafka ui reachable at port 8080
-  kafka-ui:
-    container_name: kafka-ui
-    image: provectuslabs/kafka-ui:latest
+  reverseproxy:
+    container_name: reverseproxy
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
     ports:
-      - 8080:8080
-    depends_on:
-      - kafka
-    environment:
-      DYNAMIC_CONFIG_ENABLED: 'true'
+      - "80:80"
     networks:
       - backend
-
+    depends_on: 
+     - gateway
 
 networks:
   backend:
     name: backend
     driver: bridge
 
-
 volumes:
-  chat_volume:
-  game_volume:
-  login_volume:
-  profile_volume:
-  score_volume:
+  db_volume:
+
 
 
