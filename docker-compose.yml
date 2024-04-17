@@ -1,80 +1,98 @@
 version: "3"
 services:
 
-  frontend:
-    container_name: frontend
-    env_file: .env
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    image: frontend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
+  # frontend:
+  #   container_name: frontend
+  #   env_file: .env
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   image: frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
 
 # backend
-  gateway:
-    container_name: gateway
-    env_file: .env
-    build:
-      context: ./backend/gateway
-      dockerfile: Dockerfile
-    image: gateway
-    restart: unless-stopped
-    networks:
-      - backend
+  # gateway:
+  #   container_name: gateway
+  #   env_file: .env
+  #   build:
+  #     context: ./backend/gateway
+  #     dockerfile: Dockerfile
+  #   image: gateway
+  #   restart: unless-stopped
+  #   networks:
+  #     - backend
 
   chat:
     container_name: chat
-    env_file: .env
+    env_file: 
+    - .env
+    - .env.chat-db
     build:
       context: ./backend/chat
       dockerfile: Dockerfile
     image: chat
+    volumes:
+      - "./backend/chat:/app" # for development only
+      - "/app/node_modules"
     restart: unless-stopped
+    ports:
+      - "3005:3000" # only for testing purposes
     networks:
       - backend
     depends_on:
-      - postgres
+      - chat_db
 
-  login:
-    container_name: login
-    env_file: .env
+  auth:
+    container_name: auth
+    env_file: 
+    - .env
+    - .env.profile-db
     build:
-      context: ./backend/login
+      context: ./backend/auth
       dockerfile: Dockerfile
-    image: login
+    image: auth
+    volumes:
+    - "./backend/auth:/app" # only for development
+    - "/app/node_modules"
     restart: unless-stopped
     networks:
       - backend
+    ports:
+      - "3003:3000" # only for testing purposes
     depends_on:
-      - postgres
+      - profile_db
 
   profile:
     container_name: profile
-    env_file: .env
+    env_file: 
+    - .env
+    - .env.profile-db
     build:
       context: ./backend/profile
       dockerfile: Dockerfile
     image: profile
     restart: unless-stopped
+    ports: 
+    - "3002:3000"
     networks:
       - backend
     depends_on:
-      - postgres
+      - profile_db
 
-  score:
-    container_name: score
-    env_file: .env
-    build:
-      context: ./backend/score
-      dockerfile: Dockerfile
-    image: "score"
-    restart: unless-stopped
-    networks:
-      - backend
-    depends_on:
-      - postgres
+  # score:
+  #   container_name: score
+  #   env_file: .env
+  #   build:
+  #     context: ./backend/score
+  #     dockerfile: Dockerfile
+  #   image: "score"
+  #   restart: unless-stopped
+  #   networks:
+  #     - backend
+  #   depends_on:
+  #     - postgres
 
   game:
     container_name: game
@@ -83,23 +101,53 @@ services:
       context: ./backend/game
       dockerfile: Dockerfile
     image: game
+    volumes:
+      - "./backend/game:/app" # only for development
+      - "/app/node_modules"
+    ports:
+      - "3006:3000" # only for testing purposes
     restart: unless-stopped
     networks:
       - backend
     depends_on:
-      - postgres
+      - profile_db
   
-  postgres:
-    container_name: postgres
-    env_file: .env
+  profile_db:
+    container_name: profile_db
+    env_file: 
+    - .env
+    - .env.profile-db
     build:
       context: ./backend/database
       dockerfile: Dockerfile
     restart: always
     volumes:
-      - "db_volume:/var/lib/postgresql"
+      - "profile_db_volume:/var/lib/postgresql"
     networks:
       - backend
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+  chat_db:
+    container_name: chat_db
+    env_file: 
+    - .env
+    - .env.chat-db
+    build:
+      context: ./backend/database
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - "chat_db_volume:/var/lib/postgresql"
+    networks:
+      - backend
+    ports:
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -116,34 +164,62 @@ services:
     networks:
       - backend
 
+  # kafka:
+  #   image: obsidiandynamics/kafka
+  #   restart: "no"
+  #   networks:
+  #     - backend
+  #   ports:
+  #     - "2181:2181"
+  #     - "9092:9092"
+  #   environment:
+  #     KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
+  #     KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+  #     KAFKA_ZOOKEEPER_SESSION_TIMEOUT: "6000"
+  #     KAFKA_RESTART_ATTEMPTS: "10"
+  #     KAFKA_RESTART_DELAY: "5"
+  #     ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
+  #     KAFKAJS_NO_PARTITIONER_WARNING: "1"
+  
   kafka:
     image: confluentinc/cp-kafka:7.3.2
     container_name: kafka
+    networks:
+      - backend
+    ports:
+      - "2181:2181"
+      - "9092:9092"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      # KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
+      # KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
+      # KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
       KAFKA_BROKER_ID: 1
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
       KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+      KAFKAJS_NO_PARTITIONER_WARNING: "1"
     depends_on:
       - zookeeper
-    networks:
-      - backend
 
-  reverseproxy:
-    container_name: reverseproxy
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    networks:
-      - backend
-    depends_on: 
-     - gateway
+
+  # reverseproxy:
+  #   container_name: reverseproxy
+  #   build:
+  #     context: ./nginx
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "80:80"
+  #   networks:
+  #     - backend
+  #   depends_on: 
+  #    - gateway
 
 networks:
   backend:
@@ -151,7 +227,8 @@ networks:
     driver: bridge
 
 volumes:
-  db_volume:
+  profile_db_volume:
+  chat_db_volume:
 
 
 
