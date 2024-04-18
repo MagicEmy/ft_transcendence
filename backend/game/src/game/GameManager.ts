@@ -16,24 +16,25 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 
 	constructor()
 	{
-		console.log("Settig up Games storage");
+		console.log("Setting up Games storage");
 		this.games = [];
 
 		console.log("Connecting to Kafka");
 		this.setupKafka().then(() =>
 		{
 			console.log("Connected to Kafka");
-			console.log("Creating test game");
-			this.producer.send(
-			{
-				topic:	"pongNewGame",
-				messages:	[{ value: JSON.stringify(
-				{
-					gameType:	"pong",
-					name1:		"localhost",
-					name2:		"10.10.4.21",
-				}),}]
-			});
+			// console.log("Creating test game");
+
+			// this.producer.send(
+			// {
+			// 	topic:	"pongNewGame",
+			// 	messages:	[{ value: JSON.stringify(
+			// 	{
+			// 		gameType:	"pong",
+			// 		name1:		"localhost",
+			// 		name2:		"10.11.2.7",
+			// 	}),}]
+			// });
 		});
 	}
 
@@ -136,11 +137,49 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 	{
 		console.log("Received: ", message);
 		const msg = JSON.parse(message);
-		let gameID: GamePong = this.findGameByName(msg.name);
+		let gameID: GamePong = this.findGameByName(msg.id);
+		switch (msg.msgType)
+		{
+			case "pongSolo":
+				if (gameID)
+					gameID.connectPlayer(msg.id, client);
+				else
+				{
+					gameID = new GamePong(msg.id, null);
+					this.games.push(gameID);
+					gameID.connectPlayer(msg.id, client);
+				}
+				break ;
+			case "pongMatch":
+				console.log("lets find a match at some point!");
+				break ;
+			case "pongPair":
+				console.log("lets find a pair at some point!");
+				break ;
+			default:
+				console.error("Error: unknown msgType: ", msg.msgType);
+				break ;
+		}
+		return ;
+
 		if (gameID)
 		{
 			switch (msg.msgType)
 			{
+				case "solo":
+					// if (gameID)
+					// {
+					// 	client.emit("error", "User tried to play solo while already in game");
+					// 	break ;
+					// }
+					// gameID = new GamePong(msg.name, null);
+					// this.games.push(gameID);
+					gameID.connectPlayer(msg.name, client);
+					break ;
+				case "paired":
+					break ;
+				case "match":
+					break ;
 				case "connection":
 					if (gameID.connectPlayer(msg.name, client))
 						console.log(gameID.player1.status, ": ", gameID.player1.name);
@@ -157,7 +196,16 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		}
 		else
 		{
-			client.emit("error", "did not find game");
+			switch (msg.msgType)
+			{
+				case "solo":
+					gameID = new GamePong(msg.name, null);
+					this.games.push(gameID);
+					gameID.connectPlayer(msg.name, client);
+					break ;
+				default:
+					break ;
+			}
 		}
 	}
 }
