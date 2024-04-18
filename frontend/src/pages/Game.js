@@ -1,4 +1,3 @@
-import Canvas from '../containers/Canvas/Canvas';
 import { styled } from 'styled-components';
 import React, { useEffect } from 'react';
 import io from 'socket.io-client';
@@ -277,7 +276,7 @@ function Game()
 			console.log("Sending: ", eventData);
 			socket.emit("button", JSON.stringify(eventData));
 		};
-	
+
 		document.addEventListener('keydown', HandleKeyEvent);
 		document.addEventListener('keyup', HandleKeyEvent);
 

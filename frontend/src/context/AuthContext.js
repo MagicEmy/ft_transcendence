@@ -16,15 +16,15 @@ export const AuthProvider = ({ children }) => {
 	const [authToken, setAuthToken] = useState(null);
 	const [user, setUser] = useState(null);
 	const [isLogged, setIsLogged] = useState(false);
-	const [isLoading, setIsLoading] = useState(true); 
-	
+	const [isLoading, setIsLoading] = useState(true);
+
 	useEffect(() => {
 
 	    if (authToken) {
 			// Replace with your logic to fetch user data based on token
 			const fetchUserData = async () => {
 			  try {
-				const response = await axios.get('http://localhost:3002/user', {
+				const response = await axios.get('http://localhost:3003/auth/profile', {
 				  headers: { Authorization: `Bearer ${authToken}` },
 				});
 				const data = response.data;
@@ -37,43 +37,44 @@ export const AuthProvider = ({ children }) => {
 				setIsLoading(false);
 			  }
 			};
-	  
+
 			fetchUserData();
 		  } else {
 			setIsLoading(false);
 		  }
-	  }, [setUser]);
+	  }, [setUser, authToken]);
 
 	  console.log("!!!!authToken: ", authToken);
 	  console.log("!!!!USER ", user);
-	  useEffect(() => {
+
+	//   useEffect(() => {
 		// Example function to refresh the token
-		const refreshAuthToken = async () => {
-		  try {
-			const response = await axios.get('/api/refresh', {
-			  // Include necessary details for refreshing the token
-			});
-			setAuthToken(response.data.newToken);
-		  } catch (error) {
-			console.error('Error refreshing token:', error);
-			setIsLogged(false); // Consider logging the user out or redirecting to login
-		  }
-		};
-	  
-		const checkTokenValidity = () => {
-		  if (authToken) {
-			// Implement logic to check if the token is nearing expiration
-			// This could be based on decoding the JWT or a stored expiration time
-			const isTokenExpiring = false; // Placeholder condition
-			if (isTokenExpiring) {
-			  refreshAuthToken();
-			}
-		  }
-		};
-	  
-		checkTokenValidity();
-		// You might want to run this check more frequently, using setInterval or similar
-	  }, [authToken]);
+	// 	const refreshAuthToken = async () => {
+	// 	  try {
+	// 		const response = await axios.get('/api/refresh', {
+	// 		  // Include necessary details for refreshing the token
+	// 		});
+	// 		setAuthToken(response.data.newToken);
+	// 	  } catch (error) {
+	// 		console.error('Error refreshing token:', error);
+	// 		setIsLogged(false); // Consider logging the user out or redirecting to login
+	// 	  }
+	// 	};
+
+	// 	const checkTokenValidity = () => {
+	// 	  if (authToken) {
+	// 		// Implement logic to check if the token is nearing expiration
+	// 		// This could be based on decoding the JWT or a stored expiration time
+	// 		const isTokenExpiring = false; // Placeholder condition
+	// 		if (isTokenExpiring) {
+	// 		  refreshAuthToken();
+	// 		}
+	// 	  }
+	// 	};
+
+	// 	checkTokenValidity();
+	// 	// You might want to run this check more frequently, using setInterval or similar
+	//   }, [authToken]);
 
   return (
     <AuthContext.Provider value={{

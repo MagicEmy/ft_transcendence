@@ -1,4 +1,11 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  Res,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { FourtyTwoAuthGuard } from './utils/fourty-two-auth-guard';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './utils/jwt-auth-guard';
@@ -18,16 +25,26 @@ export class AuthController {
       user_name: req.user.user_name,
       sub: req.user.user_id,
       intra_login: req.user.intra_login,
-	  access_token: req.user.access_token,
+      access_token: req.user.access_token,
     });
-	
+
     if (!response) {
       console.log('Bad payload, unauthorized user!');
-      res.redirect('http://localhost:3000/');
+      res.status(HttpStatus.FORBIDDEN).send();
+      req.redirect(`http://localhost:3000`);
       return;
     }
-	res.redirect('http://localhost:3000/dashboard?token=' + response.access_token);
-}
+    // res.cookie('token', response.access_token, {
+    //   httpOnly: true,
+    //   secure: true,
+    //   sameSite: 'strict',
+    // }),
+    //   res.redirect('http://localhost:3000/dashboard');
+
+    res.redirect(
+      'http://localhost:3000/dashboard?token=' + response.access_token,
+    );
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
@@ -35,7 +52,6 @@ export class AuthController {
     return req.user;
   }
 }
-
 
 /*
 this is an example of what will be returned after authentication of a user:

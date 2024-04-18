@@ -4,7 +4,7 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const microservice = app.connectMicroservice<MicroserviceOptions>({
+  app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.KAFKA,
     options: {
       client: {
@@ -16,7 +16,7 @@ async function bootstrap() {
     },
   });
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3003'],
+    origin: ['http://localhost:3000'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
