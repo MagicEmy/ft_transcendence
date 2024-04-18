@@ -15,29 +15,19 @@ export class UserService {
     return this.userRepository.createUser(createUserDto);
   }
 
-  async getUserById(id: string): Promise<User> {
-    const found = await this.userRepository.findOneBy({ user_id: id });
-
-    if (!found) {
-      throw new NotFoundException(`User with ID "${id}" not found`);
-    }
-
-    return found;
-  }
-
   async getUserByIntraLogin(intra_login: string): Promise<User> {
     return await this.userRepository.findOneBy({
       intra_login: intra_login,
     });
   }
 
-  async changeUserName(id: string, user_name: string): Promise<User> {
-    const found = await this.getUserById(id);
-    if (!found) {
-      throw new NotFoundException(`User with ID "${id}" not found`);
-    }
-    found.user_name = user_name;
-    this.userRepository.save(found);
-    return found;
-  }
+  // async changeUserName(id: string, user_name: string): Promise<User> {
+  //   const found = await this.getUserById(id);
+  //   if (!found) {
+  //     throw new NotFoundException(`User with ID "${id}" not found`);
+  //   }
+  //   found.user_name = user_name;
+  //   this.userRepository.save(found);
+  //   return found;
+  // }
 }

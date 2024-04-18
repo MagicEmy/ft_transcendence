@@ -195,7 +195,7 @@ export class StatsService {
     leaderboard = this.calculateLeaderboardRanks(leaderboard);
     if (options.user_names) {
       for (const item of leaderboard) {
-        const user_name = await this.userService.getUserName(item.user_id);
+        const user_name = await this.userService.getUsername(item.user_id);
         item.user_name = user_name;
       }
     }

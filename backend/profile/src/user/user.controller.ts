@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user-dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import { AddFriendDto } from './dto/add-friend-dto';
@@ -13,10 +12,10 @@ export class UserController {
     private usernameCache: UsernameCache,
   ) {}
 
-  @Post()
-  createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.userService.createUser(createUserDto);
-  }
+  // @Post()
+  // createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
+  //   return this.userService.createUser(createUserDto);
+  // }
 
   @Get('/:id')
   getUserById(@Param('id') id: string): Promise<User> {
@@ -44,8 +43,8 @@ export class UserController {
 
   // for testing purposes, returns a user_name
   @Get('/:id/username')
-  getUserName(@Param('id') user_id: string) {
-    return this.userService.getUserName(user_id);
+  getUsername(@Param('id') user_id: string) {
+    return this.userService.getUsername(user_id);
   }
 
   @Post('/cache')

@@ -1,0 +1,43 @@
+{ 
+	"roomName": "new_room",
+	"user": {
+        "userId": "abcd",
+        "userName": "hello",
+        "socketId": "lxczcplhe9F9JJcIAAAB"
+    },
+    "exclusive": false,
+    "exlusiveMember": [],
+    "password": null
+}
+
+
+{ 
+	"roomName": "new_room",
+	"user": {
+        "userId": "dbd",
+        "userName": "lul",
+        "socketId": "UlVf3uQbccTa03YhAAAD"
+    },
+    "password": null
+}
+
+{ 
+	"user": {
+        "userId": "dbd",
+        "userName": "lul",
+        "socketId": " "
+    },
+    "roomName": "new_room",
+    "message": "hello everybody"
+}
+
+{ 
+	"roomName": "new_room",
+    "user": {
+        "userId": "abcd",
+        "userName": "hello",
+        "sockedIt": " "
+    },
+    "toDoUser": "dbd",
+    "timer": 60
+}
