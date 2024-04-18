@@ -41,6 +41,40 @@ function Game()
 
 	useEffect(() =>
 	{
+/* ************************************************************************** *\
+
+	Variables
+
+\* ************************************************************************** */
+
+		const	GAMEelement = document.getElementById("game");
+		const	BCKelement = document.getElementById("gameBackground");
+		const	BCKcontext = BCKelement.getContext("2d");
+		const	PONGelement = document.getElementById("gamePongCanvas");
+		const	PONGcontext = PONGelement.getContext("2d");
+		const	HUDelement = document.getElementById("gameHUD");
+		const	HUDcontext = HUDelement.getContext("2d");
+		const	font = "Arial";
+
+		let	menuActive = true;
+		let	hudType = 0;
+		let	menuSelect = 0;
+		let	menuList =
+		[
+			"Solo Game",
+			"Find Match",
+			"Infinite Load",
+			"Exit",
+		];
+
+		handleResizeEvent();
+
+/* ************************************************************************** *\
+
+	Websockets
+
+\* ************************************************************************** */
+
 		console.log("trying to connect...");
 		const socket = io("http://localhost:3006");
 
@@ -48,25 +82,25 @@ function Game()
 		{
 			console.log("Socket.IO connection established");
 
-			const connectMSG =
-			{
-				client:		window.location.hostname,
-				name:		window.location.hostname,
-				// msgType:	"connection"
-				msgType:	"solo",
-				// msgType:	"paired",
-				// msgType:	"match",
-				// callback:	() =>
-				// {
-				// 	console.log("Callback");
-				// },
-			}
 			// const connectMSG =
 			// {
-			// 	client
+			// 	client:		window.location.hostname,
+			// 	name:		window.location.hostname,
+			// 	// msgType:	"connection"
+			// 	msgType:	"solo",
+			// 	// msgType:	"paired",
+			// 	// msgType:	"match",
+			// 	// callback:	() =>
+			// 	// {
+			// 	// 	console.log("Callback");
+			// 	// },
 			// }
-			console.log("Sending user Package to Game");
-			socket.emit("connectMSG", JSON.stringify(connectMSG));
+			// // const connectMSG =
+			// // {
+			// // 	client
+			// // }
+			// console.log("Sending user Package to Game");
+			// socket.emit("connectMSG", JSON.stringify(connectMSG));
 			// socket.emit("test");
 		});
 
@@ -82,10 +116,10 @@ function Game()
 			console.error("Socket.IO error: ", message);
 		});
 
-		
+
 		socket.on("pong", (message) =>
 		{
-			renderBackground();
+			// renderBackground();
 			renderPong(message);
 			// context.fillStyle = "rgba(23, 23, 23, 0.99)";
 			// context.fillRect(0, 0, gameDiv.width, gameDiv.height);
@@ -95,42 +129,260 @@ function Game()
 
 		socket.on("pongHUD", (message) =>
 		{
+			// console.log("hud ", hudType);
+			hudType = 3;
 			renderHUD(message);
+			// console.log("hud ", hudType);
+			// renderMenu();
 		});
-		
-		
-		handleResizeEvent();
 
+		const HandleKeyEvent = (event) =>
+		{
+			const eventData = {
+				code:	event.keyCode,
+				name:	event.key,
+				press:	event.type,
+				event:	event.event,
+			};
+			console.log("Sending: ", eventData);
+			socket.emit("button", JSON.stringify(eventData));
+			menuKeyEvent(event.keyCode, event.type);
+			renderHUD();
+		};
+		document.addEventListener('keydown', HandleKeyEvent);
+		document.addEventListener('keyup', HandleKeyEvent);
+
+/* ************************************************************************** *\
+
+	Connect
+
+\* ************************************************************************** */
+
+		function	connectToServer(msgType)
+		{
+			if (msgType !== undefined)
+			{
+				const connectMSG =
+				{
+					client:	window.location.hostname,
+					id:	window.location.hostname,
+					msgType:	msgType,
+				}
+				socket.emit("connectMSG", JSON.stringify(connectMSG));
+			}
+		}
+
+/* ************************************************************************** *\
+
+	Canvas'
+
+\* ************************************************************************** */
+
+		// handleResizeEvent();
+
+		window.addEventListener("resize", handleResizeEvent);
 		function handleResizeEvent(event)
 		{
-			const gameDiv = document.getElementById("game");
-			adjustSize(gameDiv, document.getElementById("gameBackground"));
-			adjustSize(gameDiv, document.getElementById("gamePongCanvas"));
-			adjustSize(gameDiv, document.getElementById("gameHUD"));
+			adjustSize(GAMEelement, BCKelement);
+			adjustSize(GAMEelement, PONGelement);
+			adjustSize(GAMEelement, HUDelement);
 
-			renderHUD();
-			
+			renderBackground();
+			try
+			{
+				renderHUD();
+			}
+			catch (error)
+			{}
 		}
-		
+
 		function	adjustSize(gameDiv, element)
 		{
 			element.width = gameDiv.offsetWidth;
 			element.height = gameDiv.offsetHeight;
 		}
 
+		function	fillContext(element, context, color)
+		{
+			context.fillStyle = color;
+			context.fillRect(0, 0, element.width, element.height);
+		}
+
+		function	clearContext(element, context)
+		{
+			context.clearRect(0, 0, element.width, element.height);
+		}
+
+		function	getFontSize(context, text, height, width, font)
+		{
+			let size = 230;
+
+			context.font = size + "px " + font;
+			while (height < context.measureText(text).actualBoundingBoxAscent ||
+					width < context.measureText(text).width)
+			{
+				--size;
+				context.font = size + "px " + font;
+			}
+			return (size);
+		}
+
+/* ************************************************************************** *\
+
+	Background
+
+\* ************************************************************************** */
+
 		function renderBackground()
 		{
 			const Background = document.getElementById("gameBackground");
 			const context = Background.getContext('2d');
-			
+			console.log("BCK2", Background);
+
 			fillContext(Background, context, "rgba(23, 23, 23, 0.99)");
 		}
-		
+
+/* ************************************************************************** *\
+
+	Menu
+
+\* ************************************************************************** */
+
+		function	renderHUD(message)
+		{
+			clearContext(HUDelement, HUDcontext);
+			switch (hudType)
+			{
+				case 0:	renderMenu();		break;
+				case 1: renderLoading();	break;
+				// case 2:	renderMatch();		break;
+				case 3: renderPongHUD(message);	break;
+				default:	break;
+			}
+		}
+
+		function	menuKeyEvent(key, event)
+		{
+			if (hudType <= 2)
+			{
+				if (event === "keydown")
+				{
+					switch (key)
+					{
+						case 13://enter
+							switch (menuList[menuSelect])
+							{
+								case "Solo Game":
+									connectToServer("pongSolo");
+									hudType = 1;
+									break;
+								case "Find Match":
+									console.log(menuSelect, "Find Match");
+									hudType = 1;
+									break;
+								case "Infinite Load":
+									hudType = 1;
+									break ;
+								default:
+									break;
+							}
+							break ;
+						case 27://Escape
+							hudType = 0;
+							break ;
+						case 38://ArrowUp
+							if (menuSelect > 0)
+								--menuSelect;
+							break;
+						case 40://ArrowDown
+							if (menuSelect < menuList.length - 1)
+								++menuSelect;
+							break;
+						default:
+							break;
+					}
+				}
+			}
+			else
+				menuSelect = 0;
+		}
+
+		function	renderMenu()
+		{
+			fillContext(HUDelement, HUDcontext, "rgba(23, 23, 23, 1)");
+
+			renderMenuHead("PONG");
+			renderMenuList();
+		}
+
+		function	renderMenuHead(name)
+		{
+			HUDcontext.fillStyle = "rgba(42, 42, 42, 1)";
+			HUDcontext.fillRect(0, 0, HUDelement.width, HUDelement.height * 0.23);
+			HUDcontext.fillStyle = "rgba(192, 192, 192, 1)";
+			HUDcontext.fillRect(0, HUDelement.height * 0.23, HUDelement.width, HUDelement.height * 0.02);
+
+			let size = getFontSize(HUDcontext, name, HUDelement.height * 0.16, HUDelement.width * 0.75, font);
+			HUDcontext.font = size + "px " + font;
+			let posX = (HUDelement.width - HUDcontext.measureText(name).width) * 0.5;
+			let sizeY = HUDcontext.measureText(name).actualBoundingBoxAscent
+			let posY = HUDelement.height * 0.04 + HUDcontext.measureText(name).actualBoundingBoxAscent;
+			HUDcontext.fillText(name, posX, posY);
+		}
+
+		function	renderMenuList()
+		{
+			let size = 100;
+			for (let i = 0; i < menuList.length; ++i)
+			{
+				let temp = getFontSize(HUDcontext, menuList[i], 
+										HUDelement.height * 0.75 / (menuList.length + 2), HUDelement.width * 0.75, font);
+				if (temp < size)
+					size = temp;
+			}
+			HUDcontext.font = size + "px " + font;
+			let sizeY = HUDcontext.measureText("X").actualBoundingBoxAscent;
+			HUDcontext.font = (size * 0.75) + "px " + font;
+
+			for (let i = 0; i < menuList.length; ++i)
+			{
+				if (i === menuSelect)
+					HUDcontext.fillStyle = "rgba(255, 127, 0, 1)";
+				else
+					HUDcontext.fillStyle = "rgba(123, 123, 123, 1)";
+				let posX = HUDelement.width * 0.5 - HUDcontext.measureText(menuList[i]).width / 2;
+				let posY = HUDelement.height * 0.25 + + sizeY * (i + 2);
+				HUDcontext.fillText(menuList[i], posX, posY);
+			}
+		}
+
+		function	renderLoading()
+		{
+			let msg = "Loading";
+			let dots = new Date().getSeconds() % 4;
+			msg += ".".repeat(dots);
+			msg += " ".repeat(4 - dots);
+			
+			let size = getFontSize(HUDcontext, msg, HUDelement.height / 2, HUDelement.width / 2, font);
+			HUDcontext.fillStyle = "rgba(123, 123, 123, 1)";
+			HUDcontext.font = size + "px " + font;
+			let posX = HUDelement.width / 2 - (HUDcontext.measureText(msg).width / 2);
+			let posY = HUDelement.height / 2;
+			HUDcontext.fillText(msg, posX, posY);
+			setTimeout(renderHUD, 500);
+		}
+
+/* ************************************************************************** *\
+
+	Pong
+
+\* ************************************************************************** */
+
 		function renderPong(message)
 		{
 			const element = document.getElementById("gamePongCanvas");
 			const context = element.getContext("2d");
-			
+
 			// console.log(message);
 			const data = JSON.parse(message);
 			// console.log("data player1", data.Player1)
@@ -146,7 +398,7 @@ function Game()
 
 			player.posX = (player.posX - (player.width / 2)) * element.width;
 			player.posY = (player.posY - (player.height / 2)) * element.height;
-		
+
 			context.fillRect(player.posX, player.posY, player.width * element.width, player.height * element.height);
 		}
 
@@ -161,8 +413,9 @@ function Game()
 
 \* ************************************************************************** */
 
-		function renderHUD(message)
+		function renderPongHUD(message)
 		{
+			console.log("renderHUD triggered)");
 			let msg = {};
 
 			if (message)
@@ -208,7 +461,7 @@ function Game()
 
 		function	AddPlayerInfo(pos, name, score, status)
 		{
-			const font = "Arial";
+			// const font = "Arial";
 			HUDinfo.context.fillStyle = "rgba(123, 123, 123, 1)";
 
 			HUDinfo.context.font = HUDinfo.element.width / 16 + "px " + font;
@@ -234,13 +487,13 @@ function Game()
 		// {
 		// 	// renderHUD.element
 		// 	context.fillStyle = "rgba(123, 123, 123, 1)";
-		
+
 		// 	context.font = element.width / 16 + "px " + font;
 		// 	let posX = renderHUD.element.width * pos - context.measureText(name).width / 2;
 		// 	let posY = context.measureText(name).actualBoundingBoxAscent + 
 		// 				element.height / 23;
 		// 	context.fillText(name, posX, posY);
-		
+
 		// 	context.font = element.width / 8 + "px " + font;
 		// 	posX = element.width * pos - context.measureText(score).width / 2;
 		// 	posY += context.measureText(name).actualBoundingBoxAscent + 
@@ -253,32 +506,6 @@ function Game()
 	-
 
 \* ************************************************************************** */
-
-		function	fillContext(element, context, color)
-		{
-			context.fillStyle = color;
-			context.fillRect(0, 0, element.width, element.height);
-		}
-		
-		function	clearContext(element, context)
-		{
-			context.clearRect(0, 0, element.width, element.height);
-		}
-
-		const HandleKeyEvent = (event) =>
-		{
-			const eventData = {
-				code:	event.keyCode,
-				name:	event.key,
-				press:	event.type,
-				event:	event.event,
-			};
-			console.log("Sending: ", eventData);
-			socket.emit("button", JSON.stringify(eventData));
-		};
-
-		document.addEventListener('keydown', HandleKeyEvent);
-		document.addEventListener('keyup', HandleKeyEvent);
 
 		const getImage = () =>
 		{

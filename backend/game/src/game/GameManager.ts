@@ -16,14 +16,15 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 
 	constructor()
 	{
-		console.log("Settig up Games storage");
+		console.log("Setting up Games storage");
 		this.games = [];
 
 		console.log("Connecting to Kafka");
 		this.setupKafka().then(() =>
 		{
 			console.log("Connected to Kafka");
-			console.log("Creating test game");
+			// console.log("Creating test game");
+
 			// this.producer.send(
 			// {
 			// 	topic:	"pongNewGame",
@@ -136,7 +137,31 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 	{
 		console.log("Received: ", message);
 		const msg = JSON.parse(message);
-		let gameID: GamePong = this.findGameByName(msg.name);
+		let gameID: GamePong = this.findGameByName(msg.id);
+		switch (msg.msgType)
+		{
+			case "pongSolo":
+				if (gameID)
+					gameID.connectPlayer(msg.id, client);
+				else
+				{
+					gameID = new GamePong(msg.id, null);
+					this.games.push(gameID);
+					gameID.connectPlayer(msg.id, client);
+				}
+				break ;
+			case "pongMatch":
+				console.log("lets find a match at some point!");
+				break ;
+			case "pongPair":
+				console.log("lets find a pair at some point!");
+				break ;
+			default:
+				console.error("Error: unknown msgType: ", msg.msgType);
+				break ;
+		}
+		return ;
+
 		if (gameID)
 		{
 			switch (msg.msgType)
