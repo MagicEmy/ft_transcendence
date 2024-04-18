@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }) => {
 
 	    if (authToken) {
 			// Replace with your logic to fetch user data based on token
+			console.log("%%%authToken: ", authToken);
 			const fetchUserData = async () => {
 			  try {
 				const response = await axios.get('http://localhost:3003/auth/profile', {
@@ -44,8 +45,8 @@ export const AuthProvider = ({ children }) => {
 		  }
 	  }, [setUser, authToken]);
 
-	  console.log("!!!!authToken: ", authToken);
-	  console.log("!!!!USER ", user);
+	//   console.log("!!!!authToken: ", authToken);
+	//   console.log("!!!!USER ", user);
 
 	//   useEffect(() => {
 		// Example function to refresh the token

@@ -9,6 +9,7 @@ import Login from "../../pages/Login";
 import Error from "../../pages/Error";
 import Leaderboard from "../../pages/Leaderboard";
 import Profile from "../../pages/Profile";
+// import Unauthorized from "../../../component/Unauthorized";
 // import ChatPage from "../../pages/ChatPage";
 // import ProfileUserId from "../../components/ProfileUserId";
 
@@ -33,6 +34,7 @@ const router = createBrowserRouter([
 		// element: <PrivateRoute />,
 		children: [
 			{ index: true, element: <Login /> },
+			// { path: "unauthorized", element: <Unauthorized />},	
 			{
 				path: "/",
 				element: <DashLayout />,
