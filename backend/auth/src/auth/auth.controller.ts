@@ -1,4 +1,11 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  Res,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { FourtyTwoAuthGuard } from './utils/fourty-two-auth-guard';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './utils/jwt-auth-guard';
@@ -23,27 +30,20 @@ export class AuthController {
 
     if (!response) {
       console.log('Bad payload, unauthorized user!');
-      res.redirect('http://localhost:3000/');
+      res.status(HttpStatus.FORBIDDEN).send();
+      req.redirect(`http://localhost:3000`);
       return;
     }
-    res.cookie('token', response.access_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-    }),
-      res.cookie('intraLogin', response.user_id, {
-        httpOnly: false,
-        secure: false,
-      }),
-      res.cookie('username', response.user_name, {
-        httpOnly: false,
-        secure: false,
-      }),
-      res.redirect('http://localhost:3000/dashboard');
+    // res.cookie('token', response.access_token, {
+    //   httpOnly: true,
+    //   secure: true,
+    //   sameSite: 'strict',
+    // }),
+    //   res.redirect('http://localhost:3000/dashboard');
 
-    // res.redirect(
-    //   'http://localhost:3000/dashboard?token=' + response.access_token,
-    // );
+    res.redirect(
+      'http://localhost:3000/dashboard?token=' + response.access_token,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

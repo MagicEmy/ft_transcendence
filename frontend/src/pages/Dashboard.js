@@ -1,33 +1,24 @@
 import React, { useContext, useEffect } from 'react';
 import PageContent from '../components/PageContent';
 import AuthContext from '../context/AuthContext';
-import Cookies from 'js-cookie';
 
 export const Dashboard = () => {
   const { setAuthToken } = useContext(AuthContext);
 
   useEffect(() => {
-    const token = Cookies.get('token');
-      if (token) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
       setAuthToken(token);
+
+      // Clean the URL without reloading the page to avoid losing state
+      window.history.pushState({}, '', window.location.pathname);
     } else {
-          console.error('No token found in cookies');
+      console.error('No token found in URL');
+      // Handle any necessary logic for when the token is not present
     }
-      }, [setAuthToken]);
-  // useEffect(() => {
-  //   const urlParams = new URLSearchParams(window.location.search);
-  //   const token = urlParams.get('token');
-
-  //   if (token) {
-  //     setAuthToken(token);
-
-  //     // Clean the URL without reloading the page to avoid losing state
-  //     window.history.pushState({}, '', window.location.pathname);
-  //   } else {
-  //     console.error('No token found in URL');
-  //     // Handle any necessary logic for when the token is not present
-  //   }
-  // }, [setAuthToken]);
+  }, [setAuthToken]);
 
   // const getUser = () => {
   //   fetch('http://localhost:3003/auth/user', {

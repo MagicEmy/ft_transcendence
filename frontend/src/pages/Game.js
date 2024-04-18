@@ -1,4 +1,3 @@
-import Canvas from '../containers/Canvas/Canvas';
 import { styled } from 'styled-components';
 import React, { useEffect } from 'react';
 import io from 'socket.io-client';
@@ -23,15 +22,15 @@ function Game()
 	//     const d = count % 800
 	//     context.fillRect(10 +d , 10  , 100 , 100)
 	//   }
-	const draw = (context, count) =>
-	{
-		context.clearRect(0, 0, context.canvas.width, context.canvas.height)
-		context.fillStyle = 'white'
-		const d = count % 800
-		context.beginPath();
-		context.arc(10 + d, 10, 50, 0, Math.PI * 2, false);
-		context.fill();
-	};
+	// const draw = (context, count) =>
+	// {
+	// 	context.clearRect(0, 0, context.canvas.width, context.canvas.height)
+	// 	context.fillStyle = 'white'
+	// 	const d = count % 800
+	// 	context.beginPath();
+	// 	context.arc(10 + d, 10, 50, 0, Math.PI * 2, false);
+	// 	context.fill();
+	// };
 
 	useEffect(() =>
 	{
@@ -85,7 +84,7 @@ function Game()
 			console.log("Sending: ", eventData);
 			socket.emit("button", JSON.stringify(eventData));
 		};
-	
+
 		document.addEventListener('keydown', HandleKeyEvent);
 		document.addEventListener('keyup', HandleKeyEvent);
 
