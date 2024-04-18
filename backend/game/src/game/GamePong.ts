@@ -3,8 +3,18 @@ interface	Player
 {
 	client:	any;
 	name:	string;
+	paddle: Paddle;
 	status:	string;
 	button:	{[key: number]: boolean};
+}
+
+interface	Paddle
+{
+	posX:	number;
+	posY:	number;
+	width:	number;
+	height:	number;
+	speed:	number;
 }
 
 enum	PlayerStatus
@@ -36,12 +46,14 @@ export class GamePong
 		this.player1 = {
 			client: undefined,
 			name:	player1,
+			paddle: {posX: 1/23, posY: 0.5, width: 0.01, height: 0.1, speed: 0.005},
 			status:	PlayerStatus.CONNECTING,
 			button:	{},
 		};
 		this.player2 = {
 			client: undefined,
 			name:	player2,
+			paddle: {posX: 22/23, posY: 0.5, width: 0.01, height: 0.1, speed: 0.005},
 			status:	PlayerStatus.CONNECTING,
 			button:	{},
 		}
@@ -92,17 +104,17 @@ export class GamePong
 			{
 				Player1:
 				{
-					posX:	0.1,
-					posY:	0.5,
-					height:	0.1,
-					width:	0.5,
+					posX:	this.player1.paddle.posX,
+					posY:	this.player1.paddle.posY,
+					height:	this.player1.paddle.height,
+					width:	this.player1.paddle.width,
 				},
 				Player2:
 				{
-					posX:	0.1,
-					posY:	0.5,
-					height:	0.1,
-					width:	0.5,
+					posX:	this.player2.paddle.posX,
+					posY:	this.player2.paddle.posY,
+					height:	this.player2.paddle.height,
+					width:	this.player2.paddle.width,
 				},
 				Ball:
 				{

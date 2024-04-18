@@ -1,0 +1,25 @@
+body
+{
+	margin:		0;
+	padding:	0;
+	overflow:	hidden;
+}
+
+#game
+{
+	top:	0;
+	width:	100%;
+	height:	100vh;
+}
+
+#gameBackground,
+#gameHUD,
+#gamePongCanvas
+{
+	position:	absolute;
+	margin:		0;
+	top:		100;
+	left:		0;
+	width:		100%;
+	height:		90%;
+}
