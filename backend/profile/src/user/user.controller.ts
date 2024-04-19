@@ -23,11 +23,11 @@ export class UserController {
   }
 
   @Patch('/:id/user_name')
-  changeUserName(
+  changeUsername(
     @Param('id') id: string,
     @Body('user_name') user_name: string,
   ): Promise<User> {
-    return this.userService.changeUserName(id, user_name);
+    return this.userService.changeUsername(id, user_name);
   }
 
   @Post('/friend')

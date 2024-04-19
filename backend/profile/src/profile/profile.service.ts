@@ -54,7 +54,7 @@ export class ProfileService {
       await this.statsService.getGamesAgainst(user_id, Opponent.HUMAN);
     const mostFrequentOpponent: GamesAgainstUserIdDto =
       await this.gameService.mostFrequentOpponent(user_id);
-    const mostFrequentOpponentUserName: string =
+    const mostFrequentOpponentUsername: string =
       await this.userService.getUsername(user_id);
 
     return {
@@ -66,7 +66,7 @@ export class ProfileService {
       total_players: totalPlayers,
       most_frequent_opponent: {
         user_id: mostFrequentOpponent.user_id,
-        user_name: mostFrequentOpponentUserName,
+        user_name: mostFrequentOpponentUsername,
         games: mostFrequentOpponent.games,
       },
       games_against_human: gamesAgainstHuman,

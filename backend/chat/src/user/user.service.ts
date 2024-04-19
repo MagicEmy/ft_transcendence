@@ -55,9 +55,9 @@ export class UserService {
     return this.userRepository.getSocketIdByUserId(userId);
   }
 
-  async setUserName(userId: string, userName: string): Promise<User> {
+  async setUsername(userId: string, userName: string): Promise<User> {
     // validate userId to be uuid
-    const user = await this.userRepository.setUserName(userId, userName);
+    const user = await this.userRepository.setUsername(userId, userName);
     console.log(`User name of user ${userId} set to ${userName}`);
     return user;
   }

@@ -58,7 +58,7 @@ export class UserService {
     });
   }
 
-  async changeUserName(user_id: string, user_name: string): Promise<User> {
+  async changeUsername(user_id: string, user_name: string): Promise<User> {
     const found = await this.getUserById(user_id);
     // if (!found) {
     //   throw new NotFoundException(`User with ID "${user_id}" not found`);

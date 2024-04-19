@@ -51,7 +51,7 @@ export class UserRepository extends Repository<User> {
     return user;
   }
 
-  async setUserName(userId: string, userName: string): Promise<User> {
+  async setUsername(userId: string, userName: string): Promise<User> {
     const user = await this.getUserById(userId);
     user.userName = userName;
     this.save(user);

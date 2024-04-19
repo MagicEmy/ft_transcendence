@@ -42,11 +42,11 @@ export class GameService {
         item.player1_name =
           item.player1_id === 'bot'
             ? item.player1_id
-            : await this.userService.getUserName(item.player1_id);
+            : await this.userService.getUsername(item.player1_id);
         item.player2_name =
           item.player2_id === 'bot'
             ? item.player2_id
-            : await this.userService.getUserName(item.player2_id);
+            : await this.userService.getUsername(item.player2_id);
       }),
     );
     console.log(gameOverview);

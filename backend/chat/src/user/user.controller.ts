@@ -23,11 +23,11 @@ export class UserController {
   }
 
   @Patch('/:id/username')
-  setUserName(
+  setUsername(
     @Param('id') userId: string,
     @Body('userName') userName: string,
   ): Promise<User> {
-    return this.userService.setUserName(userId, userName);
+    return this.userService.setUsername(userId, userName);
   }
 
   @Patch('/:id/socket')
