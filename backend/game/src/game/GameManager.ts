@@ -3,7 +3,7 @@ import { Server } from 'socket.io';
 import { Consumer, Kafka, Producer, logLevel } from 'kafkajs';
 import { GamePong } from './GamePong';
 
-@WebSocketGateway({ cors: true})
+@WebSocketGateway({ cors: true })
 export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 {
 	private games: GamePong[];
@@ -11,8 +11,9 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 	private kafka: Kafka;
 	private producer: Producer;
 	private consumer: Consumer;
+	private kafkaReady: Boolean = false;
 
-	@WebSocketServer() server: Server;
+	// @WebSocketServer() server: Server;
 
 	constructor()
 	{
@@ -23,6 +24,7 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		this.setupKafka().then(() =>
 		{
 			console.log("Connected to Kafka");
+			this.kafkaReady = true;
 			// console.log("Creating test game");
 
 			// this.producer.send(
@@ -38,6 +40,7 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		});
 	}
 
+
 	private async setupKafka()
 	{
 		this.kafka = new Kafka(
@@ -52,6 +55,7 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		await this.consumer.connect();
 
 		await this.consumer.subscribe({ topic: "pongNewGame" });
+		await this.consumer.subscribe({ topic: "game_end" });
 
 		await this.consumer.run(
 		{
@@ -61,6 +65,9 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 				{
 					case "pongNewGame":
 						this.createNewGame("pong", message.value.toString());
+						break ;
+					case "game_end":
+						this.removeGame(message.value.toString());
 						break ;
 					default:
 						console.error("Unknown topic:", topic);
@@ -76,12 +83,23 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		switch(msg.gameType)
 		{
 			case "pong":
-				this.games.push(new GamePong(msg.name1, msg.name2));
+				this.games.push(new GamePong(msg.name1, msg.name2, this.producer, this.consumer));
 				break ;
 			default:
 				console.error("Unknown gametype: ", msg.gameType);
 				break ;
 		}
+	}
+
+	private	removeGame(message: string)
+	{
+		const msg:	any = JSON.parse(message);
+
+
+		let gameID: GamePong = this.findGameByName(msg.player1ID);
+		const index: number = this.games.findIndex(game => game === gameID);
+		if (index !== -1)
+			this.games.splice(index, 1)[0];
 	}
 
 	private findGameByName(name: string): GamePong | null
@@ -108,8 +126,10 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 
 	handleConnection(client: any, ...args: any[])
 	{
-		console.log('Client connected');
-		client.emit('message', 'Connected to WebSocket server');
+		if (this.kafkaReady)
+			client.emit("message", 'Connected to WebSocket server');
+		else
+			setTimeout(() => this.handleConnection(client, args), 1000);
 	}
 
 	handleDisconnect(client: any)
@@ -145,7 +165,7 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 					gameID.connectPlayer(msg.id, client);
 				else
 				{
-					gameID = new GamePong(msg.id, null);
+					gameID = new GamePong(msg.id, null, this.producer, this.consumer); 
 					this.games.push(gameID);
 					gameID.connectPlayer(msg.id, client);
 				}
@@ -199,7 +219,7 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 			switch (msg.msgType)
 			{
 				case "solo":
-					gameID = new GamePong(msg.name, null);
+					gameID = new GamePong(msg.name, null, this.producer, this.consumer);
 					this.games.push(gameID);
 					gameID.connectPlayer(msg.name, client);
 					break ;
@@ -209,3 +229,4 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		}
 	}
 }
+
