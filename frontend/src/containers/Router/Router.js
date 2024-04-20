@@ -23,7 +23,7 @@ import Profile from "../../pages/Profile";
 //     children
 //   ) : (
 //     // If not authenticated, redirect to login
-//     <Navigate to="/" replace /> // Assuming login is at path "/"
+//     <Navigate to="/" replace /> 
 //   );
 // };
 

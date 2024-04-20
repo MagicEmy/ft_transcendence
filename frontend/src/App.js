@@ -1,6 +1,6 @@
 // Routing
 import AppRouter from "./containers/Router/Router";
-// import UserProvider from "./context/UserProvider";
+// import UserProvider from "./context/UserContext";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {

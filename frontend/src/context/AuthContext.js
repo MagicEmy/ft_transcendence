@@ -15,22 +15,23 @@ const AuthContext = createContext({
 export const AuthProvider = ({ children }) => {
 	const [authToken, setAuthToken] = useState(null);
 	const [user, setUser] = useState(null);
+	const [userId, setUserId] = useState(null);
 	const [isLogged, setIsLogged] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
 
 	    if (authToken) {
-			// Replace with your logic to fetch user data based on token
 			console.log("%%%authToken: ", authToken);
-			const fetchUserData = async () => {
+			const fetchUser = async () => {
 			  try {
 				const response = await axios.get('http://localhost:3003/auth/profile', {
 				  headers: { Authorization: `Bearer ${authToken}` },
 				});
 				const data = response.data;
-				setUser(data.user);
-				console.log("%%%data: ", data);
+				setUser(data.user_name);
+				setUserId(data.user_id);
+				console.log("HERE USER: ", data.user_id);
 				setIsLogged(true);
 			  } catch (error) {
 				console.error('Error fetching user data:', error);
@@ -39,21 +40,16 @@ export const AuthProvider = ({ children }) => {
 			  }
 			};
 
-			fetchUserData();
+			fetchUser();
 		  } else {
 			setIsLoading(false);
 		  }
 	  }, [setUser, authToken]);
 
-	//   console.log("!!!!authToken: ", authToken);
-	//   console.log("!!!!USER ", user);
-
 	//   useEffect(() => {
-		// Example function to refresh the token
 	// 	const refreshAuthToken = async () => {
 	// 	  try {
 	// 		const response = await axios.get('/api/refresh', {
-	// 		  // Include necessary details for refreshing the token
 	// 		});
 	// 		setAuthToken(response.data.newToken);
 	// 	  } catch (error) {
@@ -64,9 +60,8 @@ export const AuthProvider = ({ children }) => {
 
 	// 	const checkTokenValidity = () => {
 	// 	  if (authToken) {
-	// 		// Implement logic to check if the token is nearing expiration
 	// 		// This could be based on decoding the JWT or a stored expiration time
-	// 		const isTokenExpiring = false; // Placeholder condition
+	// 		const isTokenExpiring = false;
 	// 		if (isTokenExpiring) {
 	// 		  refreshAuthToken();
 	// 		}
@@ -74,7 +69,7 @@ export const AuthProvider = ({ children }) => {
 	// 	};
 
 	// 	checkTokenValidity();
-	// 	// You might want to run this check more frequently, using setInterval or similar
+	// 	// maybe using setInterval or similar?
 	//   }, [authToken]);
 
   return (
@@ -94,11 +89,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 export default AuthContext;
-
-/*
-			const urlParams = new URLSearchParams(window.location.search);
-			const token = urlParams.get('access_token');
-			if (token) {
-			  setAuthToken(token);
-			}
-			*/

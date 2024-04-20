@@ -7,11 +7,8 @@ function Profile() {
 
     async function FetchSelf() {
       try {
-        const response = await fetch("http://localhost:3002/profile", {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+        const response = await fetch("http://localhost:3002/user/id", {
+			headers: { Authorization: `Bearer ${authToken}` },
         });
         const data = await response.json();
         const jsonString = JSON.stringify(data);
