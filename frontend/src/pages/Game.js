@@ -1,20 +1,20 @@
-import { styled } from 'styled-components';
+// import { styled } from 'styled-components';
 import React, { useEffect } from 'react';
 import io from 'socket.io-client';
 
 import './game.css';
 
-const GameStyle = styled.div`
-	// width: 100px;
-	height: 700px;
-	width: 100%;
-	max-width: 80rem;
-	padding: 2rem;
-	margin: 0 auto;
-	border-radius: 0.5rem;
-	box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-	background: #066d0d;
-`
+// const GameStyle = styled.div`
+// 	// width: 100px;
+// 	height: 700px;
+// 	width: 100%;
+// 	max-width: 80rem;
+// 	padding: 2rem;
+// 	margin: 0 auto;
+// 	border-radius: 0.5rem;
+// 	box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+// 	background: #066d0d;
+// `
 
 // function test()
 // {

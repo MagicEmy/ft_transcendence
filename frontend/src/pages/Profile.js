@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { user } from '../context/UserContext';
 import './Profile.css';
 
 function Profile() {
   const [jsonString, setJsonString] = useState('');
+  
 
     async function FetchSelf() {
       try {

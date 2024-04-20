@@ -46,6 +46,8 @@ export const AuthProvider = ({ children }) => {
 		  }
 	  }, [setUser, authToken]);
 
+	  console.log("!!!!USER ", userId);
+
 	//   useEffect(() => {
 	// 	const refreshAuthToken = async () => {
 	// 	  try {
