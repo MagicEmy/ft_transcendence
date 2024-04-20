@@ -24,7 +24,6 @@ const ChatPage = ({ socket }) => {
   useEffect(() => {
     socket.on("messageResponse", (data) => {
       setMessages([...messages, data]);
-      // Scroll to the last message after update
       lastMessageRef.current?.scrollIntoView({ behavior: "smooth" });
     });
 

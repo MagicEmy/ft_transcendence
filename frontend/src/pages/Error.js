@@ -18,8 +18,6 @@ const Error = () => {
 	title = "Internal Server Error";
 	message = "An internal server error occurred";
 	message = JSON.parse(error.message).message; 
-	// This is a custom error message from the server that is sent as a JSON string 
-	//when fetching the data from the server. if return json(message) no need to parse 349
   }
 
 	return (

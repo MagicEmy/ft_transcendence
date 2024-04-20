@@ -30,10 +30,6 @@ function Navbar() {
               className={({ isActive }) =>
                 isActive ? classes.active : undefined
               }
-			  //also possible with style:
-			  // style={({ isActive }) => ({
-              //   textAlign: isActive ? 'center' : 'left',
-              // })}
 			  end
             >
               Home
