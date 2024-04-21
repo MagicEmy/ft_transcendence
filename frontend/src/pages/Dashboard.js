@@ -10,7 +10,8 @@ export const Dashboard = () => {
     const token = urlParams.get('token');
 
     if (token) {
-		console.log("!!!!token: ", token);
+		  console.log("!!!!token: ", token);
+      localStorage.setItem("authToken", token)
       setAuthToken(token);
 
       window.history.pushState({}, '', window.location.pathname);

@@ -15,12 +15,12 @@ async function bootstrap() {
       },
     },
   });
+
   app.enableCors({
-    origin: ['http://localhost:3000'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  });
+});
   await app.startAllMicroservices();
   await app.listen(3000);
   // const app = await NestFactory.createMicroservice<MicroserviceOptions>(
