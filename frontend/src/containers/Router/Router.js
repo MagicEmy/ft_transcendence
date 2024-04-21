@@ -9,23 +9,12 @@ import Login from "../../pages/Login";
 import Error from "../../pages/Error";
 import Leaderboard from "../../pages/Leaderboard";
 import Profile from "../../pages/Profile";
+// import PrivateRoute from "../../components/PrivateRoute";
+
 // import Unauthorized from "../../../component/Unauthorized";
 // import ChatPage from "../../pages/ChatPage";
 // import ProfileUserId from "../../components/ProfileUserId";
 
-// import { AuthContext } from './AuthContext'; // Import your AuthContext
-
-// const PrivateRoute = ({ children }) => {
-//   const { authToken } = useContext(AuthContext);
-
-//   return authToken ? (
-//     // If authenticated, render children
-//     children
-//   ) : (
-//     // If not authenticated, redirect to login
-//     <Navigate to="/" replace /> 
-//   );
-// };
 
 const router = createBrowserRouter([
 	{
