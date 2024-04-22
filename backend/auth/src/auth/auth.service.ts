@@ -5,12 +5,14 @@ import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { JwtPayloadDto } from './dto/jwt-payload-dto';
 import { ClientKafka } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
     @Inject('STATS_SERVICE') private readonly statsClient: ClientKafka,
   ) {}
   async validateUser({ intra_login }: ValidateUserDto): Promise<User> {
@@ -24,7 +26,7 @@ export class AuthService {
       intra_login: intra_login,
       user_name: intra_login,
     });
-    // broadcast new user creation to profile and chat
+    // new user creation is broadcast to profile and chat
     this.statsClient.emit('new_user', {
       user_id: newUser.user_id,
       intra_login: newUser.intra_login,
@@ -34,15 +36,9 @@ export class AuthService {
     // or should we return null in some cases?
   }
 
-  async login(
-    jwtPayloadDto: JwtPayloadDto,
-  ): Promise<{ access_token: string; user_id: string; user_name: string }> {
+  login(jwtPayloadDto: JwtPayloadDto): string {
     const token = this.jwtService.sign(jwtPayloadDto);
     console.log(token);
-    return {
-      access_token: token,
-      user_id: jwtPayloadDto.sub,
-      user_name: jwtPayloadDto.user_name,
-    };
+    return `Authentication=${token}; HttpOnly; Path=/; secure=true; Max-Age=${this.configService.get('JWT_EXPIRATION_TIME')}`;
   }
 }
