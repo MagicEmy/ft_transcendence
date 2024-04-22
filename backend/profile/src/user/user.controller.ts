@@ -4,18 +4,23 @@ import { UserService } from './user.service';
 import { AddFriendDto } from './dto/add-friend-dto';
 import { Friend } from './friend.entity';
 import { UsernameCache } from './usernameCache';
+import { EventPattern } from '@nestjs/microservices';
+import { AvatarService } from './avatar.service';
 
 @Controller('user')
 export class UserController {
   constructor(
     private userService: UserService,
     private usernameCache: UsernameCache,
+    private readonly avatarService: AvatarService,
   ) {}
 
-  // @Post()
-  // createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
-  //   return this.userService.createUser(createUserDto);
-  // }
+  @EventPattern('new_user')
+  createAvatarRecord(data: any): void {
+    console.log('in controller new_user function');
+    console.log(data);
+    this.avatarService.createAvatarRecord(data.user_id);
+  }
 
   @Get('/:id')
   getUserById(@Param('id') id: string): Promise<User> {
