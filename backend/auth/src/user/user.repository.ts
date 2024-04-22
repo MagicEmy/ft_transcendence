@@ -16,13 +16,12 @@ export class UserRepository extends Repository<User> {
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const { intra_login, user_name, avatar } = createUserDto;
+    const { intra_login, user_name } = createUserDto;
 
     const user: User = this.create({
       user_id: uuid(),
       intra_login,
       user_name,
-      avatar,
     });
 
     await this.save(user);

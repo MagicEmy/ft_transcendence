@@ -57,10 +57,11 @@ export class ProfileService {
     const mostFrequentOpponentUsername: string =
       await this.userService.getUsername(user_id);
 
+    // ADD RETURNING AVATAR? OR SEPARATE CALL FROM FRONTEND?
+
     return {
       user_id: userInfo.user_id,
       user_name: userInfo.user_name,
-      avatar: userInfo.avatar,
       friends: friends,
       leaderboard_position: leaderboardPos,
       total_players: totalPlayers,

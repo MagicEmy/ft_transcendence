@@ -28,7 +28,6 @@ export class UserService {
       return {
         user_id: user_id,
         user_name: user.user_name,
-        avatar: user.avatar,
       };
     } catch (error) {
       console.log(error);

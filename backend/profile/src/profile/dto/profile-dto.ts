@@ -1,7 +1,7 @@
 export class ProfileDto {
   user_id: string;
   user_name: string;
-  avatar: Buffer;
+  avatar?: Buffer;
   friends: FriendDto[];
   leaderboard_position: number;
   total_players: number;
