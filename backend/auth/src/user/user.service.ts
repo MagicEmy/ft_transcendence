@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user-dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
@@ -20,14 +20,4 @@ export class UserService {
       intra_login: intra_login,
     });
   }
-
-  // async changeUserName(id: string, user_name: string): Promise<User> {
-  //   const found = await this.getUserById(id);
-  //   if (!found) {
-  //     throw new NotFoundException(`User with ID "${id}" not found`);
-  //   }
-  //   found.user_name = user_name;
-  //   this.userRepository.save(found);
-  //   return found;
-  // }
 }

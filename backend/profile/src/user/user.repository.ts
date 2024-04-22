@@ -25,8 +25,7 @@ export class UserRepository extends Repository<User> {
   }
 
   async getUsername(user_id: string) {
-    const fromDB = await this.userRepository
-      .createQueryBuilder('users')
+    const fromDB = await this.createQueryBuilder('users')
       .select('user_name')
       .where('user_id = :user_id', { user_id })
       .getRawOne();
@@ -36,18 +35,4 @@ export class UserRepository extends Repository<User> {
       return fromDB.user_name;
     }
   }
-
-  // async createUser(createUserDto: CreateUserDto): Promise<User> {
-  //   const { intra_login, user_name, avatar } = createUserDto;
-
-  //   const user: User = this.create({
-  //     user_id: uuid(),
-  //     intra_login,
-  //     user_name,
-  //     avatar,
-  //   });
-
-  //   await this.save(user);
-  //   return user;
-  // }
 }
