@@ -18,7 +18,7 @@ export const UserProvider = ({ children }) => {
 			console.log("%%%authToken: ", authToken);
 			const fetchUser = async () => {
 			  try {
-				const response = await axios.get(`http://localhost:3002/user/${userId}`, {
+				const response = await axios.get('http://localhost:3003/auth/profile', {
 				  headers: { Authorization: `Bearer ${authToken}` },
 				});
 				const data = response.data;
@@ -35,9 +35,8 @@ export const UserProvider = ({ children }) => {
 		  } else {
 			setIsLoading(false);
 		  }
-	  }, []);
+	  }, [authToken, userId]);
 
-	 
 
   return (
     <UserContext.Provider value={{

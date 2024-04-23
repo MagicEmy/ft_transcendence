@@ -1,10 +1,10 @@
-import React, { useContext, useState } from "react";
-import axios from "axios";
+import React, { useContext } from "react";
+// import axios from "axios";
 import UserContext from "../context/UserContext";
 import "./Profile.css";
 
 function Profile() {
-  const [jsonString, setJsonString] = useState("");
+//   const [jsonString, setJsonString] = useState("");
   const { userProfile, isLoading } = useContext(UserContext);
   console.log(userProfile);
 
