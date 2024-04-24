@@ -149,7 +149,7 @@ function Game()
 				press:	event.type,
 				event:	event.event,
 			};
-			// console.log("Sending: ", eventData);
+			console.log("Sending: ", eventData);
 			socket.emit("button", JSON.stringify(eventData));
 			menuKeyEvent(event.keyCode, event.type);
 		};
@@ -338,6 +338,7 @@ function Game()
 							break;
 					}
 				}
+				renderHUD();
 			}
 			else
 				menuSelect = 0;
