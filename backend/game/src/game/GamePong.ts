@@ -1,66 +1,11 @@
 import { Consumer, Producer } from 'kafkajs';
 
-interface	Player
-{
-	client:	any | null;
-	id:		any;
-	name:	string;
-	paddle: Paddle;
-	status:	string;
-	score:	number;
-	button:	{[key: number]: boolean};
-}
-
-interface	Paddle
-{
-	posX:	number;
-	posY:	number;
-	width:	number;
-	height:	number;
-	speed:	number;
-}
-
-interface	Ball
-{
-	posX:	number;
-	posY:	number;
-	rad:	number;
-	speed:	number;
-	maxSpeed:	number;
-	angle:	number;
-}
-
-enum	PlayerStatus
-{
-	DISCONNECTED = "Disconnected",
-	CONNECTING = "Connecting",
-	WAITING = "Waiting",
-	NOTREADY = "Press Space to Start",
-	READY = "Ready",
-	PLAYING = " ",
-}
-
-enum	GameStatus
-{
-	WAITING,
-	START,
-	NEWBALL,
-	PLAYING,
-	GAMEOVER,
-}
-
-enum	Button
-{
-	SPACE = 32,
-	ARROWUP = 38,
-	ARROWDOWN = 40,
-	s = 83,
-	w = 87,
-}
+import { Player, Ball } from './GamePong.interfaces';
+import { GameStatus, GameState, PlayerStatus, Button } from './GamePong.enums';
 
 export class GamePong
 {
-	private	gameStatus:	GameStatus;
+	private	GameState:	GameState;
 	private loopInterval:	any;
 	player1:	Player;
 	player2:	Player;
@@ -68,14 +13,14 @@ export class GamePong
 	producer:	Producer;
 	consumer:	Consumer;
 
-	constructor(player1: string, player2: string | null, producer: Producer, consumer: Consumer)
+	constructor(player1ID: string, player2ID: string | null, producer: Producer, consumer: Consumer)
 	{
-		this.gameStatus = GameStatus.WAITING;
+		this.GameState = GameState.WAITING;
 		this.player1 = 
 		{
 			client: undefined,
-			id:		null,
-			name:	player1,
+			id:		player1ID,
+			name:	null,
 			paddle: {posX: 1/23, posY: 0.5, width: 0.01, height: 0.1, speed: 0.005},
 			status:	PlayerStatus.CONNECTING,
 			score:	0,
@@ -83,19 +28,21 @@ export class GamePong
 		};
 		this.player2 = 
 		{
-			client: (player2 === null) ? null : undefined,
-			id:		null,
-			name:	player2,
+			client: (player2ID === null) ? null : undefined,
+			id:		player2ID,
+			name:	(player2ID === null) ? "Bot" : null,
 			paddle: {posX: 22/23, posY: 0.5, width: 0.01, height: 0.1, speed: 0.005},
-			status:	(player2 === null) ? PlayerStatus.WAITING : PlayerStatus.CONNECTING,
+			status:	(player2ID === null) ? PlayerStatus.WAITING : PlayerStatus.CONNECTING,
 			score:	0,
 			button:	{},
 		}
 		this.ball = null;
 		this.producer = producer;
 		this.consumer = consumer;
+		this.requestPlayerName(this.player1.id);
+		this.requestPlayerName(this.player2.id);
 		this.loopInterval = setInterval(this.gameLoop.bind(this), 16);
-		console.log("Created New Pong game: ", this.player1.name, " vs ", this.player2.name);
+		console.log("Created New Pong game: ", this.player1.id, " vs ", this.player2.id);
 	}
 
 /* ************************************************************************** *\
@@ -104,12 +51,12 @@ export class GamePong
 
 \* ************************************************************************** */
 
-	connectPlayer(name: string, client: any): boolean
+	connectPlayer(id: string, client: any): boolean
 	{
 		let player: Player;
-		if (this.player1.name === name && !this.player1.client)
+		if (this.player1.id === id && !this.player1.client)
 			player = this.player1;
-		else if (this.player2.name === name && !this.player2.client)
+		else if (this.player2.id === id && !this.player2.client)
 			player = this.player2;
 		else
 			return (false);
@@ -124,7 +71,11 @@ export class GamePong
 	{
 		player.client.on("test", () =>
 		{
-			console.log("I received directly!!!!");
+			console.log("I received directly!!!! test");
+		});
+		player.client.on("disconnect", () =>
+		{
+			console.log("I received directly!!!! disconnect");
 		});
 		player.client.on("button", (data: string) => { this.handlerButtonEvent(player, data); });
 		player.client.on("image", () => { this.handlerImage(player); });
@@ -192,16 +143,16 @@ export class GamePong
 				};
 				data.Player1.posX = 1 - data.Player1.posX;
 				data.Player2.posX = 1 - data.Player2.posX;
-				data.Ball.posX = 1 - data.Ball.posX;
+				if (data.Ball !== null)
+					data.Ball.posX = 1 - data.Ball.posX;
 				player.client.emit("pong", JSON.stringify(data));
 			}
 		}
 
 	}
 
-	private	sendHUDUpdate()
+	private sendHUDUpdate()
 	{
-		// console.log("emitting hud");
 		const P1 =
 		{
 			name:	this.player1.name,
@@ -214,8 +165,6 @@ export class GamePong
 			score:	this.player2.score,
 			status:	this.player2.status,
 		}
-		if (this.player2.name === null)
-			P2.name = "Bot";
 		if (this.player1.client && this.player1.client.emit)
 		{
 			const HUD =
@@ -233,6 +182,21 @@ export class GamePong
 				P2: P1,
 			};
 			this.player2.client.emit("pongHUD", JSON.stringify(HUD));
+		}
+	}
+
+	private requestPlayerName(id: string | null)
+	{
+		if (typeof(id) === "string")
+		{
+			this.producer.send(
+			{
+				topic:	"requestPlayerName",
+				messages:	[{ value: JSON.stringify(
+				{
+					playerID:	id,
+				}),}]
+			});
 		}
 	}
 
@@ -263,19 +227,19 @@ export class GamePong
 	{
 		this.updatePaddle(this.player1);
 		this.updatePaddle(this.player2);
-		switch (this.gameStatus)
+		switch (this.GameState)
 		{
-			case GameStatus.WAITING:
+			case GameState.WAITING:
 				this.waitForPlayers();
 				break ;
-			case GameStatus.START:
+			case GameState.START:
 				this.pressSpaceToStart();
 				break ;
-			case GameStatus.NEWBALL:
+			case GameState.NEWBALL:
 				this.checkBotMove();
 				this.addBall();
 				break ;
-			case GameStatus.PLAYING:
+			case GameState.PLAYING:
 				this.checkBotMove();
 				const steps: number = 0.0001
 				for (let speed: number = this.ball.speed; speed > 0; speed -= steps)
@@ -289,7 +253,7 @@ export class GamePong
 				}
 				this.checkEventScore();
 				break ;
-			case GameStatus.GAMEOVER:
+			case GameState.GAMEOVER:
 				// this.checkBotMove();
 				clearInterval(this.loopInterval);
 				this.sendEndGame("winner");
@@ -306,7 +270,7 @@ export class GamePong
 		{
 			this.player1.status = PlayerStatus.NOTREADY;
 			this.player2.status = PlayerStatus.NOTREADY;
-			this.gameStatus = GameStatus.START;
+			this.GameState = GameState.START;
 			this.sendHUDUpdate();
 		}
 	}
@@ -336,7 +300,7 @@ export class GamePong
 		{
 			this.player1.status = PlayerStatus.PLAYING;
 			this.player2.status = PlayerStatus.PLAYING;
-			this.gameStatus = GameStatus.NEWBALL;
+			this.GameState = GameState.NEWBALL;
 			this.sendHUDUpdate();
 		}
 	}
@@ -405,7 +369,7 @@ export class GamePong
 				default:
 					return ;
 			}
-			this.gameStatus = GameStatus.PLAYING;
+			this.GameState = GameState.PLAYING;
 		}
 	}
 
@@ -545,9 +509,9 @@ export class GamePong
 			this.ball = null;
 			if (this.player1.score >= 11 ||
 				this.player2.score >= 11)
-				this.gameStatus = GameStatus.GAMEOVER;
+				this.GameState = GameState.GAMEOVER;
 			else
-				this.gameStatus = GameStatus.NEWBALL;
+				this.GameState = GameState.NEWBALL;
 			this.sendHUDUpdate();
 		}
 	}

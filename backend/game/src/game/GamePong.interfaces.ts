@@ -27,3 +27,11 @@ export interface Ball
 	maxSpeed:	number;
 	angle:	number;
 }
+
+export interface PlayerRanked
+{
+	client:	object,
+	id:		string,
+	rank:	number,
+	time:	number,
+}

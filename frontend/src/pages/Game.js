@@ -103,9 +103,16 @@ function Game()
 			// socket.emit("test");
 		});
 
+		socket.on("serverReady", () =>
+		{
+			console.log("Server ready!");
+			hudType = 0;
+			connectToGamePong("pongPair");
+		});
+
 		socket.on("disconnect", () =>
 		{
-			// socket.emit("disconnect");
+			socket.emit("disconnectClient");
 			socket.disconnect();
 			console.log("Socket.IO connection closed");
 		});
@@ -163,18 +170,30 @@ function Game()
 
 \* ************************************************************************** */
 
-		function	connectToServer(msgType)
+		// function	connectToServer(msgType)
+		// {
+		// 	if (msgType !== undefined)
+		// 	{
+		// 		const connectMSG =
+		// 		{
+		// 			client:	window.location.hostname,
+		// 			id:		window.location.hostname,
+		// 			msgType:	msgType,
+		// 		}
+		// 		socket.emit("connectMSG", JSON.stringify(connectMSG));
+		// 	}
+		// }
+
+		function	connectToGamePong(gameType)
 		{
-			if (msgType !== undefined)
+			const data =
 			{
-				const connectMSG =
-				{
-					client:	window.location.hostname,
-					id:	window.location.hostname,
-					msgType:	msgType,
-				}
-				socket.emit("connectMSG", JSON.stringify(connectMSG));
-			}
+				gameType:	gameType,
+				playerID:	window.location.hostname,
+			};
+
+			console.log(data);
+			socket.emit("connectPong", JSON.stringify(data));
 		}
 
 /* ************************************************************************** *\
@@ -309,10 +328,12 @@ function Game()
 							switch (menuList[menuSelect])
 							{
 								case "Solo Game":
-									connectToServer("pongSolo");
+									// connectToServer("pongSolo");
+									connectToGamePong("pongSolo");
 									hudType = 1;
 									break;
 								case "Find Match":
+									connectToGamePong("pongMatch");
 									console.log(menuSelect, "Find Match");
 									hudType = 1;
 									break;
