@@ -4,7 +4,8 @@ WORKDIR /app
 
 COPY *.json .
 
-RUN	npm install -g npm@10.5.2
+# RUN	npm install -g npm@10.5.2
+RUN npm update
 RUN npm ci
 RUN npm install socket.io @types/socket.io
 COPY . .
