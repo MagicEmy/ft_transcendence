@@ -56,7 +56,7 @@ function Game()
 		const	HUDcontext = HUDelement.getContext("2d");
 		const	font = "Arial";
 
-		let	hudType = -1;
+		let	hudType = 0;
 		let	menuSelect = 0;
 		let	menuList =
 		[
@@ -103,11 +103,14 @@ function Game()
 			// socket.emit("test");
 		});
 
-		socket.on("serverReady", () =>
+		socket.on("ServerReady", (message) =>
 		{
-			console.log("Server ready!");
-			hudType = 0;
-			connectToGamePong("pongPair");
+			if (message)
+				console.log("Server ready:", message);
+			else
+				console.log("Server ready!");
+			hudType = 1;
+			connectToGame("pong", "pair");
 		});
 
 		socket.on("disconnect", () =>
@@ -125,11 +128,11 @@ function Game()
 		socket.on("message", (message) =>
 		{
 			console.log("Socket.IO message: ", message);
-			hudType = 0;
+			// hudType = 0;
 		});
 
 
-		socket.on("pong", (message) =>
+		socket.on("PongImage", (message) =>
 		{
 			// renderBackground();
 			renderPong(message);
@@ -139,10 +142,10 @@ function Game()
 			// renderHUD(message);
 		});
 
-		socket.on("pongHUD", (message) =>
+		socket.on("PongHUD", (message) =>
 		{
 			// console.log("hud ", hudType);
-			hudType = 3;
+			hudType = 4;
 			renderHUD(message);
 			// console.log("hud ", hudType);
 			// renderMenu();
@@ -157,12 +160,11 @@ function Game()
 				event:	event.event,
 			};
 			console.log("Sending: ", eventData);
-			socket.emit("button", JSON.stringify(eventData));
+			socket.emit("Button", JSON.stringify(eventData));
 			menuKeyEvent(event.keyCode, event.type);
 		};
 		document.addEventListener('keydown', HandleKeyEvent);
 		document.addEventListener('keyup', HandleKeyEvent);
-
 
 /* ************************************************************************** *\
 
@@ -184,17 +186,29 @@ function Game()
 		// 	}
 		// }
 
-		function	connectToGamePong(gameType)
+		function	connectToGame(gameType, matchType)
 		{
-			const data =
+			const data = 
 			{
 				gameType:	gameType,
+				matchType:	matchType,
 				playerID:	window.location.hostname,
 			};
 
-			console.log(data);
-			socket.emit("connectPong", JSON.stringify(data));
+			socket.emit("ConnectGame", JSON.stringify(data));
 		}
+
+		// function	connectToGamePong(gameType)
+		// {
+		// 	const data =
+		// 	{
+		// 		gameType:	gameType,
+		// 		playerID:	window.location.hostname,
+		// 	};
+
+		// 	console.log(data);
+		// 	socket.emit("connectPong", JSON.stringify(data));
+		// }
 
 /* ************************************************************************** *\
 
@@ -253,6 +267,61 @@ function Game()
 
 /* ************************************************************************** *\
 
+	Menu
+
+\* ************************************************************************** */
+
+		function	menuKeyEvent(key, event)
+		{
+			if (hudType > 0 && hudType <= 2)
+			{
+				if (event === "keydown")
+				{
+					switch (key)
+					{
+						case 13://enter
+							switch (menuList[menuSelect])
+							{
+								case "Solo Game":
+									// connectToServer("pongSolo");
+									connectToGame("pong", "solo");
+									hudType = 3;
+									break;
+								case "Find Match":
+									connectToGame("pong", "match");
+									console.log(menuSelect, "Find Match");
+									hudType = 2;
+									break;
+								case "Infinite Load":
+									hudType = 3;
+									break ;
+								default:
+									break;
+							}
+							break ;
+						case 27://Escape
+							hudType = 1;
+							break ;
+						case 38://ArrowUp
+							if (menuSelect > 0)
+								--menuSelect;
+							break;
+						case 40://ArrowDown
+							if (menuSelect < menuList.length - 1)
+								++menuSelect;
+							break;
+						default:
+							break;
+					}
+				}
+				renderHUD();
+			}
+			else
+				menuSelect = 0;
+		}
+
+/* ************************************************************************** *\
+
 	Background
 
 \* ************************************************************************** */
@@ -297,160 +366,6 @@ function Game()
 
 /* ************************************************************************** *\
 
-	Menu
-
-\* ************************************************************************** */
-
-		function	renderHUD(message)
-		{
-			// console.log("rendering HUD", hudType, message);
-			// clearContext(HUDelement, HUDcontext);
-			switch (hudType)
-			{
-				case -1:	renderWord("Connecting"); break;
-				case 0:	renderMenu();		break;
-				case 1: renderLoading();	break;
-				// case 2:	renderMatch();		break;
-				case 3: renderPongHUD(message);	break;
-				default:	break;
-			}
-		}
-
-		function	menuKeyEvent(key, event)
-		{
-			if (hudType <= 2)
-			{
-				if (event === "keydown")
-				{
-					switch (key)
-					{
-						case 13://enter
-							switch (menuList[menuSelect])
-							{
-								case "Solo Game":
-									// connectToServer("pongSolo");
-									connectToGamePong("pongSolo");
-									hudType = 1;
-									break;
-								case "Find Match":
-									connectToGamePong("pongMatch");
-									console.log(menuSelect, "Find Match");
-									hudType = 1;
-									break;
-								case "Infinite Load":
-									hudType = 1;
-									break ;
-								default:
-									break;
-							}
-							break ;
-						case 27://Escape
-							hudType = 0;
-							break ;
-						case 38://ArrowUp
-							if (menuSelect > 0)
-								--menuSelect;
-							break;
-						case 40://ArrowDown
-							if (menuSelect < menuList.length - 1)
-								++menuSelect;
-							break;
-						default:
-							break;
-					}
-				}
-				renderHUD();
-			}
-			else
-				menuSelect = 0;
-		}
-
-		function	renderMenu()
-		{
-			fillContext(HUDelement, HUDcontext, "rgba(23, 23, 23, 1)");
-
-			renderMenuHead("PONG");
-			renderMenuList();
-		}
-
-		function	renderMenuHead(name)
-		{
-			HUDcontext.fillStyle = "rgba(42, 42, 42, 1)";
-			HUDcontext.fillRect(0, 0, HUDelement.width, HUDelement.height * 0.23);
-			HUDcontext.fillStyle = "rgba(192, 192, 192, 1)";
-			HUDcontext.fillRect(0, HUDelement.height * 0.23, HUDelement.width, HUDelement.height * 0.02);
-
-			let size = getFontSize(HUDcontext, name, HUDelement.height * 0.16, HUDelement.width * 0.75, font);
-			HUDcontext.font = size + "px " + font;
-			let posX = (HUDelement.width - HUDcontext.measureText(name).width) * 0.5;
-			let sizeY = HUDcontext.measureText(name).actualBoundingBoxAscent
-			let posY = HUDelement.height * 0.04 + sizeY;
-			HUDcontext.fillText(name, posX, posY);
-		}
-
-		function	renderMenuList()
-		{
-			let size = 100;
-			for (let i = 0; i < menuList.length; ++i)
-			{
-				let temp = getFontSize(HUDcontext, menuList[i], 
-										HUDelement.height * 0.75 / (menuList.length + 2), HUDelement.width * 0.75, font);
-				if (temp < size)
-					size = temp;
-			}
-			HUDcontext.font = size + "px " + font;
-			let sizeY = HUDcontext.measureText("X").actualBoundingBoxAscent;
-			HUDcontext.font = (size * 0.75) + "px " + font;
-
-			for (let i = 0; i < menuList.length; ++i)
-			{
-				if (i === menuSelect)
-					HUDcontext.fillStyle = "rgba(255, 127, 0, 1)";
-				else
-					HUDcontext.fillStyle = "rgba(123, 123, 123, 1)";
-				let posX = HUDelement.width * 0.5 - HUDcontext.measureText(menuList[i]).width / 2;
-				let posY = HUDelement.height * 0.25 + + sizeY * (i + 2);
-				HUDcontext.fillText(menuList[i], posX, posY);
-			}
-		}
-
-		function	renderWord(msg)
-		{
-			let dots = new Date().getSeconds() % 4;
-			msg += ".".repeat(dots);
-			msg += " ".repeat(4 - dots);
-			
-			let size = getFontSize(HUDcontext, msg, HUDelement.height / 2, HUDelement.width / 2, font);
-			HUDcontext.font = size + "px " + font;
-			let posX = HUDelement.width / 2 - (HUDcontext.measureText(msg).width / 2);
-			let posY = HUDelement.height / 2;
-			
-			fillContext(HUDelement, HUDcontext,"rgba(23, 23, 23, 1)");
-			HUDcontext.fillStyle = "rgba(123, 123, 123, 1)";
-			HUDcontext.fillText(msg, posX, posY);
-			setTimeout(renderHUD, 500);
-		}
-
-		function	renderLoading()
-		{
-			let msg = "Loading";
-			let dots = new Date().getSeconds() % 4;
-			msg += ".".repeat(dots);
-			msg += " ".repeat(4 - dots);
-			
-			let size = getFontSize(HUDcontext, msg, HUDelement.height / 2, HUDelement.width / 2, font);
-			HUDcontext.font = size + "px " + font;
-			let posX = HUDelement.width / 2 - (HUDcontext.measureText(msg).width / 2);
-			let posY = HUDelement.height / 2;
-			
-			fillContext(HUDelement, HUDcontext,"rgba(23, 23, 23, 1)");
-			HUDcontext.fillStyle = "rgba(123, 123, 123, 1)";
-			HUDcontext.fillText(msg, posX, posY);
-			setTimeout(renderHUD, 500);
-		}
-
-/* ************************************************************************** *\
-
 	Pong
 
 \* ************************************************************************** */
@@ -486,7 +401,6 @@ function Game()
 
 		function	addBallModern(ball)
 		{
-			// console.log(ball);
 			if (ball === null)
 				return ;
 			ball.posX *= PONGelement.width;
@@ -502,6 +416,124 @@ function Game()
 /* ************************************************************************** *\
 
 	HUD
+
+\* ************************************************************************** */
+
+		function	renderHUD(message)
+		{
+			// console.log("rendering HUD", hudType, message);
+			// clearContext(HUDelement, HUDcontext);
+			switch (hudType)
+			{
+				case -1:	renderWord("Error");	break;
+				case 0:	renderWord("Connecting");	break;
+				case 1:	renderMenu();		break;
+				// case 2:	renderMatch();		break;
+				case 3:	renderWord("Loading");	break;
+				case 4:	renderPongHUD(message);	break;
+				default:	break;
+			}
+		}
+
+		function	renderHUDHead(name)
+		{
+			HUDcontext.fillStyle = "rgba(42, 42, 42, 1)";
+			HUDcontext.fillRect(0, 0, HUDelement.width, HUDelement.height * 0.23);
+			HUDcontext.fillStyle = "rgba(192, 192, 192, 1)";
+			HUDcontext.fillRect(0, HUDelement.height * 0.23, HUDelement.width, HUDelement.height * 0.02);
+
+			let size = getFontSize(HUDcontext, name, HUDelement.height * 0.16, HUDelement.width * 0.75, font);
+			HUDcontext.font = size + "px " + font;
+			let posX = (HUDelement.width - HUDcontext.measureText(name).width) * 0.5;
+			let sizeY = HUDcontext.measureText(name).actualBoundingBoxAscent
+			let posY = HUDelement.height * 0.04 + sizeY;
+			HUDcontext.fillText(name, posX, posY);
+		}
+
+		function	renderWord(msg)
+		{
+			let dots = new Date().getSeconds() % 4;
+			msg += ".".repeat(dots);
+			msg += " ".repeat(4 - dots);
+			
+			let size = getFontSize(HUDcontext, msg, HUDelement.height / 2, HUDelement.width / 2, font);
+			HUDcontext.font = size + "px " + font;
+			let posX = HUDelement.width / 2 - (HUDcontext.measureText(msg).width / 2);
+			let posY = HUDelement.height / 2;
+			
+			fillContext(HUDelement, HUDcontext,"rgba(23, 23, 23, 1)");
+			HUDcontext.fillStyle = "rgba(123, 123, 123, 1)";
+			HUDcontext.fillText(msg, posX, posY);
+			setTimeout(renderHUD, 500);
+		}
+	
+		// function	renderLoading()
+		// {
+		// 	let msg = "Loading";
+		// 	let dots = new Date().getSeconds() % 4;
+		// 	msg += ".".repeat(dots);
+		// 	msg += " ".repeat(4 - dots);
+			
+		// 	let size = getFontSize(HUDcontext, msg, HUDelement.height / 2, HUDelement.width / 2, font);
+		// 	HUDcontext.font = size + "px " + font;
+		// 	let posX = HUDelement.width / 2 - (HUDcontext.measureText(msg).width / 2);
+		// 	let posY = HUDelement.height / 2;
+			
+		// 	fillContext(HUDelement, HUDcontext,"rgba(23, 23, 23, 1)");
+		// 	HUDcontext.fillStyle = "rgba(123, 123, 123, 1)";
+		// 	HUDcontext.fillText(msg, posX, posY);
+		// 	setTimeout(renderHUD, 500);
+		// }
+
+/* ************************************************************************** *\
+
+	HUD - Menu
+
+\* ************************************************************************** */
+
+		function	renderMenu()
+		{
+			fillContext(HUDelement, HUDcontext, "rgba(23, 23, 23, 1)");
+
+			renderHUDHead("PONG");
+			renderMenuList();
+		}
+
+		function	renderMenuList()
+		{
+			let size = 100;
+			for (let i = 0; i < menuList.length; ++i)
+			{
+				let temp = getFontSize(HUDcontext, menuList[i], 
+										HUDelement.height * 0.75 / (menuList.length + 2), HUDelement.width * 0.75, font);
+				if (temp < size)
+					size = temp;
+			}
+			HUDcontext.font = size + "px " + font;
+			let sizeY = HUDcontext.measureText("X").actualBoundingBoxAscent;
+			HUDcontext.font = (size * 0.75) + "px " + font;
+
+			for (let i = 0; i < menuList.length; ++i)
+			{
+				if (i === menuSelect)
+					HUDcontext.fillStyle = "rgba(255, 127, 0, 1)";
+				else
+					HUDcontext.fillStyle = "rgba(123, 123, 123, 1)";
+				let posX = HUDelement.width * 0.5 - HUDcontext.measureText(menuList[i]).width / 2;
+				let posY = HUDelement.height * 0.25 + + sizeY * (i + 2);
+				HUDcontext.fillText(menuList[i], posX, posY);
+			}
+		}
+
+/* ************************************************************************** *\
+
+	HUD - Match
+
+\* ************************************************************************** */
+
+/* ************************************************************************** *\
+
+	HUD - Game
 
 \* ************************************************************************** */
 
@@ -588,7 +620,7 @@ function Game()
 		const getImage = () =>
 		{
 			// console.log("requesting Image!");
-			socket.emit("image");
+			socket.emit("PongImage");
 		};
 		const gameInterval = setInterval(getImage, 32);
 
@@ -598,8 +630,6 @@ function Game()
 			socket.disconnect();
 		}
 	}, []);
-
-
 
 	return (
 		<>

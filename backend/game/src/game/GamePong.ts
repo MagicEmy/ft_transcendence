@@ -2,6 +2,7 @@ import { Consumer, Producer } from 'kafkajs';
 
 import { Player, Ball } from './GamePong.interfaces';
 import { GameStatus, GameState, PlayerStatus, Button } from './GamePong.enums';
+import { PlayerInfo, IPlayerInfo, SockEventNames, ISockPongImage, ISockPongImagePlayer, ISockPongImageBall, ISockPongHudPlayer } from './GamePong.communication';
 
 export class GamePong
 {
@@ -77,8 +78,8 @@ export class GamePong
 		{
 			console.log("I received directly!!!! disconnect");
 		});
-		player.client.on("button", (data: string) => { this.handlerButtonEvent(player, data); });
-		player.client.on("image", () => { this.handlerImage(player); });
+		player.client.on(SockEventNames.BUTTON, (data: string) => { this.handlerButtonEvent(player, data); });
+		player.client.on(SockEventNames.PONGIMG, () => { this.handlerImage(player); });
 	}
 
 	private handlerButtonEvent(player: Player, data: string)
@@ -94,110 +95,106 @@ export class GamePong
 
 	private handlerImage(player: Player)
 	{
-		const P1 = 
+		let imageData:	ISockPongImage;
+
+		const P1 = this.handlerImageGetPlayer(this.player1);
+		const P2 = this.handlerImageGetPlayer(this.player2);
+		const Ball = this.handlerImageGetBall();
+		if (player.client === this.player1.client)
+			imageData = { Player1: P1, Player2: P2, Ball: Ball};
+		else
 		{
-			posX:	this.player1.paddle.posX,
-			posY:	this.player1.paddle.posY,
-			height:	this.player1.paddle.height,
-			width:	this.player1.paddle.width,
-			msg:	this.player1.status,
-		};
-		const P2 = 
+			imageData = { Player1: P2, Player2: P1, Ball: Ball};
+			this.handerImageMirrorXAxis(imageData);
+		}
+		if (player.client.emit)
+			player.client.emit(SockEventNames.PONGIMG, JSON.stringify(imageData));
+	}
+
+	private handlerImageGetPlayer(player: Player): ISockPongImagePlayer
+	{
+		const PImg: ISockPongImagePlayer = 
 		{
-			posX:	this.player2.paddle.posX,
-			posY:	this.player2.paddle.posY,
-			height:	this.player2.paddle.height,
-			width:	this.player2.paddle.width,
-			msg:	this.player2.status,
+			posX:	player.paddle.posX,
+			posY:	player.paddle.posY,
+			height:	player.paddle.height,
+			width:	player.paddle.width,
+			msg:	player.status,
 		};
-		let Ball = null;
+
+		return (PImg)
+	}
+
+	private handlerImageGetBall(): ISockPongImageBall | null
+	{
 		if (this.ball !== null)
 		{
-			Ball =
+			const Bally: ISockPongImageBall = 
 			{
 				posX:	this.ball.posX,
 				posY:	this.ball.posY,
-				size:	this.ball.rad,
+				size:	this.ball.rad * 2,
 			};
+			return (Bally);
 		}
+		return (null);
+	}
 
-		if (player.client.emit)
-		{
-			if (player.client === this.player1.client)
-			{
-				const data = 
-				{
-					Player1: P1,
-					Player2: P2,
-					Ball:	Ball,
-				};
-				player.client.emit("pong", JSON.stringify(data));
-			}
-			else
-			{
-				const data =
-				{
-					Player1: P2,
-					Player2: P1,
-					Ball: Ball,
-				};
-				data.Player1.posX = 1 - data.Player1.posX;
-				data.Player2.posX = 1 - data.Player2.posX;
-				if (data.Ball !== null)
-					data.Ball.posX = 1 - data.Ball.posX;
-				player.client.emit("pong", JSON.stringify(data));
-			}
-		}
-
+	private handerImageMirrorXAxis(imageData: ISockPongImage)
+	{
+		imageData.Player1.posX = 1 - imageData.Player1.posX;
+		imageData.Player2.posX = 1 - imageData.Player2.posX;
+		if (imageData.Ball !== null)
+			imageData.Ball.posX = 1 - imageData.Ball.posX;
 	}
 
 	private sendHUDUpdate()
 	{
-		const P1 =
-		{
-			name:	this.player1.name,
-			score:	this.player1.score,
-			status:	this.player1.status,
-		}
-		const P2 =
-		{
-			name:	this.player2.name,
-			score:	this.player2.score,
-			status:	this.player2.status,
-		}
+		const P1 = this.sendHUDUpdateGetPlayer(this.player1);
+		const P2 = this.sendHUDUpdateGetPlayer(this.player2);
 		if (this.player1.client && this.player1.client.emit)
 		{
-			const HUD =
-			{
-				P1:	P1,
-				P2: P2,
-			};
-			this.player1.client.emit("pongHUD", JSON.stringify(HUD));
+			const HUD = {P1: P1, P2: P2};
+			this.player1.client.emit(SockEventNames.PONGHUD, JSON.stringify(HUD));
 		}
 		if (this.player2.client && this.player2.client.emit)
 		{
-			const HUD = 
-			{
-				P1: P2,
-				P2: P1,
-			};
-			this.player2.client.emit("pongHUD", JSON.stringify(HUD));
+			const HUD = {P1: P2, P2: P1};
+			this.player2.client.emit(SockEventNames.PONGHUD, JSON.stringify(HUD));
 		}
+	}
+
+	private sendHUDUpdateGetPlayer(player: Player): ISockPongHudPlayer
+	{
+		const	playerHUD:	ISockPongHudPlayer =
+		{
+			name:	player.name,
+			score:	player.score,
+			status:	player.status,
+		};
+		return (playerHUD);
 	}
 
 	private requestPlayerName(id: string | null)
 	{
 		if (typeof(id) === "string")
 		{
+			const data: IPlayerInfo = {playerID: id};
 			this.producer.send(
 			{
-				topic:	"requestPlayerName",
-				messages:	[{ value: JSON.stringify(
-				{
-					playerID:	id,
-				}),}]
+				topic:	PlayerInfo.TOPIC,
+				messages:	[{ value: JSON.stringify(data),}],
 			});
 		}
+	}
+
+	setPlayerName(id: string, name: string)
+	{
+		if (this.player1.id === id)
+			this.player1.name = name;
+		if (this.player2.id === id)
+			this.player2.name = name;
+		this.sendHUDUpdate();
 	}
 
 	private	sendEndGame(status: string)

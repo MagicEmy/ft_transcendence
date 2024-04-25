@@ -29,9 +29,10 @@ body
 #gamePongCanvas
 {
 	aspect-ratio: 4/3;
-	max-width:	100%;
+	max-width:	90%;
 	min-width:	40px;
-	max-height:	100%;
+	max-height:	calc((100vh - 80px) * 0.9);
+	/* height:	100%; */
 	width: 69%;
 	position:	absolute;
 	/* top:	50%;
