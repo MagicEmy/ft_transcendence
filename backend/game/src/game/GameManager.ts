@@ -6,7 +6,7 @@ import { GamePong } from './GamePong';
 import { PlayerStatus } from './GamePong.enums';
 import { PlayerRanked } from './GamePong.interfaces';
 
-import { SockEventNames, PlayerInfo, IPlayerInfo, ISockConnectGame, MatchTypes } from './GamePong.communication';
+import { SockEventNames, PlayerInfo, IPlayerInfo, ISockConnectGame, MatchTypes, ISockRemoveMatch } from './GamePong.communication';
 
 @WebSocketGateway({ cors: true })
 export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
@@ -141,6 +141,7 @@ sendConnectionConfirmation(client: any)
 	}
 	else
 		console.error("Error Client ", client.id, "not connected.");
+	return ;
 }
 
 handleDisconnect(client: any)
@@ -168,7 +169,7 @@ handleDisconnect(client: any)
 
 
 @SubscribeMessage(SockEventNames.CONNECTGAME)
-handleConnectPong(client: object, message: string): boolean
+handleConnectGame(client: object, message: string): boolean
 {
 	const msg: ISockConnectGame = JSON.parse(message)
 
@@ -203,6 +204,14 @@ handleConnectPong(client: object, message: string): boolean
 		}
 	}
 	return (false);
+}
+
+@SubscribeMessage(SockEventNames.RMMATCH)
+handleRemoveFromMAtchMaking(client: object, message: string)
+{
+	const msg:	any = JSON.parse(message);
+	if (msg.id)
+		this.rmPlayerFromMatchMaking(msg.id);
 }
 
 // @SubscribeMessage("findPongPaired")
@@ -279,7 +288,7 @@ handleConnectPong(client: object, message: string): boolean
 
 \* ************************************************************************** */
 
-	private addPlayerToMatchMaking(id: string, client: object)
+	private addPlayerToMatchMaking(id: string, client: any)
 	{
 		if (this.matchQueue.findIndex(player => player.id === id) === -1)
 		{
@@ -290,6 +299,7 @@ handleConnectPong(client: object, message: string): boolean
 				time:	0,
 			};
 			this.matchQueue.push(player);
+			this.matchupdateClient(player);
 		}
 
 		const data: IPlayerInfo = {playerID: id,};
@@ -339,7 +349,20 @@ handleConnectPong(client: object, message: string): boolean
 			}
 		}
 		for (let i: number = 0; i < this.matchQueue.length; ++i)
+		{
 			++this.matchQueue[i].time;
+			this.matchupdateClient(this.matchQueue[i]);
+		}
+	}
+
+	private matchupdateClient(player: PlayerRanked)
+	{
+		const data: ISockRemoveMatch = 
+		{
+			rank:	player.rank,
+			time:	player.time,
+		};
+		player.client.emit("PongMatch", JSON.stringify(data));
 	}
 
 	private	rmPlayerFromMatchMaking(id: string)

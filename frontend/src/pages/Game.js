@@ -1,5 +1,5 @@
 // import { styled } from 'styled-components';
-import React, { useEffect } from 'react';
+import React, { useEffect, useId } from 'react';
 import io from 'socket.io-client';
 
 import './game.css';
@@ -47,6 +47,9 @@ function Game()
 
 \* ************************************************************************** */
 
+		const	userID =	window.location.hostname;
+		const	userHost =	window.location.hostname;
+
 		const	GAMEelement = document.getElementById("game");
 		const	BCKelement = document.getElementById("gameBackground");
 		const	BCKcontext = BCKelement.getContext("2d");
@@ -57,10 +60,21 @@ function Game()
 		const	font = "Arial";
 
 		let	hudType = 0;
+		const EnumHudType =
+		{
+			ERROR:		-1,
+			CONNECT:	0,
+			MENU:		1,
+			MATCH:		2,
+			LOADING:	3,
+			PLAYING:	4,
+		};
+
 		let	menuSelect = 0;
-		let	menuList =
+		const	menuList =
 		[
 			"Solo Game",
+			"Local Game",
 			"Find Match",
 			"Infinite Load",
 			"Exit",
@@ -109,7 +123,7 @@ function Game()
 				console.log("Server ready:", message);
 			else
 				console.log("Server ready!");
-			hudType = 1;
+			hudType = EnumHudType.MENU;
 			connectToGame("pong", "pair");
 		});
 
@@ -142,10 +156,16 @@ function Game()
 			// renderHUD(message);
 		});
 
+		socket.on("PongMatch", (message) =>
+		{
+			hudType = EnumHudType.MATCH;
+			renderHUD(message);
+		});
+
 		socket.on("PongHUD", (message) =>
 		{
 			// console.log("hud ", hudType);
-			hudType = 4;
+			hudType = EnumHudType.PLAYING;
 			renderHUD(message);
 			// console.log("hud ", hudType);
 			// renderMenu();
@@ -159,7 +179,7 @@ function Game()
 				press:	event.type,
 				event:	event.event,
 			};
-			console.log("Sending: ", eventData);
+			// console.log("Sending: ", eventData);
 			socket.emit("Button", JSON.stringify(eventData));
 			menuKeyEvent(event.keyCode, event.type);
 		};
@@ -192,7 +212,7 @@ function Game()
 			{
 				gameType:	gameType,
 				matchType:	matchType,
-				playerID:	window.location.hostname,
+				playerID:	userID,
 			};
 
 			socket.emit("ConnectGame", JSON.stringify(data));
@@ -273,45 +293,17 @@ function Game()
 
 		function	menuKeyEvent(key, event)
 		{
-			if (hudType > 0 && hudType <= 2)
+			if (hudType > EnumHudType.CONNECT && hudType < EnumHudType.PLAYING)
 			{
 				if (event === "keydown")
 				{
 					switch (key)
 					{
-						case 13://enter
-							switch (menuList[menuSelect])
-							{
-								case "Solo Game":
-									// connectToServer("pongSolo");
-									connectToGame("pong", "solo");
-									hudType = 3;
-									break;
-								case "Find Match":
-									connectToGame("pong", "match");
-									console.log(menuSelect, "Find Match");
-									hudType = 2;
-									break;
-								case "Infinite Load":
-									hudType = 3;
-									break ;
-								default:
-									break;
-							}
-							break ;
-						case 27://Escape
-							hudType = 1;
-							break ;
-						case 38://ArrowUp
-							if (menuSelect > 0)
-								--menuSelect;
-							break;
-						case 40://ArrowDown
-							if (menuSelect < menuList.length - 1)
-								++menuSelect;
-							break;
-						default:
-							break;
+						case 13:	menuEventEnter();	break ;
+						case 27:	menuEventEscape();	break ;
+						case 38:	menuEventArrowUp();	break ;
+						case 40:	menuEventArrowDown();	break ;
+						default:	break ;
 					}
 				}
 				renderHUD();
@@ -319,6 +311,67 @@ function Game()
 			else
 				menuSelect = 0;
 		}
+
+		function menuEventEnter()
+		{
+			if (hudType === EnumHudType.MENU)
+			{
+				switch (menuList[menuSelect])
+				{
+					case "Solo Game":
+						connectToGame("pong", "solo");
+						hudType = EnumHudType.LOADING;
+						break ;
+					case "Local Game":
+						connectToGame("pong", "local");
+						hudType = EnumHudType.LOADING;
+						break ;
+					case "Find Match":
+						connectToGame("pong", "match");
+						hudType = EnumHudType.LOADING;
+						break ;
+					case "Infinite Load":
+						hudType = EnumHudType.LOADING;
+						break ;
+					case "Exit":
+						hudType = EnumHudType.ERROR;
+						break ;
+					default:
+						console.error("Error: Unknown menu option:", menuList[menuSelect]);
+						break ;
+				}
+			}
+		}
+		
+		function menuEventEscape()
+		{
+			switch (hudType)
+			{
+				case EnumHudType.MATCH:
+					socket.emit("RemoveFromMatchmaking", JSON.stringify({id: userID},));
+					console.log("send remove match");
+				case EnumHudType.LOADING:
+					hudType = EnumHudType.MENU;
+					break ;
+				default:
+					break ;
+			}
+		}
+
+		function menuEventArrowUp()
+		{
+			if (hudType === EnumHudType.MENU && 
+				menuSelect > 0)
+				--menuSelect;
+		}
+
+		function menuEventArrowDown()
+		{
+			if (hudType === EnumHudType.MENU &&
+				menuSelect < menuList.length - 1)
+				++menuSelect;
+		}
+
 
 /* ************************************************************************** *\
 
@@ -425,12 +478,13 @@ function Game()
 			// clearContext(HUDelement, HUDcontext);
 			switch (hudType)
 			{
-				case -1:	renderWord("Error");	break;
-				case 0:	renderWord("Connecting");	break;
-				case 1:	renderMenu();		break;
-				// case 2:	renderMatch();		break;
-				case 3:	renderWord("Loading");	break;
-				case 4:	renderPongHUD(message);	break;
+				case EnumHudType.ERROR:		renderWord("Error");	break;
+				case EnumHudType.CONNECT:	renderWord("Connecting");	break;
+				case EnumHudType.MENU:		renderMenu();		break;
+				// case EnumHudType.MATCH:		renderWord("Matchmaking");		break;
+				case EnumHudType.MATCH:		renderMatch(message);		break;
+				case EnumHudType.LOADING:	renderWord("Loading");	break;
+				case EnumHudType.PLAYING:	renderPongHUD(message);	break;
 				default:	break;
 			}
 		}
@@ -530,6 +584,34 @@ function Game()
 	HUD - Match
 
 \* ************************************************************************** */
+
+		function renderMatch(message)
+		{
+			if (message === undefined)
+				return ;
+			const msg = JSON.parse(message);
+			let msg1 = "Rank: ";
+			if (msg.rank !== undefined)
+				msg1 += msg.rank;
+			let msg2 = "Time: ";
+			if (msg.time !== undefined)
+				msg2 += msg.time;
+
+			clearContext(HUDelement, HUDcontext);
+			renderHUDHead("MatchMaking");
+
+			let size = getFontSize(HUDcontext, msg1, HUDelement.height / 2, HUDelement.width / 4, font);
+			HUDcontext.font = size + "px " + font;
+			let posX = HUDelement.width / 4 - (HUDcontext.measureText(msg1).width / 2);
+			let posY = HUDelement.height / 2;
+			HUDcontext.fillStyle = "rgba(123, 123, 123, 1)";
+			HUDcontext.fillText(msg1, posX, posY);
+
+			size = getFontSize(HUDcontext, msg2, HUDelement.height / 2, HUDelement.width / 4, font);
+			HUDcontext.font = size + "px " + font;
+			posX = HUDelement.width * 3 / 4 - (HUDcontext.measureText(msg2).width / 2);
+			HUDcontext.fillText(msg2, posX, posY);
+		}
 
 /* ************************************************************************** *\
 

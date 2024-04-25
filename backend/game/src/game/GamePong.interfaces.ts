@@ -30,7 +30,7 @@ export interface Ball
 
 export interface PlayerRanked
 {
-	client:	object,
+	client:	any,
 	id:		string,
 	rank:	number,
 	time:	number,

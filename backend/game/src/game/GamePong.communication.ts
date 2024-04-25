@@ -28,6 +28,7 @@ export enum SockEventNames
 	SERVERREADY =	"ServerReady",
 	MSG =	"Message",
 	CONNECTGAME =	"ConnectGame",
+	RMMATCH =	"RemoveFromMatchmaking",
 	REQPONGIMG = "RequestPongImage",
 	PONGIMG =	"PongImage",
 	PONGHUD =	"PongHUD",
@@ -81,6 +82,12 @@ export interface ISockPongHudPlayer
 	score:	number,
 	status:	string,
 };
+
+export interface ISockRemoveMatch
+{
+	rank:	number,
+	time:	number,
+}
 
 /* ************************************************************************** *\
 
