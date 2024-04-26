@@ -171,6 +171,13 @@ function Game()
 			// renderMenu();
 		});
 
+		socket.on("EndGame", (message) =>
+		{
+			console.log(message);
+			hudType = EnumHudType.MENU;
+			renderHUD(message);
+		});
+
 		const HandleKeyEvent = (event) =>
 		{
 			const eventData = {

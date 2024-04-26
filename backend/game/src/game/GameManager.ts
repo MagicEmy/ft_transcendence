@@ -6,7 +6,7 @@ import { GamePong } from './GamePong';
 import { PlayerStatus } from './GamePong.enums';
 import { PlayerRanked } from './GamePong.interfaces';
 
-import { SockEventNames, PlayerInfo, IPlayerInfo, ISockConnectGame, MatchTypes, ISockRemoveMatch } from './GamePong.communication';
+import { SockEventNames, PlayerInfo, IPlayerInfo, ISockConnectGame, MatchTypes, ISockRemoveMatch, GameTypes, GameStatus, NewGame } from './GamePong.communication';
 
 @WebSocketGateway({ cors: true })
 export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
@@ -35,20 +35,18 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 			console.log("Connected to Kafka");
 			this.kafkaReady = true;
 			// console.log("Creating test game");
-
 			// this.producer.send(
 			// {
-			// 	topic:	"pongNewGame",
+			// 	topic:	NewGame.TOPIC,
 			// 	messages:	[{ value: JSON.stringify(
 			// 	{
 			// 		gameType:	"pong",
 			// 		name1:		"localhost",
-			// 		name2:		"10.11.1.6",
+			// 		name2:		"10.10.2.9",
 			// 	}),}]
 			// });
 		});
 	}
-
 
 	private async setupKafka()
 	{
@@ -63,46 +61,49 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		this.consumer = this.kafka.consumer( { groupId: 'game-consumer' });
 		await this.consumer.connect();
 
-		await this.consumer.subscribe({ topic: "pongNewGame" });
-		await this.consumer.subscribe({ topic: "game_end" });
+		await this.consumer.subscribe({ topic: "connectionCheck" });
+		await this.consumer.subscribe({ topic: NewGame.TOPIC });
+		await this.consumer.subscribe({ topic: GameStatus.TOPIC });
 
-		await this.consumer.subscribe({ topic: PlayerInfo.TOPIC });
+
+		await this.consumer.subscribe({ topic: PlayerInfo.TOPIC, fromBeginning: true });
 		await this.consumer.subscribe({ topic: PlayerInfo.REPLY });
-
 
 		await this.consumer.run(
 		{
 			eachMessage: async({ topic, partition, message }) =>
 			{
+				// console.log("Manager Kafka consumed:", topic, message.value.toString());
 				switch (topic)
 				{
-					case "pongNewGame":
-						this.createNewGame("pong", message.value.toString());
+					case NewGame.TOPIC:
+						this.createNewGame(message.value.toString());
 						break ;
-					case PlayerInfo.TOPIC://fake API
-						let msg = JSON.parse(message.value.toString());
-						let data: IPlayerInfo;
+					// case PlayerInfo.TOPIC://fake API
+					// 	let msg = JSON.parse(message.value.toString());
+					// 	let data: IPlayerInfo;
 
-						data.playerID = msg.playerID;
-						data.playerName = msg.playerID;
-						if (msg.playerID === "localhost")
-							data.playerRank = 10;
-						else if (msg.playerID = "10.11.1.6")
-							data.playerRank = 4;
-						else
-							data.playerRank = 23;
-						this.producer.send(
-						{
-							topic:	PlayerInfo.REPLY,
-							messages:	[{ value: JSON.stringify(data),}],
-						});
-						break ;
+					// 	data.playerID = msg.playerID;
+					// 	data.playerName = msg.playerID;
+					// 	if (msg.playerID === "localhost")
+					// 		data.playerRank = 10;
+					// 	else if (msg.playerID = "10.11.1.6")
+					// 		data.playerRank = 4;
+					// 	else
+					// 		data.playerRank = 23;
+					// 	this.producer.send(
+					// 	{
+					// 		topic:	PlayerInfo.REPLY,
+					// 		messages:	[{ value: JSON.stringify(data),}],
+					// 	});
+					// 	break ;
 					case PlayerInfo.REPLY:
 						this.setPlayerInfo(message.value.toString());
 						// this.setPlayerName(message.value.toString());
 						// this.setPlayerRank(message.value.toString());
 						break ;
-					case "game_end":
+					case GameStatus.TOPIC:
+						// console.log("trying to end the game!");
 						this.removeGame(message.value.toString());
 						break ;
 					default:
@@ -167,7 +168,6 @@ handleDisconnect(client: any)
 	// 	console.log("game not found");
 }
 
-
 @SubscribeMessage(SockEventNames.CONNECTGAME)
 handleConnectGame(client: object, message: string): boolean
 {
@@ -184,7 +184,7 @@ handleConnectGame(client: object, message: string): boolean
 		switch (msg.matchType)
 		{
 			case MatchTypes.SOLO:
-				gameID = new GamePong(msg.playerID, null, this.producer, this.consumer);
+				gameID = new GamePong(msg.playerID, null, this.producer);
 				this.games.push(gameID);
 				gameID.connectPlayer(msg.playerID, client);
 				break ;
@@ -195,7 +195,6 @@ handleConnectGame(client: object, message: string): boolean
 				// console.error("Error: pair not found for: ", msg.playerID);
 				return (false);
 			case MatchTypes.MATCH:
-				console.log("finding match!");
 				this.addPlayerToMatchMaking(msg.playerID, client);
 				return (true);
 			default:
@@ -309,19 +308,9 @@ handleRemoveFromMAtchMaking(client: object, message: string)
 			messages:	[{ value: JSON.stringify(data),}],
 		});
 
-		if (this.matchQueue.length > 1 && !this.matchInterval)
+		if (this.matchQueue.length > 0 && 
+			(!this.matchInterval || this.matchInterval._idleTimeout === -1))
 			this.matchInterval = setInterval(this.matchLoop.bind(this), 1000);
-	}
-
-	private	setPlayerRank(message: string)
-	{
-		const msg = JSON.parse(message);
-		
-		const index: number = this.matchQueue.findIndex(player => player.id === msg.playerID);
-		if (index != -1)
-			this.matchQueue[index].rank = msg.playerRank;
-		this.matchQueue.sort((a, b) => a.rank - b.rank);
-
 	}
 
 	private printMatchList()
@@ -334,12 +323,12 @@ handleRemoveFromMAtchMaking(client: object, message: string)
 	{
 		for (let i: number = 0; i < this.matchQueue.length - 1; ++i)
 		{
-			console.log(this.matchQueue[i].rank, "+", this.matchQueue[i].time, ">=", 
-				this.matchQueue[i + 1].rank, "-", this.matchQueue[i + 1].time);
+			// console.log(this.matchQueue[i].rank, "+", this.matchQueue[i].time, ">=", 
+			// 	this.matchQueue[i + 1].rank, "-", this.matchQueue[i + 1].time);
 			if (this.matchQueue[i].rank + this.matchQueue[i].time >= 
 				this.matchQueue[i + 1].rank - this.matchQueue[i + 1].time)
 			{
-				let gameID = new GamePong(this.matchQueue[i].id, this.matchQueue[i + 1].id, this.producer, this.consumer);
+				let gameID = new GamePong(this.matchQueue[i].id, this.matchQueue[i + 1].id, this.producer);
 				this.games.push(gameID);
 				gameID.connectPlayer(this.matchQueue[i].id, this.matchQueue[i].client);
 				gameID.connectPlayer(this.matchQueue[i + 1].id, this.matchQueue[i + 1].client);
@@ -371,10 +360,10 @@ handleRemoveFromMAtchMaking(client: object, message: string)
 
 		while ((index = this.matchQueue.findIndex(id => id === id)) !== -1)
 		{
-			console.log("removing", this.matchQueue[index].id);
+			// console.log("removing", this.matchQueue[index].id);
 			this.matchQueue.splice(index, 1)[0];
 		}
-		if (this.matchQueue.length <= 1)
+		if (this.matchQueue.length < 1)
 			clearInterval(this.matchInterval);
 
 		// const index: number = this.matchQueue.findIndex(id => id === id);
@@ -391,13 +380,14 @@ handleRemoveFromMAtchMaking(client: object, message: string)
 
 \* ************************************************************************** */
 
-	private createNewGame(type: string, message: string)
+	private createNewGame(message: string)
 	{
+		// console.log("new game request!");
 		const msg: any = JSON.parse(message);
 		switch(msg.gameType)
 		{
-			case "pong":
-				this.games.push(new GamePong(msg.name1, msg.name2, this.producer, this.consumer));
+			case GameTypes.PONG:
+				this.games.push(new GamePong(msg.name1, msg.name2, this.producer));
 				break ;
 			default:
 				console.error("Unknown gametype: ", msg.gameType);
@@ -408,6 +398,7 @@ handleRemoveFromMAtchMaking(client: object, message: string)
 	private	removeGame(message: string)
 	{
 		const msg:	any = JSON.parse(message);
+		// console.log(msg);
 
 		let gameID: GamePong = this.findGameByPlayerId(msg.player1ID);
 		const index: number = this.games.findIndex(game => game === gameID);

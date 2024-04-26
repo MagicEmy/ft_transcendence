@@ -1,8 +1,8 @@
-export enum GameStatus
-{
-	COMPLETED = 'completed',
-	INTERRUPTED = 'interrupted'
-}
+// export enum GameStatus
+// {
+// 	COMPLETED = 'completed',
+// 	INTERRUPTED = 'interrupted'
+// }
 
 export enum GameState
 {
@@ -10,6 +10,8 @@ export enum GameState
 	START,
 	NEWBALL,
 	PLAYING,
+	PAUSED,
+	UNPAUSE,
 	GAMEOVER,
 }
 

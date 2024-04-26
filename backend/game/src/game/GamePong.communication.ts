@@ -33,6 +33,7 @@ export enum SockEventNames
 	PONGIMG =	"PongImage",
 	PONGHUD =	"PongHUD",
 	BUTTON =	"Button",
+	ENDGAME =	"EndGame",
 };
 
 export interface ISockConnectGame
@@ -145,8 +146,10 @@ export interface IPlayerInfo
 export enum GameStatus
 {
 	TOPIC =	"game_end",
-	COMPLETED =	"completed",
+	BADGAME =	"invalid_game",
+	NOCONNECT = "missing_player",
 	INTERRUPTED =	"interrupted",
+	COMPLETED =	"completed",
 };
 
 export interface IGameStatus

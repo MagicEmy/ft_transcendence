@@ -1,49 +1,65 @@
-import { Consumer, Producer } from 'kafkajs';
+import { Kafka, Consumer, Producer } from 'kafkajs';
 
-import { Player, Ball } from './GamePong.interfaces';
-import { GameStatus, GameState, PlayerStatus, Button } from './GamePong.enums';
-import { PlayerInfo, IPlayerInfo, SockEventNames, ISockPongImage, ISockPongImagePlayer, ISockPongImageBall, ISockPongHudPlayer } from './GamePong.communication';
+import { Player, Ball, Paddle } from './GamePong.interfaces';
+import { GameState, PlayerStatus, Button } from './GamePong.enums';
+import { PlayerInfo, IPlayerInfo, SockEventNames, ISockPongImage, ISockPongImagePlayer, ISockPongImageBall, ISockPongHudPlayer, GameTypes, IGameStatus, MatchTypes, GameStatus } from './GamePong.communication';
 
 export class GamePong
 {
+	private	MatchType:	MatchTypes;
 	private	GameState:	GameState;
+	private	oldState:	GameState;
 	private loopInterval:	any;
+	private producer:	Producer;
+
 	player1:	Player;
 	player2:	Player;
 	ball:		Ball | null;
-	producer:	Producer;
-	consumer:	Consumer;
+	private loopCount:	number;
 
-	constructor(player1ID: string, player2ID: string | null, producer: Producer, consumer: Consumer)
+	constructor(player1ID: string, player2ID: string | null, producer: Producer)
 	{
+		this.producer = producer;
+		this.player1 = this.setPlayer(player1ID, "player1", 1/23);
+		this.player2 = this.setPlayer(player2ID, "player2", 22/23);
+		this.MatchType = MatchTypes.LOCAL;
 		this.GameState = GameState.WAITING;
-		this.player1 = 
+		this.ball = null;
+
+		if (this.validateGame())
 		{
-			client: undefined,
-			id:		player1ID,
-			name:	null,
-			paddle: {posX: 1/23, posY: 0.5, width: 0.01, height: 0.1, speed: 0.005},
-			status:	PlayerStatus.CONNECTING,
-			score:	0,
-			button:	{},
-		};
-		this.player2 = 
+			this.loopCount = 0;
+			this.loopInterval = setInterval(this.gameLoop.bind(this), 16);
+			console.log("Created New Pong game: ", this.player1.id, " vs ", this.player2.id);
+		}
+	}
+
+	private setPlayer(id: string | null, name: string, posX: number): Player
+	{
+		const player: Player = 
 		{
-			client: (player2ID === null) ? null : undefined,
-			id:		player2ID,
-			name:	(player2ID === null) ? "Bot" : null,
-			paddle: {posX: 22/23, posY: 0.5, width: 0.01, height: 0.1, speed: 0.005},
-			status:	(player2ID === null) ? PlayerStatus.WAITING : PlayerStatus.CONNECTING,
+			client:	(id === null) ? null : undefined,
+			id:		id,
+			name:	(id === null) ? "Bot" : name,
+			paddle:	{posX: posX, posY: 0.5, width: 0.01, height: 0.1, speed: 0.005},
+			status:	(id === null) ? PlayerStatus.WAITING : PlayerStatus.CONNECTING,
 			score:	0,
 			button:	{},
 		}
-		this.ball = null;
-		this.producer = producer;
-		this.consumer = consumer;
-		this.requestPlayerName(this.player1.id);
-		this.requestPlayerName(this.player2.id);
-		this.loopInterval = setInterval(this.gameLoop.bind(this), 16);
-		console.log("Created New Pong game: ", this.player1.id, " vs ", this.player2.id);
+		if (player.id !== null)
+			this.requestPlayerName(player.id);
+		return (player);
+	}
+
+	private validateGame(): boolean
+	{
+		if (this.player1.id === null &&
+			this.player2.id === null)
+		{
+			this.sendEndGame(GameStatus.BADGAME);
+			return (false);
+		}
+		return (true);
 	}
 
 /* ************************************************************************** *\
@@ -68,6 +84,19 @@ export class GamePong
 		return (true);
 	}
 
+	disconnectPlayer(player: Player)
+	{
+		this.oldState = this.GameState;
+		this.GameState = GameState.PAUSED;
+		player.status = PlayerStatus.DISCONNECTED;
+		player.client = undefined;
+		if (this.player1.client != player.client)
+			this.player1.status = PlayerStatus.WAITING;
+		if (this.player2.client != player.client)
+			this.player2.status = PlayerStatus.WAITING;
+		this.sendHUDUpdate();
+	}
+
 	private setToListen(player: Player)
 	{
 		player.client.on("test", () =>
@@ -76,6 +105,7 @@ export class GamePong
 		});
 		player.client.on("disconnect", () =>
 		{
+			this.disconnectPlayer(player);
 			console.log("I received directly!!!! disconnect");
 		});
 		player.client.on(SockEventNames.BUTTON, (data: string) => { this.handlerButtonEvent(player, data); });
@@ -177,15 +207,17 @@ export class GamePong
 
 	private requestPlayerName(id: string | null)
 	{
-		if (typeof(id) === "string")
-		{
-			const data: IPlayerInfo = {playerID: id};
-			this.producer.send(
-			{
-				topic:	PlayerInfo.TOPIC,
-				messages:	[{ value: JSON.stringify(data),}],
-			});
-		}
+		// console.log("producing:", PlayerInfo.TOPIC, id);
+		// if (typeof(id) === "string")
+		// {
+		// 	const data: IPlayerInfo = {playerID: id};
+		// 	this.producer.send(
+		// 	{
+		// 		topic:	PlayerInfo.TOPIC,
+		// 		messages:	[{ value: JSON.stringify(data),}],
+		// 	});
+		// }
+		this.sendToKafka(PlayerInfo.TOPIC, {playerID: id});
 	}
 
 	setPlayerName(id: string, name: string)
@@ -197,20 +229,58 @@ export class GamePong
 		this.sendHUDUpdate();
 	}
 
-	private	sendEndGame(status: string)
+	private	sendEndGame(status: GameStatus)
+	{
+		const endData: IGameStatus = 
+		{
+			gameType:	GameTypes.PONG,
+			matchType:	this.MatchType,
+			status:		status,
+			player1ID:		this.player1.id,
+			player1Score:	this.player1.score,
+			player2ID:		this.player2.id,
+			player2Score:	this.player2.score,
+		};
+
+		// if (this.producer)
+		// {
+		// 	this.producer.connect().then(() => {
+		// 	  console.log('Producer connected successfully');
+		// 	}).catch((error) => {
+		// 	  console.error('Error connecting producer:', error);
+		// 	});
+		// }
+		// else
+		// {
+		// 	console.error('Kafka producer is not properly initialized');
+		// }
+		
+		this.sendToKafka(GameStatus.TOPIC, endData);
+		clearInterval(this.loopInterval);
+		console.log("Ended Game: ", this.player1.id, " vs ", this.player2.id, "reason: ", endData.status);
+		if (this.player1.client && this.player1.client.emit)
+			this.player1.client.emit(SockEventNames.ENDGAME, JSON.stringify(endData));
+		if (this.player2.client && this.player2.client.emit)
+			this.player2.client.emit(SockEventNames.ENDGAME, JSON.stringify(endData));
+		// this.producer.send(
+		// {
+		// 	topic:	GameStatus.TOPIC,
+		// 	messages:	[{ value: JSON.stringify(endData),}],
+		// });
+	}
+
+	private sendToKafka(topic: GameStatus | string, data: any)
 	{
 		this.producer.send(
-		{
-			topic:	"game_end",
-			messages:	[{ value: JSON.stringify(
 			{
-				gameType:	"pong",
-				player1ID:		this.player1.id,
-				player1Score:	this.player1.score,
-				player2ID:		this.player2.id,
-				player2Score:	this.player2.score,
-				status:			status,
-			}),}]
+				topic:	topic,
+				messages:	[{ value: JSON.stringify(data),}],
+			}).then(() =>
+		{
+			// console.log("Game Kafka produced:", topic, JSON.stringify(data));
+		}).catch((err: any) =>
+		{
+			console.error("Error: Kafka send() failed: ", err);
 		});
 	}
 
@@ -222,23 +292,24 @@ export class GamePong
 
 	private gameLoop()
 	{
-		this.updatePaddle(this.player1);
-		this.updatePaddle(this.player2);
 		switch (this.GameState)
 		{
 			case GameState.WAITING:
 				this.waitForPlayers();
 				break ;
-			case GameState.START:
-				this.pressSpaceToStart();
-				break ;
+				case GameState.START:
+					this.updatePaddles();
+					this.pressSpaceToStart();
+					this.startGame();
+					break ;
 			case GameState.NEWBALL:
-				this.checkBotMove();
+				this.updatePaddles();
 				this.addBall();
 				break ;
 			case GameState.PLAYING:
-				this.checkBotMove();
-				const steps: number = 0.0001
+				this.updatePaddles();
+				const steps: number = 0.0001;
+				++this.loopCount;
 				for (let speed: number = this.ball.speed; speed > 0; speed -= steps)
 				{
 					this.updateBallPosition(steps);
@@ -250,10 +321,17 @@ export class GamePong
 				}
 				this.checkEventScore();
 				break ;
+			case GameState.PAUSED:
+				this.pausedGame();
+				break ;
+			case GameState.UNPAUSE:
+				this.pressSpaceToStart();
+				this.unpauseGame();
+				break ;
 			case GameState.GAMEOVER:
 				// this.checkBotMove();
 				clearInterval(this.loopInterval);
-				this.sendEndGame("winner");
+				this.sendEndGame(GameStatus.COMPLETED);
 				break ;
 			default:
 				break ;
@@ -291,7 +369,10 @@ export class GamePong
 			this.player2.status = PlayerStatus.READY;
 			this.sendHUDUpdate();
 		}
-
+	}
+	
+	private startGame()
+	{
 		if (this.player1.status === PlayerStatus.READY &&
 			this.player2.status === PlayerStatus.READY)
 		{
@@ -302,27 +383,113 @@ export class GamePong
 		}
 	}
 
+	private	pausedGame()
+	{
+		// console.log("player1:\t", this.player1.status, "player2:\t", this.player2.status);
+		if (this.player1.status === PlayerStatus.WAITING &&
+			this.player2.status === PlayerStatus.WAITING)
+		{
+			this.player1.status = PlayerStatus.NOTREADY;
+			this.player2.status = PlayerStatus.NOTREADY;
+			this.GameState = GameState.UNPAUSE;
+			this.sendHUDUpdate();
+		}
+	}
+
+	private unpauseGame()
+	{
+		if (this.player1.status === PlayerStatus.READY &&
+			this.player2.status === PlayerStatus.READY)
+		{
+			this.GameState = this.oldState;
+			this.sendHUDUpdate();
+		}
+	}
+
 /* ************************************************************************** *\
 
 	Player
 
 \* ************************************************************************** */
 
+	private updatePaddles()
+	{
+		if (this.GameState === GameState.PAUSED ||
+			this.GameState === GameState.UNPAUSE ||
+			this.GameState === GameState.GAMEOVER)
+			return ;
+
+		if (this.player1.client === null)
+			this.botPressArrowKey(this.player1);
+		if (this.player2.client === null)
+			this.botPressArrowKey(this.player2);
+
+		if (this.player1.id === this.player2.id)
+			this.updatePaddleLocal();
+		else
+		{
+			this.updatePaddle(this.player1);
+			this.updatePaddle(this.player2);
+		}
+	}
+
+	private botPressArrowKey(player: Player)
+	{
+		let posY: number;
+
+		if (this.ball !== null)
+			posY = this.ball.posY;
+		else
+			posY = 0.5;
+		player.button[Button.ARROWUP] = posY < player.paddle.posY;
+		player.button[Button.ARROWDOWN] = posY > player.paddle.posY;
+	}
+
 	private	updatePaddle(player: Player)
 	{
-		let	newPos: number = player.paddle.posY;
+		let	moveY: number = 0;
 
 		if (player.button[Button.ARROWUP] || player.button[Button.w])
-			newPos -= player.paddle.speed;
+			moveY -= player.paddle.speed;
 		if (player.button[Button.ARROWDOWN] || player.button[Button.s])
-			newPos += player.paddle.speed;
+			moveY += player.paddle.speed;
 
-		if (newPos + player.paddle.height / 2 > 1)
-			newPos = 1 - player.paddle.height / 2;
-		else if (newPos - player.paddle.height / 2 < 0)
-			newPos = player.paddle.height / 2;
+		this.updatePaddlePos(player.paddle, moveY);
 
-		player.paddle.posY = newPos;
+		// if (newPos + player.paddle.height / 2 > 1)
+		// 	newPos = 1 - player.paddle.height / 2;
+		// else if (newPos - player.paddle.height / 2 < 0)
+		// 	newPos = player.paddle.height / 2;
+
+		// player.paddle.posY = newPos;
+	}
+
+	private updatePaddleLocal()
+	{
+		let moveY = 0;
+
+		if (this.player1.button[Button.w])
+			moveY += this.player1.paddle.speed;
+		if (this.player1.button[Button.s])
+			moveY -= this.player1.paddle.speed;
+		this.updatePaddlePos(this.player1.paddle, moveY);
+
+		moveY = 0;
+		if (this.player2.button[Button.ARROWUP])
+			moveY += this.player2.paddle.speed;
+		if (this.player2.button[Button.ARROWDOWN])
+			moveY -= this.player2.paddle.speed;
+		this.updatePaddlePos(this.player2.paddle, moveY);
+	}
+
+	private updatePaddlePos(paddle: Paddle, moveY: number)
+	{
+		paddle.posY += moveY;
+
+		if (paddle.posY + paddle.height / 2 > 1)
+			paddle.posY = 1 - paddle.height / 2;
+		else if (paddle.posY - paddle.height / 2 < 0)
+			paddle.posY = paddle.height / 2;
 	}
 
 /* ************************************************************************** *\
@@ -348,19 +515,19 @@ export class GamePong
 			else
 				starter = 1;
 
-			console.log("starter\t", starter);
+			// console.log("starter\t", starter);
 			switch (starter)
 			{
 				case 0:
-					console.log("case 0");
+					// console.log("case 0");
 					this.addBallRandom();
 					break ;
 				case 1:
-					console.log("case 1");
+					// console.log("case 1");
 					this.addBallRandom();
 					break ;
 				case 2:
-					console.log("case 2");
+					// console.log("case 2");
 					this.addBallRandom();
 					break ;
 				default:
@@ -372,7 +539,7 @@ export class GamePong
 
 	private addBallRandom()
 	{
-		console.log("Addballrandom");
+		// console.log("Addballrandom");
 		this.ball =
 		{
 			posX:	0.5,
@@ -382,6 +549,8 @@ export class GamePong
 			maxSpeed:	0.010,
 			angle:	0.5 * Math.PI,
 		};
+
+		this.ball.speed = 0.0075;
 
 		this.ball.angle = Math.random() + 0.25;
 		if (this.ball.angle >= 0.75)
@@ -416,11 +585,14 @@ export class GamePong
 				break ;
 			case "vertical":
 					this.ball.angle = Math.PI * 2 - this.ball.angle;
+					// if (this.ball.posX < 0.5)
+					// 	this.ball.posX = this.player1.paddle.posX + (this.player1.paddle.width * 2);
+					// else
+					// 	this.ball.posX = this.player2.paddle.posX - (this.player1.paddle.width * 2);
 				break ;
 			default: console.error("adjustBallAngle has no case for", hit);
 		}
 	}
-
 
 /* ************************************************************************** *\
 
@@ -428,25 +600,25 @@ export class GamePong
 
 \* ************************************************************************** */
 
-	private	checkBotMove()
-	{
-		if (this.player1.client === null)
-			this.makeBotMovePlayer(this.player1)
-		if (this.player2.client === null)
-			this.makeBotMovePlayer(this.player2)
-	}
+	// private	checkBotMove()
+	// {
+	// 	if (this.player1.client === null)
+	// 		this.makeBotMovePlayer(this.player1)
+	// 	if (this.player2.client === null)
+	// 		this.makeBotMovePlayer(this.player2)
+	// }
 
-	private makeBotMovePlayer(player: Player)
-	{
-		let posY: number;
+	// private makeBotMovePlayer(player: Player)
+	// {
+	// 	let posY: number;
 
-		if (this.ball !== null)
-			posY = this.ball.posY;
-		else
-			posY = 0.5;
-		player.button[Button.ARROWUP] = posY < player.paddle.posY;
-		player.button[Button.ARROWDOWN] = posY > player.paddle.posY;
-	}
+	// 	if (this.ball !== null)
+	// 		posY = this.ball.posY;
+	// 	else
+	// 		posY = 0.5;
+	// 	player.button[Button.ARROWUP] = posY < player.paddle.posY;
+	// 	player.button[Button.ARROWDOWN] = posY > player.paddle.posY;
+	// }
 
 	private checkEventBorder()
 	{
@@ -457,33 +629,38 @@ export class GamePong
 
 	private checkEventPaddle(player: Player)
 	{
-		let checkX = this.ball.posX;
-		let checkY = this.ball.posY;
-
-		if (checkX < player.paddle.posX - (player.paddle.width / 2))
-			checkX = player.paddle.posX - (player.paddle.width / 2);
-		else if (checkX > player.paddle.posX + (player.paddle.width / 2))
-			checkX = player.paddle.posX + (player.paddle.width / 2);
-		if (checkY < player.paddle.posY - (player.paddle.height / 2))
-			checkY = player.paddle.posY - (player.paddle.height / 2);
-		else if (checkY > player.paddle.posY + (player.paddle.height / 2))
-			checkY = player.paddle.posY + (player.paddle.height / 2);
-
+		let checkX: number = this.checkEventCheckPoint(this.ball.posX, player.paddle.posX, player.paddle.width / 2);
+		let checkY: number = this.checkEventCheckPoint(this.ball.posY, player.paddle.posY, player.paddle.height / 2);
 		let distance = Math.sqrt(Math.pow(this.ball.posX - checkX, 2) + Math.pow(this.ball.posY - checkY, 2));
 		if (distance <= this.ball.rad)
 		{
 			if (checkX != this.ball.posX)
 			{
-				this.adjustBallAngle("vertical");
-				this.ball.angle += Math.atan((checkY - player.paddle.posY) /
-											(checkX - player.paddle.posX)) / 3;
-				this.ball.speed = this.ball.speed * 0.98 + this.ball.maxSpeed * 0.02;
+				if (this.loopCount)
+				{
+					this.adjustBallAngle("vertical");
+					this.ball.angle += Math.atan((checkY - player.paddle.posY) /
+												(checkX - player.paddle.posX)) / 3;
+					this.ball.speed = this.ball.speed * 0.95 + this.ball.maxSpeed * 0.05;
+					this.loopCount = 0;
+				}
 			}
 			else
 			{
 				this.adjustBallAngle("horizontal");
 			}
 		}
+	}
+
+	private checkEventCheckPoint(ballPos: number, paddlePos: number, paddleSize: number): number
+	{
+		let checkPos: number = ballPos;
+
+		if (checkPos < paddlePos - paddleSize)
+			checkPos = paddlePos - paddleSize;
+		else if (checkPos > paddlePos + paddleSize)
+			checkPos = paddlePos + paddleSize;
+		return (checkPos);
 	}
 
 	private	checkEventScore()
@@ -504,8 +681,8 @@ export class GamePong
 		if (score)
 		{
 			this.ball = null;
-			if (this.player1.score >= 11 ||
-				this.player2.score >= 11)
+			if (this.player1.score >= 1 ||
+				this.player2.score >= 1)
 				this.GameState = GameState.GAMEOVER;
 			else
 				this.GameState = GameState.NEWBALL;
