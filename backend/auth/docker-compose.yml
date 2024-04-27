@@ -2,7 +2,9 @@ version: "3"
 services:
   auth:
     container_name: auth
-    env_file: .env
+    env_file: 
+    - .env
+    - .env.profile-db
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,11 +18,13 @@ services:
     ports:
       - "3003:3000" #only for testing porposes
     depends_on:
-      - postgres
+      - profile_db
   
-  postgres:
-    container_name: postgres
-    env_file: .env
+  profile_db:
+    container_name: profile_db
+    env_file: 
+    - .env
+    - .env.profile-db
     build:
       context: ../database
       dockerfile: Dockerfile
