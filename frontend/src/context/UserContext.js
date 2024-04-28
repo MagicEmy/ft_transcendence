@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AuthContext from './AuthContext'
 import axios from 'axios';
+import useStorage from '../hooks/useStorage';
 
 const UserContext = createContext({
     userProfile: {},
@@ -8,18 +9,21 @@ const UserContext = createContext({
 });
 
 export const UserProvider = ({ children }) => {
-    const {userId, authToken} = useContext(AuthContext);
-    const [userProfile, setUserProfile] = useState({})
-    const [isLoading, setIsLoading] = useState(true);
+    const {authToken} = useContext(AuthContext);
+    const [userProfile, setUserProfile] = useStorage('user', {});
+    const [isLoading, setIsLoading] = useState(true);	
 
-	useEffect(() => {
-        console.log(authToken, 'authToken')
+	useEffect(() => {		
 	    if (authToken) {
-			console.log("%%%authToken: ", authToken);
+			//console.log("USERCONTEXT storedToken: ", storedToken);
+			//console.log("USERCONTEXT authToken: ", authToken);
 			const fetchUser = async () => {
 			  try {
 				const response = await axios.get('http://localhost:3003/auth/profile', {
-				  headers: { Authorization: `Bearer ${authToken}` },
+				  headers: {
+					Authorization: `Bearer ${authToken}`,
+				  },
+				  withCredentials: true,
 				});
 				const data = response.data;
                 setUserProfile(data)
@@ -28,14 +32,14 @@ export const UserProvider = ({ children }) => {
 				console.error('Error fetching user data:', error);
 			  } finally {
 				setIsLoading(false);
+				console.error('finally');
 			  }
 			};
-
 			fetchUser();
 		  } else {
 			setIsLoading(false);
 		  }
-	  }, [authToken, userId]);
+	  }, [authToken]);
 
 
   return (

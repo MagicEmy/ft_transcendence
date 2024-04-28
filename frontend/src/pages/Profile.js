@@ -1,22 +1,45 @@
-import React, { useContext } from "react";
-// import axios from "axios";
-import UserContext from "../context/UserContext";
+import React, { useEffect, useState, useContext } from "react";
+import useStorage from "../hooks/useStorage";
+import AuthContext from '../context/AuthContext'
+import axios from "axios";
 import "./Profile.css";
 
 function Profile() {
 //   const [jsonString, setJsonString] = useState("");
-  const { userProfile, isLoading } = useContext(UserContext);
-  console.log(userProfile);
+  //const { userProfile, isLoading } = useContext(UserContext);
+  const {authToken} = useContext(AuthContext);
+  const [ userProfile ] = useStorage('user');
+  const [ profile, setProfile ] = useState({});
 
-  if (isLoading) {
-    return <div>Loading user</div>;
-  }
+  console.log('userProfile', Object.entries(userProfile));
 
-  console.log(Object.entries(userProfile));
+  useEffect(() => {		
+	if (authToken) {
+		//console.log("USERCONTEXT storedToken: ", storedToken);
+		//console.log("USERCONTEXT authToken: ", authToken);
+		const fetcDbProfile = async () => {
+		  try {
+			const response = await axios.get('http://localhost:3003/auth/profile', {
+				  headers: { Authorization: `Bearer ${authToken}` },
+				});
+			const dbProfile = response.data;
+			setProfile(dbProfile)
+			console.log("HERE dbProfile: ", dbProfile);
+			console.log('OBJECT', Object.entries(dbProfile));
+		  } catch (error) {
+			console.error('Error fetching user data:', error);
+		  }
+		};
+		fetcDbProfile();
+	  } else {
+		console.log('No user_id');
+	  }
+  }, []);
+
   return (
     <div className="profile-container">
       <div>
-        {Object.entries(userProfile).map(([key, value]) => (
+        {Object.entries(profile).map(([key, value]) => (
           <div>
             {key}: {value}
           </div>
@@ -26,11 +49,9 @@ function Profile() {
         {JSON.stringify(userProfile)}
       </div> */}
       <div className="profile-details">
-        {/*         
-        intra_login: {userProfile.intra_login}
-        user_id: {userProfile.user_id}
-        user_name: {userProfile.user_name}
-        avatar: {userProfile.avatar} */}
+        intra_login: {profile.intra_login}
+        user_name: {profile.user_name}
+        avatar: {profile.avatar}
       </div>
     </div>
   );

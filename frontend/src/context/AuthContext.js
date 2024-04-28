@@ -1,52 +1,68 @@
 import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import useStorage from '../hooks/useStorage';
+import Cookies from 'js-cookie';
 
 const AuthContext = createContext({
   authToken: null,
   setAuthToken: () => {},
   isLoading: true,
   setIsLoading: () => {},
-  user: null,
-  setUser: () => {},
+//   user: null,
+//   setUser: () => {},
   isLogged: false,
   setIsLogged: () => {},
 });
 
 export const AuthProvider = ({ children }) => {
-	const [authToken, setAuthToken] = useState(null);
-	const [user, setUser] = useState(null);
-	const [userId, setUserId] = useState(null);
+	//const [authToken, setAuthToken] = useState(null);
+	const [authToken, setAuthToken] = useStorage('authToken');
+	// const [user, setUser] = useState(null);
+	// const [userId, setUserId] = useState(null);
 	const [isLogged, setIsLogged] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 
+	//const storedToken = localStorage.getItem('authCookie');
+	const authTokenFromCookie = Cookies.get('Authentication');
+	console.log('authTokenFromCookie: ', authTokenFromCookie);	
+
 	useEffect(() => {
-
+		if (authTokenFromCookie) {
+			setIsLogged(true);
+			setAuthToken(authTokenFromCookie);
+		} else {
+			setIsLogged(false);	
+		}
+	}, [authToken]);
+	
+	/*useEffect(() => {
+		console.log('AuthContext useEffect', authToken);
 	    if (authToken) {
-			console.log("%%%authToken: ", authToken);
-			const fetchUser = async () => {
-			  try {
-				const response = await axios.get('http://localhost:3003/auth/profile', {
-				  headers: { Authorization: `Bearer ${authToken}` },
-				});
-				const data = response.data;
-				setUser(data.user_name);
-				setUserId(data.user_id);
-				console.log("HERE USER: ", data.user_id);
+			// console.log("%%%authToken: ", authToken);
+			// const fetchUser = async () => {
+			//   try {
+			// 	const response = await axios.get('http://localhost:3003/auth/profile', {
+			// 	  headers: { Authorization: `Bearer ${authToken}` },
+			// 	});
+			// 	const data = response.data;
+			// 	setUser(data.user_name);
+			// 	setUserId(data.user_id);
+			// 	console.log("HERE USER: ", data.user_id);
 				setIsLogged(true);
-			  } catch (error) {
-				console.error('Error fetching user data:', error);
-			  } finally {
-				setIsLoading(false);
-			  }
-			};
+				//setAuthToken(storedToken);
+			//   } catch (error) {
+			// 	console.error('Error fetching user data:', error);
+			//   } finally {
+			// 	setIsLoading(false);
+			//   }
+			// };
 
-			fetchUser();
+			// fetchUser();
 		  } else {
-			setIsLoading(false);
+			setIsLogged(false);
 		  }
-	  }, [setUser, authToken]);
+	  }, [authToken]);*/
 
-	  console.log("!!!!USER ", userId);
+	//   console.log("!!!!USER ", userId);
 
 	//   useEffect(() => {
 	// 	const refreshAuthToken = async () => {
@@ -80,8 +96,8 @@ export const AuthProvider = ({ children }) => {
 		setAuthToken,
 		isLoading,
 		setIsLoading,
-		user,
-		setUser,
+		// user,
+		// setUser,
 		isLogged,
 		setIsLogged,
 	  }}>
