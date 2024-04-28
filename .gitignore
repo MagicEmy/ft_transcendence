@@ -1,13 +1,18 @@
+# Ignore environment files
 .env
 .env.*
 
-node_modules
-/node_modules
+# Ignore all node_modules
+node_modules/
+/node_modules/
 
-dist
-/dist
+# Ignore distribution directories
+dist/
+/dist/
 
-.vscode
+# Ignore Visual Studio Code settings
+.vscode/
 .vscode/*
 
+# Ignore macOS system files
 .DS_Store
