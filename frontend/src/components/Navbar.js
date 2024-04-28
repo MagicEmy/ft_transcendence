@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import classes from "./Navbar.module.css";
 import avatar from "../../src/assets/Thai.jpg";
-import LogoutButton from "./auth/LogoutButton";
+import LogoutButton from "./LogoutButton";
 
 function Navbar() {
   return (
