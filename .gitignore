@@ -1,6 +1,13 @@
 .env
 .env.*
-.env
+
 node_modules
-.gitignore
+/node_modules
+
 dist
+/dist
+
+.vscode
+.vscode/*
+
+.DS_Store
