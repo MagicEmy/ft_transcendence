@@ -1,6 +1,6 @@
 .profile-container {
 	display: flex;
-	width: 25%; /* 1/3 of the screen width */
+	/*width: 25%; /* 1/3 of the screen width */
 	height: 80vh; /* Entire screen height */
 	background-color: #f0df94; /* Yellow background color */
 	/* border-radius: 10px; Rounded borders */
@@ -11,6 +11,13 @@
 	font-weight: bold;
 	color:#110805;
 	font-size: 2rem;
+	justify-content: space-between;
+  }
+
+  .friends-sidebar {
+	border-left: 1px solid black;
+	width: 150px;
+	padding: 1rem;
   }
 
   /* Style for profile details */
