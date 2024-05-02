@@ -7,13 +7,11 @@ async function bootstrap() {
   // await app.listen(3003); // USE WHEN RUNNING DIRECTLY ON THE HOST
   const configService = app.get(ConfigService);
   app.enableCors({
-    // origin: [configService.get('FRONTEND_URL')],
-	origin: ['http://localhost:3000'],
+    origin: [configService.get('FRONTEND_URL')],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   });
-
   await app.listen(3000); // USE WHEN RUNNING IN DOCKER!!!
 }
 bootstrap();

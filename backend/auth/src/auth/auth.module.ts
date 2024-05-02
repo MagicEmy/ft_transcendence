@@ -10,6 +10,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './utils/jwt-strategy';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       }),
     }),
     UserModule,
+    HttpModule,
   ],
   controllers: [AuthController],
   providers: [

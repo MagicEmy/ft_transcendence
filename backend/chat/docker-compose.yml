@@ -2,7 +2,9 @@ version: "3"
 services:
   chat:
     container_name: chat
-    env_file: .env
+    env_file: 
+      - .env
+      - .env.chat-db
     build:
       context: .
       dockerfile: Dockerfile
@@ -14,17 +16,22 @@ services:
     networks:
       - backend
     ports:
-      - "3005:3000" #only for testing porposes
+      - "3001:3000" #only for testing porposes
     depends_on:
       - postgres
   
-  postgres:
-    container_name: postgres
-    env_file: .env
+  chat_db:
+    container_name: chat_db
+    env_file: 
+      - ../../backend/chat/.env
+      - ../../backend/chat/.env.chat-db
     build:
-      context: ../backend/database
+      context: ../../database/chat_db
       dockerfile: Dockerfile
+    image: postgres:latest
     restart: always
+    ports:
+      - "5432:5432" #only for testing porposes
     volumes:
       - "db_volume:/var/lib/postgresql"
     networks:

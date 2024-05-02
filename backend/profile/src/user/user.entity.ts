@@ -2,6 +2,9 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'users' })
 export class User {
+  @PrimaryGeneratedColumn()
+  id: string;
+
   @PrimaryGeneratedColumn('uuid')
   user_id: string;
 
@@ -15,7 +18,4 @@ export class User {
     unique: true,
   })
   user_name: string;
-
-  @Column({ type: 'bytea', nullable: true })
-  avatar: Buffer;
 }

@@ -6,7 +6,6 @@ import { JwtPayloadDto } from './dto/jwt-payload-dto';
 import { ClientKafka } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { UserWithTokenDto } from './dto/user-with-token-dto';
-import { ValidateUserDto } from 'src/user/dto/validate-user-dto';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +15,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     @Inject('STATS_SERVICE') private readonly statsClient: ClientKafka,
   ) {}
+
   async validateUser(validateUserDto: ValidateUserDto): Promise<User> {
     const user = await this.validateUserOrAddNewOne(validateUserDto);
     return user;
@@ -33,6 +33,7 @@ export class AuthService {
       });
 
       // TO BE ADDED: get profile picture from 42 api and create avatar record
+      this.userService.createAvatarRecord(user.user_id, avatar_url);
 
       // new user creation is broadcast to profile and chat
       this.statsClient.emit('new_user', {

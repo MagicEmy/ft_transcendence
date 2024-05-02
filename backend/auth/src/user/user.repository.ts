@@ -19,10 +19,10 @@ export class UserRepository extends Repository<User> {
     const { intra_login, user_name } = createUserDto;
 
     const user: User = this.create({
-		user_id: uuid(),
-		intra_login,
-		user_name,
-	  });
+      user_id: uuid(),
+      intra_login,
+      user_name,
+    });
 
     await this.save(user);
     return user;

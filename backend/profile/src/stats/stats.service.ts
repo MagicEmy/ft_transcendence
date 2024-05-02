@@ -16,6 +16,7 @@ import {
 import { GameStatsDto, TotalTimePlayedDto } from 'src/profile/dto/profile-dto';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { UserService } from 'src/user/user.service';
+import { LeaderboardQueryResultDto } from './dto/leaderboard-query-result-dto';
 
 @Injectable()
 export class StatsService {
@@ -155,19 +156,49 @@ export class StatsService {
     };
   }
 
-  async createLeaderboard(): Promise<LeaderboardStatsDto[]> {
-    const result = await this.statsRepository
-      .createQueryBuilder('stats')
-      .select('user_id, games_played, wins, losses')
-      .where('opponent LIKE :opponent', { opponent: 'human' })
-      .getRawMany();
-    for (const item of result) {
-      const user_name = await this.userService.getUserName(item.user_id);
-      item.draws = item.games_played - (item.wins + item.losses);
-      item.user_name = user_name;
-      item.points = item.wins * 3 + item.draws;
+  calculateLeaderboardPoints(
+    queryResult: LeaderboardQueryResultDto[],
+  ): LeaderboardStatsDto[] {
+    const leaderboard = [];
+    for (const item of queryResult) {
+      const draws = item.games_played - (item.wins + item.losses);
+      leaderboard.push({
+        user_id: item.user_id,
+        wins: item.wins,
+        losses: item.losses,
+        draws: draws,
+        points: item.wins * 3 + draws,
+      });
     }
-    result.sort((a, b) => b.points - a.points);
-    return result;
+    return leaderboard;
+  }
+
+  calculateLeaderboardRanks(
+    leaderboard: LeaderboardStatsDto[],
+  ): LeaderboardStatsDto[] {
+    let previousPointValue: number = Number.MAX_SAFE_INTEGER;
+    let previousRank: number = 0;
+    for (const [idx, item] of leaderboard.entries()) {
+      item.rank = previousPointValue > item.points ? idx + 1 : previousRank;
+      previousPointValue = item.points;
+      previousRank = item.rank;
+    }
+    return leaderboard;
+  }
+
+  async createLeaderboard(options: {
+    user_names: boolean;
+  }): Promise<LeaderboardStatsDto[]> {
+    const queryResult = await this.statsRepository.getStatsForLeaderboard();
+    let leaderboard = this.calculateLeaderboardPoints(queryResult);
+    leaderboard.sort((a, b) => b.points - a.points);
+    leaderboard = this.calculateLeaderboardRanks(leaderboard);
+    if (options.user_names) {
+      for (const item of leaderboard) {
+        const user_name = await this.userService.getUsername(item.user_id);
+        item.user_name = user_name;
+      }
+    }
+    return leaderboard;
   }
 }

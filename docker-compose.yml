@@ -34,38 +34,49 @@ services:
 
   # chat:
   #   container_name: chat
-  #   env_file: .env
+  #   env_file: 
+  #   - .env
+  #   - .env.chat-db
   #   build:
   #     context: ./backend/chat
   #     dockerfile: Dockerfile
   #   image: chat
+  #   volumes:
+  #     - "./backend/chat:/app" # for development only
+  #     - "/app/node_modules"
   #   restart: unless-stopped
+  #   ports:
+  #     - "3005:3000" # only for testing purposes
   #   networks:
   #     - backend
   #   depends_on:
-  #     - postgres
+  #     - chat_db
 
   auth:
     container_name: auth
-    env_file: .env
+    env_file: 
+    - .env
+    - .env.profile-db
     build:
       context: ./backend/auth
       dockerfile: Dockerfile
     image: auth
     volumes:
-      - "./backend/auth:/app" #only for developement
-      - "/app/node_modules"
+    - "./backend/auth:/app" # only for development
+    - "/app/node_modules"
     restart: unless-stopped
     networks:
       - backend
     ports:
-      - "3003:3000" #only for testing porposes
+      - "3003:3000" # only for testing purposes
     depends_on:
-      - postgres
+      - profile_db
 
   profile:
     container_name: profile
-    env_file: .env
+    env_file: 
+    - .env
+    - .env.profile-db
     build:
       context: ./backend/profile
       dockerfile: Dockerfile
@@ -79,20 +90,20 @@ services:
     networks:
       - backend
     depends_on:
-      - postgres
+      - profile_db
 
-  # score:
-  #   container_name: score
-  #   env_file: .env
-  #   build:
-  #     context: ./backend/score
-  #     dockerfile: Dockerfile
-  #   image: "score"
-  #   restart: unless-stopped
-  #   networks:
-  #     - backend
-  #   depends_on:
-  #     - postgres
+  score:
+    container_name: score
+    env_file: .env
+    build:
+      context: ./backend/score
+      dockerfile: Dockerfile
+    image: "score"
+    restart: unless-stopped
+    networks:
+      - backend
+    depends_on:
+      - postgres
 
   game:
     container_name: game
@@ -101,31 +112,48 @@ services:
       context: ./backend/game
       dockerfile: Dockerfile
     image: game
-    volumes:
-      - "./backend/game:/app" #only for developement
-      - "/app/node_modules"
     restart: unless-stopped
-    ports:
-      - "3006:3000" #only for testing porposes
     networks:
       - backend
     depends_on:
       - postgres
-      - kafdrop
-
-  postgres:
-    container_name: postgres
-    env_file: .env
+  
+  profile_db:
+    container_name: profile_db
+    env_file: 
+    - .env
+    - .env.profile-db
     build:
-      context: ./backend/database
+      context: ./database/profile_db
       dockerfile: Dockerfile
     restart: always
     volumes:
-      - "db_volume:/var/lib/postgresql"
+      - "profile_db_volume:/var/lib/postgresql"
     networks:
       - backend
     ports:
-      - "5432:5432" #only for testing porposes
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+  chat_db:
+    container_name: chat_db
+    env_file: 
+    - .env
+    - .env.chat-db
+    build:
+      context: ./database/chat_db
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - "chat_db_volume:/var/lib/postgresql"
+    networks:
+      - backend
+    ports:
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -208,4 +236,8 @@ networks:
     driver: bridge
 
 volumes:
-  db_volume:
+  profile_db_volume:
+  chat_db_volume:
+
+
+

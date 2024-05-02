@@ -4,68 +4,76 @@ import { UserService } from 'src/user/user.service';
 import { ProfileUserInfoDto } from 'src/user/dto/profile-user-info-dto';
 import { StatsService } from 'src/stats/stats.service';
 import { Opponent } from 'src/stats/opponent.enum';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserRepository } from 'src/user/user.repository';
+import { GameService } from 'src/game/game.service';
+import { GamesAgainstUserIdDto } from 'src/game/dto/games-against-userid-dto';
+import { FriendService } from 'src/user/friend.service';
 
 @Injectable()
 export class ProfileService {
   constructor(
-    @InjectRepository(UserRepository)
-    private readonly userRepository: UserRepository,
     private readonly userService: UserService,
     private readonly statsService: StatsService,
+    private readonly gameService: GameService,
+    private readonly friendService: FriendService,
   ) {}
 
   async getFriends(user_id: string): Promise<FriendDto[]> {
-    const friendIds = await this.userService.getFriends(user_id);
+    const friendIds = await this.friendService.getFriends(user_id);
     if (friendIds.length === 0) {
       return [];
     }
-    const friendNamesRaw = await this.userRepository
-      .createQueryBuilder('users')
-      .select('user_name')
-      .where('user_id IN (:...friendIds)', { friendIds })
-      .getRawMany();
-    const friends = friendNamesRaw.map((item, idx) => ({
-      user_id: friendIds[idx],
-      user_name: item.user_name,
-    }));
+    const friendNames = [];
+    for (const item of friendIds) {
+      friendNames.push(await this.userService.getUsername(item));
+    }
+    const friends = [];
+    for (let i = 0; i < friendIds.length; i++) {
+      friends.push({
+        user_id: friendIds[i] || null,
+        user_name: friendNames[i] || null,
+      });
+    }
     return friends;
   }
 
-  async getLeaderboardPosition(user_id: string): Promise<number> {
-    const leaderboard = await this.statsService.createLeaderboard();
-    const pointsList: number[] = leaderboard.map((item) => item.points);
+  async getLeaderboardRank(user_id: string): Promise<number> {
+    const leaderboard = await this.statsService.createLeaderboard({
+      user_names: false,
+    });
     const user = leaderboard.find((item) => item.user_id === user_id);
-    console.log(pointsList);
-    console.log(user);
-    return pointsList.indexOf(user.points) + 1;
+    return user.rank;
   }
 
   async getProfileById(user_id: string): Promise<ProfileDto> {
     const userInfo: ProfileUserInfoDto =
       await this.userService.getUserInfoForProfile(user_id);
-
-    const friends = await this.getFriends(user_id);
-    const leaderboardPos = await this.getLeaderboardPosition(user_id);
-    const totalPlayers = await this.userService.getTotalNoOfUsers();
+    const friends: FriendDto[] = await this.getFriends(user_id);
+    const leaderboardPos: number = await this.getLeaderboardRank(user_id);
+    const totalPlayers: number = await this.userService.getTotalNoOfUsers();
     const gamesAgainstBot: GameStatsDto =
       await this.statsService.getGamesAgainst(user_id, Opponent.BOT);
     const gamesAgainstHuman: GameStatsDto =
       await this.statsService.getGamesAgainst(user_id, Opponent.HUMAN);
+    const mostFrequentOpponent: GamesAgainstUserIdDto =
+      await this.gameService.mostFrequentOpponent(user_id);
+    const mostFrequentOpponentUsername: string =
+      await this.userService.getUsername(user_id);
 
-    // to be added: function to retrieve the most frequent opponent by gameService
+    // ADD RETURNING AVATAR? OR SEPARATE CALL FROM FRONTEND?
 
     return {
       user_id: userInfo.user_id,
       user_name: userInfo.user_name,
-      avatar: userInfo.avatar,
       friends: friends,
       leaderboard_position: leaderboardPos,
       total_players: totalPlayers,
+      most_frequent_opponent: {
+        user_id: mostFrequentOpponent.user_id,
+        user_name: mostFrequentOpponentUsername,
+        games: mostFrequentOpponent.games,
+      },
       games_against_human: gamesAgainstHuman,
       games_against_bot: gamesAgainstBot,
-      most_frequent_opponent: 'bot',
     };
   }
 }

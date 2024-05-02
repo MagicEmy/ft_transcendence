@@ -22,30 +22,7 @@ async function bootstrap() {
     credentials: true,
 });
   await app.startAllMicroservices();
-  await app.listen(3000);
-  // const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-  //   AppModule,
-  //   {
-  //     transport: Transport.KAFKA,
-  //     options: {
-  //       client: {
-  //         brokers: ['kafka:29092'],
-  //       },
-  //       consumer: {
-  //         groupId: 'stats-consumer',
-  //       },
-  //     },
-  //   },
-  // );
-  // app.listen();
+  // await app.listen(3000);
 }
 
 bootstrap();
-
-// const app = await NestFactory.create(AppModule);
-// const microservice = app.connectMicroservice<MicroserviceOptions>({
-//   transport: Transport.TCP,
-// });
-
-// await app.startAllMicroservices();
-// await app.listen(3001);
