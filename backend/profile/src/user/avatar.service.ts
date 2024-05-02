@@ -10,18 +10,11 @@ export class AvatarService {
     private readonly avatarRepository: AvatarRepository,
   ) {}
 
-  async createAvatarRecord(user_id: string) {
-    return this.avatarRepository.createAvatarRecord({
-      user_id: user_id,
-      image: null,
-    });
+  async setAvatar(avatarDto: AvatarDto): Promise<string> {
+    return this.avatarRepository.uploadAvatar(avatarDto);
   }
 
-  //   async createAvatarRecord(avatarDto: AvatarDto) {
-  //     return this.avatarRepository.createAvatarRecord(avatarDto);
-  //   }
-
-  async setAvatar(avatarDto: AvatarDto) {
-    this.avatarRepository.uploadAvatar(avatarDto);
+  async getAvatar(user_id: string): Promise<AvatarDto> {
+    return this.avatarRepository.getAvatar(user_id);
   }
 }

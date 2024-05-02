@@ -16,23 +16,35 @@ export class AvatarRepository extends Repository<Avatar> {
     );
   }
 
-  async createAvatarRecord(avatarDto: AvatarDto) {
+  async createAvatarRecord(avatarDto: AvatarDto): Promise<string> {
     const record: Avatar = this.create(avatarDto);
     await this.save(record);
-    console.log('created avatar record');
-    console.log(record);
+    return record.user_id;
   }
 
-  async uploadAvatar(avatarDto: AvatarDto) {
-    const { user_id, image } = avatarDto;
+  async uploadAvatar(avatarDto: AvatarDto): Promise<string> {
+    const { user_id, avatar, mime_type } = avatarDto;
     const record = await this.findOneBy({ user_id: user_id });
     if (record) {
-      record.avatar = image;
+      record.avatar = avatar;
+      record.mime_type = mime_type;
       this.save(record);
+      return record.user_id;
     } else {
       throw new NotFoundException(
         `No avatar record found for user with ID ${user_id}`,
       );
+    }
+  }
+
+  async getAvatar(user_id: string): Promise<AvatarDto> {
+    const record = await this.findOneBy({ user_id });
+    if (!record) {
+      throw new NotFoundException(
+        `No avatar record found for user with ID ${user_id}`,
+      );
+    } else {
+      return record;
     }
   }
 }

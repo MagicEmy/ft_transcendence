@@ -7,4 +7,7 @@ export class Avatar {
 
   @Column({ type: 'bytea', nullable: true })
   avatar: Buffer;
+
+  @Column()
+  mime_type: string;
 }
