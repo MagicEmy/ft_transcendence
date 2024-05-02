@@ -6,6 +6,7 @@ import { JwtPayloadDto } from './dto/jwt-payload-dto';
 import { ClientKafka } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { UserWithTokenDto } from './dto/user-with-token-dto';
+import { ValidateUserDto } from 'src/user/dto/validate-user-dto';
 
 @Injectable()
 export class AuthService {

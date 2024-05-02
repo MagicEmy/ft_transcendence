@@ -71,6 +71,7 @@ services:
       - "3003:3000" # only for testing purposes
     depends_on:
       - profile_db
+      - kafka
 
   profile:
     container_name: profile
@@ -91,19 +92,8 @@ services:
       - backend
     depends_on:
       - profile_db
+      - kafka
 
-  score:
-    container_name: score
-    env_file: .env
-    build:
-      context: ./backend/score
-      dockerfile: Dockerfile
-    image: "score"
-    restart: unless-stopped
-    networks:
-      - backend
-    depends_on:
-      - postgres
 
   game:
     container_name: game
@@ -115,8 +105,7 @@ services:
     restart: unless-stopped
     networks:
       - backend
-    depends_on:
-      - postgres
+
   
   profile_db:
     container_name: profile_db
@@ -162,6 +151,7 @@ services:
 
   kafdrop:
     image: obsidiandynamics/kafdrop
+    container_name: kafdrop
     restart: "no"
     ports:
       - "9000:9000"
@@ -170,10 +160,11 @@ services:
     environment:
       KAFKA_BROKERCONNECT: "kafka:29092"
     depends_on:
-      - "kafka"
+      - kafka
 
   kafka:
     image: obsidiandynamics/kafka
+    container_name: kafka
     restart: "no"
     networks:
       - backend
