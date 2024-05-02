@@ -18,19 +18,14 @@ export class AuthController {
   @UseGuards(FourtyTwoAuthGuard)
   @Get('42/redirect')
   handleRedirect(@Req() req, @Res() resp: Response): void {
-    console.log('In handleRedirect()');
-    console.log('REQUEST');
-    console.log(req);
-    const cookie = this.authService.login({
-      user_name: req.user.user_name,
-      sub: req.user.user_id,
-      intra_login: req.user.intra_login,
-    });
+    const cookie = this.authService.login(req.user);
     resp.setHeader('Set-Cookie', cookie);
     return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
   }
 
-  // CREATE ROUTE 42/REFRESH
+  // route auth/42/refresh
+
+  // route auth/logout
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
