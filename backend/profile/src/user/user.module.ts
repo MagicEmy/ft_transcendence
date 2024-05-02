@@ -10,6 +10,7 @@ import { UsernameCache } from './usernameCache';
 import { AvatarService } from './avatar.service';
 import { AvatarRepository } from './avatar.repository';
 import { Avatar } from './avatar.entity';
+import { FriendService } from './friend.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Friend, Avatar])],
@@ -18,10 +19,17 @@ import { Avatar } from './avatar.entity';
     UserService,
     UserRepository,
     FriendRepository,
+    FriendService,
     UsernameCache,
     AvatarService,
     AvatarRepository,
   ],
-  exports: [TypeOrmModule, UserRepository, UserService],
+  exports: [
+    TypeOrmModule,
+    UserRepository,
+    UserService,
+    FriendService,
+    FriendRepository,
+  ],
 })
 export class UserModule {}

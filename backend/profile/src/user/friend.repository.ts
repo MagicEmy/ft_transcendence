@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 import { Friend } from './friend.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AddFriendDto } from './dto/add-friend-dto';
+import { FriendshipDto } from './dto/friendship-dto';
 
 export class FriendRepository extends Repository<Friend> {
   constructor(
@@ -14,8 +14,8 @@ export class FriendRepository extends Repository<Friend> {
     );
   }
 
-  async addFriend(addFriendDto: AddFriendDto) {
-    const friend = this.friendRepository.create(addFriendDto);
+  async addFriend(friendshipDto: FriendshipDto) {
+    const friend = this.friendRepository.create(friendshipDto);
     return this.friendRepository.save(friend);
   }
 
@@ -29,5 +29,22 @@ export class FriendRepository extends Repository<Friend> {
     }
     const friends = friendsRaw.map((item) => item.friend_id);
     return friends;
+  }
+
+  async removeFriend(friendshipDto: FriendshipDto): Promise<FriendshipDto> {
+    try {
+      this.createQueryBuilder()
+        .delete()
+        .where('friend_id = :friend_id', { friend_id: friendshipDto.friend_id })
+        .andWhere('user_id = :user_id', { user_id: friendshipDto.user_id })
+        .execute();
+      console.log(
+        `User ${friendshipDto.user_id} just unfriended user ${friendshipDto.friend_id}`,
+      );
+    } catch (error) {
+      console.log('Caught an error when trying to remove a friendship:');
+      console.log(error);
+    }
+    return friendshipDto;
   }
 }

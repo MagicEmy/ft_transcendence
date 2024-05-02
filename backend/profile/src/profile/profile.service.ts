@@ -6,6 +6,7 @@ import { StatsService } from 'src/stats/stats.service';
 import { Opponent } from 'src/stats/opponent.enum';
 import { GameService } from 'src/game/game.service';
 import { GamesAgainstUserIdDto } from 'src/game/dto/games-against-userid-dto';
+import { FriendService } from 'src/user/friend.service';
 
 @Injectable()
 export class ProfileService {
@@ -13,10 +14,11 @@ export class ProfileService {
     private readonly userService: UserService,
     private readonly statsService: StatsService,
     private readonly gameService: GameService,
+    private readonly friendService: FriendService,
   ) {}
 
   async getFriends(user_id: string): Promise<FriendDto[]> {
-    const friendIds = await this.userService.getFriends(user_id);
+    const friendIds = await this.friendService.getFriends(user_id);
     if (friendIds.length === 0) {
       return [];
     }

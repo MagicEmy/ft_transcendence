@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY *.json .
 
-RUN npm ci
+RUN npm install -g npm@10.5.2 && npm ci
 
 COPY . .
 
