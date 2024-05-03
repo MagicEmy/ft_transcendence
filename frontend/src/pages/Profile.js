@@ -47,9 +47,9 @@ function Profile() {
   return (
     <div className="profile-container">
 		<div>
-			<avatar>
+			<span>
 				<img src={profile && profile.avatar} alt="avatar" />
-			</avatar>
+			</span>
 			<span>{profile?.user_name}</span>
 		</div>
 		{profile && profile.friends.map((friend) => (			

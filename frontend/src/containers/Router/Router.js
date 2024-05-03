@@ -33,7 +33,7 @@ const router = createBrowserRouter([
 					// { path: "chat", element: <ChatPage />},
 					{ path: "leaderboard", element: <Leaderboard />},
 					{ path: "profile", element: <Profile /> },
-					// { path: "profile/:userId", element: <ProfileUserId /> },
+					{ path: "profile/:userId", element: <Profile /> },
 				] },
 		]
 	},

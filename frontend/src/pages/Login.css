@@ -7,10 +7,14 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: radial-gradient(circle, #f4f3f1 0%, #fae1af 100%);
+  background: #02893a;
+  border : 10px solid white;
+  position: relative; /* Needed for absolute positioning of line */
+
+  /* background: radial-gradient(circle, #f1f4f1 0%, #fae1af 100%); */
   /* background: radial-gradient(circle, #1f1d1b 0%, #fcf3e1 100%); */
   /* background: linear-gradient(#1f1d1b, #dddbd8); */
-
+/* 
   --color-gray-100: #f4f3f1;
   --color-gray-200: #dddbd8;
   --color-gray-300: #ccc9c6;
@@ -29,7 +33,19 @@
   --color-primary-600: #f9c762;
   --color-primary-700: #fbc14d;
   --color-primary-800: #fab833;
-  --color-primary-900: #f6ad1b;
+  --color-primary-900: #f6ad1b; */
+}
+
+
+
+.login-container::before {
+   content: '';
+   position: absolute;
+   background-color: white; /* Color of the line */
+   width: 100%; /* Line spans the entire width of the container */
+   height: 10px; /* Matches the border size */
+   top: 50%; /* Positions the line in the center vertically */
+   transform: translateY(-50%); /* Centers it exactly at the midpoint */
 }
 
 .login-container main {
@@ -74,6 +90,12 @@
   background-color: #facb03; /* Apply different styles for the active NavLink if needed */
 }
 
+.login-container image {
+	display: flex;
+	position: absolute;
+	justify-content: left;
+  }
+  
 /* HTML: <div class="loader"></div> */
 
 .loader {
@@ -102,3 +124,10 @@
     background-position: 0 100%, 100% 0, 100% 5px;
   }
 }
+
+
+.image {
+	display: flex;
+	position: relative;
+	justify-content: left;
+  }

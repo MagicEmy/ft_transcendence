@@ -15,8 +15,6 @@ export const UserProvider = ({ children }) => {
 
 	useEffect(() => {		
 	    if (authToken) {
-			//console.log("USERCONTEXT storedToken: ", storedToken);
-			//console.log("USERCONTEXT authToken: ", authToken);
 			const fetchUser = async () => {
 			  try {
 				const response = await axios.get('http://localhost:3003/auth/profile', {

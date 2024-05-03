@@ -3,24 +3,28 @@ import { NavLink } from "react-router-dom";
 import classes from "./Navbar.module.css";
 import avatar from "../../src/assets/Thai.jpg";
 import LogoutButton from "./LogoutButton";
+// import useStorage from "../hooks/useStorage";
+
 
 function Navbar() {
+	// const [userProfile] = useStorage("user");
+	
+
   return (
     <header className={classes.header}>
       <div className={classes.avatar}>
-        <span >
-
-      <NavLink
-              to="/profile"
-              className={({ isActive }) =>
+        <span>
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
               isActive ? classes.active : undefined
             }
-            >
-              Profile
-            </NavLink>
-
-        <img className={classes.avatarImage} src={avatar} alt="Avatar" />
-              </span>
+          >
+            <img className={classes.avatarImage} src={avatar} alt="Avatar" />
+          </NavLink>
+		  {/* <div className={classes.list}>
+				{userProfile.user_name}</div> */}
+        </span>
       </div>
       <nav>
         <ul className={classes.list}>
@@ -30,7 +34,7 @@ function Navbar() {
               className={({ isActive }) =>
                 isActive ? classes.active : undefined
               }
-			  end
+              end
             >
               Home
             </NavLink>
@@ -45,6 +49,16 @@ function Navbar() {
               Profile
             </NavLink>
           </li>
+		  <li>
+            <NavLink
+              to="/leaderboard"
+              className={({ isActive }) =>
+                isActive ? classes.active : undefined
+              }
+            >
+              Leaderboard
+            </NavLink>
+          </li>
           <li>
             <NavLink
               to="/game"
@@ -55,7 +69,7 @@ function Navbar() {
               Game
             </NavLink>
           </li>
-		  <li>
+          <li>
             <NavLink
               to="/chat"
               className={({ isActive }) =>
@@ -72,7 +86,7 @@ function Navbar() {
 
       </div> */}
       <div className={classes.buttons}>
-            <LogoutButton className={classes.logoutButton}/>
+        <LogoutButton className={classes.logoutButton} />
       </div>
     </header>
   );
