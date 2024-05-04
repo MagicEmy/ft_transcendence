@@ -3,11 +3,11 @@ import { NavLink } from "react-router-dom";
 import classes from "./Navbar.module.css";
 import avatar from "../../src/assets/Thai.jpg";
 import LogoutButton from "./LogoutButton";
-// import useStorage from "../hooks/useStorage";
+import useStorage from "../hooks/useStorage";
 
 
 function Navbar() {
-	// const [userProfile] = useStorage("user");
+	const [userProfile] = useStorage("user");
 	
 
   return (
@@ -22,8 +22,8 @@ function Navbar() {
           >
             <img className={classes.avatarImage} src={avatar} alt="Avatar" />
           </NavLink>
-		  {/* <div className={classes.list}>
-				{userProfile.user_name}</div> */}
+		  <div className={classes.list}>
+				{userProfile.user_name}</div>
         </span>
       </div>
       <nav>

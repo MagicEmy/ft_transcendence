@@ -2,12 +2,11 @@
 // import useStorage from "../hooks/useStorage";
 // import AuthContext from "../context/AuthContext";
 // import axios from "axios";
-import React, { useState } from 'react'
+import React from 'react'
 import "./Leaderboard.css";
 import Board from './Board';
 
 export default function Leaderboard() {
-
   
 	return (
 		<div className="App" id='main'>
