@@ -1,6 +1,6 @@
 import React  from "react";
 import logo from "../assets/Atari_Pong.png";
-import smash from "../assets/Smash.png";
+// import smash from "../assets/Smash.png";
 import "./Login.css";
 
 
@@ -19,8 +19,8 @@ const Login = () => {
           <button className="login-button" onClick={handleLogin}>
             LOGIN
           </button>
-          {/* <div className="loader"></div> */}
-		<img className="imgage" src={smash} alt="Ctr-alt-defeat" />
+          <div className="loader"></div>
+		{/* <img className="imgage" src={smash} alt="Ctr-alt-defeat" /> */}
         </main>
       </div>
     </>

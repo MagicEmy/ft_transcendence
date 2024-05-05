@@ -30,11 +30,6 @@
 	margin-bottom: 50px;
   }
 
-  .friends-sidebar {
-	border-left: 1px solid black;
-	width: 150px;
-	padding: 1rem;
-  }
 
   /* Style for profile details */
   .profile-details {
@@ -70,4 +65,25 @@
   .nav-link.active {
 	background-color: #f0f0f0; /* Change background color when active */
 	font-weight: bold; /* Make text bold when active */
+  }
+
+  .friends {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+
+		height: 90vh;
+		border-left: 1px solid green;
+		padding: 1rem;
+
+  }
+
+  .friends a {
+	text-decoration: none;
+	color: black;
+  }
+
+  .profile {
+	display: flex;
+	justify-content: space-between;
   }
