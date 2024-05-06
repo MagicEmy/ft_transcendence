@@ -31,13 +31,15 @@ export class StatsService {
       gameEndDto;
     await this.updateStatsOfPlayer({
       player_id: player1_id,
-      opponent: player2_id ? Opponent.HUMAN : Opponent.BOT,
+      //   opponent: player2_id ? Opponent.HUMAN : Opponent.BOT,
+      opponent: player2_id != Opponent.BOT ? Opponent.HUMAN : Opponent.BOT,
       score: +player1_score,
       won: player1_score > player2_score ? true : false,
       lost: player1_score < player2_score ? true : false,
       duration: +duration,
     });
-    if (player2_id) {
+    // if (player2_id) {
+    if (player2_id != Opponent.BOT) {
       await this.updateStatsOfPlayer({
         player_id: player2_id,
         opponent: Opponent.HUMAN,
@@ -131,7 +133,7 @@ export class StatsService {
       statsRow.total_time_playing_miliseconds,
     );
     return {
-      total_played_games: statsRow.games_played,
+      total_played_games: statsRow.games_played, // wrong number
       wins: statsRow.wins,
       losses: statsRow.losses,
       draws: statsRow.games_played - (statsRow.wins + statsRow.losses),
