@@ -13,13 +13,13 @@ import {
 } from '@nestjs/common';
 import { User } from './user.entity';
 import { UserService } from './user.service';
-import { FriendshipDto } from './dto/friendship-dto';
-import { Friend } from './friend.entity';
-import { UsernameCache } from './usernameCache';
-import { AvatarService } from './avatar.service';
+import { FriendshipDto } from '../dto/friendship-dto';
+import { Friend } from '../friend/friend.entity';
+import { UsernameCache } from '../utils/usernameCache';
+import { AvatarService } from '../avatar/avatar.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express, Response } from 'express';
-import { FriendService } from './friend.service';
+import { FriendService } from '../friend/friend.service';
 
 @Controller('user')
 export class UserController {

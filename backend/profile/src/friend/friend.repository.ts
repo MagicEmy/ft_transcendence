@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 import { Friend } from './friend.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FriendshipDto } from './dto/friendship-dto';
+import { FriendshipDto } from '../dto/friendship-dto';
 
 export class FriendRepository extends Repository<Friend> {
   constructor(

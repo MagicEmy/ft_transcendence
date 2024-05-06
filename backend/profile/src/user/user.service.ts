@@ -6,8 +6,8 @@ import {
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProfileUserInfoDto } from './dto/profile-user-info-dto';
-import { UsernameCache } from './usernameCache';
+import { ProfileUserInfoDto } from '../dto/profile-user-info-dto';
+import { UsernameCache } from '../utils/usernameCache';
 
 @Injectable()
 export class UserService {

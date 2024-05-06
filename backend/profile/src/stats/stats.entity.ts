@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { Opponent } from './opponent.enum';
+import { Opponent } from '../utils/opponent.enum';
 
 @Entity()
 export class Stats {

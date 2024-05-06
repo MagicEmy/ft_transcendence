@@ -1,4 +1,4 @@
-import { Opponent } from '../opponent.enum';
+import { Opponent } from '../utils/opponent.enum';
 
 export class UpdateStatsDto {
   player_id: string;
