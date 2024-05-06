@@ -33,7 +33,6 @@ export class AuthService {
         user_name: intra_login,
       });
 
-      // TO BE ADDED: get profile picture from 42 api and create avatar record
       this.userService.createAvatarRecord(user.user_id, avatar_url);
 
       // new user creation is broadcast to profile and chat
@@ -46,7 +45,7 @@ export class AuthService {
     return user;
   }
 
-  login(userWithToken: UserWithTokenDto): string {
+  getCookieForLogin(userWithToken: UserWithTokenDto): string {
     const { user_id, user_name, intra_login, refresh_token } = userWithToken;
     const token = this.generateJwtToken({
       sub: user_id,
@@ -61,6 +60,10 @@ export class AuthService {
   }
 
   createCookieWithTokens(token: string, refresh_token: string) {
-    return `Authentication=${token}; Refresh=${refresh_token} HttpOnly; Path=/; secure=true; Max-Age=${this.configService.get('JWT_EXPIRATION_TIME')}`;
+    return `Authentication=${token}; Refresh=${refresh_token}; HttpOnly; Path=/; secure=true; Max-Age=${this.configService.get('JWT_EXPIRATION_TIME')}`;
+  }
+
+  getCookieForLogout(): string {
+    return `Authentication=; Refresh=; HttpOnly; Path=/; secure=true; Max-Age=0`;
   }
 }
