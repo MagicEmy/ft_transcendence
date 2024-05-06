@@ -2,7 +2,9 @@ version: "3"
 services:
   profile:
     container_name: profile
-    env_file: .env.stage.dev
+    env_file: 
+    - .env
+    - .env.profile-db
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,19 +18,21 @@ services:
     ports:
       - "3002:3000" #only for testing porposes
     depends_on:
-      postgres:
+      profile_db:
         condition: service_healthy
   
-  postgres:
-    container_name: postgres
-    env_file: .env.stage.dev
+  profile_db:
+    container_name: profile_db
+    env_file: 
+    - .env
+    - .env.profile-db
     build:
-      context: ../database
+      context: ../../database
       dockerfile: Dockerfile
     image: postgres
     restart: always
     volumes:
-      - "db_volume:/var/lib/postgresql"
+      - "profile_db_volume:/var/lib/postgresql"
     ports:
       - "5432:5432" #only for testing porposes
     networks:
@@ -39,54 +43,54 @@ services:
       timeout: 10s
       retries: 3
 
-  game:
-    container_name: game
-    env_file: .env.stage.dev
-    build:
-      context: ../game
-      dockerfile: Dockerfile
-    image: game
-    volumes:
-    - "../game:/app" #only for developement
-    - "/app/node_modules"
-    restart: unless-stopped
-    networks:
-      - backend
-    ports:
-      - "3006:3000" #only for testing porposes
-    depends_on:
-      - postgres
+  # game:
+  #   container_name: game
+  #   env_file: .env.stage.dev
+  #   build:
+  #     context: ../game
+  #     dockerfile: Dockerfile
+  #   image: game
+  #   volumes:
+  #   - "../game:/app" #only for developement
+  #   - "/app/node_modules"
+  #   restart: unless-stopped
+  #   networks:
+  #     - backend
+  #   ports:
+  #     - "3006:3000" #only for testing porposes
+  #   depends_on:
+  #     - postgres
   
-  kafdrop:
-    image: obsidiandynamics/kafdrop
-    restart: "no"
-    ports:
-      - "9000:9000"
-    networks:
-      - backend 
-    environment:
-      KAFKA_BROKERCONNECT: "kafka:29092"
-    depends_on:
-      - "kafka"
+  # kafdrop:
+  #   image: obsidiandynamics/kafdrop
+  #   restart: "no"
+  #   ports:
+  #     - "9000:9000"
+  #   networks:
+  #     - backend 
+  #   environment:
+  #     KAFKA_BROKERCONNECT: "kafka:29092"
+  #   depends_on:
+  #     - "kafka"
   
-  kafka:
-    image: obsidiandynamics/kafka
-    restart: "no"
-    networks:
-      - backend
-    ports:
-      - "2181:2181"
-      - "9092:9092"
-    environment:
-      KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
-      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
-      KAFKA_ZOOKEEPER_SESSION_TIMEOUT: "6000"
-      KAFKA_RESTART_ATTEMPTS: "10"
-      KAFKA_RESTART_DELAY: "5"
-      ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
-      KAFKAJS_NO_PARTITIONER_WARNING: "1"
+  # kafka:
+  #   image: obsidiandynamics/kafka
+  #   restart: "no"
+  #   networks:
+  #     - backend
+  #   ports:
+  #     - "2181:2181"
+  #     - "9092:9092"
+  #   environment:
+  #     KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
+  #     KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+  #     KAFKA_ZOOKEEPER_SESSION_TIMEOUT: "6000"
+  #     KAFKA_RESTART_ATTEMPTS: "10"
+  #     KAFKA_RESTART_DELAY: "5"
+  #     ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
+  #     KAFKAJS_NO_PARTITIONER_WARNING: "1"
  
 networks:
   backend:
@@ -94,4 +98,4 @@ networks:
     driver: bridge
 
 volumes:
-  db_volume:
+  profile_db_volume:
