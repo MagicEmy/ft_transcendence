@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GameRepository } from './game.repository';
-import { GameEndDto } from './dto/game-end-dto';
-import { GamesAgainstUserIdDto } from './dto/games-against-userid-dto';
-import { GameHistoryDto } from './dto/game-history-dto';
+import { GameEndDto } from '../dto/game-end-dto';
+import { GamesAgainstUserIdDto } from '../dto/games-against-userid-dto';
+import { GameHistoryDto } from '../dto/game-history-dto';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()

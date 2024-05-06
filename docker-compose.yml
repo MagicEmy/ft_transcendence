@@ -32,25 +32,25 @@ services:
   #   networks:
   #     - backend
 
-  # chat:
-  #   container_name: chat
-  #   env_file: 
-  #   - .env
-  #   - .env.chat-db
-  #   build:
-  #     context: ./backend/chat
-  #     dockerfile: Dockerfile
-  #   image: chat
-  #   volumes:
-  #     - "./backend/chat:/app" # for development only
-  #     - "/app/node_modules"
-  #   restart: unless-stopped
-  #   ports:
-  #     - "3005:3000" # only for testing purposes
-  #   networks:
-  #     - backend
-  #   depends_on:
-  #     - chat_db
+  chat:
+    container_name: chat
+    env_file: 
+    - .env
+    - .env.chat-db
+    build:
+      context: ./backend/chat
+      dockerfile: Dockerfile
+    image: chat
+    volumes:
+      - "./backend/chat:/app" # for development only
+      - "/app/node_modules"
+    restart: unless-stopped
+    ports:
+      - "3005:3000" # only for testing purposes
+    networks:
+      - backend
+    depends_on:
+      - chat_db
 
   auth:
     container_name: auth
@@ -94,7 +94,6 @@ services:
       - profile_db
       - kafka
 
-
   game:
     container_name: game
     env_file: .env
@@ -102,19 +101,25 @@ services:
       context: ./backend/game
       dockerfile: Dockerfile
     image: game
+    volumes:
+      - "./backend/game:/app" #only for developement
+      - "/app/node_modules"
+    ports:
+      - "3006:3000" #only for testing porposes
     restart: unless-stopped
     networks:
       - backend
 
-  
+# databases
   profile_db:
     container_name: profile_db
     env_file: 
     - .env
     - .env.profile-db
     build:
-      context: ./database/profile_db
+      context: ./database
       dockerfile: Dockerfile
+    image: postgres
     restart: always
     volumes:
       - "profile_db_volume:/var/lib/postgresql"
@@ -134,8 +139,9 @@ services:
     - .env
     - .env.chat-db
     build:
-      context: ./database/chat_db
+      context: ./database
       dockerfile: Dockerfile
+    image: postgres
     restart: always
     volumes:
       - "chat_db_volume:/var/lib/postgresql"
@@ -149,6 +155,7 @@ services:
       timeout: 10s
       retries: 3
 
+# kafka
   kafdrop:
     image: obsidiandynamics/kafdrop
     container_name: kafdrop
@@ -181,33 +188,6 @@ services:
       KAFKA_RESTART_DELAY: "5"
       ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
-
-  # zookeeper:
-  #   image: confluentinc/cp-zookeeper:7.3.2
-  #   container_name: zookeeper
-  #   environment:
-  #     ZOOKEEPER_CLIENT_PORT: 2181
-  #     ZOOKEEPER_SERVER_ID: 1
-  #     ZOOKEEPER_SERVERS: zookeeper:2888:3888
-  #   networks:
-  #     - backend
-
-  # kafka:
-  #   image: confluentinc/cp-kafka:7.3.2
-  #   container_name: kafka
-  #   environment:
-  #     KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
-  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
-  #     KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-  #     KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-  #     KAFKA_BROKER_ID: 1
-  #     KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
-  #     KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
-  #     KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
-  #   depends_on:
-  #     - zookeeper
-  #   networks:
-  #     - backend
 
   # reverseproxy:
   #   container_name: reverseproxy

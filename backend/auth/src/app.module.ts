@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { HttpModule } from '@nestjs/axios';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -34,6 +35,22 @@ import { HttpModule } from '@nestjs/axios';
     AuthModule,
     UserModule,
     HttpModule,
+    ClientsModule.register([
+      // ONLY FOR TESTING PURPOSES - to be removed
+      {
+        name: 'STATS_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'stats',
+            brokers: ['kafka:29092'],
+          },
+          consumer: {
+            groupId: 'stats-consumer',
+          },
+        },
+      },
+    ]),
   ],
   controllers: [AppController, UserController],
   providers: [AppService, UserService],

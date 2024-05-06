@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { UserService } from './user/user.service';
+import { StatsService } from './stats/stats.service';
+import { GameService } from './game/game.service';
+import { FriendService } from './friend/friend.service';
 import { FriendDto, GameStatsDto, ProfileDto } from './dto/profile-dto';
-import { UserService } from 'src/user/user.service';
-import { ProfileUserInfoDto } from 'src/user/dto/profile-user-info-dto';
-import { StatsService } from 'src/stats/stats.service';
-import { Opponent } from 'src/stats/opponent.enum';
-import { GameService } from 'src/game/game.service';
-import { GamesAgainstUserIdDto } from 'src/game/dto/games-against-userid-dto';
-import { FriendService } from 'src/user/friend.service';
+import { ProfileUserInfoDto } from './dto/profile-user-info-dto';
+import { Opponent } from './utils/opponent.enum';
+import { GamesAgainstUserIdDto } from './dto/games-against-userid-dto';
 
 @Injectable()
 export class ProfileService {
@@ -44,6 +44,7 @@ export class ProfileService {
     return user.rank;
   }
 
+  // MAKE SURE EVERYTHING WORKS WITH NO GAMES/FRIENDS/...
   async getProfileById(user_id: string): Promise<ProfileDto> {
     const userInfo: ProfileUserInfoDto =
       await this.userService.getUserInfoForProfile(user_id);

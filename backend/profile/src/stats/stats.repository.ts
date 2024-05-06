@@ -1,9 +1,9 @@
 import { Repository } from 'typeorm';
 import { Stats } from './stats.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { NewUserDto } from './dto/new-user-dto';
-import { Opponent } from './opponent.enum';
-import { LeaderboardQueryResultDto } from './dto/leaderboard-query-result-dto';
+import { NewUserDto } from '../dto/new-user-dto';
+import { Opponent } from '../utils/opponent.enum';
+import { LeaderboardQueryResultDto } from '../dto/leaderboard-query-result-dto';
 
 export class StatsRepository extends Repository<Stats> {
   constructor(

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Avatar } from './avatar.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AvatarDto } from './dto/avatar-dto';
+import { AvatarDto } from '../dto/avatar-dto';
 
 @Injectable()
 export class AvatarRepository extends Repository<Avatar> {

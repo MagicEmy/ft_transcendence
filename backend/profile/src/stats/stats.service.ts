@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GameEndDto } from '../game/dto/game-end-dto';
-import { NewUserDto } from './dto/new-user-dto';
+import { GameEndDto } from '../dto/game-end-dto';
+import { NewUserDto } from '../dto/new-user-dto';
 import { StatsRepository } from './stats.repository';
-import { UpdateStatsDto } from './dto/update-stats-dto';
-import { Opponent } from './opponent.enum';
+import { UpdateStatsDto } from '../dto/update-stats-dto';
+import { Opponent } from '../utils/opponent.enum';
 import { Stats } from './stats.entity';
 import {
   MILISECONDS_IN_A_DAY,
@@ -12,11 +12,11 @@ import {
   MILISECONDS_IN_A_MINUTE,
   MILISECONDS_IN_A_SECOND,
   DAYS_IN_A_WEEK,
-} from './constants';
-import { GameStatsDto, TotalTimePlayedDto } from 'src/profile/dto/profile-dto';
-import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
+} from '../utils/constants';
+import { GameStatsDto, TotalTimePlayedDto } from 'src/dto/profile-dto';
+import { LeaderboardStatsDto } from '../dto/leaderboard-stats-dto';
 import { UserService } from 'src/user/user.service';
-import { LeaderboardQueryResultDto } from './dto/leaderboard-query-result-dto';
+import { LeaderboardQueryResultDto } from '../dto/leaderboard-query-result-dto';
 
 @Injectable()
 export class StatsService {
@@ -26,37 +26,28 @@ export class StatsService {
     private readonly userService: UserService,
   ) {}
 
-  async handleGameEnd(gameEndDto: GameEndDto): Promise<void> {
+  async updateStats(gameEndDto: GameEndDto): Promise<void> {
     const { player1_id, player2_id, player1_score, player2_score, duration } =
       gameEndDto;
-    const player1 = {
+    await this.updateStatsOfPlayer({
       player_id: player1_id,
-      opponent: Opponent.HUMAN,
+      //   opponent: player2_id ? Opponent.HUMAN : Opponent.BOT,
+      opponent: player2_id != Opponent.BOT ? Opponent.HUMAN : Opponent.BOT,
       score: +player1_score,
       won: player1_score > player2_score ? true : false,
       lost: player1_score < player2_score ? true : false,
       duration: +duration,
-    };
-    const player2 = {
-      player_id: player2_id,
-      opponent: Opponent.HUMAN,
-      score: +player2_score,
-      won: player2_score > player1_score ? true : false,
-      lost: player2_score < player1_score ? true : false,
-      duration: +duration,
-    };
-    if (
-      gameEndDto.player1_id !== Opponent.BOT &&
-      gameEndDto.player2_id !== Opponent.BOT
-    ) {
-      await this.updateStatsAfterGameEnd(player1);
-      await this.updateStatsAfterGameEnd(player2);
-    } else if (gameEndDto.player1_id !== Opponent.BOT) {
-      player1.opponent = Opponent.BOT;
-      await this.updateStatsAfterGameEnd(player1);
-    } else {
-      player2.opponent = Opponent.BOT;
-      await this.updateStatsAfterGameEnd(player2);
+    });
+    // if (player2_id) {
+    if (player2_id != Opponent.BOT) {
+      await this.updateStatsOfPlayer({
+        player_id: player2_id,
+        opponent: Opponent.HUMAN,
+        score: +player2_score,
+        won: player2_score > player1_score ? true : false,
+        lost: player2_score < player1_score ? true : false,
+        duration: +duration,
+      });
     }
   }
 
@@ -83,9 +74,7 @@ export class StatsService {
     return { days, miliseconds };
   }
 
-  async updateStatsAfterGameEnd(updateStatsDto: UpdateStatsDto): Promise<void> {
-    console.log('in updateStatsAfterGameEnd');
-    console.log(updateStatsDto);
+  async updateStatsOfPlayer(updateStatsDto: UpdateStatsDto): Promise<void> {
     const statsRow = await this.getStatsRowByIdAndOpponent(
       updateStatsDto.player_id,
       updateStatsDto.opponent,
@@ -95,7 +84,6 @@ export class StatsService {
         `Couldn't find stats row with player_id ${updateStatsDto.player_id} and opponent ${updateStatsDto.opponent}`,
       );
     } else {
-      console.log(statsRow);
       statsRow.games_played += 1;
       statsRow.max_score =
         updateStatsDto.score > statsRow.max_score
@@ -114,8 +102,6 @@ export class StatsService {
         : statsRow.losses;
     }
     await this.statsRepository.save(statsRow);
-    console.log('Saved in database:');
-    console.log(statsRow);
   }
 
   async createStatsRowNewUser(newUserDto: NewUserDto): Promise<void> {
@@ -147,7 +133,7 @@ export class StatsService {
       statsRow.total_time_playing_miliseconds,
     );
     return {
-      total_played_games: statsRow.games_played,
+      total_played_games: statsRow.games_played, // wrong number
       wins: statsRow.wins,
       losses: statsRow.losses,
       draws: statsRow.games_played - (statsRow.wins + statsRow.losses),

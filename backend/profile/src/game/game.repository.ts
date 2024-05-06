@@ -1,8 +1,8 @@
 import { Repository } from 'typeorm';
 import { Game } from './game.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GameEndDto } from './dto/game-end-dto';
-import { GamesAgainstUserIdDto } from './dto/games-against-userid-dto';
+import { GameEndDto } from '../dto/game-end-dto';
+import { GamesAgainstUserIdDto } from '../dto/games-against-userid-dto';
 
 export class GameRepository extends Repository<Game> {
   constructor(
