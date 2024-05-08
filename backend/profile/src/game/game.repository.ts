@@ -39,7 +39,6 @@ export class GameRepository extends Repository<Game> {
       [user_id],
     );
 
-    console.log(result);
     const mostFrequent: GamesAgainstUserIdDto[] = result.filter(
       (item) => item.games === result[0].games,
     );
