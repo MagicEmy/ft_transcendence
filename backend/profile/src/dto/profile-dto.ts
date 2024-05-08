@@ -1,13 +1,17 @@
 export class ProfileDto {
-  user_id: string;
-  user_name: string;
+  user_info: UserInfoDto;
   avatar?: Buffer;
   friends: FriendDto[];
   leaderboard_position: number;
   total_players: number;
   games_against_human: GameStatsDto;
   games_against_bot: GameStatsDto;
-  most_frequent_opponent: MostFrequentOpponentDto;
+  most_frequent_opponent: MostFrequentOpponentDto[];
+}
+
+export class UserInfoDto {
+  user_id: string;
+  user_name: string;
 }
 
 export class GameStatsDto {

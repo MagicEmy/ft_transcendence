@@ -3,10 +3,8 @@ import { UserService } from './user/user.service';
 import { StatsService } from './stats/stats.service';
 import { GameService } from './game/game.service';
 import { FriendService } from './friend/friend.service';
-import { FriendDto, GameStatsDto, ProfileDto } from './dto/profile-dto';
-import { ProfileUserInfoDto } from './dto/profile-user-info-dto';
+import { FriendDto, ProfileDto } from './dto/profile-dto';
 import { Opponent } from './utils/opponent.enum';
-import { GamesAgainstUserIdDto } from './dto/games-against-userid-dto';
 
 @Injectable()
 export class ProfileService {
@@ -44,37 +42,23 @@ export class ProfileService {
     return user.rank;
   }
 
-  // MAKE SURE EVERYTHING WORKS WITH NO GAMES/FRIENDS/...
   async getProfileById(user_id: string): Promise<ProfileDto> {
-    const userInfo: ProfileUserInfoDto =
-      await this.userService.getUserInfoForProfile(user_id);
-    const friends: FriendDto[] = await this.getFriends(user_id);
-    const leaderboardPos: number = await this.getLeaderboardRank(user_id);
-    const totalPlayers: number = await this.userService.getTotalNoOfUsers();
-    const gamesAgainstBot: GameStatsDto =
-      await this.statsService.getGamesAgainst(user_id, Opponent.BOT);
-    const gamesAgainstHuman: GameStatsDto =
-      await this.statsService.getGamesAgainst(user_id, Opponent.HUMAN);
-    const mostFrequentOpponent: GamesAgainstUserIdDto =
-      await this.gameService.mostFrequentOpponent(user_id);
-    const mostFrequentOpponentUsername: string =
-      await this.userService.getUsername(user_id);
-
-    // ADD RETURNING AVATAR? OR SEPARATE CALL FROM FRONTEND?
-
-    return {
-      user_id: userInfo.user_id,
-      user_name: userInfo.user_name,
-      friends: friends,
-      leaderboard_position: leaderboardPos,
-      total_players: totalPlayers,
-      most_frequent_opponent: {
-        user_id: mostFrequentOpponent.user_id,
-        user_name: mostFrequentOpponentUsername,
-        games: mostFrequentOpponent.games,
-      },
-      games_against_human: gamesAgainstHuman,
-      games_against_bot: gamesAgainstBot,
+    const profile: ProfileDto = {
+      user_info: await this.userService.getUserInfoForProfile(user_id),
+      friends: await this.getFriends(user_id),
+      leaderboard_position: await this.getLeaderboardRank(user_id),
+      total_players: await this.userService.getTotalNoOfUsers(),
+      games_against_bot: await this.statsService.getGamesAgainst(
+        user_id,
+        Opponent.BOT,
+      ),
+      games_against_human: await this.statsService.getGamesAgainst(
+        user_id,
+        Opponent.HUMAN,
+      ),
+      most_frequent_opponent:
+        await this.gameService.mostFrequentOpponent(user_id),
     };
+    return profile;
   }
 }

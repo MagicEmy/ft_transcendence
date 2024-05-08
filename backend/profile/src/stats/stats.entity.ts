@@ -19,13 +19,13 @@ export class Stats {
   total_time_playing_miliseconds: number;
 
   @Column({ default: 0 })
-  games_played: number;
-
-  @Column({ default: 0 })
   wins: number;
 
   @Column({ default: 0 })
   losses: number;
+
+  @Column({ default: 0 })
+  draws: number;
 
   @Column({ default: 0 })
   max_score: number;
