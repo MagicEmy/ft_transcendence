@@ -33,13 +33,16 @@ export class GameRepository extends Repository<Game> {
 
   async getMostFrequentOpponent(
     user_id: string,
-  ): Promise<GamesAgainstUserIdDto> {
-    const result = await this.manager.query(
+  ): Promise<GamesAgainstUserIdDto[]> {
+    const result: GamesAgainstUserIdDto[] = await this.manager.query(
       'WITH t AS (SELECT player1_id AS "user_id" FROM game WHERE player2_id = $1 UNION ALL SELECT player2_id AS "user_id" FROM game WHERE player1_id = $1) SELECT user_id, COUNT(user_id) AS "games" FROM t GROUP BY user_id ORDER BY games DESC',
       [user_id],
     );
 
     console.log(result);
-    return result[0];
+    const mostFrequent: GamesAgainstUserIdDto[] = result.filter(
+      (item) => item.games === result[0].games,
+    );
+    return mostFrequent;
   }
 }
