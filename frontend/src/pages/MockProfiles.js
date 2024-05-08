@@ -32,6 +32,6 @@ function Item(data){
             ))}
         </>
 
-        
+
     )
 }

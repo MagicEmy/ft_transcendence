@@ -12,9 +12,9 @@ export const UserProvider = ({ children }) => {
     const {authToken} = useContext(AuthContext);
     const [userProfile, setUserProfile] = useStorage('user', {});
 	console.log('userProfile', userProfile)
-    const [isLoading, setIsLoading] = useState(true);	
+    const [isLoading, setIsLoading] = useState(true);
 
-	useEffect(() => {		
+	useEffect(() => {
 	    if (authToken) {
 			const fetchUser = async () => {
 			  try {
