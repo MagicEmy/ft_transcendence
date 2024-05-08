@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+* > * {
+    font-family: "Poppins", cursive;
+    margin: 0;
+}
+
+:root{
+    --color-dark: #2C3131;
+    --color-light: #be0dea;
+}
+
+#main {
+	display: flex;
+    flex-direction: column; /* Ensures that the items are stacked vertically */
+    justify-content: flex-start;
+    align-items: center;
+    height: calc(100vh - 40px);
+    padding: 20px 0; /* Top and bottom padding combined in shorthand */
+    overflow-y: auto;
+    scroll-behavior: smooth;
+	margin-bottom: 20em;
+}
+
+
+.board {
+    text-align: center;
+	width: 50%;
+	margin-top: 2em;
+}
+
+.board .leaderboard{
+    margin-bottom: 1em;
+	color: #f6790b;
+	font-size: 2.5em;	
+}
+
+#profile{
+	border : 10px solid #f6790b;
+	border-radius: 30px;
+    margin-top: 3em;
+	padding: 100px;
+	overflow-y: auto; 
+	margin-bottom: 20em;
+	background-color: antiquewhite;
+}
+
+#profile .flex{
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
+    text-align: left;
+    margin-bottom: 2em;
+}
+
+#profile .flex .item{
+    display: flex;
+    align-items: center;
+	gap: 3em;
+}
+
+#profile .flex img{
+    width: 20%;
+    border-radius: 50%;
+}
+
+#profile .flex .info{
+   padding: 1em;
+}
+
+.text-dark{
+    color: var(--color-light);
+}
+
+.info .total-points {
+    display: block; /* Ensures that the points are on a new line */
+    margin-bottom: 8px; /* Adds space below the total points */
+}
+
+.stats .stat {
+    display: inline-block; /* Allows items to sit side-by-side */
+    margin-right: 15px; /* Space between different stats */
+}
+
+.stat strong {
+	margin-left: 5px; /* Space between the label and the number */
+}

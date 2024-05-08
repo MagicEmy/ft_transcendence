@@ -34,7 +34,7 @@ export class StatsRepository extends Repository<Stats> {
 
   async getStatsForLeaderboard(): Promise<LeaderboardQueryResultDto[]> {
     return this.createQueryBuilder('stats')
-      .select('user_id, games_played, wins, losses')
+      .select('user_id, wins, losses, draws')
       .where('opponent LIKE :opponent', { opponent: 'human' })
       .getRawMany();
   }

@@ -1,8 +1,7 @@
 import React  from "react";
 import logo from "../assets/Atari_Pong.png";
-// import background from "../assets/ping-pong-neon.jpg";
+// import smash from "../assets/Smash.png";
 import "./Login.css";
-// import LoginButton from "../components/auth/LoginButton";
 
 
 const Login = () => {
@@ -17,12 +16,11 @@ const Login = () => {
       <div className="login-container">
         <main className="login-main">
           <img className="login-img" src={logo} alt="Logo" />
-		  {/* <img src={background} alt="background" /> */}
           <button className="login-button" onClick={handleLogin}>
             LOGIN
           </button>
-		  {/* <LoginButton /> */}
           <div className="loader"></div>
+		{/* <img className="imgage" src={smash} alt="Ctr-alt-defeat" /> */}
         </main>
       </div>
     </>

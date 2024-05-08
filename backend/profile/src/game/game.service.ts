@@ -5,6 +5,8 @@ import { GameEndDto } from '../dto/game-end-dto';
 import { GamesAgainstUserIdDto } from '../dto/games-against-userid-dto';
 import { GameHistoryDto } from '../dto/game-history-dto';
 import { UserService } from 'src/user/user.service';
+import { MostFrequentOpponentDto } from 'src/dto/profile-dto';
+import { Opponent } from 'src/utils/opponent.enum';
 
 @Injectable()
 export class GameService {
@@ -18,10 +20,22 @@ export class GameService {
     this.gameRepository.createGame(gameEndDto);
   }
 
-  async mostFrequentOpponent(user_id: string): Promise<GamesAgainstUserIdDto> {
-    const mostFrequentOpponent =
+  async mostFrequentOpponent(
+    user_id: string,
+  ): Promise<MostFrequentOpponentDto[]> {
+    const mostFrequentOpponentNoname: GamesAgainstUserIdDto[] =
       await this.gameRepository.getMostFrequentOpponent(user_id);
-    console.log(mostFrequentOpponent);
+    const mostFrequentOpponent: MostFrequentOpponentDto[] = [];
+    mostFrequentOpponentNoname.forEach(async (opponent) => {
+      mostFrequentOpponent.push({
+        user_id: opponent.user_id,
+        user_name:
+          opponent.user_id === Opponent.BOT
+            ? 'bot'
+            : await this.userService.getUsername(opponent.user_id),
+        games: opponent.games,
+      });
+    });
     return mostFrequentOpponent;
   }
 
@@ -49,7 +63,6 @@ export class GameService {
             : await this.userService.getUsername(item.player2_id);
       }),
     );
-    console.log(gameOverview);
     return gameOverview;
   }
 }

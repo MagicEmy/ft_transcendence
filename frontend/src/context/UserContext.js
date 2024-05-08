@@ -11,12 +11,11 @@ const UserContext = createContext({
 export const UserProvider = ({ children }) => {
     const {authToken} = useContext(AuthContext);
     const [userProfile, setUserProfile] = useStorage('user', {});
+	console.log('userProfile', userProfile)
     const [isLoading, setIsLoading] = useState(true);	
 
 	useEffect(() => {		
 	    if (authToken) {
-			//console.log("USERCONTEXT storedToken: ", storedToken);
-			//console.log("USERCONTEXT authToken: ", authToken);
 			const fetchUser = async () => {
 			  try {
 				const response = await axios.get('http://localhost:3003/auth/profile', {
