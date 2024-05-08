@@ -29,25 +29,36 @@ export class StatsService {
   async updateStats(gameEndDto: GameEndDto): Promise<void> {
     const { player1_id, player2_id, player1_score, player2_score, duration } =
       gameEndDto;
-    await this.updateStatsOfPlayer({
+    console.log(gameEndDto);
+    const pl1 = {
       player_id: player1_id,
       //   opponent: player2_id ? Opponent.HUMAN : Opponent.BOT,
       opponent: player2_id != Opponent.BOT ? Opponent.HUMAN : Opponent.BOT,
       score: +player1_score,
-      won: player1_score > player2_score ? true : false,
-      lost: player1_score < player2_score ? true : false,
+      result:
+        player1_score === player2_score
+          ? 0
+          : (player1_score - player2_score) /
+            Math.abs(player1_score - player2_score),
       duration: +duration,
-    });
+    };
+    console.log(pl1);
+    await this.updateStatsOfPlayer(pl1);
     // if (player2_id) {
     if (player2_id != Opponent.BOT) {
-      await this.updateStatsOfPlayer({
+      const pl2 = {
         player_id: player2_id,
         opponent: Opponent.HUMAN,
         score: +player2_score,
-        won: player2_score > player1_score ? true : false,
-        lost: player2_score < player1_score ? true : false,
+        result:
+          player1_score === player2_score
+            ? 0
+            : (player2_score - player1_score) /
+              Math.abs(player2_score - player1_score),
         duration: +duration,
-      });
+      };
+      console.log(pl2);
+      await this.updateStatsOfPlayer(pl2);
     }
   }
 
@@ -84,7 +95,6 @@ export class StatsService {
         `Couldn't find stats row with player_id ${updateStatsDto.player_id} and opponent ${updateStatsDto.opponent}`,
       );
     } else {
-      statsRow.games_played += 1;
       statsRow.max_score =
         updateStatsDto.score > statsRow.max_score
           ? updateStatsDto.score
@@ -96,10 +106,16 @@ export class StatsService {
       );
       statsRow.total_time_playing_days = recalculated.days;
       statsRow.total_time_playing_miliseconds = recalculated.miliseconds;
-      statsRow.wins = updateStatsDto.won ? statsRow.wins + 1 : statsRow.wins;
-      statsRow.losses = updateStatsDto.lost
-        ? statsRow.losses + 1
-        : statsRow.losses;
+      switch (updateStatsDto.result) {
+        case -1:
+          statsRow.losses += 1;
+          break;
+        case 0:
+          statsRow.draws += 1;
+          break;
+        case 1:
+          statsRow.wins += 1;
+      }
     }
     await this.statsRepository.save(statsRow);
   }
@@ -133,10 +149,10 @@ export class StatsService {
       statsRow.total_time_playing_miliseconds,
     );
     return {
-      total_played_games: statsRow.games_played, // wrong number
+      total_played_games: statsRow.wins + statsRow.losses + statsRow.draws,
       wins: statsRow.wins,
       losses: statsRow.losses,
-      draws: statsRow.games_played - (statsRow.wins + statsRow.losses),
+      draws: statsRow.draws,
       max_score: statsRow.max_score,
       total_time_played: totalTimePlayed,
     };
@@ -147,13 +163,12 @@ export class StatsService {
   ): LeaderboardStatsDto[] {
     const leaderboard = [];
     for (const item of queryResult) {
-      const draws = item.games_played - (item.wins + item.losses);
       leaderboard.push({
         user_id: item.user_id,
         wins: item.wins,
         losses: item.losses,
-        draws: draws,
-        points: item.wins * 3 + draws,
+        draws: item.draws,
+        points: item.wins * 3 + item.draws,
       });
     }
     return leaderboard;
