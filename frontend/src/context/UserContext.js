@@ -40,6 +40,24 @@ export const UserProvider = ({ children }) => {
 		  }
 	  }, [authToken]);
 
+	// useEffect(() => {
+	//     const fetchUser = async () => {
+	// 		try {
+	// 		  const response = await axios.get('http://localhost:3003/auth/profile', {
+	// 			withCredentials: true,
+	// 		  });
+	// 		  const data = response.data;
+	// 		  setUserProfile(data)
+	// 		  console.log("HERE User provider: ", data);
+	// 		} catch (error) {
+	// 		  console.error('Error fetching user data:', error);
+	// 		} finally {
+	// 		  setIsLoading(false);
+	// 		  console.error('finally');
+	// 		}
+	// 	  };
+	// 	  fetchUser();
+	//   }, [setUserProfile]);
 
   return (
     <UserContext.Provider value={{

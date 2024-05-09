@@ -2,11 +2,12 @@
 set -e
 
 PLAYERS=( # add existing user_id strings here
-"27244093-f22e-4104-aacb-cb5cf44572c5"
-"67ddac8f-a79e-4b83-85bc-baa385c6b43d"
-"6e63c8b6-e894-44f7-9cc6-8a9cc422479f"
-"e79e07f5-39e5-43ed-9b04-039c69bfe114"
-"decb95d5-777b-4d3d-82cb-e4214af7528c"
+"49f1c80c-a53c-41ed-adec-c0a0ca73a7ba"
+"d1377a9e-bed0-48dd-96b8-381212ab04ac"
+"74774914-b5af-46cc-89f3-a5372b97b9ca"
+"1aa76997-ee3a-4abe-8a47-0d2711af72a1"
+"bdf86603-8c27-4148-b02f-1d914a2924f0"
+"a1cbfce4-8fe9-4c9d-bcbd-f879fadbd286"
 )
 
 

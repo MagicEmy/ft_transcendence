@@ -1,16 +1,14 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import classes from "./Navbar.module.css";
 import LogoutButton from "./LogoutButton";
 import useStorage from "../hooks/useStorage";
 import { loadProfileAvatar } from "../libs/profileData";
-import AuthContext from "../context/AuthContext";
 
 function Navbar() {
   const [userProfile] = useStorage("user");
   const [userName, setUserName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState('');
-  const {authToken} = useContext(AuthContext);
 
   useEffect(() => {
     setUserName(userProfile?.user_name);
@@ -19,7 +17,7 @@ function Navbar() {
   useEffect(() => {
     const fetchAvatar = async () => {
       try {
-        const imageUrl = await loadProfileAvatar(authToken, userProfile.user_id);
+        const imageUrl = await loadProfileAvatar(userProfile.user_id);
         setAvatarUrl(imageUrl);
       } catch (error) {
         console.error('Error fetching avatar:', error.message); // Adjusted to log error.message
@@ -32,25 +30,22 @@ function Navbar() {
         URL.revokeObjectURL(avatarUrl);
       }
     };
-  }, [authToken, userProfile.user_id]);
+  }, [userProfile.user_id, avatarUrl]);
 
   return (
     <header className={classes.header}>
       <div className={classes.avatar}>
-        <span>
           <NavLink
             to="/profile"
             className={({ isActive }) =>
               isActive ? classes.active : undefined
             }
           >
-            <div>
+            <div className={classes.avatarImage}>
             {avatarUrl ? <img className={classes.avatarImage} src={avatarUrl} alt="User Avatar" /> : <p>Loading...</p>}
+		        <span>{userProfile?.user_name}</span>
             </div>
           </NavLink>
-		  <div className={classes.list}>
-				{userProfile?.user_name}</div>
-        </span>
       </div>
       <nav>
         <ul className={classes.list}>

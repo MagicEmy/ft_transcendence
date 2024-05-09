@@ -46,7 +46,7 @@ export class UserController {
       newUsers.push(user.user_id);
       this.userService.createAvatarRecord(
         user.user_id,
-        'https://cdn.intra.42.fr/users/58b00e4d02e766a5f77b4b625877bc03/medium_dmalacov.jpg',
+        `https://source.unsplash.com/random/200x200?sig=$${number}`,
       );
       this.statsClient.emit('new_user', {
         user_id: user.user_id,
@@ -57,3 +57,4 @@ export class UserController {
     return newUsers;
   }
 }
+//<img src="https://loremflickr.com/200/200/dog">

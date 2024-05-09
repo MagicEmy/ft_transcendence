@@ -1,71 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
-
-* > * {
-    font-family: "Poppins", cursive;
-    margin: 0;
-}
-
-:root{
-    --color-dark: #2C3131;
-    --color-light: #be0dea;
-}
-
-/* .main {
-	display: flex;
-    border: solid 1px #1e1d1c;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    padding: 20px;
+.main {
+    height: 100vh;
     overflow-y: auto;
     scroll-behavior: smooth;
 	margin-bottom: 20em;
-} */
+}
 
-
-.userProfile{
-	text-align: center;
-	width: 90%;
-	height: 90vh;
+.profile{
 	border : 10px solid #f6790b;
 	border-radius: 30px;
-	overflow-y: auto;
+    height: 100%;
     margin-top: 3em;
-	margin-bottom: 3em;
-	margin-left: 3em;
-	margin-right: 3em;
-    height: calc(100vh - 40px);
-    padding: 20px 0;
+	padding: 10px;
+	overflow-y: auto;
+	margin-bottom: 10em;
 	background-color: antiquewhite;
-    padding: 20px; /*Top and bottom padding combined in shorthand */
-    overflow-y: auto;
-    scroll-behavior: smooth;
 }
 
-.userName{
-	margin-bottom: 1em;
-	color: #f6790b;
-	font-size: 2.5em;
-}
-.userProfile .flex{
-	display: flex;
+.profile .flex{
+    display: flex;
+    justify-content: space-between;
     gap: 1em;
     text-align: left;
     margin-bottom: 2em;
 }
 
-.userProfile .flex .item{
+.profile .flex .item{
     display: flex;
     align-items: center;
 	gap: 3em;
+    padding: 50px;
 }
 
-.userProfile .flex img{
-    width: 50%;
+.profile .flex img{
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
     border-radius: 50%;
 }
 
-.userProfile .flex .info{
+.profile .flex .info{
    padding: 1em;
 }
 
@@ -85,4 +58,28 @@
 
 .stat strong {
 	margin-left: 5px; /* Space between the label and the number */
+}
+
+
+  /* Style for NavLink */
+.nav-link {
+	color: #333; /* Change the color of the link */
+	text-decoration: none; /* Remove underline */
+	padding: 8px 12px; /* Add padding */
+	border-radius: 5px; /* Add rounded corners */
+	margin-bottom: 6rem;
+  }
+
+  /* Style for active NavLink */
+.nav-link.active {
+	background-color: #f0f0f0; /* Change background color when active */
+	font-weight: bold; /* Make text bold when active */
+  }
+
+.friends {
+	display: flex;
+	flex-direction: column;
+    border : 10px solid #f47404;
+	gap: 1rem;
+	padding: 1rem;
 }

@@ -60,7 +60,7 @@ export class AuthService {
   }
 
   createCookieWithTokens(token: string, refresh_token: string) {
-    return `Authentication=${token}; Refresh=${refresh_token}; HttpOnly; Path=/; secure=true; Max-Age=${this.configService.get('JWT_EXPIRATION_TIME')}`;
+    return `Authentication=${token}; Refresh=${refresh_token}; Path=/; secure=true; Max-Age=${this.configService.get('JWT_EXPIRATION_TIME')}`;
   }
 
   getCookieForLogout(): string {
