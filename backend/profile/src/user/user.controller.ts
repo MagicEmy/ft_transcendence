@@ -62,7 +62,6 @@ export class UserController {
     @Param('id') id: string,
     @UploadedFile() image: Express.Multer.File,
   ): Promise<string> {
-    console.log(image);
     return this.avatarService.setAvatar({
       user_id: id,
       avatar: image.buffer,

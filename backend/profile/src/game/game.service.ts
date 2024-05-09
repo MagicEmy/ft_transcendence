@@ -25,7 +25,6 @@ export class GameService {
   ): Promise<MostFrequentOpponentDto[]> {
     const mostFrequentOpponentNoname: GamesAgainstUserIdDto[] =
       await this.gameRepository.getMostFrequentOpponent(user_id);
-    console.log(mostFrequentOpponentNoname);
     const mostFrequentOpponent: MostFrequentOpponentDto[] = [];
     mostFrequentOpponentNoname.forEach(async (opponent) => {
       mostFrequentOpponent.push({
@@ -37,7 +36,6 @@ export class GameService {
         games: opponent.games,
       });
     });
-    console.log(mostFrequentOpponent);
     return mostFrequentOpponent;
   }
 
@@ -55,19 +53,16 @@ export class GameService {
       .getRawMany();
     await Promise.all(
       gameOverview.map(async (item) => {
-        console.log(`getting name for player1 ${item.player1_id}`);
         item.player1_name =
           item.player1_id === 'bot'
             ? item.player1_id
             : await this.userService.getUsername(item.player1_id);
-        console.log(`getting name for player2 ${item.player2_id}`);
         item.player2_name =
           item.player2_id === 'bot'
             ? item.player2_id
             : await this.userService.getUsername(item.player2_id);
       }),
     );
-    console.log(gameOverview);
     return gameOverview;
   }
 }

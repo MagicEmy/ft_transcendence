@@ -42,8 +42,8 @@ export class AuthController {
 
 /**
  * This is how the cookie will look like after login:
- * Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5NzgzYTUxNy05ZDgzLTRhMjItOWEwZi01NTUxZGYyYTZmYWIiLCJ1c2VyX25hbWUiOiJkbWFsYWNvdiIsImludHJhX2xvZ2luIjoiZG1hbGFjb3YiLCJpYXQiOjE3MTQyMjgyMzksImV4cCI6MTcxNDIzMTgzOX0.vqq-Ua6EUe0PaJJEmYQkHvflKL7pA_9K0z03is5f0Lo; Refresh=101c1fab53cb354d0605cc126bd65124d4f8e12fc7759ca6f27f0cf9341ae15e HttpOnly; Path=/; secure=true; Max-Age=3600
+ * Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5NzgzYTUxNy05ZDgzLTRhMjItOWEwZi01NTUxZGYyYTZmYWIiLCJ1c2VyX25hbWUiOiJkbWFsYWNvdiIsImludHJhX2xvZ2luIjoiZG1hbGFjb3YiLCJpYXQiOjE3MTQyMjgyMzksImV4cCI6MTcxNDIzMTgzOX0.vqq-Ua6EUe0PaJJEmYQkHvflKL7pA_9K0z03is5f0Lo; Refresh=101c1fab53cb354d0605cc126bd65124d4f8e12fc7759ca6f27f0cf9341ae15e; Path=/; secure=true; Max-Age=3600
  *
  * and after logout:
- * Authentication=; Refresh=; HttpOnly; Path=/; secure=true; Max-Age=0
+ * Authentication=; Refresh=; Path=/; secure=true; Max-Age=0
  */

@@ -29,8 +29,7 @@ export class StatsService {
   async updateStats(gameEndDto: GameEndDto): Promise<void> {
     const { player1_id, player2_id, player1_score, player2_score, duration } =
       gameEndDto;
-    console.log(gameEndDto);
-    const pl1 = {
+    const player1 = {
       player_id: player1_id,
       //   opponent: player2_id ? Opponent.HUMAN : Opponent.BOT,
       opponent: player2_id != Opponent.BOT ? Opponent.HUMAN : Opponent.BOT,
@@ -42,11 +41,10 @@ export class StatsService {
             Math.abs(player1_score - player2_score),
       duration: +duration,
     };
-    console.log(pl1);
-    await this.updateStatsOfPlayer(pl1);
+    await this.updateStatsOfPlayer(player1);
     // if (player2_id) {
     if (player2_id != Opponent.BOT) {
-      const pl2 = {
+      const player2 = {
         player_id: player2_id,
         opponent: Opponent.HUMAN,
         score: +player2_score,
@@ -57,8 +55,7 @@ export class StatsService {
               Math.abs(player2_score - player1_score),
         duration: +duration,
       };
-      console.log(pl2);
-      await this.updateStatsOfPlayer(pl2);
+      await this.updateStatsOfPlayer(player2);
     }
   }
 

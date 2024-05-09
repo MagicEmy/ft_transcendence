@@ -25,7 +25,6 @@ export class UserService {
         user_name: user.user_name,
       };
     } catch (error) {
-      console.log(error);
       if (error instanceof NotFoundException) {
         throw error;
       } else {
