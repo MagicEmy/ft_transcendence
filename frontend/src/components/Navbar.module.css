@@ -6,9 +6,15 @@
 	align-items: center;
 	justify-content: space-between;
 	/* background-color: rgb(252 211 77); */
-	background-color: #f0df94;
+	background-color: #02893a;
 	margin-bottom: 5 rem;
-	height: 80px;
+	height: 100px;
+  }
+
+  .name {
+	font-size: 1.5rem;
+	position: relative;
+	align-items: right;
   }
 
   .list {
