@@ -20,6 +20,8 @@ import { AvatarService } from '../avatar/avatar.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express, Response } from 'express';
 import { FriendService } from '../friend/friend.service';
+import { EventPattern } from '@nestjs/microservices';
+import { UserStatusEnum } from 'src/utils/user-status.enum';
 
 @Controller('user')
 export class UserController {
@@ -29,6 +31,24 @@ export class UserController {
     private readonly avatarService: AvatarService,
     private readonly friendService: FriendService,
   ) {}
+
+  @EventPattern('new_user')
+  createUserStatus(data: any): void {
+    console.log(this.userService.createUserStatus(data.user_id));
+  }
+
+  @Patch('/:id/status')
+  changeUserStatus(
+    @Param('id') user_id: string,
+    @Body('status') status: UserStatusEnum,
+  ) {
+    return this.userService.changeUserStatus({ user_id, status });
+  }
+
+  @Get('/:id/status')
+  getUserStatus(@Param('id') user_id: string) {
+    return this.userService.getUserStatus(user_id);
+  }
 
   //   user
   @Get('/:id')

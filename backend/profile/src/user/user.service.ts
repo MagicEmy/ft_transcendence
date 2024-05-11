@@ -8,14 +8,22 @@ import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfileUserInfoDto } from '../dto/profile-user-info-dto';
 import { UsernameCache } from '../utils/usernameCache';
+import { UserStatusDto } from 'src/dto/user-status-dto';
+import { UserStatusEnum } from 'src/utils/user-status.enum';
+import { UserStatusRepository } from './user-status.repository';
+import { UserStatus } from './user-status.entity';
 
 @Injectable()
 export class UserService {
+  userStatuses: UserStatusDto[];
   constructor(
     @InjectRepository(UserRepository)
     private readonly userRepository: UserRepository,
+    private readonly userStatusRepository: UserStatusRepository,
     private readonly usernameCache: UsernameCache,
-  ) {}
+  ) {
+    this.userStatuses = [];
+  }
 
   async getUserInfoForProfile(user_id: string): Promise<ProfileUserInfoDto> {
     try {
@@ -67,5 +75,21 @@ export class UserService {
     user_name = await this.userRepository.getUsername(user_id);
     this.usernameCache.setUsername(user_id, user_name);
     return user_name;
+  }
+
+  async createUserStatus(user_id: string): Promise<UserStatus> {
+    console.log('new user in service');
+    return this.userStatusRepository.createStatusEntry({
+      user_id,
+      status: UserStatusEnum.ONLINE,
+    });
+  }
+
+  async changeUserStatus(userStatusDto: UserStatusDto): Promise<UserStatus> {
+    return this.userStatusRepository.changeUserStatus(userStatusDto);
+  }
+
+  async getUserStatus(user_id: string): Promise<UserStatus> {
+    return this.userStatusRepository.findOneBy({ user_id: user_id });
   }
 }

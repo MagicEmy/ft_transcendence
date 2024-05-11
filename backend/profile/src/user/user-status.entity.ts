@@ -6,7 +6,7 @@ export class UserStatus {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   user_id: string;
 
   @Column()
