@@ -19,7 +19,7 @@ export class FriendRepository extends Repository<Friend> {
     try {
       await this.friendRepository.save(friend);
     } catch (error) {
-      if (error.code !== 23505) {
+      if (error.code !== '23505') {
         console.log(error);
       }
     }

@@ -27,7 +27,7 @@ export class UserRepository extends Repository<User> {
     try {
       await this.save(user);
     } catch (error) {
-      if (error.code !== 23505) {
+      if (error.code !== '23505') {
         console.log(error);
       }
     }
