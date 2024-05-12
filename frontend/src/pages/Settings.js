@@ -2,7 +2,10 @@
 // import axios from 'axios';
 // import useStorage from '../hooks/useStorage';
 
-
+// change name
+// change avatar
+// enable 2FactorAuth
+// disable 2FactorAuth
 
 // function Settings() {
 //   const [userProfile] = useStorage("user");

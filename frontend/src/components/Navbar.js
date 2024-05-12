@@ -11,41 +11,28 @@ function Navbar() {
   const [userName, setUserName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
 
+  const fetcDbProfile = async () => {
+    try {
+      const dbProfile = await loadProfile(user.user_id);
+      setUserName(dbProfile.user_name);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  const fetchAvatar = async () => {
+    try {
+      const imageUrl = await loadProfileAvatar(user.user_id);
+      setAvatarUrl(imageUrl);
+    } catch (error) {
+      console.error('Error fetching avatar:', error.message);
+    }
+  };
+
   useEffect(() => {
-    if (user && user.user_id) {
-      const fetcDbProfile = async () => {
-        try {
-          const dbProfile = await loadProfile(user.user_id);
-          setUserName(dbProfile.user_name);
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-      };
+    if (user !== null && user.user_id) {
       fetcDbProfile();
-    }
-    else {
-      setUserName('Guest');
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && user.user_id) {
-      const fetchAvatar = async () => {
-        try {
-          const imageUrl = await loadProfileAvatar(user.user_id);
-          setAvatarUrl(imageUrl);
-        } catch (error) {
-          console.error('Error fetching avatar:', error.message);
-        }
-      };
-
       fetchAvatar();
-
-      // return () => {
-      //   if (avatarUrl) {
-      //     URL.revokeObjectURL(avatarUrl);
-      //   }
-      // };
     }
   }, [user]);
 

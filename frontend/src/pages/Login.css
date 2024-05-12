@@ -78,7 +78,6 @@
 	box-shadow: 0 0 0 22px #facb03; /* add a box-shadow to mimic a border */
 	border-radius: 0.50rem;
 	cursor: pointer;
-	font-family: "Gill Sans", sans-serif;
 	font-weight: bold;
 	color:#110805;
 	font-size: 3rem;
@@ -94,14 +93,6 @@
 .active {
   background-color: #facb03; /* Apply different styles for the active NavLink if needed */
 }
-
-/* .login-container image {
-	display: flex;
-	position: absolute;
-	justify-content: left;
-  } */
-
-/* HTML: <div class="loader"></div> */
 
 .loader {
   width: 200px;

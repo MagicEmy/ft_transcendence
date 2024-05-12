@@ -15,54 +15,37 @@ function Profile() {
   const [friends, setFriends] = useState([]);
   const status = "Online";
 
-  useEffect(() => {
-    const fetcDbProfile = async () => {
-      try {
-        const userIdOrMe = userId || userProfile.user_id;
-        const dbProfile = await loadProfile(userIdOrMe);
-        setProfile(dbProfile);
-        console.log("HERE dbProfile: ", dbProfile);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-    fetcDbProfile();
-    console.log("So now? profile: ", profile?.user_id);
+  const fetchDbProfile = async () => {
+    try {
+      const userIdOrMe = userId || userProfile.user_id;
+      const dbProfile = await loadProfile(userIdOrMe);
+      setProfile(dbProfile);
+      console.log("HERE dbProfile: ", dbProfile);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
-  }, [userId, userProfile.user_id]);
+  const fetchAvatar = async () => {
+    try {
+      const userIdOrMe = userId || userProfile.user_id;
+      const imageUrl = await loadProfileAvatar(userIdOrMe);
+      setAvatarUrl(imageUrl);
+    } catch (error) {
+      console.error('Error fetching avatar:', error.message);
+    }
+  };
 
-  useEffect(() => {
-    const fetchAvatar = async () => {
-      try {
-        const userIdOrMe = userId || userProfile.user_id;
-        const imageUrl = await loadProfileAvatar(userIdOrMe);
-        setAvatarUrl(imageUrl);
-      } catch (error) {
-        console.error('Error fetching avatar:', error.message);
-      }
-    };
-
-    fetchAvatar();
-    // return () => {
-    //   if (avatarUrl) {
-    //     URL.revokeObjectURL(avatarUrl);
-    //   }
-    // };
-  }, [userId, userProfile.user_id]);
-
-  useEffect(() => {
-    const fetcFriends = async () => {
-      try {
-        const userIdOrMe = userId || userProfile.user_id;
-        const profileFriends = await loadFriends(userIdOrMe);
-        setFriends(profileFriends);
-        console.log("friends: ", profileFriends);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-    fetcFriends();
-  }, [userId, userProfile.user_id]);
+  const fetchFriends = async () => {
+    try {
+      const userIdOrMe = userId || userProfile.user_id;
+      const profileFriends = await loadFriends(userIdOrMe);
+      setFriends(profileFriends);
+      console.log("friends: ", profileFriends);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
   const handleFriendClick = async () => {
     if (isFriend) {
@@ -72,14 +55,24 @@ function Profile() {
       console.log("Add friend:", userId);
       await addFriend(userProfile.user_id, userId);
     }
-    // Refresh friend list or set state to update UI
   };
 
-  
+
+  useEffect(() => {
+    const userIdOrMe = userId || userProfile.user_id;
+    if (userIdOrMe) {
+      fetchDbProfile();
+      fetchAvatar();
+      fetchFriends();
+    }
+  }, [userId, userProfile.user_id]);
+
+
   const isFriend = friends?.includes(userId);
   console.log("isFriend: ", isFriend);
   console.log("profile.user_id  : ", userId);
   console.log("userProfile.user_id : ", userProfile.user_id);
+
 
   return (
     <div className="main">
@@ -163,12 +156,3 @@ function Profile() {
 }
 
 export default Profile;
-
-// <img src={profile && profile.avatar} alt="avatar" />
-
-/*change name
-change avatar
-add friends
-remove friends
-display status
-*/
