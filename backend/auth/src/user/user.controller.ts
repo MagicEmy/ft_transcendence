@@ -46,7 +46,8 @@ export class UserController {
       newUsers.push(user.user_id);
       this.userService.createAvatarRecord(
         user.user_id,
-        `https://source.unsplash.com/random/200x200?sig=$${number}`,
+        'https://loremflickr.com/200/200/dog',
+        // `https://source.unsplash.com/random/200x200?sig=$${number}`,
       );
       this.statsClient.emit('new_user', {
         user_id: user.user_id,
@@ -57,4 +58,4 @@ export class UserController {
     return newUsers;
   }
 }
-//<img src="https://loremflickr.com/200/200/dog">
+//"https://loremflickr.com/200/200/dog">

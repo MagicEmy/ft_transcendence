@@ -1,20 +1,15 @@
 import axios from "axios";
 
-export const loadProfile = async (authToken, userId) => {
-
-  if (!authToken) return;
+export const loadProfile = async (userId) => {
 
   const response = await axios.get(`http://localhost:3002/profile/${userId}`, {
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-      },
       withCredentials: true,
     });
   const profile = response.data;
   return profile;
 };
 
-export const loadProfileAvatar = async ( userId ) => {
+export const loadProfileAvatar = async (userId ) => {
   if (!userId) return;
 
   const response = await axios.get(`http://localhost:3002/user/${userId}/avatar`, {
@@ -24,3 +19,5 @@ export const loadProfileAvatar = async ( userId ) => {
   const imageUrl = URL.createObjectURL(response.data); // Use the blob from response.data
   return imageUrl;
 }
+
+

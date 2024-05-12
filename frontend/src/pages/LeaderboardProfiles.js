@@ -4,7 +4,7 @@ import { loadProfileAvatar } from '../libs/profileData';
 import classes from "./Leaderboard.css";
 
 export default function LeaderboardProfiles({ leaderboard }) {
-    console.log("secobd Leaderboard data:", leaderboard);
+    console.log("Leaderboard data:", leaderboard);
     return (
         <div id="leadProfile">
             {leaderboard && Array.isArray(leaderboard) ? Item(leaderboard) : <p>No leaderboard data available.</p>}
@@ -24,10 +24,10 @@ function Item(leaderboard) {
 
     return (
         <>
-            {leaderboard.map((value, index) => (
+            {leaderboard?.map((value, index) => (
                 <div className="flex" key={index}>
                     <div className="item">
-                        <img src={avatars[value.user_id] || `https://source.unsplash.com/random/100x100?sig=${Math.random()}`} alt="" />
+                        <img src={avatars[value.user_id] || 'https://loremflickr.com/200/200/dog'} alt="" />
                         <div className="info">
                             <NavLink
                                 to={`/profile/${value.user_id}`} className={({ isActive }) =>

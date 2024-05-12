@@ -42,11 +42,24 @@
 	/* color: var(--color-primary-800); */
   }
 
-  .avatar {
+  .avatar .flex{
 	float: left;
 	display: flex;
   }
 
+  .avatar .flex .item{
+    display: flex;
+    align-items: center;
+	gap: 1em;
+    padding: 30px;
+  }
+
+  .avatar .flex img{
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
   .avatarImage {
 	border: none;
 	border-radius: 50%;

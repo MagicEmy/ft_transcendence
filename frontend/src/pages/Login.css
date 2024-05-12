@@ -14,7 +14,7 @@
   /* background: radial-gradient(circle, #f1f4f1 0%, #fae1af 100%); */
   /* background: radial-gradient(circle, #1f1d1b 0%, #fcf3e1 100%); */
   /* background: linear-gradient(#1f1d1b, #dddbd8); */
-/* 
+/*
   --color-gray-100: #f4f3f1;
   --color-gray-200: #dddbd8;
   --color-gray-300: #ccc9c6;
@@ -65,12 +65,13 @@
   display: flex;
   justify-content: center;
   height: 200px;
-  width: 400px;
-  margin-top: 1rem ;
-  margin-bottom: 10rem ;
+  /* width: 400px; */
+  margin-top: 5rem ;
+  margin-bottom: 5rem ;
 }
 
 .login-container button {
+  display: flex;
 	background-color: #f6790b;
 	padding: 1rem 2rem;
 	border: none;
@@ -78,10 +79,10 @@
 	border-radius: 0.50rem;
 	cursor: pointer;
 	font-family: "Gill Sans", sans-serif;
-	font-weight: bold; 
+	font-weight: bold;
 	color:#110805;
 	font-size: 3rem;
-	margin-top : 4rem;
+	margin-top : 10rem;
 	margin-bottom : 6rem;
 	transition: background-color 0.3s ease;
 	text-shadow: -2px -2px 0 #f6790b;
@@ -94,12 +95,12 @@
   background-color: #facb03; /* Apply different styles for the active NavLink if needed */
 }
 
-.login-container image {
+/* .login-container image {
 	display: flex;
 	position: absolute;
 	justify-content: left;
-  }
-  
+  } */
+
 /* HTML: <div class="loader"></div> */
 
 .loader {
@@ -114,7 +115,8 @@
     #000;
   background-repeat: no-repeat;
   animation: l3 2s infinite linear;
-  margin-top: 3rem ;
+  /* margin-top: 1rem ; */
+  margin-bottom: 2rem ;
 
 }
 @keyframes l3 {

@@ -3,6 +3,7 @@
     overflow-y: auto;
     scroll-behavior: smooth;
 	margin-bottom: 20em;
+    padding: 50px;
 }
 
 .profile{
@@ -17,8 +18,6 @@
 }
 
 .profile .flex{
-    display: flex;
-    justify-content: space-between;
     gap: 1em;
     text-align: left;
     margin-bottom: 2em;
@@ -27,42 +26,66 @@
 .profile .flex .item{
     display: flex;
     align-items: center;
-	gap: 3em;
-    padding: 50px;
+	gap: 1em;
+    padding: 30px;
 }
 
 .profile .flex img{
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     object-fit: cover;
     border-radius: 50%;
 }
 
 .profile .flex .info{
-   padding: 1em;
+   padding: 0;
 }
 
 .text-dark{
-    color: var(--color-light);
+    color: #2e0bf6
 }
 
-.info .total-points {
-    display: block; /* Ensures that the points are on a new line */
-    margin-bottom: 8px; /* Adds space below the total points */
+.status-indicator {
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    display: inline-block;
+    /* margin-right: 5px; */
 }
+
+.online {
+    background-color: green;
+}
+
+.offline {
+    background-color: red;
+}
+
+.inGame{
+    background-color: rgb(33, 5, 176);
+}
+
+/* .info .total-points {
+    display: block; /* Ensures that the points are on a new line */
+    /* margin-bottom: 8px; /* Adds space below the total points
+} */ 
 
 .stats .stat {
     display: inline-block; /* Allows items to sit side-by-side */
     margin-right: 15px; /* Space between different stats */
+
+
 }
 
 .stat strong {
 	margin-left: 5px; /* Space between the label and the number */
+    color: #0f0f0f; /* Change the color of the number */
 }
 
 
+
   /* Style for NavLink */
-.nav-link {
+.friend-link {
 	color: #333; /* Change the color of the link */
 	text-decoration: none; /* Remove underline */
 	padding: 8px 12px; /* Add padding */
@@ -71,15 +94,16 @@
   }
 
   /* Style for active NavLink */
-.nav-link.active {
+.friend-link.active {
 	background-color: #f0f0f0; /* Change background color when active */
 	font-weight: bold; /* Make text bold when active */
   }
 
-.friends {
+/* .friends {
 	display: flex;
+    color: #333;
 	flex-direction: column;
-    border : 10px solid #f47404;
+    border: solid 1px #f6790b;
 	gap: 1rem;
 	padding: 1rem;
-}
+} */
