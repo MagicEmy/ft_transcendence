@@ -5,17 +5,19 @@ import { JwtPayloadDto } from '../dto/jwt-payload-dto';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtAccessStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-access',
+) {
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET'),
+      secretOrKey: configService.get<string>('JWT_ACCESS_SECRET'),
     });
   }
 
   async validate(payload: JwtPayloadDto) {
-    // potentially add some logic here
     return {
       user_id: payload.sub,
       user_name: payload.user_name,
