@@ -5,8 +5,8 @@ import { UserService } from 'src/user/user.service';
 import { JwtPayloadDto } from './dto/jwt-payload-dto';
 import { ClientKafka } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
-import { UserWithTokenDto } from './dto/user-with-token-dto';
 import { ValidateUserDto } from 'src/user/dto/validate-user-dto';
+import { TokensDto } from './dto/tokens-dto';
 
 @Injectable()
 export class AuthService {
@@ -45,25 +45,35 @@ export class AuthService {
     return user;
   }
 
-  getCookieForLogin(userWithToken: UserWithTokenDto): string {
-    const { user_id, user_name, intra_login, refresh_token } = userWithToken;
-    const token = this.generateJwtToken({
+  login(user: User): TokensDto {
+    const { user_id, user_name, intra_login } = user;
+    const jwtAccessToken = this.generateJwtAccessToken({
       sub: user_id,
       user_name,
       intra_login,
     });
-    return this.createCookieWithTokens(token, refresh_token);
+    const jwtRefreshToken = this.generateJwtRefreshToken(user_id);
+
+    return {
+      jwtAccessToken: jwtAccessToken,
+      jwtRefreshToken: jwtRefreshToken,
+    };
   }
 
-  generateJwtToken(jwtPayloadDto: JwtPayloadDto): string {
-    return this.jwtService.sign(jwtPayloadDto);
+  generateJwtAccessToken(jwtPayloadDto: JwtPayloadDto): string {
+    return this.jwtService.sign(jwtPayloadDto, {
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+      expiresIn: `${this.configService.get('JWT_ACCESS_EXPIRATION_TIME')}`,
+    });
   }
 
-  createCookieWithTokens(token: string, refresh_token: string) {
-    return `Authentication=${token}; Refresh=${refresh_token}; Path=/; secure=true; Max-Age=${this.configService.get('JWT_EXPIRATION_TIME')}`;
-  }
-
-  getCookieForLogout(): string {
-    return `Authentication=; Refresh=; Path=/; secure=true; Max-Age=0`;
+  generateJwtRefreshToken(userId: string): string {
+    return this.jwtService.sign(
+      { sub: userId },
+      {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+        expiresIn: `${this.configService.get('JWT_REFRESH_EXPIRATION_TIME')}`,
+      },
+    );
   }
 }
