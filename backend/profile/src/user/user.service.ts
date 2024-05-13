@@ -6,12 +6,12 @@ import {
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProfileUserInfoDto } from '../dto/profile-user-info-dto';
 import { UsernameCache } from '../utils/usernameCache';
 import { UserStatusDto } from 'src/dto/user-status-dto';
 import { UserStatusEnum } from 'src/utils/user-status.enum';
 import { UserStatusRepository } from './user-status.repository';
 import { UserStatus } from './user-status.entity';
+import { UserInfoDto } from 'src/dto/profile-dto';
 
 @Injectable()
 export class UserService {
@@ -25,12 +25,14 @@ export class UserService {
     this.userStatuses = [];
   }
 
-  async getUserInfoForProfile(user_id: string): Promise<ProfileUserInfoDto> {
+  async getUserInfoForProfile(user_id: string): Promise<UserInfoDto> {
     try {
       const user = await this.getUserById(user_id);
+      const status = await this.getUserStatus(user_id);
       return {
         user_id: user_id,
         user_name: user.user_name,
+        status: status.status,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -78,7 +80,6 @@ export class UserService {
   }
 
   async createUserStatus(user_id: string): Promise<UserStatus> {
-    console.log('new user in service');
     return this.userStatusRepository.createStatusEntry({
       user_id,
       status: UserStatusEnum.ONLINE,
