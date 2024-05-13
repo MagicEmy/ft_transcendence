@@ -11,9 +11,11 @@ import { AvatarService } from '../avatar/avatar.service';
 import { AvatarRepository } from '../avatar/avatar.repository';
 import { Avatar } from '../avatar/avatar.entity';
 import { FriendService } from '../friend/friend.service';
+import { UserStatus } from './user-status.entity';
+import { UserStatusRepository } from './user-status.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Friend, Avatar])],
+  imports: [TypeOrmModule.forFeature([User, Friend, Avatar, UserStatus])],
   controllers: [UserController],
   providers: [
     UserService,
@@ -23,6 +25,7 @@ import { FriendService } from '../friend/friend.service';
     UsernameCache,
     AvatarService,
     AvatarRepository,
+    UserStatusRepository,
   ],
   exports: [
     TypeOrmModule,

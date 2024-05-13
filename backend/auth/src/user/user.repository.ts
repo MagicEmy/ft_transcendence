@@ -24,7 +24,13 @@ export class UserRepository extends Repository<User> {
       user_name,
     });
 
-    await this.save(user);
+    try {
+      await this.save(user);
+    } catch (error) {
+      if (error.code !== '23505') {
+        console.log(error);
+      }
+    }
     return user;
   }
 }

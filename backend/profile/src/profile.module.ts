@@ -41,7 +41,7 @@ import { Stats } from './stats/stats.entity';
         synchronize: true,
       }),
     }),
-    TypeOrmModule.forFeature([User, Friend, Avatar, Game, Stats]),
+    TypeOrmModule.forFeature([User, Friend, Game, Stats]),
     UserModule,
   ],
   controllers: [ProfileController, UserController],

@@ -14,12 +14,14 @@ import {
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import { FriendshipDto } from '../dto/friendship-dto';
-import { Friend } from '../friend/friend.entity';
 import { UsernameCache } from '../utils/usernameCache';
 import { AvatarService } from '../avatar/avatar.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express, Response } from 'express';
 import { FriendService } from '../friend/friend.service';
+import { EventPattern } from '@nestjs/microservices';
+import { UserStatusEnum } from 'src/utils/user-status.enum';
+import { FriendWithNameDto } from 'src/dto/friend-with-name-dto';
 
 @Controller('user')
 export class UserController {
@@ -29,6 +31,24 @@ export class UserController {
     private readonly avatarService: AvatarService,
     private readonly friendService: FriendService,
   ) {}
+
+  @EventPattern('new_user')
+  createUserStatus(data: any): void {
+    console.log(this.userService.createUserStatus(data.user_id));
+  }
+
+  @Patch('/:id/status')
+  changeUserStatus(
+    @Param('id') user_id: string,
+    @Body('status') status: UserStatusEnum,
+  ) {
+    return this.userService.changeUserStatus({ user_id, status });
+  }
+
+  @Get('/:id/status')
+  getUserStatus(@Param('id') user_id: string) {
+    return this.userService.getUserStatus(user_id);
+  }
 
   //   user
   @Get('/:id')
@@ -46,8 +66,22 @@ export class UserController {
 
   //   friend
   @Post('/friend')
-  addFriend(@Body() friendshipDto: FriendshipDto): Promise<Friend> {
-    return this.friendService.addFriend(friendshipDto);
+  async addFriend(
+    @Body() friendshipDto: FriendshipDto,
+  ): Promise<FriendWithNameDto> {
+    try {
+      const friend = await this.friendService.addFriend(friendshipDto);
+      const friendUsername = await this.userService.getUsername(
+        friend.friend_id,
+      );
+      return {
+        userId: friend.user_id,
+        friendId: friend.friend_id,
+        friendUsername: friendUsername,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Delete('/friend')

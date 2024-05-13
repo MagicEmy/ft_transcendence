@@ -21,14 +21,17 @@ export class ProfileService {
       return [];
     }
     const friendNames = [];
+    const friendStatuses = [];
     for (const item of friendIds) {
       friendNames.push(await this.userService.getUsername(item));
+      friendStatuses.push((await this.userService.getUserStatus(item)).status);
     }
     const friends = [];
     for (let i = 0; i < friendIds.length; i++) {
       friends.push({
         user_id: friendIds[i] || null,
         user_name: friendNames[i] || null,
+        status: friendStatuses[i] || null,
       });
     }
     return friends;
