@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-42';
 import { AuthService } from '../auth.service';
-import { UserWithTokenDto } from '../dto/user-with-token-dto';
+import { User } from 'src/user/user.entity';
 
 @Injectable()
 export class FourtyTwoStrategy extends PassportStrategy(Strategy) {
@@ -18,26 +18,20 @@ export class FourtyTwoStrategy extends PassportStrategy(Strategy) {
       scope: ['public'],
       profileFields: {
         intra_login: 'login',
-        avatar: 'image.versions.medium',
+        avatar: configService.get('42_IMAGE_VERSION'),
       },
     });
   }
 
-  async validate(accessToken: string, refreshToken: string, profile: Profile) {
-    console.log('Validating...');
-    console.log(accessToken);
-    console.log(refreshToken);
-    console.log(profile.intra_login, profile.avatar);
+  async validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: Profile,
+  ): Promise<User> {
     const user = await this.authService.validateUser({
       intra_login: profile.intra_login,
       avatar_url: profile.avatar,
     });
-    const userWithToken: UserWithTokenDto = {
-      user_id: user.user_id,
-      user_name: user.user_name,
-      intra_login: user.intra_login,
-      refresh_token: refreshToken,
-    };
-    return userWithToken || null;
+    return user || null;
   }
 }

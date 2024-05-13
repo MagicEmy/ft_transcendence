@@ -16,11 +16,9 @@ export class UserRepository extends Repository<User> {
 
   async getUserById(user_id: string): Promise<User> {
     const found = await this.findOneBy({ user_id: user_id });
-
     if (!found) {
       throw new NotFoundException(`User with ID "${user_id}" not found`);
     }
-
     return found;
   }
 
