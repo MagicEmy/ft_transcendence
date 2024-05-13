@@ -14,7 +14,6 @@ import {
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import { FriendshipDto } from '../dto/friendship-dto';
-import { Friend } from '../friend/friend.entity';
 import { UsernameCache } from '../utils/usernameCache';
 import { AvatarService } from '../avatar/avatar.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -22,6 +21,7 @@ import { Express, Response } from 'express';
 import { FriendService } from '../friend/friend.service';
 import { EventPattern } from '@nestjs/microservices';
 import { UserStatusEnum } from 'src/utils/user-status.enum';
+import { FriendWithNameDto } from 'src/dto/friend-with-name-dto';
 
 @Controller('user')
 export class UserController {
@@ -66,8 +66,22 @@ export class UserController {
 
   //   friend
   @Post('/friend')
-  addFriend(@Body() friendshipDto: FriendshipDto): Promise<Friend> {
-    return this.friendService.addFriend(friendshipDto);
+  async addFriend(
+    @Body() friendshipDto: FriendshipDto,
+  ): Promise<FriendWithNameDto> {
+    try {
+      const friend = await this.friendService.addFriend(friendshipDto);
+      const friendUsername = await this.userService.getUsername(
+        friend.friend_id,
+      );
+      return {
+        userId: friend.user_id,
+        friendId: friend.friend_id,
+        friendUsername: friendUsername,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Delete('/friend')
