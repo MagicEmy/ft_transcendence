@@ -41,7 +41,7 @@ export const UserProvider = ({ children }) => {
 			setIsLoading(false);
 			console.log('No authToken !userProfile?.id');
 		}
-	}, [authToken]);
+	}, [authToken, userProfile?.id, setUserProfile, setIsLoading]);
 
 	return (
 		<UserContext.Provider value={{

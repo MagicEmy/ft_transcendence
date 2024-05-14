@@ -1,40 +1,35 @@
-import React, { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
-import classes from "./Navbar.module.css";
-import LogoutButton from "./LogoutButton";
-import useStorage from "../hooks/useStorage";
-import { loadProfile, loadProfileAvatar } from "../libs/profileData";
-
+import React, { useContext, useEffect, useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import classes from './Navbar.module.css';
+import LogoutButton from './LogoutButton';
+import useStorage from '../hooks/useStorage';
+// import  UserContext  from '../context/UserContext';
+import { loadProfile, loadProfileAvatar } from '../libs/profileData';
 
 function Navbar() {
-	const [user] = useStorage('user', null)
-  const [userName, setUserName] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
-
-  const fetcDbProfile = async () => {
-    try {
-      const dbProfile = await loadProfile(user.user_id);
-      setUserName(dbProfile.user_name);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
-
-  const fetchAvatar = async () => {
-    try {
-      const imageUrl = await loadProfileAvatar(user.user_id);
-      setAvatarUrl(imageUrl);
-    } catch (error) {
-      console.error('Error fetching avatar:', error.message);
-    }
-  };
+  // const { userProfile } = useContext(UserContext);
+  const [userProfile] = useStorage("user");
+  const [avatar,setAvatar] = useStorage('avatar', '');
+  const [userName, setUserName] = useState('');
+  // const [avatarUrl, setAvatarUrl] = useState('');
 
   useEffect(() => {
-    if (user !== null && user.user_id) {
-      fetcDbProfile();
-      fetchAvatar();
-    }
-  }, [user]);
+    const fetchUserData = async () => {
+      if (userProfile?.user_id) {
+        try {
+          const dbProfile = await loadProfile(userProfile.user_id);
+          const imageUrl = await loadProfileAvatar(userProfile.user_id);
+          setUserName(dbProfile.user_name);
+          // setAvatarUrl(imageUrl);
+          setAvatar(imageUrl);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [userProfile, setAvatar, setUserName]);
 
   return (
     <header className={classes.header}>
@@ -46,7 +41,7 @@ function Navbar() {
           }
         >
           <div className={classes.avatarImage}>
-            {avatarUrl ? <img className={classes.avatarImage} src={avatarUrl} alt="User Avatar" /> : <p>Loading...</p>}
+            {avatar ? <img className={classes.avatarImage} src={avatar} alt="User Avatar" /> : <p>Loading...</p>}
             <span>{userName?.user_name}</span>
           </div>
         </NavLink>

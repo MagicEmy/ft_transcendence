@@ -15,9 +15,11 @@ function Profile() {
   const [friends, setFriends] = useState([]);
   const status = "Online";
 
+  const userIdOrMe = userId || userProfile.user_id;
+
   const fetchDbProfile = async () => {
     try {
-      const userIdOrMe = userId || userProfile.user_id;
+      // const userIdOrMe = userId || userProfile.user_id;
       const dbProfile = await loadProfile(userIdOrMe);
       setProfile(dbProfile);
       console.log("HERE dbProfile: ", dbProfile);
@@ -28,7 +30,7 @@ function Profile() {
 
   const fetchAvatar = async () => {
     try {
-      const userIdOrMe = userId || userProfile.user_id;
+      // const userIdOrMe = userId || userProfile.user_id;
       const imageUrl = await loadProfileAvatar(userIdOrMe);
       setAvatarUrl(imageUrl);
     } catch (error) {
@@ -38,7 +40,7 @@ function Profile() {
 
   const fetchFriends = async () => {
     try {
-      const userIdOrMe = userId || userProfile.user_id;
+      // const userIdOrMe = userId || userProfile.user_id;
       const profileFriends = await loadFriends(userIdOrMe);
       setFriends(profileFriends);
       console.log("friends: ", profileFriends);
@@ -59,7 +61,7 @@ function Profile() {
 
 
   useEffect(() => {
-    const userIdOrMe = userId || userProfile.user_id;
+    // const userIdOrMe = userId || userProfile.user_id;
     if (userIdOrMe) {
       fetchDbProfile();
       fetchAvatar();

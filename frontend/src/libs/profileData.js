@@ -21,3 +21,11 @@ export const loadProfileAvatar = async (userId ) => {
 }
 
 
+export const changeName = async (userId, newUserName) => {
+
+  const response = await axios.patch(`http://localhost:3002/profile/${userId}/${newUserName}`, {
+      withCredentials: true,
+    });
+  const newNameProfile = response.data;
+  return newNameProfile;
+};
