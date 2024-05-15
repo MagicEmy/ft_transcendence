@@ -12,11 +12,10 @@
 
 #main {
 	display: flex;
-    flex-direction: column; /* Ensures that the items are stacked vertically */
+    flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     height: calc(100vh - 40px);
-    padding: 20px 0; /* Top and bottom padding combined in shorthand */
     overflow-y: auto;
     scroll-behavior: smooth;
 	margin-bottom: 20em;
@@ -32,20 +31,20 @@
 .board .leaderboard{
     margin-bottom: 1em;
 	color: #f6790b;
-	font-size: 2.5em;	
+	font-size: 2.5em;
 }
 
-#profile{
+#leadProfile{
 	border : 10px solid #f6790b;
 	border-radius: 30px;
     margin-top: 3em;
 	padding: 100px;
-	overflow-y: auto; 
+	overflow-y: auto;
 	margin-bottom: 20em;
 	background-color: antiquewhite;
 }
 
-#profile .flex{
+#leadProfile .flex{
     display: flex;
     justify-content: space-between;
     gap: 1em;
@@ -53,18 +52,20 @@
     margin-bottom: 2em;
 }
 
-#profile .flex .item{
+#leadProfile .flex .item{
     display: flex;
     align-items: center;
 	gap: 3em;
 }
 
-#profile .flex img{
-    width: 20%;
+#leadProfile .flex img{
+    width: 60px;  /* Desired width */
+    height: 60px; /* Desired height */
+    object-fit: cover;
     border-radius: 50%;
 }
 
-#profile .flex .info{
+#leadProfile .flex .info{
    padding: 1em;
 }
 
@@ -85,3 +86,18 @@
 .stat strong {
 	margin-left: 5px; /* Space between the label and the number */
 }
+
+ /* Style for NavLink */
+  .nav-link {
+	color: #333; /* Change the color of the link */
+	text-decoration: none; /* Remove underline */
+	padding: 8px 12px; /* Add padding */
+	border-radius: 5px; /* Add rounded corners */
+	margin-bottom: 6rem;
+  }
+
+  /* Style for active NavLink */
+  .nav-link.active {
+	background-color: #f0f0f0; /* Change background color when active */
+	font-weight: bold; /* Make text bold when active */
+  }

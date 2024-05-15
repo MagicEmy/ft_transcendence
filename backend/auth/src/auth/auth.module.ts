@@ -30,15 +30,7 @@ import { HttpModule } from '@nestjs/axios';
       },
     ]),
     PassportModule.register({ session: false }),
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
-        signOptions: {
-          expiresIn: `${configService.get('JWT_EXPIRATION_TIME')}s`,
-        },
-      }),
-    }),
+    JwtModule.register({}),
     UserModule,
     HttpModule,
   ],

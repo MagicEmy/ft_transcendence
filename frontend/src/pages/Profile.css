@@ -1,59 +1,91 @@
-#main {
-	display: flex;
-    flex-direction: column; /* Ensures that the items are stacked vertically */
-    justify-content: flex-start;
-    align-items: center;
-    height: calc(100vh - 40px);
-    padding: 20px 0; /* Top and bottom padding combined in shorthand */
+.main {
+    height: 100vh;
     overflow-y: auto;
     scroll-behavior: smooth;
 	margin-bottom: 20em;
+    padding: 50px;
 }
 
-.profile-container {
-	display: flex;
-		/*width: 25%; /* 1/3 of the screen width */
-		/* height: 80vh; Entire screen height */
-		/* background-color: #f0df94; Yellow background color */
-		/* border-radius: 10px; Rounded borders */
-		/* border-bottom-right-radius:20px; */
-		/* padding: 20px; Padding inside the container */
-	/* box-sizing: border-box; Include padding in the width calculation */
-	font-family: "Gill Sans", sans-serif;
-	font-weight: bold;
-	color:#0e7b08;
-	font-size: 2rem;
-	justify-content: space-between;
-	margin-top: 50px;
-	margin-left: 50px;
-	margin-right: 50px;
-	margin-bottom: 50px;
-  }
+.profile{
+	border : 10px solid #f6790b;
+	border-radius: 30px;
+    height: 100%;
+    margin-top: 3em;
+	padding: 10px;
+	overflow-y: auto;
+	margin-bottom: 10em;
+	background-color: antiquewhite;
+}
+
+.profile .flex{
+    gap: 1em;
+    text-align: left;
+    margin-bottom: 2em;
+}
+
+.profile .flex .item{
+    display: flex;
+    align-items: center;
+	gap: 1em;
+    padding: 30px;
+}
+
+.profile .flex img{
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profile .flex .info{
+   padding: 0;
+}
+
+.text-dark{
+    color: #2e0bf6
+}
+
+.status-indicator {
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    display: inline-block;
+    /* margin-right: 5px; */
+}
+
+.online {
+    background-color: green;
+}
+
+.offline {
+    background-color: red;
+}
+
+.inGame{
+    background-color: rgb(33, 5, 176);
+}
+
+/* .info .total-points {
+    display: block; /* Ensures that the points are on a new line */
+    /* margin-bottom: 8px; /* Adds space below the total points
+} */ 
+
+.stats .stat {
+    display: inline-block; /* Allows items to sit side-by-side */
+    margin-right: 15px; /* Space between different stats */
 
 
-  /* Style for profile details */
-  .profile-details {
-	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  }
-  .profile-details ul {
-	list-style: none; /* Remove the list-style (bullets) */
-	margin: 3rem;
-  }
+}
 
-  /* Optionally, you can also remove padding and margin from the list */
-  .profile-details ul,
-  .profile-details ul li {
-	padding: 0;
-	margin: 3rem;
-  }
+.stat strong {
+	margin-left: 5px; /* Space between the label and the number */
+    color: #0f0f0f; /* Change the color of the number */
+}
 
-  .link {
-	display: flex;
-	align-items: bottom;
-  }
+
 
   /* Style for NavLink */
-  .nav-link {
+.friend-link {
 	color: #333; /* Change the color of the link */
 	text-decoration: none; /* Remove underline */
 	padding: 8px 12px; /* Add padding */
@@ -62,28 +94,16 @@
   }
 
   /* Style for active NavLink */
-  .nav-link.active {
+.friend-link.active {
 	background-color: #f0f0f0; /* Change background color when active */
 	font-weight: bold; /* Make text bold when active */
   }
 
-  .friends {
+/* .friends {
 	display: flex;
+    color: #333;
 	flex-direction: column;
+    border: solid 1px #f6790b;
 	gap: 1rem;
-
-		height: 90vh;
-		border-left: 1px solid green;
-		padding: 1rem;
-
-  }
-
-  .friends a {
-	text-decoration: none;
-	color: black;
-  }
-
-  .profile {
-	display: flex;
-	justify-content: space-between;
-  }
+	padding: 1rem;
+} */

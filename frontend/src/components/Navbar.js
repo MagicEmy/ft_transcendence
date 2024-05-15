@@ -1,30 +1,55 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import classes from "./Navbar.module.css";
-import avatar from "../../src/assets/Thai.jpg";
 import LogoutButton from "./LogoutButton";
 import useStorage from "../hooks/useStorage";
+import { loadProfile, loadProfileAvatar } from "../libs/profileData";
 
 
 function Navbar() {
-	const [userProfile] = useStorage("user");
-	
+	const [user] = useStorage('user', null)
+  const [userName, setUserName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+
+  const fetcDbProfile = async () => {
+    try {
+      const dbProfile = await loadProfile(user.user_id);
+      setUserName(dbProfile.user_name);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  const fetchAvatar = async () => {
+    try {
+      const imageUrl = await loadProfileAvatar(user.user_id);
+      setAvatarUrl(imageUrl);
+    } catch (error) {
+      console.error('Error fetching avatar:', error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (user !== null && user.user_id) {
+      fetcDbProfile();
+      fetchAvatar();
+    }
+  }, [user]);
 
   return (
     <header className={classes.header}>
       <div className={classes.avatar}>
-        <span>
-          <NavLink
-            to="/profile"
-            className={({ isActive }) =>
-              isActive ? classes.active : undefined
-            }
-          >
-            <img className={classes.avatarImage} src={avatar} alt="Avatar" />
-          </NavLink>
-		  <div className={classes.list}>
-				{userProfile.user_name}</div>
-        </span>
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            isActive ? classes.active : undefined
+          }
+        >
+          <div className={classes.avatarImage}>
+            {avatarUrl ? <img className={classes.avatarImage} src={avatarUrl} alt="User Avatar" /> : <p>Loading...</p>}
+            <span>{userName?.user_name}</span>
+          </div>
+        </NavLink>
       </div>
       <nav>
         <ul className={classes.list}>
@@ -49,7 +74,7 @@ function Navbar() {
               Profile
             </NavLink>
           </li>
-		  <li>
+          <li>
             <NavLink
               to="/leaderboard"
               className={({ isActive }) =>
@@ -79,12 +104,18 @@ function Navbar() {
               Chat
             </NavLink>
           </li>
+          <li>
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                isActive ? classes.active : undefined
+              }
+            >
+              Settings
+            </NavLink>
+          </li>
         </ul>
       </nav>
-      {/* <div className={classes.logo}>
-        <img className={classes.logoImage} src={logo} alt="Logo" />
-
-      </div> */}
       <div className={classes.buttons}>
         <LogoutButton className={classes.logoutButton} />
       </div>

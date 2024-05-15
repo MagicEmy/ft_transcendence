@@ -1,5 +1,5 @@
 // import { styled } from 'styled-components';
-import React, { useEffect, useId } from 'react';
+import React, { useEffect } from 'react';
 import io from 'socket.io-client';
 
 import './game.css';
@@ -48,7 +48,7 @@ function Game()
 \* ************************************************************************** */
 
 		const	userID =	window.location.hostname;
-		const	userHost =	window.location.hostname;
+		// const	userHost =	window.location.hostname;
 
 		const	GAMEelement = document.getElementById("game");
 		const	BCKelement = document.getElementById("gameBackground");
@@ -215,7 +215,7 @@ function Game()
 
 		function	connectToGame(gameType, matchType)
 		{
-			const data = 
+			const data =
 			{
 				gameType:	gameType,
 				matchType:	matchType,
@@ -349,7 +349,7 @@ function Game()
 				}
 			}
 		}
-		
+
 		function menuEventEscape()
 		{
 			switch (hudType)
@@ -357,6 +357,7 @@ function Game()
 				case EnumHudType.MATCH:
 					socket.emit("RemoveFromMatchmaking", JSON.stringify({id: userID},));
 					console.log("send remove match");
+					break ;
 				case EnumHudType.LOADING:
 					hudType = EnumHudType.MENU;
 					break ;
@@ -367,7 +368,7 @@ function Game()
 
 		function menuEventArrowUp()
 		{
-			if (hudType === EnumHudType.MENU && 
+			if (hudType === EnumHudType.MENU &&
 				menuSelect > 0)
 				--menuSelect;
 		}
@@ -393,9 +394,9 @@ function Game()
 				case 1:	renderBackgroundRetro();	break ;
 				case 2:	renderBackgroundModern();	break ;
 				default:	break ;
-			}		
+			}
 		}
-		
+
 		function renderBackgroundRetro()
 		{
 			fillContext(BCKelement, BCKcontext, "rgba(23, 23, 23, 0.99)");
@@ -408,7 +409,7 @@ function Game()
 			BCKcontext.fillStyle = "rgba(123, 123, 123, 1)";
 			for (let posY = square.height / 2; posY < BCKelement.height; posY += square.height * 2)
 				BCKcontext.fillRect(posX, posY, square.width, square.height);
-		}	
+		}
 
 		function renderBackgroundModern()
 		{
@@ -443,7 +444,7 @@ function Game()
 
 		function	renderPongModern(data)
 		{
-			addPaddleModern(data.Player1); 
+			addPaddleModern(data.Player1);
 			addPaddleModern(data.Player2);
 			addBallModern(data.Ball);
 		}
@@ -466,7 +467,7 @@ function Game()
 			ball.posX *= PONGelement.width;
 			ball.posY *= PONGelement.height;
 			ball.size *= PONGelement.width;
-			
+
 			PONGcontext.fillStyle = "white";
 			PONGcontext.beginPath();
 			PONGcontext.arc(ball.posX, ball.posY, ball.size, 0, 2 * Math.PI);
@@ -516,30 +517,30 @@ function Game()
 			let dots = new Date().getSeconds() % 4;
 			msg += ".".repeat(dots);
 			msg += " ".repeat(4 - dots);
-			
+
 			let size = getFontSize(HUDcontext, msg, HUDelement.height / 2, HUDelement.width / 2, font);
 			HUDcontext.font = size + "px " + font;
 			let posX = HUDelement.width / 2 - (HUDcontext.measureText(msg).width / 2);
 			let posY = HUDelement.height / 2;
-			
+
 			fillContext(HUDelement, HUDcontext,"rgba(23, 23, 23, 1)");
 			HUDcontext.fillStyle = "rgba(123, 123, 123, 1)";
 			HUDcontext.fillText(msg, posX, posY);
 			setTimeout(renderHUD, 500);
 		}
-	
+
 		// function	renderLoading()
 		// {
 		// 	let msg = "Loading";
 		// 	let dots = new Date().getSeconds() % 4;
 		// 	msg += ".".repeat(dots);
 		// 	msg += " ".repeat(4 - dots);
-			
+
 		// 	let size = getFontSize(HUDcontext, msg, HUDelement.height / 2, HUDelement.width / 2, font);
 		// 	HUDcontext.font = size + "px " + font;
 		// 	let posX = HUDelement.width / 2 - (HUDcontext.measureText(msg).width / 2);
 		// 	let posY = HUDelement.height / 2;
-			
+
 		// 	fillContext(HUDelement, HUDcontext,"rgba(23, 23, 23, 1)");
 		// 	HUDcontext.fillStyle = "rgba(123, 123, 123, 1)";
 		// 	HUDcontext.fillText(msg, posX, posY);
@@ -565,7 +566,7 @@ function Game()
 			let size = 100;
 			for (let i = 0; i < menuList.length; ++i)
 			{
-				let temp = getFontSize(HUDcontext, menuList[i], 
+				let temp = getFontSize(HUDcontext, menuList[i],
 										HUDelement.height * 0.75 / (menuList.length + 2), HUDelement.width * 0.75, font);
 				if (temp < size)
 					size = temp;
@@ -689,13 +690,13 @@ function Game()
 
 		// 	context.font = element.width / 16 + "px " + font;
 		// 	let posX = renderHUD.element.width * pos - context.measureText(name).width / 2;
-		// 	let posY = context.measureText(name).actualBoundingBoxAscent + 
+		// 	let posY = context.measureText(name).actualBoundingBoxAscent +
 		// 				element.height / 23;
 		// 	context.fillText(name, posX, posY);
 
 		// 	context.font = element.width / 8 + "px " + font;
 		// 	posX = element.width * pos - context.measureText(score).width / 2;
-		// 	posY += context.measureText(name).actualBoundingBoxAscent + 
+		// 	posY += context.measureText(name).actualBoundingBoxAscent +
 		// 			element.height / 23;
 		// 	context.fillText(score, posX, posY);
 		// }

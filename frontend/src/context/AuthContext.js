@@ -3,28 +3,26 @@ import useStorage from '../hooks/useStorage';
 import Cookies from 'js-cookie';
 
 const AuthContext = createContext({
-  authToken: null,
-  setAuthToken: () => {},
-  isLogged: false,
-  setIsLogged: () => {},
+	authToken: null,
+	setAuthToken: () => { },
+	isLogged: false,
+	setIsLogged: () => { },
 });
-
+// /localStorage.setItem('token', token);
 export const AuthProvider = ({ children }) => {
-	const [authToken, setAuthToken] = useStorage('authToken');
+	const [authToken, setAuthToken] = useStorage('authToken', '');
 	const [isLogged, setIsLogged] = useState(false);
-	const [isLoading, setIsLoading] = useState(true);
 
 	const authTokenFromCookie = Cookies.get('Authentication');
-	console.log('authTokenFromCookie: ', authTokenFromCookie);	
 
 	useEffect(() => {
 		if (authTokenFromCookie) {
 			setIsLogged(true);
 			setAuthToken(authTokenFromCookie);
 		} else {
-			setIsLogged(false);	
+			setIsLogged(false);
 		}
-	}, [authToken]);
+	}, [authTokenFromCookie]);
 
 	//   useEffect(() => {
 	// 	const refreshAuthToken = async () => {
@@ -52,16 +50,16 @@ export const AuthProvider = ({ children }) => {
 	// 	// maybe using setInterval or similar?
 	//   }, [authToken]);
 
-  return (
-    <AuthContext.Provider value={{
-		authToken,
-		setAuthToken,
-		isLogged,
-		setIsLogged,
-	  }}>
-		{children}
-	  </AuthContext.Provider>
-  );
+	return (
+		<AuthContext.Provider value={{
+			authToken,
+			setAuthToken,
+			isLogged,
+			setIsLogged,
+		}}>
+			{children}
+		</AuthContext.Provider>
+	);
 };
 
 export default AuthContext;
