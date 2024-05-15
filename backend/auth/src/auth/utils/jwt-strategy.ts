@@ -5,10 +5,7 @@ import { JwtPayloadDto } from '../dto/jwt-payload-dto';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class JwtAccessStrategy extends PassportStrategy(
-  Strategy,
-  'jwt-access',
-) {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -18,10 +15,11 @@ export class JwtAccessStrategy extends PassportStrategy(
   }
 
   async validate(payload: JwtPayloadDto) {
+    console.log(payload);
     return {
       user_id: payload.sub,
       user_name: payload.user_name,
       intra_login: payload.intra_login,
-    };
+    }; // this goes into the handleRequest() function in the AuthGuard
   }
 }

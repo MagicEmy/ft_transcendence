@@ -7,6 +7,8 @@ import { ClientKafka } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { ValidateUserDto } from 'src/user/dto/validate-user-dto';
 import { TokensDto } from './dto/tokens-dto';
+import { Token } from 'src/user/token-entity';
+import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
 
 @Injectable()
 export class AuthService {
@@ -47,13 +49,20 @@ export class AuthService {
 
   login(user: User): TokensDto {
     const { user_id, user_name, intra_login } = user;
-    const jwtAccessToken = this.generateJwtAccessToken({
+    return this.generateJwtTokens({
       sub: user_id,
       user_name,
       intra_login,
     });
-    const jwtRefreshToken = this.generateJwtRefreshToken(user_id);
+  }
 
+  generateJwtTokens(jwtPayloadDto: JwtPayloadDto): TokensDto {
+    const jwtAccessToken = this.generateJwtAccessToken(jwtPayloadDto);
+    const jwtRefreshToken = this.generateJwtRefreshToken(jwtPayloadDto.sub);
+    this.userService.saveRefreshTokenInDB({
+      user_id: jwtPayloadDto.sub,
+      refresh_token: jwtRefreshToken,
+    });
     return {
       jwtAccessToken: jwtAccessToken,
       jwtRefreshToken: jwtRefreshToken,
@@ -75,5 +84,37 @@ export class AuthService {
         expiresIn: `${this.configService.get('JWT_REFRESH_EXPIRATION_TIME')}`,
       },
     );
+  }
+
+  getTokenCookieOptions(expirationTime: string, httpOnly: boolean) {
+    return {
+      path: '/',
+      secure: true,
+      expires: new Date(Date.now() + Number(expirationTime)),
+      httpOnly: httpOnly,
+    };
+  }
+
+  async deleteRefreshTokenFromDB(
+    deleteRefreshTokenDto: DeleteRefreshTokenDto,
+  ): Promise<Token> | null {
+    const { userId, refreshToken } = deleteRefreshTokenDto;
+    if (!userId && refreshToken) {
+      try {
+        const user = await this.getUserByRefreshToken(refreshToken);
+        return this.userService.deleteRefreshToken(user.user_id);
+      } catch (error) {}
+    } else if (userId) {
+      return this.userService.deleteRefreshToken(userId);
+    }
+    return null;
+  }
+
+  async getRefreshTokenFromDB(userId: string): Promise<string> {
+    return this.userService.getRefreshToken(userId);
+  }
+
+  async getUserByRefreshToken(refreshToken: string): Promise<User> {
+    return this.userService.getUserByRefreshToken(refreshToken);
   }
 }

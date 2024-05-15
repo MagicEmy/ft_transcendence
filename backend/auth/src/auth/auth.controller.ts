@@ -1,10 +1,17 @@
-import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { FourtyTwoAuthGuard } from './utils/fourty-two-auth-guard';
 import { AuthService } from './auth.service';
-import { JwtAccessAuthGuard } from './utils/jwt-access-auth-guard';
+import { JwtAuthGuard } from './utils/jwt-auth-guard';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { JwtRefreshAuthGuard } from './utils/jwt-refresh-auth-guard';
 
 @Controller('auth')
 export class AuthController {
@@ -23,80 +30,39 @@ export class AuthController {
       req.user,
     );
     // setting the jwt tokens in cookies
-    resp.cookie('Authentication', jwtAccessToken, {
-      path: '/',
-      secure: true,
-      expires: new Date(
-        Date.now() +
-          Number(this.configService.get('JWT_ACCESS_EXPIRATION_TIME')),
+    resp.cookie(
+      this.configService.get('JWT_ACCES_TOKEN_COOKIE_NAME'),
+      jwtAccessToken,
+      this.authService.getTokenCookieOptions(
+        this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
+        false,
       ),
-      httpOnly: false,
-    });
-    resp.cookie('Refresh', jwtRefreshToken, {
-      path: '/',
-      secure: true,
-      expires: new Date(
-        Date.now() +
-          Number(this.configService.get('JWT_REFRESH_EXPIRATION_TIME')),
+    );
+    resp.cookie(
+      this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
+      jwtRefreshToken,
+      this.authService.getTokenCookieOptions(
+        this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
+        true,
       ),
-      httpOnly: true,
-    });
+    );
     return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
   }
 
-  @UseGuards(JwtRefreshAuthGuard)
-  //   @Post('/refresh')
-  @Get('/refresh') // this is just for testing from browser, otherwise this method should be POST
-  refreshJwtToken(@Req() req, @Res() resp: Response) {
-    // generating new set of jwt tokens
-    const jwtAccessToken = this.authService.generateJwtAccessToken({
-      sub: req.user.user_id,
-      user_name: req.user_name,
-      intra_login: req.intra_login,
-    });
-    const jwtRefreshToken = this.authService.generateJwtRefreshToken(
-      req.user.user_id,
-    );
-    // setting the jwt tokens in cookies
-    resp.cookie('Authentication', jwtAccessToken, {
-      path: '/',
-      secure: true,
-      expires: new Date(
-        Date.now() +
-          Number(this.configService.get('JWT_ACCESS_EXPIRATION_TIME')),
-      ),
-      httpOnly: false,
-    });
-    resp.cookie('Refresh', jwtRefreshToken, {
-      path: '/',
-      secure: true,
-      expires: new Date(
-        Date.now() +
-          Number(this.configService.get('JWT_REFRESH_EXPIRATION_TIME')),
-      ),
-      httpOnly: true,
-    });
-    resp.send();
-  }
-
-  @UseGuards(JwtAccessAuthGuard)
+  // a uuid verification of userId is needed here
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
-  logout(@Req() req, @Res() resp: Response): Response {
-    resp.clearCookie('Authentication');
-    resp.clearCookie('Refresh');
+  logout(@Req() req, @Res() resp: Response, @Body() userId: string): Response {
+    resp.clearCookie(this.configService.get('JWT_ACCES_TOKEN_COOKIE_NAME'));
+    resp.clearCookie(this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'));
+    this.authService.deleteRefreshTokenFromDB({ userId: userId });
     return resp.sendStatus(200);
   }
 
-  @UseGuards(JwtAccessAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Req() req) {
     return req.user;
-  }
-
-  // FOR TESTING TOKEN REFRESHING
-  @Get('/simulate')
-  async simulate(@Req() req, @Res() resp: Response) {
-    resp.redirect('http://localhost:3003/auth/refresh');
   }
 }
 
