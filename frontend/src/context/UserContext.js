@@ -14,7 +14,7 @@ export const UserProvider = ({ children }) => {
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		if (!authToken || authToken === null) {
+		if (!authToken) {
 			console.log('No authToken available.');
 			setIsLoading(false);
 			return;
@@ -42,8 +42,7 @@ export const UserProvider = ({ children }) => {
 			}
 		};
 		fetchUser();
-
-	}, [authToken, userProfile?.id, setUserProfile, setIsLoading]);
+	}, [authToken, setUserProfile]);
 
 return (
 	<UserContext.Provider value={{

@@ -11,7 +11,6 @@ function Navbar() {
   // const [userProfile] = useStorage("user");
   const [avatar,setAvatar] = useStorage('avatar', '');
   const [userName, setUserName] = useState('');
-  // const [avatarUrl, setAvatarUrl] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -20,7 +19,6 @@ function Navbar() {
           const dbProfile = await loadProfile(userProfile.user_id);
           const imageUrl = await loadProfileAvatar(userProfile.user_id);
           setUserName(dbProfile.user_name);
-          // setAvatarUrl(imageUrl);
           setAvatar(imageUrl);
         } catch (error) {
           console.error('Error fetching user data:', error);

@@ -5,20 +5,22 @@ import axios from "axios";
 
 const LogoutButton = ({ className }) => {
 	const [authToken, setToken] = useStorage('authToken', null)
-	const [, setUser] = useStorage('user', null)
+	const [ user, setUser] = useStorage('user', null)
 	const [, setAvatar] = useStorage("avatar");
 	const navigate = useNavigate();
 
 
 	async function userlogout() {
 		try {
-			await axios.post('http://localhost:3003/auth/logout', {}, {
+			await axios.post('http://localhost:3003/auth/logout', {
+				user_id: user.userId,
+			}, {
 				headers: {
 					Authorization: `Bearer ${authToken}`,
 				},
 				withCredentials: true,
 			});
-
+			console.log('User logged out');
 			setToken(null);
 			setUser(null);
 			setAvatar(null);

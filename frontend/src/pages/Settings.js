@@ -9,7 +9,7 @@ const Settings = () => {
   const [profile, setProfile] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
   const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
@@ -18,7 +18,6 @@ const Settings = () => {
         try {
           const dbProfile = await loadProfile(userProfile.user_id);
           setProfile(dbProfile);
-          console.log('quiiiii', dbProfile);
         } catch (error) {
           console.error('Error fetching user data:', error);
           setFeedback('Failed to load user data.');
@@ -64,68 +63,48 @@ const Settings = () => {
   };
 
   const handleAvatarSubmit = async (event) => {
-  event.preventDefault();
-
-  // Reset feedback message
-  setFeedback('');
-
-  // Check if file is selected
-  if (!file) {
-    setFeedback('Please select a file to upload.');
-    return;
-  }
-
-  // Check file type
-  const validTypes = ['image/jpeg', 'image/png'];
-  if (!validTypes.includes(file.type)) {
-    setFeedback('Only JPG or PNG images are allowed.');
-    return;
-  }
-
-  // Check file size (500KB)
-  const maxSize = 500 * 1024; // 500KB in bytes
-  if (file.size > maxSize) {
-    setFeedback('The file size must be less than 500KB.');
-    return;
-  }
-
-  setLoading(true);
-  const formData = new FormData();
-  formData.append('avatar', file);
-
-  try {
-    const response = await axios.patch(`http://localhost:3002/user/${userProfile.user_id}/avatar`, formData, {
-      withCredentials: true,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-
-    if (response.data.status === 'success') { // Adjust according to actual server response
-      // const imageUrl = URL.createObjectURL(response.data);
-      const newAvatarUrl = response.data.avatarUrl
-      setAvatar(newAvatarUrl);
-      setFeedback('Avatar updated successfully.');
-    } else {
-      throw new Error(response.data.message || 'Failed to update avatar without a specific error.');
+    event.preventDefault();
+    setFeedback('');
+    if (!file) {
+      setFeedback('Please select a file to upload.');
+      return;
     }
-  } catch (error) {
-    console.error("Error updating avatar:", error);
-    if (error.response) {
-      // Server responded with a status code that falls out of the range of 2xx
-      setFeedback(`Error updating avatar: ${error.response.data.message || error.response.statusText}`);
-    } else if (error.request) {
-      // The request was made but no response was received
-      setFeedback('No response from server.');
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      setFeedback('Error setting up avatar update request.');
+    const validTypes = ['image/jpeg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      setFeedback('Only JPG or PNG images are allowed.');
+      return;
     }
-  } finally {
-    setLoading(false);
-    window.location.reload();
-  }
-};
+    const maxSize = 500 * 1024; // 500KB
+    if (file.size > maxSize) {
+      setFeedback('The file size must be less than 500KB.');
+      return;
+    }
+    setAvatarLoading(true);
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+      const response = await axios.patch(`http://localhost:3002/user/${userProfile.user_id}/avatar`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true,
+      });
+
+      if (response.data.status === 'success') {
+        const newAvatarUrl = response.data.avatarUrl;
+        const updatedAvatarUrl = `${newAvatarUrl}?v=${Date.now()}`; // Cache busting
+        setAvatar(updatedAvatarUrl);
+        setFeedback('Avatar updated successfully.');
+      } else {
+        throw new Error(response.data.message || 'Failed to update avatar without a specific error.');
+      }
+    } catch (error) {
+      console.error("Error updating avatar:", error);
+      setFeedback(`Error updating avatar: ${error.message}`);
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
 
 
   return (
@@ -133,12 +112,12 @@ const Settings = () => {
       <div className="profile">
         <div className="flex">
           <div className="item">
-            {avatar  ? <img className='avatar' src={avatar} alt="User Avatar" /> : <p>Loading...</p>}
+          {avatarLoading ? <p>Loading avatar...</p> : <img className='avatar' src={avatar} alt="User Avatar" key={avatar} />}
             <div className="item">Change Profile Picture:</div>
             <form onSubmit={handleAvatarSubmit}>
-              <input type="file" onChange={(e) => setFile(e.target.files[0])} disabled={loading} />
+              <input type="file" onChange={(e) => setFile(e.target.files[0])} disabled={avatarLoading} />
               <br />
-              <button type="submit" disabled={loading}>Upload New Profile Picture</button>
+              <button type="submit" disabled={avatarLoading}>Upload New Profile Picture</button>
             </form>
           </div>
           <div className="item">

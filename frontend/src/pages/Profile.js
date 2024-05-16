@@ -4,7 +4,6 @@ import { loadProfile, loadProfileAvatar } from "../libs/profileData";
 import { loadFriends, addFriend, deleteFriend } from "../libs/friends";
 import useStorage from "../hooks/useStorage";
 import "./Profile.css";
-// import classes from "./Profile.css";
 
 function Profile() {
   const { userId } = useParams("userId");
@@ -13,51 +12,71 @@ function Profile() {
   const [profile, setProfile] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [friends, setFriends] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [friendsLoading, setFriendsLoading] = useState(false);
+  const [error, setError] = useState('');
   const status = "Online";
 
   useEffect(() => {
-
+    const userIdOrMe = userId || userProfile.user_id;
+    if (!userIdOrMe) {
+      setError('No user ID found');
+      return;
+    }
+    setLoading(true);
     const fetchDbProfile = async () => {
       try {
-        const userIdOrMe = userId || userProfile.user_id;
         const dbProfile = await loadProfile(userIdOrMe);
         setProfile(dbProfile);
-        console.log("HERE dbProfile: ", dbProfile);
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        setError('Failed to fetch profile');
+      } finally {
+        setLoading(false);
       }
     };
     fetchDbProfile();
-}, [userId, userProfile.user_id]);
+  }, [userId, userProfile.user_id]);
 
-useEffect(() => {
-  const fetchAvatar = async () => {
-    try {
-      const userIdOrMe = userId || userProfile.user_id;
-      const imageUrl = await loadProfileAvatar(userIdOrMe);
-      setAvatarUrl(imageUrl);
-    } catch (error) {
-      console.error('Error fetching avatar:', error.message);
-    }
-  };
-  fetchAvatar();
-}, [userId, userProfile.user_id, setAvatarUrl]);
-
-
-useEffect(() => {
-const fetchFriends = async () => {
-  try {
+  useEffect(() => {
     const userIdOrMe = userId || userProfile.user_id;
-    const profileFriends = await loadFriends(userIdOrMe);
-    setFriends(profileFriends);
-    console.log("friends: ", profileFriends);
-  } catch (error) {
-    console.error("Error fetching user data:", error);
-  }
-};
+    setAvatarLoading(true);
+    const fetchAvatar = async () => {
+      try {
+        const imageUrl = await loadProfileAvatar(userIdOrMe);
+        setAvatarUrl(imageUrl);
+      } catch (error) {
+        console.error('Error fetching avatar:', error.message);
+      } finally {
+        setAvatarLoading(false);
+      }
+    };
+    fetchAvatar();
+  }, [userId, userProfile.user_id]);
 
-fetchFriends();
-}, [userId, userProfile.user_id]);
+  useEffect(() => {
+    const userIdOrMe = userId || userProfile.user_id;
+    setFriendsLoading(true);
+    const fetchFriends = async () => {
+      try {
+        const profileFriends = await loadFriends(userIdOrMe);
+        setFriends(profileFriends);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setFriendsLoading(false);
+      }
+    };
+    fetchFriends();
+  }, [userId, userProfile.user_id]);
+
+  if (loading) {
+    return <p>Loading profile...</p>;
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
 
 const handleFriendClick = async () => {
   if (isFriend) {
@@ -73,14 +92,20 @@ const isFriend = friends?.includes(userId);
 console.log("isFriend: ", isFriend);
 console.log("profile.user_id  : ", userId);
 console.log("userProfile.user_id : ", userProfile.user_id);
+/*
 
+  @Get('/:id/status')
+  getUserStatus(@Param('id') user_id: string) {
+    return this.userService.getUserStatus(user_id);
+  }
+  */
 
 return (
   <div className="main">
     <div className="profile">
       <div className="flex">
         <div className="item">
-          {avatarUrl ? <img src={avatarUrl} alt="User Avatar" /> : <p>Loading...</p>}
+        {avatarLoading ? <p>Loading avatar...</p> : <img src={avatarUrl} alt="User avatar" />}
           <h3 className='name text-dark'>{profile?.user_info?.user_name}</h3>
           <div className="item">
             <span className={`status-indicator ${status === 'Online' ? 'online' : 'offline'}`}></span>
@@ -134,6 +159,7 @@ return (
           </div>
         </div>
       </div>
+      {friendsLoading ? <p>Loading friends...</p> : <h4 className='name text-dark'>Friends</h4>}
       {friends && friends.length > 0 ? (
         <div className="friend-link">
           {friends.map((friends, index) => (
