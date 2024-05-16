@@ -14,9 +14,16 @@ export class FriendRepository extends Repository<Friend> {
     );
   }
 
-  async addFriend(friendshipDto: FriendshipDto) {
+  async addFriend(friendshipDto: FriendshipDto): Promise<Friend> {
     const friend = this.friendRepository.create(friendshipDto);
-    return this.friendRepository.save(friend);
+    try {
+      await this.friendRepository.save(friend);
+    } catch (error) {
+      if (error.code !== '23505') {
+        console.log(error);
+      }
+    }
+    return friend;
   }
 
   async getFriends(user_id: string): Promise<string[]> {

@@ -38,7 +38,6 @@ export class GameRepository extends Repository<Game> {
       'WITH t AS (SELECT player1_id AS "user_id" FROM game WHERE player2_id = $1 UNION ALL SELECT player2_id AS "user_id" FROM game WHERE player1_id = $1) SELECT user_id, COUNT(user_id) AS "games" FROM t GROUP BY user_id ORDER BY games DESC',
       [user_id],
     );
-
     const mostFrequent: GamesAgainstUserIdDto[] = result.filter(
       (item) => item.games === result[0].games,
     );

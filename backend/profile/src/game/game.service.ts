@@ -26,16 +26,18 @@ export class GameService {
     const mostFrequentOpponentNoname: GamesAgainstUserIdDto[] =
       await this.gameRepository.getMostFrequentOpponent(user_id);
     const mostFrequentOpponent: MostFrequentOpponentDto[] = [];
-    mostFrequentOpponentNoname.forEach(async (opponent) => {
-      mostFrequentOpponent.push({
-        user_id: opponent.user_id,
-        user_name:
-          opponent.user_id === Opponent.BOT
-            ? 'bot'
-            : await this.userService.getUsername(opponent.user_id),
-        games: opponent.games,
-      });
-    });
+    await Promise.all(
+      mostFrequentOpponentNoname.map(async (opponent) => {
+        mostFrequentOpponent.push({
+          user_id: opponent.user_id,
+          user_name:
+            opponent.user_id === Opponent.BOT
+              ? 'bot'
+              : await this.userService.getUsername(opponent.user_id),
+          games: opponent.games,
+        });
+      }),
+    );
     return mostFrequentOpponent;
   }
 

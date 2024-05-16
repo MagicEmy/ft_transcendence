@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user-dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
@@ -6,6 +6,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AvatarRepository } from './avatar.repository';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom, map } from 'rxjs';
+import { Token } from './token-entity';
+import { TokenRepository } from './token.repository';
+import { RefreshTokenDto } from './dto/refresh-token-dto';
 
 @Injectable()
 export class UserService {
@@ -15,6 +18,8 @@ export class UserService {
     private userRepository: UserRepository,
     @InjectRepository(AvatarRepository)
     private avatarRepository: AvatarRepository,
+    @InjectRepository(TokenRepository)
+    private tokenRepository: TokenRepository,
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -25,6 +30,16 @@ export class UserService {
     return await this.userRepository.findOneBy({
       intra_login: intra_login,
     });
+  }
+
+  async getUserByRefreshToken(refreshToken: string): Promise<User> {
+    const token = await this.tokenRepository.findOneBy({
+      refresh_token: refreshToken,
+    });
+    if (!token) {
+      throw new NotFoundException(`Refresh token "${refreshToken}" not found`);
+    }
+    return this.userRepository.findOneBy({ user_id: token.user_id });
   }
 
   async getAvatarFrom42Api(
@@ -56,5 +71,21 @@ export class UserService {
       mime_type: response.mime_type,
       avatar: response.image,
     });
+  }
+
+  async saveRefreshTokenInDB(refreshTokenDto: RefreshTokenDto): Promise<Token> {
+    return this.tokenRepository.replaceOrCreateRefreshToken(refreshTokenDto);
+  }
+
+  async deleteRefreshToken(userId: string): Promise<Token> {
+    return this.tokenRepository.replaceOrCreateRefreshToken({
+      user_id: userId,
+      refresh_token: null,
+    });
+  }
+
+  async getRefreshToken(userId: string): Promise<string> | null {
+    const token = await this.tokenRepository.findOneBy({ user_id: userId });
+    return token ? token.refresh_token : null;
   }
 }

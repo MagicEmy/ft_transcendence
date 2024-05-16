@@ -5,8 +5,10 @@ import { UserService } from 'src/user/user.service';
 import { JwtPayloadDto } from './dto/jwt-payload-dto';
 import { ClientKafka } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
-import { UserWithTokenDto } from './dto/user-with-token-dto';
 import { ValidateUserDto } from 'src/user/dto/validate-user-dto';
+import { TokensDto } from './dto/tokens-dto';
+import { Token } from 'src/user/token-entity';
+import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
 
 @Injectable()
 export class AuthService {
@@ -45,25 +47,74 @@ export class AuthService {
     return user;
   }
 
-  getCookieForLogin(userWithToken: UserWithTokenDto): string {
-    const { user_id, user_name, intra_login, refresh_token } = userWithToken;
-    const token = this.generateJwtToken({
+  login(user: User): TokensDto {
+    const { user_id, user_name, intra_login } = user;
+    return this.generateJwtTokens({
       sub: user_id,
       user_name,
       intra_login,
     });
-    return this.createCookieWithTokens(token, refresh_token);
   }
 
-  generateJwtToken(jwtPayloadDto: JwtPayloadDto): string {
-    return this.jwtService.sign(jwtPayloadDto);
+  generateJwtTokens(jwtPayloadDto: JwtPayloadDto): TokensDto {
+    const jwtAccessToken = this.generateJwtAccessToken(jwtPayloadDto);
+    const jwtRefreshToken = this.generateJwtRefreshToken(jwtPayloadDto.sub);
+    this.userService.saveRefreshTokenInDB({
+      user_id: jwtPayloadDto.sub,
+      refresh_token: jwtRefreshToken,
+    });
+    return {
+      jwtAccessToken: jwtAccessToken,
+      jwtRefreshToken: jwtRefreshToken,
+    };
   }
 
-  createCookieWithTokens(token: string, refresh_token: string) {
-    return `Authentication=${token}; Refresh=${refresh_token}; Path=/; secure=true; Max-Age=${this.configService.get('JWT_EXPIRATION_TIME')}`;
+  generateJwtAccessToken(jwtPayloadDto: JwtPayloadDto): string {
+    return this.jwtService.sign(jwtPayloadDto, {
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+      expiresIn: `${this.configService.get('JWT_ACCESS_EXPIRATION_TIME')}`,
+    });
   }
 
-  getCookieForLogout(): string {
-    return `Authentication=; Refresh=; Path=/; secure=true; Max-Age=0`;
+  generateJwtRefreshToken(userId: string): string {
+    return this.jwtService.sign(
+      { sub: userId },
+      {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+        expiresIn: `${this.configService.get('JWT_REFRESH_EXPIRATION_TIME')}`,
+      },
+    );
+  }
+
+  getTokenCookieOptions(expirationTime: string, httpOnly: boolean) {
+    return {
+      path: '/',
+      secure: true,
+      expires: new Date(Date.now() + Number(expirationTime)),
+      httpOnly: httpOnly,
+    };
+  }
+
+  async deleteRefreshTokenFromDB(
+    deleteRefreshTokenDto: DeleteRefreshTokenDto,
+  ): Promise<Token> | null {
+    const { userId, refreshToken } = deleteRefreshTokenDto;
+    if (!userId && refreshToken) {
+      try {
+        const user = await this.getUserByRefreshToken(refreshToken);
+        return this.userService.deleteRefreshToken(user.user_id);
+      } catch (error) {}
+    } else if (userId) {
+      return this.userService.deleteRefreshToken(userId);
+    }
+    return null;
+  }
+
+  async getRefreshTokenFromDB(userId: string): Promise<string> {
+    return this.userService.getRefreshToken(userId);
+  }
+
+  async getUserByRefreshToken(refreshToken: string): Promise<User> {
+    return this.userService.getUserByRefreshToken(refreshToken);
   }
 }

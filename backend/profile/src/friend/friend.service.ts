@@ -13,7 +13,6 @@ export class FriendService {
 
   async addFriend(friendshipDto: FriendshipDto): Promise<Friend> {
     return this.friendRepository.addFriend(friendshipDto);
-    // find a way to prevent duplicate entries (perhaps in frontend)
   }
 
   async getFriends(user_id: string): Promise<string[]> {

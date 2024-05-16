@@ -1,3 +1,5 @@
+import { UserStatusEnum } from 'src/utils/user-status.enum';
+
 export class ProfileDto {
   user_info: UserInfoDto;
   avatar?: Buffer;
@@ -12,6 +14,7 @@ export class ProfileDto {
 export class UserInfoDto {
   user_id: string;
   user_name: string;
+  status: UserStatusEnum;
 }
 
 export class GameStatsDto {
@@ -34,6 +37,7 @@ export class TotalTimePlayedDto {
 export class FriendDto {
   user_id: string;
   user_name: string;
+  status: UserStatusEnum;
 }
 
 export class MostFrequentOpponentDto {
