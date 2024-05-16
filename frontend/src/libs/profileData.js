@@ -16,7 +16,7 @@ export const loadProfileAvatar = async (userId ) => {
     responseType: 'blob',
     withCredentials: true,
   });
-  const imageUrl = URL.createObjectURL(response.data); // Use the blob from response.data
+  const imageUrl = URL.createObjectURL(response.data);
   return imageUrl;
 }
 

@@ -4,21 +4,21 @@ import { loadProfile, loadProfileAvatar } from '../libs/profileData';
 import axios from 'axios';
 
 const Settings = () => {
-  const [userProfile, setUserProfile] = useStorage("user");
+  const [userProfile] = useStorage("user");
+  const [avatar, setAvatar] = useStorage("avatar");
+  const [profile, setProfile] = useState('');
   const [newUserName, setNewUserName] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (userProfile?.user_id) {
+      if (userProfile) {
         try {
           const dbProfile = await loadProfile(userProfile.user_id);
-          const imageUrl = await loadProfileAvatar(userProfile.user_id);
-          setAvatarUrl(imageUrl);
-          setNewUserName(dbProfile.user_name);
+          setProfile(dbProfile);
+          console.log('quiiiii', dbProfile);
         } catch (error) {
           console.error('Error fetching user data:', error);
           setFeedback('Failed to load user data.');
@@ -27,7 +27,24 @@ const Settings = () => {
     };
 
     fetchUserProfile();
-  }, [userProfile, avatarUrl,newUserName]);
+    console.log('userProfile', userProfile);
+  }, [userProfile]);
+
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      if (userProfile?.user_id) {
+        try {
+          const imageUrl = await loadProfileAvatar(userProfile.user_id);
+          setAvatar(imageUrl);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          setFeedback('Failed to load user data.');
+        }
+      }
+    };
+
+    fetchAvatar();
+  }, [setAvatar]);
 
   const handleUserNameSubmit = async () => {
     if (newUserName && newUserName !== userProfile.user_name) {
@@ -37,7 +54,7 @@ const Settings = () => {
         }, {
           withCredentials: true,
         });
-        setUserProfile({ ...userProfile, user_name: newUserName });
+        setProfile({ ...userProfile, user_name: newUserName });
         setFeedback('Username updated successfully.');
       } catch (error) {
         console.error("Error updating user data:", error);
@@ -85,7 +102,9 @@ const Settings = () => {
     });
 
     if (response.data.status === 'success') { // Adjust according to actual server response
-      setAvatarUrl(URL.createObjectURL(file)); // Preview updated avatar
+      // const imageUrl = URL.createObjectURL(response.data);
+      const newAvatarUrl = response.data.avatarUrl
+      setAvatar(newAvatarUrl);
       setFeedback('Avatar updated successfully.');
     } else {
       throw new Error(response.data.message || 'Failed to update avatar without a specific error.');
@@ -104,6 +123,7 @@ const Settings = () => {
     }
   } finally {
     setLoading(false);
+    window.location.reload();
   }
 };
 
@@ -113,7 +133,7 @@ const Settings = () => {
       <div className="profile">
         <div className="flex">
           <div className="item">
-            {avatarUrl ? <img className='avatar' src={avatarUrl} alt="User Avatar" /> : <p>Loading...</p>}
+            {avatar  ? <img className='avatar' src={avatar} alt="User Avatar" /> : <p>Loading...</p>}
             <div className="item">Change Profile Picture:</div>
             <form onSubmit={handleAvatarSubmit}>
               <input type="file" onChange={(e) => setFile(e.target.files[0])} disabled={loading} />
@@ -122,7 +142,7 @@ const Settings = () => {
             </form>
           </div>
           <div className="item">
-          <span className="item">{userProfile?.user_name}</span>
+          <h3 className='name text-dark'>{profile?.user_info?.user_name}</h3>
           <div className="item">Change name:</div>
             <input type="text" placeholder="New Username..." onChange={(e) => setNewUserName(e.target.value)} value={newUserName} />
             <button onClick={handleUserNameSubmit}>Submit</button>

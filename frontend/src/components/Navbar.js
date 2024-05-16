@@ -3,12 +3,12 @@ import { NavLink } from 'react-router-dom';
 import classes from './Navbar.module.css';
 import LogoutButton from './LogoutButton';
 import useStorage from '../hooks/useStorage';
-// import  UserContext  from '../context/UserContext';
+import  UserContext  from '../context/UserContext';
 import { loadProfile, loadProfileAvatar } from '../libs/profileData';
 
 function Navbar() {
-  // const { userProfile } = useContext(UserContext);
-  const [userProfile] = useStorage("user");
+  const { userProfile } = useContext(UserContext);
+  // const [userProfile] = useStorage("user");
   const [avatar,setAvatar] = useStorage('avatar', '');
   const [userName, setUserName] = useState('');
   // const [avatarUrl, setAvatarUrl] = useState('');

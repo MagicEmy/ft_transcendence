@@ -4,7 +4,6 @@ import Cookies from 'js-cookie';
 
 const AuthContext = createContext({
 	authToken: null,
-	setAuthToken: () => { },
 	isLogged: false,
 	setIsLogged: () => { },
 });
@@ -53,7 +52,6 @@ export const AuthProvider = ({ children }) => {
 	return (
 		<AuthContext.Provider value={{
 			authToken,
-			setAuthToken,
 			isLogged,
 			setIsLogged,
 		}}>

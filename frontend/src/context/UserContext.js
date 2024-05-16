@@ -14,43 +14,45 @@ export const UserProvider = ({ children }) => {
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		if (authToken) {
-			setIsLoading(true);
-			const fetchUser = async () => {
-				try {
-					const response = await axios.get('http://localhost:3003/auth/profile', {
-						headers: {
-							Authorization: `Bearer ${authToken}`,
-						},
-						withCredentials: true,
-					});
-					if (response.status === 200) {
-						setUserProfile(response.data);
-						console.log('userContext', response.data);
-					} else {
-						console.error('Failed to fetch profile data:', response);
-					}
-				} catch (error) {
-					console.error('Error fetching user data:', error);
-				} finally {
-					setIsLoading(false);
-				}
-			};
-			fetchUser();
-		} else {
+		if (!authToken || authToken === null) {
+			console.log('No authToken available.');
 			setIsLoading(false);
-			console.log('No authToken !userProfile?.id');
+			return;
 		}
+		setIsLoading(true);
+		console.log(`Authorization header: Bearer ${authToken}`);
+		const fetchUser = async () => {
+			try {
+				const response = await axios.get('http://localhost:3003/auth/profile', {
+					headers: {
+						Authorization: `Bearer ${authToken}`,
+					},
+					withCredentials: true,
+				});
+				if (response.status === 200) {
+					setUserProfile(response.data);
+					console.log('userContext', response.data);
+				} else {
+					console.error('Failed to fetch profile data:', response);
+				}
+			} catch (error) {
+				console.error('Error fetching user data:', error);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+		fetchUser();
+
 	}, [authToken, userProfile?.id, setUserProfile, setIsLoading]);
 
-	return (
-		<UserContext.Provider value={{
-			userProfile,
-			isLoading
-		}}>
-			{children}
-		</UserContext.Provider>
-	);
+return (
+	<UserContext.Provider value={{
+		userProfile,
+		isLoading
+	}}>
+		{children}
+	</UserContext.Provider>
+);
 };
 
 export default UserContext;

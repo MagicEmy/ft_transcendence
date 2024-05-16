@@ -15,146 +15,145 @@ function Profile() {
   const [friends, setFriends] = useState([]);
   const status = "Online";
 
-  const userIdOrMe = userId || userProfile.user_id;
+  useEffect(() => {
 
-  const fetchDbProfile = async () => {
-    try {
-      // const userIdOrMe = userId || userProfile.user_id;
-      const dbProfile = await loadProfile(userIdOrMe);
-      setProfile(dbProfile);
-      console.log("HERE dbProfile: ", dbProfile);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
+    const fetchDbProfile = async () => {
+      try {
+        const userIdOrMe = userId || userProfile.user_id;
+        const dbProfile = await loadProfile(userIdOrMe);
+        setProfile(dbProfile);
+        console.log("HERE dbProfile: ", dbProfile);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    fetchDbProfile();
+}, [userId, userProfile.user_id]);
 
+useEffect(() => {
   const fetchAvatar = async () => {
     try {
-      // const userIdOrMe = userId || userProfile.user_id;
+      const userIdOrMe = userId || userProfile.user_id;
       const imageUrl = await loadProfileAvatar(userIdOrMe);
       setAvatarUrl(imageUrl);
     } catch (error) {
       console.error('Error fetching avatar:', error.message);
     }
   };
-
-  const fetchFriends = async () => {
-    try {
-      // const userIdOrMe = userId || userProfile.user_id;
-      const profileFriends = await loadFriends(userIdOrMe);
-      setFriends(profileFriends);
-      console.log("friends: ", profileFriends);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
-
-  const handleFriendClick = async () => {
-    if (isFriend) {
-      console.log("Delete friend:", userId);
-      await deleteFriend(userProfile.user_id, userId);
-    } else {
-      console.log("Add friend:", userId);
-      await addFriend(userProfile.user_id, userId);
-    }
-  };
+  fetchAvatar();
+}, [userId, userProfile.user_id, setAvatarUrl]);
 
 
-  useEffect(() => {
-    // const userIdOrMe = userId || userProfile.user_id;
-    if (userIdOrMe) {
-      fetchDbProfile();
-      fetchAvatar();
-      fetchFriends();
-    }
-  }, [userId, userProfile.user_id]);
+useEffect(() => {
+const fetchFriends = async () => {
+  try {
+    const userIdOrMe = userId || userProfile.user_id;
+    const profileFriends = await loadFriends(userIdOrMe);
+    setFriends(profileFriends);
+    console.log("friends: ", profileFriends);
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+  }
+};
+
+fetchFriends();
+}, [userId, userProfile.user_id]);
+
+const handleFriendClick = async () => {
+  if (isFriend) {
+    console.log("Delete friend:", userId);
+    await deleteFriend(userProfile.user_id, userId);
+  } else {
+    console.log("Add friend:", userId);
+    await addFriend(userProfile.user_id, userId);
+  }
+};
+
+const isFriend = friends?.includes(userId);
+console.log("isFriend: ", isFriend);
+console.log("profile.user_id  : ", userId);
+console.log("userProfile.user_id : ", userProfile.user_id);
 
 
-  const isFriend = friends?.includes(userId);
-  console.log("isFriend: ", isFriend);
-  console.log("profile.user_id  : ", userId);
-  console.log("userProfile.user_id : ", userProfile.user_id);
-
-
-  return (
-    <div className="main">
-      <div className="profile">
-        <div className="flex">
+return (
+  <div className="main">
+    <div className="profile">
+      <div className="flex">
+        <div className="item">
+          {avatarUrl ? <img src={avatarUrl} alt="User Avatar" /> : <p>Loading...</p>}
+          <h3 className='name text-dark'>{profile?.user_info?.user_name}</h3>
           <div className="item">
-            {avatarUrl ? <img src={avatarUrl} alt="User Avatar" /> : <p>Loading...</p>}
-            <h3 className='name text-dark'>{profile?.user_info?.user_name}</h3>
-            <div className="item">
-              <span className={`status-indicator ${status === 'Online' ? 'online' : 'offline'}`}></span>
-              {status}
-            </div>
-            <div >
-              {userId !== userProfile.user_id && (
-                <button onClick={handleFriendClick}>
-                  {isFriend ? 'Delete Friend' : 'Add Friend'}
-                </button>
-              )}
-            </div>
+            <span className={`status-indicator ${status === 'Online' ? 'online' : 'offline'}`}></span>
+            {status}
           </div>
-          <div className="item">
-            <div className="info">
-              <div className="stats">
-                <h3 className='name text-dark'>Leaderboard position: <span className="stat"><strong>{profile?.leaderboard_position}</strong></span></h3>
-                <span className="stat">Total players <strong>{profile.total_players}</strong></span>
-                <h3 className='name text-dark'>Opponents</h3>
-                {profile && profile.most_frequent_opponent.map((opponent) => (
-                  <div key={opponent.user_name}>
-                    <div className="stat">Most frequent opponent: </div>
-                    <NavLink to={`/profile/${opponent.user_id}`}>{opponent.user_name}</NavLink>
-                  </div>
-                ))}
-                <h3 className='name text-dark'>Games Against players</h3>
-                <span className="stat">Total played games <strong>{profile?.games_against_human?.total_played_games}</strong></span>
-                <span className="stat">max_score <strong>{profile?.games_against_human?.max_score}</strong></span>
-                <span className="stat">Wins: <strong>{profile?.games_against_human?.wins}</strong></span>
-                <span className="stat">Draws: <strong>{profile?.games_against_human?.draws}</strong></span>
-                <span className="stat">Losses: <strong>{profile?.games_against_human?.losses}</strong></span>
-                <h4 className='name text-dark'>Total time played against players</h4>
-                <span className="stat">Weeks <strong>{profile?.games_against_human?.total_time_played?.weeks}</strong></span>
-                <span className="stat">Days <strong>{profile?.games_against_human?.total_time_played?.days}</strong></span>
-                <span className="stat">Hours: <strong>{profile?.games_against_human?.total_time_played?.hours}</strong></span>
-                <span className="stat">Minutes: <strong>{profile?.games_against_human?.total_time_played?.minutes}</strong></span>
-                <span className="stat">Seconds: <strong>{profile?.games_against_human?.total_time_played?.seconds}</strong></span>
-                <h3 className='name text-dark'>Games Against bot</h3>
-                <span className="stat">total_played_games <strong>{profile?.games_against_bot?.total_played_games}</strong></span>
-                <span className="stat">max_score <strong>{profile?.games_against_bot?.max_score}</strong></span>
-                <span className="stat">Wins: <strong>{profile?.games_against_bot?.wins}</strong></span>
-                <span className="stat">Draws: <strong>{profile?.games_against_bot?.draws}</strong></span>
-                <span className="stat">Losses: <strong>{profile?.games_against_bot?.losses}</strong></span>
-                <h4 className='name text-dark'>Total time played against bot</h4>
-                <span className="stat">Weeks <strong>{profile?.games_against_bot?.total_time_played?.weeks}</strong></span>
-                <span className="stat">Days <strong>{profile?.games_against_bot?.total_time_played?.days}</strong></span>
-                <span className="stat">Hours: <strong>{profile?.games_against_bot?.total_time_played?.hours}</strong></span>
-                <span className="stat">Minutes: <strong>{profile?.games_against_bot?.total_time_played?.minutes}</strong></span>
-                <span className="stat">Seconds: <strong>{profile?.games_against_bot?.total_time_played?.seconds}</strong></span>
-              </div>
+          <div >
+            {userId !== userProfile.user_id && (
+              <button onClick={handleFriendClick}>
+                {isFriend ? 'Delete Friend' : 'Add Friend'}
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="item">
+          <div className="info">
+            <div className="stats">
+              <h3 className='name text-dark'>Leaderboard position: <span className="stat"><strong>{profile?.leaderboard_position}</strong></span></h3>
+              <span className="stat">Total players <strong>{profile.total_players}</strong></span>
+              <h3 className='name text-dark'>Opponents</h3>
+              {profile && profile.most_frequent_opponent.map((opponent) => (
+                <div key={opponent.user_name}>
+                  <div className="stat">Most frequent opponent: </div>
+                  <NavLink to={`/profile/${opponent.user_id}`}>{opponent.user_name}</NavLink>
+                </div>
+              ))}
+              <h3 className='name text-dark'>Games Against players</h3>
+              <span className="stat">Total played games <strong>{profile?.games_against_human?.total_played_games}</strong></span>
+              <span className="stat">max_score <strong>{profile?.games_against_human?.max_score}</strong></span>
+              <span className="stat">Wins: <strong>{profile?.games_against_human?.wins}</strong></span>
+              <span className="stat">Draws: <strong>{profile?.games_against_human?.draws}</strong></span>
+              <span className="stat">Losses: <strong>{profile?.games_against_human?.losses}</strong></span>
+              <h4 className='name text-dark'>Total time played against players</h4>
+              <span className="stat">Weeks <strong>{profile?.games_against_human?.total_time_played?.weeks}</strong></span>
+              <span className="stat">Days <strong>{profile?.games_against_human?.total_time_played?.days}</strong></span>
+              <span className="stat">Hours: <strong>{profile?.games_against_human?.total_time_played?.hours}</strong></span>
+              <span className="stat">Minutes: <strong>{profile?.games_against_human?.total_time_played?.minutes}</strong></span>
+              <span className="stat">Seconds: <strong>{profile?.games_against_human?.total_time_played?.seconds}</strong></span>
+              <h3 className='name text-dark'>Games Against bot</h3>
+              <span className="stat">total_played_games <strong>{profile?.games_against_bot?.total_played_games}</strong></span>
+              <span className="stat">max_score <strong>{profile?.games_against_bot?.max_score}</strong></span>
+              <span className="stat">Wins: <strong>{profile?.games_against_bot?.wins}</strong></span>
+              <span className="stat">Draws: <strong>{profile?.games_against_bot?.draws}</strong></span>
+              <span className="stat">Losses: <strong>{profile?.games_against_bot?.losses}</strong></span>
+              <h4 className='name text-dark'>Total time played against bot</h4>
+              <span className="stat">Weeks <strong>{profile?.games_against_bot?.total_time_played?.weeks}</strong></span>
+              <span className="stat">Days <strong>{profile?.games_against_bot?.total_time_played?.days}</strong></span>
+              <span className="stat">Hours: <strong>{profile?.games_against_bot?.total_time_played?.hours}</strong></span>
+              <span className="stat">Minutes: <strong>{profile?.games_against_bot?.total_time_played?.minutes}</strong></span>
+              <span className="stat">Seconds: <strong>{profile?.games_against_bot?.total_time_played?.seconds}</strong></span>
             </div>
           </div>
         </div>
-        {friends && friends.length > 0 ? (
-          <div className="friend-link">
-            {friends.map((friends, index) => (
-              <div key={`${friends}-${index}`}>
-                <NavLink to={`/profile/${friends}`} className={({ isActive }) =>
-                  isActive ? "active" : undefined
-                }>
-                  <strong>{friends}</strong>
-                </NavLink>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <aside className="friends">No friends to display.</aside>
-        )}
+      </div>
+      {friends && friends.length > 0 ? (
+        <div className="friend-link">
+          {friends.map((friends, index) => (
+            <div key={`${friends}-${index}`}>
+              <NavLink to={`/profile/${friends}`} className={({ isActive }) =>
+                isActive ? "active" : undefined
+              }>
+                <strong>{friends}</strong>
+              </NavLink>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <aside className="friends">No friends to display.</aside>
+      )}
 
 
-      </div >
-    </div>
-  );
+    </div >
+  </div>
+);
 }
 
 export default Profile;
