@@ -4,9 +4,10 @@ import { loadProfile, loadProfileAvatar } from '../libs/profileData';
 import axios from 'axios';
 
 const Settings = () => {
-  const [userProfile] = useStorage("user");
+  const [userProfile, ,] = useStorage("user");
   const [avatar, setAvatar] = useStorage("avatar");
   const [profile, setProfile] = useState('');
+  // const [avatar, setAvatar] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [file, setFile] = useState(null);
   const [avatarLoading, setAvatarLoading] = useState(false);
@@ -27,7 +28,7 @@ const Settings = () => {
 
     fetchUserProfile();
     console.log('userProfile', userProfile);
-  }, [userProfile]);
+  }, [userProfile, setProfile]);
 
   useEffect(() => {
     const fetchAvatar = async () => {
@@ -48,7 +49,7 @@ const Settings = () => {
   const handleUserNameSubmit = async () => {
     if (newUserName && newUserName !== userProfile.user_name) {
       try {
-        await axios.patch(`http://localhost:3002/user/${userProfile.user_id}/${userProfile.user_name}`, {
+        await axios.patch(`http://localhost:3002/user/${userProfile.user_id}/user_name`, {
           user_name: newUserName,
         }, {
           withCredentials: true,
@@ -88,12 +89,17 @@ const Settings = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true,
       });
-
+      console.log("response.data", response.data);
+      console.log("response.status", response.status);
+      console.log("statusText", response.statusText);
+      console.log("headers" ,response.headers);
+      console.log(response.config);
       if (response.data.status === 'success') {
         const newAvatarUrl = response.data.avatarUrl;
         const updatedAvatarUrl = `${newAvatarUrl}?v=${Date.now()}`; // Cache busting
         setAvatar(updatedAvatarUrl);
         setFeedback('Avatar updated successfully.');
+        // window.location.reload();
       } else {
         throw new Error(response.data.message || 'Failed to update avatar without a specific error.');
       }
@@ -112,7 +118,7 @@ const Settings = () => {
       <div className="profile">
         <div className="flex">
           <div className="item">
-          {avatarLoading ? <p>Loading avatar...</p> : <img className='avatar' src={avatar} alt="User Avatar" key={avatar} />}
+            {avatarLoading ? <p>Loading avatar...</p> : <img className='avatar' src={avatar} alt="User Avatar" key={avatar} />}
             <div className="item">Change Profile Picture:</div>
             <form onSubmit={handleAvatarSubmit}>
               <input type="file" onChange={(e) => setFile(e.target.files[0])} disabled={avatarLoading} />
@@ -121,8 +127,8 @@ const Settings = () => {
             </form>
           </div>
           <div className="item">
-          <h3 className='name text-dark'>{profile?.user_info?.user_name}</h3>
-          <div className="item">Change name:</div>
+            <h3 className='name text-dark'>{profile?.user_info?.user_name}</h3>
+            <div className="item">Change name:</div>
             <input type="text" placeholder="New Username..." onChange={(e) => setNewUserName(e.target.value)} value={newUserName} />
             <button onClick={handleUserNameSubmit}>Submit</button>
           </div>

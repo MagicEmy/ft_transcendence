@@ -7,7 +7,6 @@ const AuthContext = createContext({
 	isLogged: false,
 	setIsLogged: () => { },
 });
-// /localStorage.setItem('token', token);
 export const AuthProvider = ({ children }) => {
 	const [authToken, setAuthToken] = useStorage('authToken', '');
 	const [isLogged, setIsLogged] = useState(false);

@@ -7,7 +7,7 @@
 }
 
 .profile{
-	border : 10px solid #f6790b;
+	border : 10px solid #230bf6;
 	border-radius: 30px;
     height: 100%;
     margin-top: 3em;
@@ -42,7 +42,7 @@
 }
 
 .text-dark{
-    color: #2e0bf6
+    color: #0d045a
 }
 
 .status-indicator {
@@ -68,7 +68,7 @@
 /* .info .total-points {
     display: block; /* Ensures that the points are on a new line */
     /* margin-bottom: 8px; /* Adds space below the total points
-} */ 
+} */
 
 .stats .stat {
     display: inline-block; /* Allows items to sit side-by-side */
