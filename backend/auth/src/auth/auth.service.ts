@@ -92,7 +92,6 @@ export class AuthService {
       secure: true,
       expires: new Date(Date.now() + Number(expirationTime)),
       httpOnly: httpOnly,
-      sameSite: 'None',
     };
   }
 
