@@ -61,7 +61,7 @@ export class UserController {
     @Param('id') id: string,
     @Body('user_name') user_name: string,
   ): Promise<User> {
-    return this.userService.changeUsername(id, user_name);
+    return this.userService.changeUsername({ userId: id, userName: user_name });
   }
 
   //   friend

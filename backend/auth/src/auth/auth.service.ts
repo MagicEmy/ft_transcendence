@@ -6,6 +6,7 @@ import { JwtPayloadDto } from './dto/jwt-payload-dto';
 import { ClientKafka } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { ValidateUserDto } from 'src/user/dto/validate-user-dto';
+import { NewUserDto } from './dto/new-user-dto';
 import { TokensDto } from './dto/tokens-dto';
 import { Token } from 'src/user/token-entity';
 import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
@@ -38,13 +39,17 @@ export class AuthService {
       this.userService.createAvatarRecord(user.user_id, avatar_url);
 
       // new user creation is broadcast to profile and chat
-      this.statsClient.emit('new_user', {
+      this.announceNewUser({
         user_id: user.user_id,
         intra_login: user.intra_login,
         user_name: user.user_name,
       });
     }
     return user;
+  }
+
+  private announceNewUser(newUserDto: NewUserDto): void {
+    this.statsClient.emit('new_user', newUserDto);
   }
 
   login(user: User): TokensDto {
