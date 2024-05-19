@@ -20,8 +20,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Express, Response } from 'express';
 import { FriendService } from '../friend/friend.service';
 import { EventPattern } from '@nestjs/microservices';
-import { UserStatusEnum } from 'src/utils/user-status.enum';
+import { UserStatusEnum } from 'src/utils/kafka.enum';
 import { FriendWithNameDto } from 'src/dto/friend-with-name-dto';
+import { KafkaTopic } from 'src/utils/kafka.enum';
 
 @Controller('user')
 export class UserController {
@@ -32,9 +33,19 @@ export class UserController {
     private readonly friendService: FriendService,
   ) {}
 
-  @EventPattern('new_user')
+  @EventPattern(KafkaTopic.NEW_USER)
   createUserStatus(data: any): void {
     console.log(this.userService.createUserStatus(data.user_id));
+  }
+
+  @EventPattern(KafkaTopic.STATUS_CHANGE)
+  updateUserStatus(data: any): void {
+    console.log('in updateUserStatus(), received', data);
+    console.log(typeof data);
+    this.userService.changeUserStatus({
+      user_id: data.userId,
+      status: data.newStatus,
+    });
   }
 
   @Patch('/:id/status')

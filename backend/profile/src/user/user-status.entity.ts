@@ -1,4 +1,4 @@
-import { UserStatusEnum } from 'src/utils/user-status.enum';
+import { UserStatusEnum } from 'src/utils/kafka.enum';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'user_status' })
