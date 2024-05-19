@@ -26,26 +26,19 @@ export class AuthController {
   @UseGuards(FourtyTwoAuthGuard)
   @Get('42/redirect')
   handleRedirect(@Req() req, @Res() resp: Response): void {
-    const { jwtAccessToken, jwtRefreshToken } = this.authService.login(
-      req.user,
-    );
+    const tokens = this.authService.login(req.user);
     // setting the jwt tokens in cookies
-    resp.cookie(
-      this.configService.get('JWT_ACCES_TOKEN_COOKIE_NAME'),
-      jwtAccessToken,
-      this.authService.getTokenCookieOptions(
-        this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
-        false,
-      ),
+    const accessCookie = this.authService.getCookieWithTokens(
+      this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
+      tokens.jwtAccessToken,
+      this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
     );
-    resp.cookie(
+    const refreshCookie = this.authService.getCookieWithTokens(
       this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
-      jwtRefreshToken,
-      this.authService.getTokenCookieOptions(
-        this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
-        true,
-      ),
+      tokens.jwtRefreshToken,
+      this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
     );
+    resp.setHeader('Set-Cookie', [accessCookie, refreshCookie]);
     return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
   }
 
@@ -53,7 +46,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   logout(@Req() req, @Res() resp: Response, @Body() userId: string): Response {
-    resp.clearCookie(this.configService.get('JWT_ACCES_TOKEN_COOKIE_NAME'));
+    resp.clearCookie(this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'));
     resp.clearCookie(this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'));
     this.authService.deleteRefreshTokenFromDB({ userId: userId });
     return resp.sendStatus(200);
@@ -62,7 +55,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Req() req) {
-    return req.user;
+	return 'You got this!';
+    // return req.user;
   }
 }
 

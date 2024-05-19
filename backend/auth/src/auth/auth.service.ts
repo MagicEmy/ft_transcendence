@@ -91,13 +91,9 @@ export class AuthService {
     );
   }
 
-  getTokenCookieOptions(expirationTime: string, httpOnly: boolean) {
-    return {
-      path: '/',
-      secure: true,
-      expires: new Date(Date.now() + Number(expirationTime)),
-      httpOnly: httpOnly,
-    };
+  getCookieWithTokens(cookieName: string, token: string, expirationTime: string): string {
+	const cookie = `${cookieName}=${token}; Path=/; HttpOnly; Secure=true; Max-Age=${expirationTime}`
+	return cookie;
   }
 
   async deleteRefreshTokenFromDB(
@@ -121,5 +117,19 @@ export class AuthService {
 
   async getUserByRefreshToken(refreshToken: string): Promise<User> {
     return this.userService.getUserByRefreshToken(refreshToken);
+  }
+
+  extractTokenFromCookies(req): string {
+    const cookies = req.get('cookie');
+    let tokenValue = '';
+    if (cookies) {
+      cookies.split(';').forEach((cookie) => {
+        const [name, value] = cookie.trim().split('=');
+        if (name === this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME')) {
+          tokenValue = value;
+        }
+      });
+    }
+    return tokenValue;
   }
 }
