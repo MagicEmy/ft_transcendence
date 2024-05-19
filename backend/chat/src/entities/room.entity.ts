@@ -14,6 +14,7 @@ export class Room implements RoomDto{
       muteds: MutedDto[]
       exclusive: boolean
       password: string
+      direct: boolean
       messages: Message[]
 }
     

@@ -1,71 +1,140 @@
-export interface UserDto {
-    userId: string
-    userName: string
-    socketId: string
+import { IsNotEmpty, IsString, IsBoolean, IsInt } from 'class-validator';
+
+
+export class UserDto {
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+  @IsNotEmpty()
+  @IsString()
+  userName: string;
 }
 
-export interface RoomDto{
-    roomName: string
-    host: UserDto
-    admins: UserDto[]
-    users: UserDto[]
-    banned: UserDto[]
-    muteds: MutedDto[]
-    exclusive: boolean
-    password: string
+export class RoomDto {
+  roomName: string;
+  host: UserDto;
+  admins: UserDto[];
+  users: UserDto[];
+  banned: UserDto[];
+  muteds: MutedDto[];
+  exclusive: boolean;
+  password: string;
+  direct: boolean;
 }
 
-export interface CreateRoomDto{
-    roomName: string
-    user: UserDto
-    exclusive: boolean
-    exclusiveMember: string[]
-    password: string
+export class DoWithUserDto {
+  @IsNotEmpty()
+  userCreator: UserDto;
+  @IsNotEmpty()
+  userReceiver: UserDto;
 }
 
-export interface JoinRoomDto{
-    roomName: string
-    user: UserDto
-    password: string
+export class CreateRoomDto {
+  @IsNotEmpty()
+  @IsString()
+  roomName: string;
+  @IsNotEmpty()
+  user: UserDto;
+  @IsNotEmpty()
+  @IsBoolean()
+  exclusive: boolean;
+  @IsString()
+  password: string;
 }
 
-export interface toDoUserRoomDto{
-    roomName: string
-    user: UserDto
-    toDoUser: string
-    timer: number
+export class JoinRoomDto {
+  @IsNotEmpty()
+  @IsString()
+  roomName: string;
+  @IsNotEmpty()
+  user: UserDto;
+  @IsString()
+  password: string;
+}
+
+export class ToDoUserRoomDto {
+  @IsNotEmpty()
+  @IsString()
+  roomName: string;
+  @IsNotEmpty()
+  user: UserDto;
+  @IsNotEmpty()
+  @IsString()
+  toDoUser: string;
+  @IsInt()
+  @IsNotEmpty()
+  timer: number;
+}
+
+export class MutedDto {
+  userId: string;
+  unmutedTime: number;
+}
+
+export class MessageDto {
+  @IsNotEmpty()
+  user: UserDto;
+  @IsNotEmpty()
+  @IsString()
+  message: string;
+  @IsNotEmpty()
+  @IsString()
+  roomName: string;
+}
+
+export class UserAndRoom {
+  @IsNotEmpty()
+  user: UserDto;
+  @IsNotEmpty()
+  @IsString()
+  roomName: string;
 }
 
 
-export interface MutedDto{
-    userId: string
-    unmutedTime: number
-
+export class UserShowDto {
+  userId: string;
+  userName: string;
+  isMuted: boolean;
+  isBanned: boolean;
+  isAdmin: boolean;
+  isOwner: boolean;
+  online: boolean;
+  userBeenBlocked: string[];
 }
 
-export interface ChatMessageDto{
-    user: UserDto
-    message: string
-    roomName: string
+
+
+export class ChatUserDto {
+  userId: string;
+  userName: string;
+  userBeenBlocked: string[];
+  online: boolean;
 }
 
-export interface MessageDto {
-    user: UserDto
-    message: string
-    roomName: string
+export class RoomUserDto {
+  roomName: string;
+  users: UserShowDto[];
 }
 
-export interface GetMessageDto {
-    user: UserDto
-    roomName: string
+export class RoomShowDto {
+  roomName: string;
+  password: boolean;
+  exclusive: boolean;
+  owner: string;
 }
 
-export interface LeaveRoomDto{
-    user: UserDto
-    roomName: string
-}
-
-export interface BlockedUserDto {
-	blockingUserId: string;
-	blockedUserId: string;
+export class UpdateRoomDto{
+  @IsNotEmpty()
+  user: UserDto;
+  @IsNotEmpty()
+  @IsString()
+  roomName: string;
+  @IsBoolean()
+  @IsNotEmpty()
+  updatePassword: boolean;
+  @IsString()
+  newPassword: string;
+  @IsBoolean()
+  @IsNotEmpty()
+  updateExclusive: boolean;
 }

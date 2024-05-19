@@ -5,12 +5,16 @@ import { User } from 'src/entities/user.entity';
 import { UserRepository } from './user.repository';
 import { BlockedUserRepository } from './blocked-user.repository';
 import { BlockedUser } from 'src/entities/blocked-user.entity';
-import { UserController } from './user.controller';
+import { KafkaProducerService } from 'src/kafka/kafka-producer.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, BlockedUser])],
-  providers: [UserService, UserRepository, BlockedUserRepository],
+  providers: [
+    UserService,
+    UserRepository,
+    BlockedUserRepository,
+    KafkaProducerService,
+  ],
   exports: [UserService],
-  controllers: [UserController],
 })
 export class UserModule {}
