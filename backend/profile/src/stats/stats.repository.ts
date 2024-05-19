@@ -3,7 +3,7 @@ import { Stats } from './stats.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NewUserDto } from '../dto/new-user-dto';
 import { Opponent } from '../utils/opponent.enum';
-import { LeaderboardQueryResultDto } from '../dto/leaderboard-query-result-dto';
+import { LeaderboardStatsDto } from 'src/dto/leaderboard-stats-dto';
 
 export class StatsRepository extends Repository<Stats> {
   constructor(
@@ -32,10 +32,11 @@ export class StatsRepository extends Repository<Stats> {
     await this.statsRepository.save(statsBot);
   }
 
-  async getStatsForLeaderboard(): Promise<LeaderboardQueryResultDto[]> {
+  async getStatsForLeaderboard(): Promise<LeaderboardStatsDto[]> {
     return this.createQueryBuilder('stats')
-      .select('user_id, wins, losses, draws')
-      .where('opponent LIKE :opponent', { opponent: 'human' })
+      .select('user_id, wins, losses, draws, points_total')
+      .where('opponent LIKE :opponent', { opponent: Opponent.HUMAN })
+      .orderBy('points_total', 'DESC')
       .getRawMany();
   }
 }

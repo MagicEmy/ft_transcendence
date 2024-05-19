@@ -4,6 +4,6 @@ export class LeaderboardStatsDto {
   wins: number;
   losses: number;
   draws: number;
-  points: number;
+  points_total: number;
   rank?: number;
 }

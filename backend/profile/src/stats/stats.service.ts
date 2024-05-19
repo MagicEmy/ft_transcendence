@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GameEndDto } from '../dto/game-end-dto';
 import { NewUserDto } from '../dto/new-user-dto';
 import { StatsRepository } from './stats.repository';
 import { UpdateStatsDto } from '../dto/update-stats-dto';
@@ -16,7 +15,7 @@ import {
 import { GameStatsDto, TotalTimePlayedDto } from 'src/dto/profile-dto';
 import { LeaderboardStatsDto } from '../dto/leaderboard-stats-dto';
 import { UserService } from 'src/user/user.service';
-import { LeaderboardQueryResultDto } from '../dto/leaderboard-query-result-dto';
+import { IGameStatus } from 'src/utils/kafka.interface';
 
 @Injectable()
 export class StatsService {
@@ -26,33 +25,33 @@ export class StatsService {
     private readonly userService: UserService,
   ) {}
 
-  async updateStats(gameEndDto: GameEndDto): Promise<void> {
-    const { player1_id, player2_id, player1_score, player2_score, duration } =
-      gameEndDto;
+  async updateStats(gameStatus: IGameStatus): Promise<void> {
+    const { player1ID, player2ID, player1Score, player2Score } = gameStatus; // duration to be added
+    const duration = gameStatus.player1Score * gameStatus.player2Score * 1111;
     const player1 = {
-      player_id: player1_id,
+      player_id: player1ID,
       //   opponent: player2_id ? Opponent.HUMAN : Opponent.BOT,
-      opponent: player2_id != Opponent.BOT ? Opponent.HUMAN : Opponent.BOT,
-      score: +player1_score,
+      opponent: player2ID != Opponent.BOT ? Opponent.HUMAN : Opponent.BOT,
+      score: +player1Score,
       result:
-        player1_score === player2_score
+        player1Score === player2Score
           ? 0
-          : (player1_score - player2_score) /
-            Math.abs(player1_score - player2_score),
+          : (player1Score - player2Score) /
+            Math.abs(player1Score - player2Score),
       duration: +duration,
     };
     await this.updateStatsOfPlayer(player1);
-    // if (player2_id) {
-    if (player2_id != Opponent.BOT) {
+    // if (player2ID) {
+    if (player2ID != Opponent.BOT) {
       const player2 = {
-        player_id: player2_id,
+        player_id: player2ID,
         opponent: Opponent.HUMAN,
-        score: +player2_score,
+        score: +player2Score,
         result:
-          player1_score === player2_score
+          player1Score === player2Score
             ? 0
-            : (player2_score - player1_score) /
-              Math.abs(player2_score - player1_score),
+            : (player2Score - player1Score) /
+              Math.abs(player2Score - player1Score),
         duration: +duration,
       };
       await this.updateStatsOfPlayer(player2);
@@ -113,6 +112,7 @@ export class StatsService {
         case 1:
           statsRow.wins += 1;
       }
+      statsRow.points_total = statsRow.wins * 3 + statsRow.draws;
     }
     await this.statsRepository.save(statsRow);
   }
@@ -155,30 +155,15 @@ export class StatsService {
     };
   }
 
-  calculateLeaderboardPoints(
-    queryResult: LeaderboardQueryResultDto[],
-  ): LeaderboardStatsDto[] {
-    const leaderboard = [];
-    for (const item of queryResult) {
-      leaderboard.push({
-        user_id: item.user_id,
-        wins: item.wins,
-        losses: item.losses,
-        draws: item.draws,
-        points: item.wins * 3 + item.draws,
-      });
-    }
-    return leaderboard;
-  }
-
   calculateLeaderboardRanks(
     leaderboard: LeaderboardStatsDto[],
   ): LeaderboardStatsDto[] {
     let previousPointValue: number = Number.MAX_SAFE_INTEGER;
     let previousRank: number = 0;
     for (const [idx, item] of leaderboard.entries()) {
-      item.rank = previousPointValue > item.points ? idx + 1 : previousRank;
-      previousPointValue = item.points;
+      item.rank =
+        previousPointValue > item.points_total ? idx + 1 : previousRank;
+      previousPointValue = item.points_total;
       previousRank = item.rank;
     }
     return leaderboard;
@@ -187,10 +172,9 @@ export class StatsService {
   async createLeaderboard(options: {
     user_names: boolean;
   }): Promise<LeaderboardStatsDto[]> {
-    const queryResult = await this.statsRepository.getStatsForLeaderboard();
-    let leaderboard = this.calculateLeaderboardPoints(queryResult);
-    leaderboard.sort((a, b) => b.points - a.points);
-    leaderboard = this.calculateLeaderboardRanks(leaderboard);
+    const queryResult: LeaderboardStatsDto[] =
+      await this.statsRepository.getStatsForLeaderboard();
+    const leaderboard = this.calculateLeaderboardRanks(queryResult);
     if (options.user_names) {
       for (const item of leaderboard) {
         const user_name = await this.userService.getUsername(item.user_id);
@@ -198,5 +182,20 @@ export class StatsService {
       }
     }
     return leaderboard;
+  }
+
+  async getRank(userId: string): Promise<number> {
+    const result = await this.statsRepository
+      .createQueryBuilder('stats')
+      .select('points_total')
+      .where('user_id LIKE :userId', { userId })
+      .andWhere('opponent LIKE :opponent', { opponent: Opponent.HUMAN })
+      .getRawOne();
+    const rank = await this.statsRepository
+      .createQueryBuilder('stats')
+      .where('opponent LIKE :opponent', { opponent: Opponent.HUMAN })
+      .andWhere('points_total > :points', { points: result.points_total })
+      .getCount();
+    return rank + 1;
   }
 }

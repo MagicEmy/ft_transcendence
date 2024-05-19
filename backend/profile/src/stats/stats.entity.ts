@@ -19,6 +19,9 @@ export class Stats {
   total_time_playing_miliseconds: number;
 
   @Column({ default: 0 })
+  points_total: number;
+
+  @Column({ default: 0 })
   wins: number;
 
   @Column({ default: 0 })
