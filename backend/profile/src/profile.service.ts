@@ -1,14 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { UserService } from './user/user.service';
 import { StatsService } from './stats/stats.service';
 import { GameService } from './game/game.service';
 import { FriendService } from './friend/friend.service';
 import { FriendDto, ProfileDto } from './dto/profile-dto';
 import { Opponent } from './utils/opponent.enum';
+import { PlayerInfo } from './utils/kafka.enum';
+import { IPlayerInfo } from './utils/kafka.interface';
+import { ClientKafka } from '@nestjs/microservices';
 
 @Injectable()
 export class ProfileService {
   constructor(
+    @Inject('PLAYER_INFO_SERVICE') private playerInfoClient: ClientKafka,
     private readonly userService: UserService,
     private readonly statsService: StatsService,
     private readonly gameService: GameService,
@@ -38,11 +42,7 @@ export class ProfileService {
   }
 
   async getLeaderboardRank(user_id: string): Promise<number> {
-    const leaderboard = await this.statsService.createLeaderboard({
-      user_names: false,
-    });
-    const user = leaderboard.find((item) => item.user_id === user_id);
-    return user.rank;
+    return this.statsService.getRank(user_id);
   }
 
   async getProfileById(user_id: string): Promise<ProfileDto> {
@@ -63,5 +63,17 @@ export class ProfileService {
         await this.gameService.mostFrequentOpponent(user_id),
     };
     return profile;
+  }
+
+  async providePlayerInfoToGame(playerId: string): Promise<void> {
+    const playerInfo: IPlayerInfo = {
+      playerID: playerId,
+      playerName: await this.userService.getUsername(playerId),
+      playerRank: await this.getLeaderboardRank(playerId),
+    };
+    this.playerInfoClient.emit(
+      PlayerInfo.REPLY,
+      JSON.stringify({ playerInfo }),
+    );
   }
 }

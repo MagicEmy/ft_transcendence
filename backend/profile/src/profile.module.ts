@@ -13,13 +13,12 @@ import { UsernameCache } from './utils/usernameCache';
 import { StatsService } from './stats/stats.service';
 import { StatsRepository } from './stats/stats.repository';
 import { Friend } from './friend/friend.entity';
-import { Avatar } from './avatar/avatar.entity';
 import { UserRepository } from './user/user.repository';
-import { UserController } from './user/user.controller';
 import { ProfileService } from './profile.service';
 import { AvatarService } from './avatar/avatar.service';
 import { AvatarRepository } from './avatar/avatar.repository';
 import { Stats } from './stats/stats.entity';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -42,9 +41,24 @@ import { Stats } from './stats/stats.entity';
       }),
     }),
     TypeOrmModule.forFeature([User, Friend, Game, Stats]),
+    ClientsModule.register([
+      {
+        name: 'PLAYER_INFO_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'player-info-client',
+            brokers: ['kafka:29092'],
+          },
+          consumer: {
+            groupId: 'game-consumer',
+          },
+        },
+      },
+    ]),
     UserModule,
   ],
-  controllers: [ProfileController, UserController],
+  controllers: [ProfileController],
   providers: [
     ProfileService,
     GameService,

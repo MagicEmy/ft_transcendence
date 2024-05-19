@@ -6,6 +6,7 @@ import { GameHistoryDto } from './dto/game-history-dto';
 import { StatsService } from './stats/stats.service';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { ProfileService } from './profile.service';
+import { GameStatus, KafkaTopic, PlayerInfo } from './utils/kafka.enum';
 
 @Controller()
 export class ProfileController {
@@ -15,13 +16,18 @@ export class ProfileController {
     private readonly statsService: StatsService,
   ) {}
 
-  @EventPattern('game_end')
+  @EventPattern(GameStatus.TOPIC)
   handleGameEnd(data: any): void {
     this.gameService.createGame(data);
     this.statsService.updateStats(data);
   }
 
-  @EventPattern('new_user')
+  @EventPattern(PlayerInfo.TOPIC)
+  handlePlayerInfoRequest(data: any): void {
+    this.profileService.providePlayerInfoToGame(data.playerID);
+  }
+
+  @EventPattern(KafkaTopic.NEW_USER)
   createStatsRowNewUser(data: any): void {
     this.statsService.createStatsRowNewUser(data);
   }
