@@ -1,8 +1,8 @@
 import { Repository } from 'typeorm';
 import { Game } from './game.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GameEndDto } from '../dto/game-end-dto';
 import { GamesAgainstUserIdDto } from '../dto/games-against-userid-dto';
+import { IGameStatus } from 'src/utils/kafka.interface';
 
 export class GameRepository extends Repository<Game> {
   constructor(
@@ -16,14 +16,15 @@ export class GameRepository extends Repository<Game> {
     );
   }
 
-  async createGame(gameEndDto: GameEndDto): Promise<Game> {
+  async createGame(gameStatus: IGameStatus): Promise<Game> {
     const game: Game = {
-      player1_id: gameEndDto.player1_id,
-      player2_id: gameEndDto.player2_id,
-      player1_score: gameEndDto.player1_score,
-      player2_score: gameEndDto.player2_score,
-      duration: gameEndDto.duration,
-      status: gameEndDto.status,
+      player1_id: gameStatus.player1ID,
+      player2_id: gameStatus.player2ID,
+      player1_score: gameStatus.player1Score,
+      player2_score: gameStatus.player2Score,
+      //   duration: gameStatus.duration,	// TO BE ADDED
+      duration: gameStatus.player1Score * gameStatus.player2Score * 1111,
+      status: gameStatus.status,
     };
 
     await this.save(game); // should this be in a try/catch block?
