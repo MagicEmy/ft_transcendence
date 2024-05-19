@@ -17,7 +17,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    @Inject('STATS_SERVICE') private readonly statsClient: ClientKafka,
+    @Inject('AUTH_SERVICE') private readonly statsClient: ClientKafka,
   ) {}
 
   async validateUser(validateUserDto: ValidateUserDto): Promise<User> {

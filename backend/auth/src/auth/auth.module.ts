@@ -16,11 +16,11 @@ import { HttpModule } from '@nestjs/axios';
   imports: [
     ClientsModule.register([
       {
-        name: 'STATS_SERVICE',
+        name: 'AUTH_SERVICE',
         transport: Transport.KAFKA,
         options: {
           client: {
-            clientId: 'stats',
+            clientId: 'auth-client',
             brokers: ['kafka:29092'],
           },
           consumer: {
