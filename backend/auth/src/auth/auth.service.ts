@@ -10,6 +10,7 @@ import { NewUserDto } from './dto/new-user-dto';
 import { TokensDto } from './dto/tokens-dto';
 import { Token } from 'src/user/token-entity';
 import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -91,9 +92,13 @@ export class AuthService {
     );
   }
 
-  getCookieWithTokens(cookieName: string, token: string, expirationTime: string): string {
-	const cookie = `${cookieName}=${token}; Path=/; HttpOnly; Secure=true; Max-Age=${expirationTime}`
-	return cookie;
+  getCookieWithTokens(
+    cookieName: string,
+    token: string,
+    expirationTime: string,
+  ): string {
+    const cookie = `${cookieName}=${token}; Path=/; HttpOnly; Secure=true; Max-Age=${expirationTime}`;
+    return cookie;
   }
 
   async deleteRefreshTokenFromDB(
@@ -119,17 +124,38 @@ export class AuthService {
     return this.userService.getUserByRefreshToken(refreshToken);
   }
 
-  extractTokenFromCookies(req): string {
-    const cookies = req.get('cookie');
+  extractTokenFromCookies(cookies: string, tokenName: string): string {
     let tokenValue = '';
     if (cookies) {
-      cookies.split(';').forEach((cookie) => {
-        const [name, value] = cookie.trim().split('=');
-        if (name === this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME')) {
-          tokenValue = value;
-        }
-      });
+      cookies
+        .toString()
+        .split(';')
+        .forEach((cookie) => {
+          const [name, value] = cookie.trim().split('=');
+          if (name === tokenName) {
+            tokenValue = value;
+          }
+        });
     }
     return tokenValue;
+  }
+
+  //   getJwtTokenPayload(req): UserDto {
+  getJwtTokenPayload(cookies: string): any {
+    const refreshToken = this.extractTokenFromCookies(
+      cookies,
+      this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
+    );
+    try {
+      const user = jwt.verify(
+        refreshToken,
+        this.configService.get('JWT_ACCESS_SECRET'),
+      );
+      return user;
+    } catch (error) {
+      console.log('Caught an error when decoding refreshToken');
+      console.log(error);
+    }
+    return null;
   }
 }

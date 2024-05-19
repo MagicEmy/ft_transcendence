@@ -40,16 +40,16 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
           intra_login: user.intra_login,
         });
         const accessCookie = this.authService.getCookieWithTokens(
-			this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
-			tokens.jwtAccessToken,
-			this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
-		  );
-		  const refreshCookie = this.authService.getCookieWithTokens(
-			this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
-			tokens.jwtRefreshToken,
-			this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
-		  );
-		  resp.setHeader('Set-Cookie', [accessCookie, refreshCookie]);
+          this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
+          tokens.jwtAccessToken,
+          this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
+        );
+        const refreshCookie = this.authService.getCookieWithTokens(
+          this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
+          tokens.jwtRefreshToken,
+          this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
+        );
+        resp.setHeader('Set-Cookie', [accessCookie, refreshCookie]);
       } else {
         throw new UnauthorizedException();
       }
@@ -68,7 +68,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
   async activateWithRefreshToken(req): Promise<User> | null {
     // extract the refresh token from cookies
-    const refreshToken = this.extractRefreshTokenFromCookies(req);
+    const refreshToken = this.authService.extractTokenFromCookies(
+      req.get('cookie'),
+      this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
+    );
     if (!refreshToken) {
       return null;
     }
@@ -77,20 +80,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       refreshToken,
       this.configService.get('JWT_REFRESH_SECRET'),
     );
-  }
-
-  private extractRefreshTokenFromCookies(req): string | null {
-    const cookies = req.get('cookie');
-    let refreshCookieValue = null;
-    if (cookies) {
-      cookies.split(';').forEach((cookie) => {
-        const [name, value] = cookie.trim().split('=');
-        if (name === this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME')) {
-          refreshCookieValue = value;
-        }
-      });
-    }
-    return refreshCookieValue;
   }
 
   private async validateRefreshToken(

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -12,6 +13,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './utils/jwt-auth-guard';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { UserDto } from './dto/user-dto';
 
 @Controller('auth')
 export class AuthController {
@@ -54,9 +56,23 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Req() req) {
-	return 'You got this!';
-    // return req.user;
+  getProfile(@Req() req, @Res({ passthrough: true }) resp): any {
+    let user;
+    if (resp.getHeaders()['set-cookie']) {
+      user = this.authService.getJwtTokenPayload(
+        resp.getHeaders()['set-cookie'],
+      );
+    } else {
+      user = this.authService.getJwtTokenPayload(req.get('cookie'));
+    }
+    const userDto: UserDto = {
+      userId: user.sub,
+      userName: user.user_name,
+    };
+    if (!userDto) {
+      throw new BadRequestException();
+    }
+    return userDto;
   }
 }
 
