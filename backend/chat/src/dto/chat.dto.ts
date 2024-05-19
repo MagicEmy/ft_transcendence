@@ -1,6 +1,5 @@
 import { IsNotEmpty, IsString, IsBoolean, IsInt } from 'class-validator';
 
-
 export class UserDto {
   @IsNotEmpty()
   @IsString()
@@ -8,6 +7,14 @@ export class UserDto {
   @IsNotEmpty()
   @IsString()
   userName: string;
+}
+
+export class CreateUserDto {
+  userId: string;
+  userName: string;
+  socketId: string;
+  online: boolean;
+  game: string;
 }
 
 export class RoomDto {
@@ -90,7 +97,6 @@ export class UserAndRoom {
   roomName: string;
 }
 
-
 export class UserShowDto {
   userId: string;
   userName: string;
@@ -101,8 +107,6 @@ export class UserShowDto {
   online: boolean;
   userBeenBlocked: string[];
 }
-
-
 
 export class ChatUserDto {
   userId: string;
@@ -123,7 +127,7 @@ export class RoomShowDto {
   owner: string;
 }
 
-export class UpdateRoomDto{
+export class UpdateRoomDto {
   @IsNotEmpty()
   user: UserDto;
   @IsNotEmpty()
@@ -137,4 +141,9 @@ export class UpdateRoomDto{
   @IsBoolean()
   @IsNotEmpty()
   updateExclusive: boolean;
+}
+
+export class BlockedUserDto {
+  blockingUserId: string;
+  blockedUserId: string;
 }

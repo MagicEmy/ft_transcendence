@@ -19,7 +19,6 @@ import {
   UserAndRoom,
   ToDoUserRoomDto,
   UpdateRoomDto,
-
 } from 'src/dto/chat.dto';
 import { UserService } from 'src/user/user.service';
 import { RoomService } from 'src/room/room.service';
@@ -27,69 +26,66 @@ import { User } from 'src/entities/user.entity';
 import { ValidationPipe, UsePipes } from '@nestjs/common';
 import { Consumer, Kafka, Producer } from 'kafkajs';
 import { KafkaConsumerService } from 'src/kafka/kafka-consumer.service';
-import { GameTypes, KafkaTopic, MatchTypes } from 'src/kafka/kafka.enum';
+import { KafkaTopic } from 'src/kafka/kafka.enum';
 import { KafkaProducerService } from 'src/kafka/kafka-producer.service';
-
-
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private kafka: Kafka;
   private kafkaProducer: Producer;
-  private kafkaConsumer: Consumer; 
-  
+  private kafkaConsumer: Consumer;
+
   constructor(
     private roomService: RoomService,
     private userService: UserService,
     private readonly kafkaConsumerService: KafkaConsumerService, // DM added
     private readonly kafkaProducerService: KafkaProducerService, // DM added
   ) {
-
-      console.log('Connecting to Kafka');
-      this.setupKafka().then(() => {
-        console.log('Connected to Kafka');
-        }); // DM added
+    console.log('Connecting to Kafka');
+    this.setupKafka().then(() => {
+      console.log('Connected to Kafka');
+    }); // DM added
   }
 
-    @WebSocketServer() server: Server;
+  @WebSocketServer() server: Server;
 
-    private logger = new Logger('chatGateway');
-    
-    private async setupKafka() {
-      this.kafka = new Kafka({
-        clientId: 'Chat',
-        brokers: ['kafka:29092'],
-        //   logLevel: logLevel.ERROR,
-      });
-      this.kafkaProducer = this.kafka.producer();
-      await this.kafkaProducer.connect();
-  
-      this.kafkaConsumer = this.kafka.consumer({ groupId: 'chat-consumer' });
-      await this.kafkaConsumer.connect();
-  
-      await this.kafkaConsumer.subscribe({ topic: KafkaTopic.NEW_USER });
-      await this.kafkaConsumer.subscribe({ topic: KafkaTopic.USERNAME_CHANGE });
-  
-      // DM added
-      await this.kafkaConsumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-          this.logger('Kafka consumed:', topic, message.value.toString());
-          switch (topic) {
-            case KafkaTopic.NEW_USER:
-              this.kafkaConsumerService.addNewUser(message.value.toString());
-              break;
-            case KafkaTopic.USERNAME_CHANGE:
-              this.kafkaConsumerService.changeUsername(message.value.toString());
-              break;
-            default:
-              this.logger.error('Unknown topic:', topic);
-              break;
-          }
-        },
-      });
-    }
+  private logger = new Logger('chatGateway');
 
-    async disconnetOldSocket(user: UserDto, socketId) {
+  private async setupKafka() {
+    this.kafka = new Kafka({
+      clientId: 'Chat',
+      brokers: ['kafka:29092'],
+      //   logLevel: logLevel.ERROR,
+    });
+    this.kafkaProducer = this.kafka.producer();
+    await this.kafkaProducer.connect();
+
+    this.kafkaConsumer = this.kafka.consumer({ groupId: 'chat-consumer' });
+    await this.kafkaConsumer.connect();
+
+    await this.kafkaConsumer.subscribe({ topic: KafkaTopic.NEW_USER });
+    await this.kafkaConsumer.subscribe({ topic: KafkaTopic.USERNAME_CHANGE });
+
+    // DM added
+    await this.kafkaConsumer.run({
+      eachMessage: async ({ topic, partition, message }) => {
+        this.logger.log('Kafka consumed:', topic, message.value.toString());
+        switch (topic) {
+          case KafkaTopic.NEW_USER:
+            this.kafkaConsumerService.addNewUser(message.value.toString());
+            break;
+          case KafkaTopic.USERNAME_CHANGE:
+            this.kafkaConsumerService.changeUsername(message.value.toString());
+            break;
+          default:
+            this.logger.error('Unknown topic:', topic);
+            break;
+        }
+      },
+    });
+  }
+
+  async disconnetOldSocket(user: UserDto, socketId) {
     const userOld = await this.userService.getUserById(user.userId);
     if (userOld === 'Not Existing') {
       this.logger.log(`${user.userId} has not active chat`);
@@ -131,9 +127,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         `${payload.user.userId} sent a message in ${payload.roomName}`,
       );
     }
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
   }
 
@@ -147,8 +141,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(
       `${payload.user.userId} is trying to create ${payload.roomName}`,
     );
-    if (payload.roomName.indexOf("#") !== -1) {
-      this.server.to(client.id).emit('create_chat_error', 'Room name cannot contain #');
+    if (payload.roomName.indexOf('#') !== -1) {
+      this.server
+        .to(client.id)
+        .emit('create_chat_error', 'Room name cannot contain #');
       return;
     }
     await this.userService.addUser(payload.user, client.id);
@@ -177,8 +173,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(
       `${payload.user.userId} is trying to update ${payload.roomName}`,
     );
-    if (payload.roomName.indexOf("#") !== -1) {
-      this.server.to(client.id).emit('update_room_response', 'Direct room cannot be changed');
+    if (payload.roomName.indexOf('#') !== -1) {
+      this.server
+        .to(client.id)
+        .emit('update_room_response', 'Direct room cannot be changed');
       return;
     }
     await this.userService.addUser(payload.user, client.id);
@@ -221,19 +219,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     this.server.in(client.id).socketsJoin(payload.roomName);
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
     this.logger.log(`${JSON.stringify(userList)}`);
-    const messages = await this.roomService.getAllMessages(payload.user.userId, payload.roomName,);
-    this.server
-      .to(client.id)
-      .emit(
-        'chat',
-        messages
-      );
-    
+    const messages = await this.roomService.getAllMessages(
+      payload.user.userId,
+      payload.roomName,
+    );
+    this.server.to(client.id).emit('chat', messages);
+
     this.logger.log(`${payload.user.userId} joined ${payload.roomName}`);
     const myRoomlist: RoomShowDto[] = await this.roomService.getMyRooms(
       payload.user.userId,
@@ -251,28 +245,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(
       `${payload.userCreator.userId} is trying to create a direct room`,
     );
-  
+
     await this.userService.addUser(payload.userCreator, client.id);
-   const response = await this.roomService.addDirectRoom(payload);
+    const response = await this.roomService.addDirectRoom(payload);
 
     this.server.to(client.id).emit('join_direct_room_response', response);
-    if (response.indexOf("#") === -1)
-      return;
+    if (response.indexOf('#') === -1) return;
 
     this.logger.log(`${payload.userCreator.userId} created ${response}`);
     await this.disconnetOldSocket(payload.userCreator, client.id);
-    const messages = await this.roomService.getAllMessages(payload.userCreator.userId, response);
-    console.log(messages);
-    this.server
-      .to(client.id)
-      .emit(
-        'chat',
-        messages
-      );
-    this.server.in(client.id).socketsJoin(response);
-    const userList = await this.roomService.getUserInRoom(
+    const messages = await this.roomService.getAllMessages(
+      payload.userCreator.userId,
       response,
     );
+    console.log(messages);
+    this.server.to(client.id).emit('chat', messages);
+    this.server.in(client.id).socketsJoin(response);
+    const userList = await this.roomService.getUserInRoom(response);
     this.server.to(response).emit('room_users', userList);
     this.logger.log(`${payload.userCreator.userId} joined ${response}`);
     const myRoomlist: RoomShowDto[] = await this.roomService.getMyRooms(
@@ -293,10 +282,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `${payload.user.userId} is trying to block ${payload.toDoUser}`,
     );
     if (payload.user.userId === payload.toDoUser) {
-      this.server.to(client.id).emit('block_user_response', 'You cannot block yourself');
+      this.server
+        .to(client.id)
+        .emit('block_user_response', 'You cannot block yourself');
       return;
     }
-    const response = await this.userService.setBlockUser(payload.user, payload.toDoUser);
+    const response = await this.userService.blockUser({
+      blockingUserId: payload.user.userId,
+      blockedUserId: payload.toDoUser,
+    });
     this.server.to(client.id).emit('block_user_response', response);
     if (response === 'Already Blocked') {
       this.logger.log(
@@ -304,14 +298,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
       return;
     }
-    this.logger.log(
-      `${payload.user.userId} blocked ${payload.toDoUser}`,
-    );
+    this.logger.log(`${payload.user.userId} blocked ${payload.toDoUser}`);
     const users = await this.userService.getAllUsers();
     this.server.emit('chat_users', users);
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
   }
 
@@ -326,7 +316,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `${payload.user.userId} is trying to unblock ${payload.toDoUser}`,
     );
     await this.userService.addUser(payload.user, client.id);
-    const response = await this.userService.unsetBlockUser(payload.user, payload.toDoUser);
+    const response = await this.userService.unblockUser({
+      blockingUserId: payload.user.userId,
+      blockedUserId: payload.toDoUser,
+    });
     this.server.to(client.id).emit('unblock_user_response', response);
     if (response === 'Not Blocked') {
       this.logger.log(
@@ -334,14 +327,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
       return;
     }
-    this.logger.log(
-      `${payload.user.userId} unblocked ${payload.toDoUser}`,
-    );
+    this.logger.log(`${payload.user.userId} unblocked ${payload.toDoUser}`);
     const users = await this.userService.getAllUsers();
     this.server.emit('chat_users', users);
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
   }
 
@@ -358,17 +347,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.userReceiver.userId,
     );
     const user = await this.userService.getUserById(payload.userCreator.userId);
-    if (userReceiver === 'Not Existing' || userReceiver.socketId === '' || user === 'Not Existing') {
+    if (
+      userReceiver === 'Not Existing' ||
+      userReceiver.socketId === '' ||
+      user === 'Not Existing'
+    ) {
       this.server
         .to(client.id)
         .emit('invite_game_response', 'the user You invited is not Online');
       return;
     }
-    const blocked = await this.userService.checkBlockedUser(user, userReceiver.userId);
+    const blocked = await this.userService.checkBlockedUser(
+      user,
+      userReceiver.userId,
+    );
     if (blocked !== 'Not Blocked') {
-      this.server
-        .to(client.id)
-        .emit('invite_game_response', blocked);
+      this.server.to(client.id).emit('invite_game_response', blocked);
       return;
     }
     if (user.userId === userReceiver.userId) {
@@ -377,16 +371,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .emit('invite_game_response', 'You cannot invite yourself');
       return;
     }
-    if (user.game !== ""){
+    if (user.game !== '') {
       this.server
         .to(client.id)
-        .emit('invite_game_response', 'you need to decline the previus game first');
-    return;
+        .emit(
+          'invite_game_response',
+          'you need to decline the previus game first',
+        );
+      return;
     }
-    if (userReceiver.game !== "") {
+    if (userReceiver.game !== '') {
       this.server
         .to(client.id)
-        .emit('invite_game_response', 'The user You invited is already invited by someone else');
+        .emit(
+          'invite_game_response',
+          'The user You invited is already invited by someone else',
+        );
       return;
     }
     userReceiver.game = user.userId;
@@ -396,25 +396,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const invitation = {
       type: 'invitation',
       user: payload.userCreator,
-    }
+    };
     const host = {
       type: 'host',
       user: payload.userReceiver,
-    }
-    this.logger.log(`host hi  ${JSON.stringify(host)} receiver ${JSON.stringify(invitation)}`); 
-    this.server
-      .to(userReceiver.socketId)
-      .emit('game', invitation);
-      this.server
-      .to(client.id)
-      .emit('game', host);
+    };
+    this.logger.log(
+      `host hi  ${JSON.stringify(host)} receiver ${JSON.stringify(invitation)}`,
+    );
+    this.server.to(userReceiver.socketId).emit('game', invitation);
+    this.server.to(client.id).emit('game', host);
   }
-
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('accept_game')
   async joinGame(
-
     @MessageBody()
     payload: DoWithUserDto,
     @ConnectedSocket() client: Socket,
@@ -424,9 +420,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userReceiver = await this.userService.getUserById(
       payload.userReceiver.userId,
     );
-    const user = await this.userService.getUserById(
-      payload.userCreator.userId,
-    );
+    const user = await this.userService.getUserById(payload.userCreator.userId);
     if (user === 'Not Existing') {
       this.server
         .to(client.id)
@@ -440,18 +434,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     if (userReceiver === 'Not Existing' || userReceiver.socketId === '') {
-      user.game = "";
+      user.game = '';
       this.server
         .to(client.id)
         .emit('accept_game_response', 'The user that invited you is not Onine');
       return;
     }
-    const blocked = await this.userService.checkBlockedUser(payload.userCreator, payload.userReceiver.userId);
+    const blocked = await this.userService.checkBlockedUser(
+      payload.userCreator,
+      payload.userReceiver.userId,
+    );
     if (blocked !== 'Not Blocked') {
-
-      this.server
-        .to(client.id)
-        .emit('accept_game_response', blocked);
+      this.server.to(client.id).emit('accept_game_response', blocked);
       return;
     }
     this.logger.log(`game started`);
@@ -459,17 +453,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const accept = {
       type: 'start the game',
       user: payload.userCreator,
-    }
-    this.server
-      .to(userReceiver.socketId)
-      .emit('game', accept);
+    };
+    this.server.to(userReceiver.socketId).emit('game', accept);
     this.server.to(client.id).emit('accept_game_response', 'Success');
   }
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('decline_game')
   async declineGame(
-
     @MessageBody()
     payload: DoWithUserDto,
     @ConnectedSocket() client: Socket,
@@ -479,9 +470,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userReceiver = await this.userService.getUserById(
       payload.userReceiver.userId,
     );
-    const user = await this.userService.getUserById(
-      payload.userCreator.userId,
-    );
+    const user = await this.userService.getUserById(payload.userCreator.userId);
     if (user === 'Not Existing') {
       this.server
         .to(client.id)
@@ -495,21 +484,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     if (userReceiver === 'Not Existing') {
-      user.game = "";
+      user.game = '';
       this.server
         .to(client.id)
         .emit('decline_game_response', 'The user dont exist');
       return;
     }
-    userReceiver.game = "";
-    user.game = "";
+    userReceiver.game = '';
+    user.game = '';
     ///TODO kafka
     const decline = {
       type: 'decline the game',
-    }
-    this.server
-      .to(userReceiver.socketId)
-      .emit('game', decline);
+    };
+    this.server.to(userReceiver.socketId).emit('game', decline);
     this.logger.log(`decline`);
     this.server.to(client.id).emit('decline_game_response', 'Success');
   }
@@ -521,15 +508,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     payload: UserAndRoom,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    this.logger.log(`${payload.user.userId} is trying to leave ${payload.roomName}`);
+    this.logger.log(
+      `${payload.user.userId} is trying to leave ${payload.roomName}`,
+    );
     await this.roomService.removeUserFromRoom(
       payload.roomName,
       payload.user.userId,
     );
     this.server.in(client.id).socketsLeave(payload.roomName);
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
 
     this.logger.log(`this is what is in there ${JSON.stringify(userList)}`);
     this.server.to(payload.roomName).emit('room_users', userList);
@@ -580,7 +567,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     await this.userService.addUser(payload.user, client.id);
-    this.logger.log(  `${payload.user.userId} is trying to add ${payload.toDoUser}`);
+    this.logger.log(
+      `${payload.user.userId} is trying to add ${payload.toDoUser}`,
+    );
     const response = await this.roomService.addUserToRoom(
       payload.user.userId,
       payload.roomName,
@@ -591,11 +580,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (response !== 'Success') {
       return;
     }
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
-    this.logger.log(  `${payload.user.userId} added ${payload.toDoUser}`)
+    this.logger.log(`${payload.user.userId} added ${payload.toDoUser}`);
   }
 
   @UsePipes(new ValidationPipe())
@@ -603,10 +590,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async kickUser(
     @MessageBody()
     payload: ToDoUserRoomDto,
-    @ConnectedSocket()  client: Socket,
+    @ConnectedSocket() client: Socket,
   ): Promise<void> {
     await this.userService.addUser(payload.user, client.id);
-    this.logger.log(  `${payload.user.userId} is trying to kick ${payload.toDoUser}`);
+    this.logger.log(
+      `${payload.user.userId} is trying to kick ${payload.toDoUser}`,
+    );
     const response = await this.roomService.kickUserFromRoom(
       payload.roomName,
       payload.user.userId,
@@ -616,9 +605,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (response !== 'Success') {
       return;
     }
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
   }
 
@@ -630,16 +617,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     await this.userService.addUser(payload.user, client.id);
-    this.logger.log(  `${payload.user.userId} is trying to ban ${payload.toDoUser}`);
+    this.logger.log(
+      `${payload.user.userId} is trying to ban ${payload.toDoUser}`,
+    );
     const response = await this.roomService.addUserToBanned(
       payload.roomName,
       payload.user.userId,
       payload.toDoUser,
     );
     this.server.to(client.id).emit('ban_user_response', response);
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
   }
 
@@ -651,15 +638,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     await this.userService.addUser(payload.user, client.id);
-    this.logger.log(  `${payload.user.userId} is trying to unban ${payload.toDoUser}`);
+    this.logger.log(
+      `${payload.user.userId} is trying to unban ${payload.toDoUser}`,
+    );
     await this.roomService.removeUserFromBanned(
       payload.roomName,
       payload.user.userId,
       payload.toDoUser,
     );
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
   }
 
@@ -671,16 +658,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     await this.userService.addUser(payload.user, client.id);
-    this.logger.log(  `${payload.user.userId} is trying to mute ${payload.toDoUser} for ${payload.timer} seconds`);
+    this.logger.log(
+      `${payload.user.userId} is trying to mute ${payload.toDoUser} for ${payload.timer} seconds`,
+    );
     await this.roomService.addUserToMuted(
       payload.roomName,
       payload.user.userId,
       payload.toDoUser,
       payload.timer,
     );
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
   }
 
@@ -692,15 +679,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     await this.userService.addUser(payload.user, client.id);
-    this.logger.log(  `${payload.user.userId} is trying to unmute ${payload.toDoUser}`);
+    this.logger.log(
+      `${payload.user.userId} is trying to unmute ${payload.toDoUser}`,
+    );
     await this.roomService.removeUserFromMuted(
       payload.roomName,
       payload.user.userId,
       payload.toDoUser,
     );
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
   }
 
@@ -712,15 +699,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     await this.userService.addUser(payload.user, client.id);
-    this.logger.log(  `${payload.user.userId} is trying to make admin ${payload.toDoUser}`);
+    this.logger.log(
+      `${payload.user.userId} is trying to make admin ${payload.toDoUser}`,
+    );
     await this.roomService.addUserToAdmin(
       payload.roomName,
       payload.user.userId,
       payload.toDoUser,
     );
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
   }
 
@@ -731,16 +718,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     payload: ToDoUserRoomDto,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    this.logger.log(`${payload.user.userId} is trying to remove admin ${payload.toDoUser}`);
+    this.logger.log(
+      `${payload.user.userId} is trying to remove admin ${payload.toDoUser}`,
+    );
     await this.userService.addUser(payload.user, client.id);
     await this.roomService.removeUserFromAdmin(
       payload.roomName,
       payload.user.userId,
       payload.toDoUser,
     );
-    const userList = await this.roomService.getUserInRoom(
-      payload.roomName,
-    );
+    const userList = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
   }
 
@@ -754,23 +741,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await this.userService.getUserBySocketId(socket.id);
     this.logger.log(`Socket disconnected: ${socket.id}`);
     if (user === 'Not Existing') return;
-    if (user.game !== "") {
-      const userReceiver = await this.userService.getUserById(
-        user.game,
-      );
-      if (userReceiver !== 'Not Existing')
-          userReceiver.game = "";
+    if (user.game !== '') {
+      const userReceiver = await this.userService.getUserById(user.game);
+      if (userReceiver !== 'Not Existing') userReceiver.game = '';
     }
-    user.game = "";
+    user.game = '';
     await this.disconnetOldSocket(user, socket.id);
-    await this.userService.setUserSocketStatus(user, '', false);
+    await this.userService.setUserSocketStatus(
+      user,
+      '',
+      false,
+      this.kafkaProducer,
+    );
     const users = await this.userService.getAllUsers();
     this.server.to('chat_users').emit('chat_users', users);
     const rooms = await this.roomService.getRooms();
     rooms.forEach(async (room) => {
-      const usersInRoom = await this.roomService.getUserInRoom(
-        room.roomName,
-      );
+      const usersInRoom = await this.roomService.getUserInRoom(room.roomName);
       if (usersInRoom !== 'Not In The Room')
         this.server.to(room.roomName).emit('room_users', usersInRoom);
     });

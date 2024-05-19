@@ -45,7 +45,7 @@ export class UserService {
     return user;
   }
 
-  async getUserById(user: User['userId']): Promise<User | 'Not Existing'> {
+  async getUserById(userId: string): Promise<User | 'Not Existing'> {
     // validate userId
     const found = await this.userRepository.getUserById(userId);
     if (!found) {
@@ -108,7 +108,7 @@ export class UserService {
 
 
  // returns a list of userIds that are blocked by a specific user (blockingUserId), a.k.a. a.k.a. "WHOM DID I BLOCK?"
- async getAllBlockedUsersByBlockingUserId(
+  async getAllBlockedUsersByBlockingUserId(
   blockingUserId: string,
   ): Promise<string[]> {
     return await this.blockedUserRepository.getAllBlockedUsersByBlockingUserId(
