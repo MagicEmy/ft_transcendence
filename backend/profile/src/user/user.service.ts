@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,16 +9,18 @@ import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsernameCache } from '../utils/usernameCache';
 import { UserStatusDto } from 'src/dto/user-status-dto';
-import { UserStatusEnum } from 'src/utils/user-status.enum';
 import { UserStatusRepository } from './user-status.repository';
 import { UserStatus } from './user-status.entity';
 import { UserInfoDto } from 'src/dto/profile-dto';
 import { UserNameDto } from 'src/dto/user-name-dto';
+import { KafkaTopic, UserStatusEnum } from 'src/utils/kafka.enum';
+import { ClientKafka } from '@nestjs/microservices';
 
 @Injectable()
 export class UserService {
   userStatuses: UserStatusDto[];
   constructor(
+    @Inject('USERNAME_SERVICE') private usernameClient: ClientKafka,
     @InjectRepository(UserRepository)
     private readonly userRepository: UserRepository,
     private readonly userStatusRepository: UserStatusRepository,
@@ -66,6 +69,7 @@ export class UserService {
     // -> THIS SHOULD NOT BE NECESSARY
     found.user_name = userNameDto.userName;
     this.userRepository.save(found);
+    this.usernameClient.emit(KafkaTopic.USERNAME_CHANGE, userNameDto);
     return found;
   }
 

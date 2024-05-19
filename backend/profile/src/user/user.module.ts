@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UserController } from './user.controller';
 import { UserRepository } from './user.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user.entity';
@@ -13,9 +12,28 @@ import { Avatar } from '../avatar/avatar.entity';
 import { FriendService } from '../friend/friend.service';
 import { UserStatus } from './user-status.entity';
 import { UserStatusRepository } from './user-status.repository';
+import { UserController } from './user.controller';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Friend, Avatar, UserStatus])],
+  imports: [
+    TypeOrmModule.forFeature([User, Friend, Avatar, UserStatus]),
+    ClientsModule.register([
+      {
+        name: 'USERNAME_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'username-client',
+            brokers: ['kafka:29092'],
+          },
+          consumer: {
+            groupId: 'chat-consumer',
+          },
+        },
+      },
+    ]),
+  ],
   controllers: [UserController],
   providers: [
     UserService,
