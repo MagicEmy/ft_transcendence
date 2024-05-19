@@ -1,4 +1,9 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 export class UserNameDto {
-  userId: string;
+  @ApiProperty({
+    example: 'bblumenth',
+    required: true,
+  })
   userName: string;
 }

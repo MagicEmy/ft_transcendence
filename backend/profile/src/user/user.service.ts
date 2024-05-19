@@ -12,7 +12,7 @@ import { UserStatusDto } from 'src/dto/user-status-dto';
 import { UserStatusRepository } from './user-status.repository';
 import { UserStatus } from './user-status.entity';
 import { UserInfoDto } from 'src/dto/profile-dto';
-import { UserNameDto } from 'src/dto/user-name-dto';
+import { UserIdNameDto } from 'src/dto/user-id-name-dto';
 import { KafkaTopic, UserStatusEnum } from 'src/utils/kafka.enum';
 import { ClientKafka } from '@nestjs/microservices';
 
@@ -61,7 +61,7 @@ export class UserService {
     });
   }
 
-  async changeUsername(userNameDto: UserNameDto): Promise<User> {
+  async changeUsername(userNameDto: UserIdNameDto): Promise<User> {
     const found = await this.getUserById(userNameDto.userId);
     // if (!found) {
     //   throw new NotFoundException(`User with ID "${user_id}" not found`);

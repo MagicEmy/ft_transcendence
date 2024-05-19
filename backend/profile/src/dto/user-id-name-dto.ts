@@ -1,15 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class FriendshipDto {
+export class UserIdNameDto {
   @ApiProperty({
     example: '1a5575b6-0738-4ce0-86bd-0b16f62b77d3',
     required: true,
   })
-  user_id: string;
+  userId: string;
 
   @ApiProperty({
-    example: '43d0ea20-9866-4dab-b7eb-3b05a16537d5',
+    example: 'bblumenth',
     required: true,
   })
-  friend_id: string;
+  userName: string;
 }

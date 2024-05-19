@@ -20,9 +20,12 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Express, Response } from 'express';
 import { FriendService } from '../friend/friend.service';
 import { EventPattern } from '@nestjs/microservices';
-import { UserStatusEnum } from 'src/utils/kafka.enum';
 import { FriendWithNameDto } from 'src/dto/friend-with-name-dto';
 import { KafkaTopic } from 'src/utils/kafka.enum';
+import { UserIdNameDto } from 'src/dto/user-id-name-dto';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { StatusDto } from 'src/dto/status-dto';
+import { UserNameDto } from 'src/dto/user-name-dto';
 
 @Controller('user')
 export class UserController {
@@ -48,12 +51,18 @@ export class UserController {
     });
   }
 
+  @ApiBody({
+    type: StatusDto,
+  })
   @Patch('/:id/status')
   changeUserStatus(
     @Param('id') user_id: string,
-    @Body('status') status: UserStatusEnum,
+    @Body('status') status: StatusDto,
   ) {
-    return this.userService.changeUserStatus({ user_id, status });
+    return this.userService.changeUserStatus({
+      user_id,
+      status: status.status,
+    });
   }
 
   @Get('/:id/status')
@@ -67,15 +76,24 @@ export class UserController {
     return this.userService.getUserById(id);
   }
 
+  @ApiBody({
+    type: UserNameDto,
+  })
   @Patch('/:id/user_name')
   changeUsername(
     @Param('id') id: string,
-    @Body('user_name') user_name: string,
+    @Body('user_name') userName: UserNameDto,
   ): Promise<User> {
-    return this.userService.changeUsername({ userId: id, userName: user_name });
+    return this.userService.changeUsername({
+      userId: id,
+      userName: userName.userName,
+    });
   }
 
   //   friend
+  @ApiBody({
+    type: FriendshipDto,
+  })
   @Post('/friend')
   async addFriend(
     @Body() friendshipDto: FriendshipDto,
@@ -95,6 +113,9 @@ export class UserController {
     }
   }
 
+  @ApiBody({
+    type: FriendshipDto,
+  })
   @Delete('/friend')
   unfriend(@Body() friendshipDto: FriendshipDto): Promise<FriendshipDto> {
     return this.friendService.unfriend(friendshipDto);
@@ -128,22 +149,32 @@ export class UserController {
 
   // TESTING - TO BE DELETED
   // for testing purposes (gets all friends of a specific user)
+  @ApiTags('testing only')
   @Get('/:id/friends')
   getFriends(@Param('id') user_id: string) {
     return this.friendService.getFriends(user_id);
   }
 
   // for testing purposes, returns a user_name
+  @ApiTags('testing only')
   @Get('/:id/username')
   getUsername(@Param('id') user_id: string) {
     return this.userService.getUsername(user_id);
   }
 
+  @ApiTags('testing only')
+  @ApiBody({
+    type: UserIdNameDto,
+  })
   @Post('/cache')
-  putUsernameInCache(@Body() user_id: string, user_name: string) {
-    this.usernameCache.setUsername(user_id, user_name);
+  putUsernameInCache(@Body() userIdNameDto: UserIdNameDto) {
+    this.usernameCache.setUsername(
+      userIdNameDto.userId,
+      userIdNameDto.userName,
+    );
   }
 
+  @ApiTags('testing only')
   @Get('/:id/cache')
   getUsernameFromCache(@Param('id') user_id: string) {
     return this.usernameCache.getUsername(user_id);
