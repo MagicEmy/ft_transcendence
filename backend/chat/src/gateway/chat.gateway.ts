@@ -1,0 +1,778 @@
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  MessageBody,
+  SubscribeMessage,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  ConnectedSocket,
+} from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
+import { Server, Socket } from 'socket.io';
+import {
+  CreateRoomDto,
+  MessageDto,
+  JoinRoomDto,
+  UserDto,
+  DoWithUserDto,
+  RoomShowDto,
+  UserAndRoom,
+  ToDoUserRoomDto,
+  UpdateRoomDto,
+
+} from 'src/dto/chat.dto';
+import { UserService } from 'src/user/user.service';
+import { RoomService } from 'src/room/room.service';
+import { User } from 'src/entities/user.entity';
+import { ValidationPipe, UsePipes } from '@nestjs/common';
+import { Consumer, Kafka, Producer } from 'kafkajs';
+import { KafkaConsumerService } from 'src/kafka/kafka-consumer.service';
+import { GameTypes, KafkaTopic, MatchTypes } from 'src/kafka/kafka.enum';
+import { KafkaProducerService } from 'src/kafka/kafka-producer.service';
+
+
+
+@WebSocketGateway({ cors: true })
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  private kafka: Kafka;
+  private kafkaProducer: Producer;
+  private kafkaConsumer: Consumer; 
+  
+  constructor(
+    private roomService: RoomService,
+    private userService: UserService,
+    private readonly kafkaConsumerService: KafkaConsumerService, // DM added
+    private readonly kafkaProducerService: KafkaProducerService, // DM added
+  ) {
+
+      console.log('Connecting to Kafka');
+      this.setupKafka().then(() => {
+        console.log('Connected to Kafka');
+        }); // DM added
+  }
+
+    @WebSocketServer() server: Server;
+
+    private logger = new Logger('chatGateway');
+    
+    private async setupKafka() {
+      this.kafka = new Kafka({
+        clientId: 'Chat',
+        brokers: ['kafka:29092'],
+        //   logLevel: logLevel.ERROR,
+      });
+      this.kafkaProducer = this.kafka.producer();
+      await this.kafkaProducer.connect();
+  
+      this.kafkaConsumer = this.kafka.consumer({ groupId: 'chat-consumer' });
+      await this.kafkaConsumer.connect();
+  
+      await this.kafkaConsumer.subscribe({ topic: KafkaTopic.NEW_USER });
+      await this.kafkaConsumer.subscribe({ topic: KafkaTopic.USERNAME_CHANGE });
+  
+      // DM added
+      await this.kafkaConsumer.run({
+        eachMessage: async ({ topic, partition, message }) => {
+          this.logger('Kafka consumed:', topic, message.value.toString());
+          switch (topic) {
+            case KafkaTopic.NEW_USER:
+              this.kafkaConsumerService.addNewUser(message.value.toString());
+              break;
+            case KafkaTopic.USERNAME_CHANGE:
+              this.kafkaConsumerService.changeUsername(message.value.toString());
+              break;
+            default:
+              this.logger.error('Unknown topic:', topic);
+              break;
+          }
+        },
+      });
+    }
+
+    async disconnetOldSocket(user: UserDto, socketId) {
+    const userOld = await this.userService.getUserById(user.userId);
+    if (userOld === 'Not Existing') {
+      this.logger.log(`${user.userId} has not active chat`);
+      return;
+    }
+    const userRoom = await this.roomService.getRoomWithUserByUserID(
+      userOld.userId,
+    );
+    if (userRoom.length === 0) {
+      this.logger.log(`${user.userId} has not active chat`);
+      return;
+    }
+    userRoom.forEach((room) => {
+      this.server.in(userOld.socketId).socketsLeave(room);
+      this.server.in(socketId).socketsLeave(room);
+    });
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('chat')
+  async sendMessage(
+    @MessageBody()
+    payload: MessageDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(
+      `${payload.user.userId} is trying to send a message in ${payload.roomName}`,
+    );
+    await this.userService.addUser(payload.user, client.id);
+    const message = await this.roomService.broadcastMessage(payload);
+    if (typeof message === 'string') {
+      this.server.to(client.id).emit('chat_response', message);
+    } else {
+      this.server.to(client.id).emit('chat_response', 'Success');
+      this.logger.log(message);
+      this.server.to(payload.roomName).emit('chat', message);
+      this.server.emit('notifications', payload.roomName);
+      this.logger.log(
+        `${payload.user.userId} sent a message in ${payload.roomName}`,
+      );
+    }
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('create_room')
+  async createRoom(
+    @MessageBody()
+    payload: CreateRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(
+      `${payload.user.userId} is trying to create ${payload.roomName}`,
+    );
+    if (payload.roomName.indexOf("#") !== -1) {
+      this.server.to(client.id).emit('create_chat_error', 'Room name cannot contain #');
+      return;
+    }
+    await this.userService.addUser(payload.user, client.id);
+    const response = await this.roomService.addRoom(payload);
+    if (response !== 'Success') {
+      this.server.to(client.id).emit('create_chat_error', response);
+      this.logger.log(`${payload.user.userId} error ${response}`);
+      return;
+    }
+    this.logger.log(`${payload.user.userId} created ${payload.roomName}`);
+    const roomList: RoomShowDto[] = await this.roomService.getRoomsAvailable();
+    this.server.emit('chat_rooms', roomList);
+    const myRoomlist: RoomShowDto[] = await this.roomService.getMyRooms(
+      payload.user.userId,
+    );
+    this.server.to(client.id).emit('my_rooms', myRoomlist);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('update_room')
+  async updateRoom(
+    @MessageBody()
+    payload: UpdateRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(
+      `${payload.user.userId} is trying to update ${payload.roomName}`,
+    );
+    if (payload.roomName.indexOf("#") !== -1) {
+      this.server.to(client.id).emit('update_room_response', 'Direct room cannot be changed');
+      return;
+    }
+    await this.userService.addUser(payload.user, client.id);
+    const response = await this.roomService.updateRoom(payload);
+    this.server.to(client.id).emit('update_room_response', response);
+    if (response !== 'Success') {
+      this.logger.log(`${payload.user.userId} error ${response}`);
+      return;
+    }
+    this.logger.log(`${payload.user.userId} updated ${payload.roomName}`);
+    const roomList: RoomShowDto[] = await this.roomService.getRoomsAvailable();
+    this.server.emit('chat_rooms', roomList);
+    const myRoomlist: RoomShowDto[] = await this.roomService.getMyRooms(
+      payload.user.userId,
+    );
+    this.server.to(client.id).emit('my_rooms', myRoomlist);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('join_room')
+  async joinRoom(
+    @MessageBody()
+    payload: JoinRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(
+      `${payload.user.userId} with ${client.id} is trying to join ${payload.roomName}`,
+    );
+    //guard for avoid user using more than one socket
+    await this.disconnetOldSocket(payload.user, client.id);
+
+    await this.userService.addUser(payload.user, client.id);
+    const response = await this.roomService.addNewUserToRoom(
+      payload.roomName,
+      payload.user.userId,
+      payload.password,
+    );
+    this.server.to(client.id).emit('join_chat_response', response);
+    if (response !== 'Success') {
+      return;
+    }
+    this.server.in(client.id).socketsJoin(payload.roomName);
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+    this.logger.log(`${JSON.stringify(userList)}`);
+    const messages = await this.roomService.getAllMessages(payload.user.userId, payload.roomName,);
+    this.server
+      .to(client.id)
+      .emit(
+        'chat',
+        messages
+      );
+    
+    this.logger.log(`${payload.user.userId} joined ${payload.roomName}`);
+    const myRoomlist: RoomShowDto[] = await this.roomService.getMyRooms(
+      payload.user.userId,
+    );
+    this.server.to(client.id).emit('my_rooms', myRoomlist);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('join_direct_room')
+  async creatDirectRoom(
+    @MessageBody()
+    payload: DoWithUserDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(
+      `${payload.userCreator.userId} is trying to create a direct room`,
+    );
+  
+    await this.userService.addUser(payload.userCreator, client.id);
+   const response = await this.roomService.addDirectRoom(payload);
+
+    this.server.to(client.id).emit('join_direct_room_response', response);
+    if (response.indexOf("#") === -1)
+      return;
+
+    this.logger.log(`${payload.userCreator.userId} created ${response}`);
+    await this.disconnetOldSocket(payload.userCreator, client.id);
+    const messages = await this.roomService.getAllMessages(payload.userCreator.userId, response);
+    console.log(messages);
+    this.server
+      .to(client.id)
+      .emit(
+        'chat',
+        messages
+      );
+    this.server.in(client.id).socketsJoin(response);
+    const userList = await this.roomService.getUserInRoom(
+      response,
+    );
+    this.server.to(response).emit('room_users', userList);
+    this.logger.log(`${payload.userCreator.userId} joined ${response}`);
+    const myRoomlist: RoomShowDto[] = await this.roomService.getMyRooms(
+      payload.userCreator.userId,
+    );
+    this.server.to(client.id).emit('my_rooms', myRoomlist);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('block_user')
+  async BlockUser(
+    @MessageBody()
+    payload: ToDoUserRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    await this.userService.addUser(payload.user, client.id);
+    this.logger.log(
+      `${payload.user.userId} is trying to block ${payload.toDoUser}`,
+    );
+    if (payload.user.userId === payload.toDoUser) {
+      this.server.to(client.id).emit('block_user_response', 'You cannot block yourself');
+      return;
+    }
+    const response = await this.userService.setBlockUser(payload.user, payload.toDoUser);
+    this.server.to(client.id).emit('block_user_response', response);
+    if (response === 'Already Blocked') {
+      this.logger.log(
+        `${payload.user.userId} already blocked ${payload.toDoUser}`,
+      );
+      return;
+    }
+    this.logger.log(
+      `${payload.user.userId} blocked ${payload.toDoUser}`,
+    );
+    const users = await this.userService.getAllUsers();
+    this.server.emit('chat_users', users);
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('unblock_user')
+  async UnblockUser(
+    @MessageBody()
+    payload: ToDoUserRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(
+      `${payload.user.userId} is trying to unblock ${payload.toDoUser}`,
+    );
+    await this.userService.addUser(payload.user, client.id);
+    const response = await this.userService.unsetBlockUser(payload.user, payload.toDoUser);
+    this.server.to(client.id).emit('unblock_user_response', response);
+    if (response === 'Not Blocked') {
+      this.logger.log(
+        `${payload.user.userId} is not blocked ${payload.toDoUser}`,
+      );
+      return;
+    }
+    this.logger.log(
+      `${payload.user.userId} unblocked ${payload.toDoUser}`,
+    );
+    const users = await this.userService.getAllUsers();
+    this.server.emit('chat_users', users);
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('invite_game')
+  async createGame(
+    @MessageBody()
+    payload: DoWithUserDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(`${payload.userCreator.userId} is trying to create a game`);
+    await this.userService.addUser(payload.userCreator, client.id);
+    const userReceiver = await this.userService.getUserById(
+      payload.userReceiver.userId,
+    );
+    const user = await this.userService.getUserById(payload.userCreator.userId);
+    if (userReceiver === 'Not Existing' || userReceiver.socketId === '' || user === 'Not Existing') {
+      this.server
+        .to(client.id)
+        .emit('invite_game_response', 'the user You invited is not Online');
+      return;
+    }
+    const blocked = await this.userService.checkBlockedUser(user, userReceiver.userId);
+    if (blocked !== 'Not Blocked') {
+      this.server
+        .to(client.id)
+        .emit('invite_game_response', blocked);
+      return;
+    }
+    if (user.userId === userReceiver.userId) {
+      this.server
+        .to(client.id)
+        .emit('invite_game_response', 'You cannot invite yourself');
+      return;
+    }
+    if (user.game !== ""){
+      this.server
+        .to(client.id)
+        .emit('invite_game_response', 'you need to decline the previus game first');
+    return;
+    }
+    if (userReceiver.game !== "") {
+      this.server
+        .to(client.id)
+        .emit('invite_game_response', 'The user You invited is already invited by someone else');
+      return;
+    }
+    userReceiver.game = user.userId;
+    user.game = userReceiver.userId;
+
+    this.server.to(client.id).emit('invite_game_response', 'Success');
+    const invitation = {
+      type: 'invitation',
+      user: payload.userCreator,
+    }
+    const host = {
+      type: 'host',
+      user: payload.userReceiver,
+    }
+    this.logger.log(`host hi  ${JSON.stringify(host)} receiver ${JSON.stringify(invitation)}`); 
+    this.server
+      .to(userReceiver.socketId)
+      .emit('game', invitation);
+      this.server
+      .to(client.id)
+      .emit('game', host);
+  }
+
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('accept_game')
+  async joinGame(
+
+    @MessageBody()
+    payload: DoWithUserDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(`${payload.userCreator.userId} is trying to join a game`);
+    await this.userService.addUser(payload.userCreator, client.id);
+    const userReceiver = await this.userService.getUserById(
+      payload.userReceiver.userId,
+    );
+    const user = await this.userService.getUserById(
+      payload.userCreator.userId,
+    );
+    if (user === 'Not Existing') {
+      this.server
+        .to(client.id)
+        .emit('accept_game_response', 'The user dont exist');
+      return;
+    }
+    if (user.game !== payload.userReceiver.userId) {
+      this.server
+        .to(client.id)
+        .emit('accept_game_response', 'You are not invited to this game');
+      return;
+    }
+    if (userReceiver === 'Not Existing' || userReceiver.socketId === '') {
+      user.game = "";
+      this.server
+        .to(client.id)
+        .emit('accept_game_response', 'The user that invited you is not Onine');
+      return;
+    }
+    const blocked = await this.userService.checkBlockedUser(payload.userCreator, payload.userReceiver.userId);
+    if (blocked !== 'Not Blocked') {
+
+      this.server
+        .to(client.id)
+        .emit('accept_game_response', blocked);
+      return;
+    }
+    this.logger.log(`game started`);
+    ///TODO kafka
+    const accept = {
+      type: 'start the game',
+      user: payload.userCreator,
+    }
+    this.server
+      .to(userReceiver.socketId)
+      .emit('game', accept);
+    this.server.to(client.id).emit('accept_game_response', 'Success');
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('decline_game')
+  async declineGame(
+
+    @MessageBody()
+    payload: DoWithUserDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(`${payload.userCreator.userId} is trying to join a game`);
+    await this.userService.addUser(payload.userCreator, client.id);
+    const userReceiver = await this.userService.getUserById(
+      payload.userReceiver.userId,
+    );
+    const user = await this.userService.getUserById(
+      payload.userCreator.userId,
+    );
+    if (user === 'Not Existing') {
+      this.server
+        .to(client.id)
+        .emit('decline_game_response', 'The user dont exist');
+      return;
+    }
+    if (user.game !== payload.userReceiver.userId) {
+      this.server
+        .to(client.id)
+        .emit('decline_game_response', 'You are not invited to this game');
+      return;
+    }
+    if (userReceiver === 'Not Existing') {
+      user.game = "";
+      this.server
+        .to(client.id)
+        .emit('decline_game_response', 'The user dont exist');
+      return;
+    }
+    userReceiver.game = "";
+    user.game = "";
+    ///TODO kafka
+    const decline = {
+      type: 'decline the game',
+    }
+    this.server
+      .to(userReceiver.socketId)
+      .emit('game', decline);
+    this.logger.log(`decline`);
+    this.server.to(client.id).emit('decline_game_response', 'Success');
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('leave_room')
+  async leaveRoom(
+    @MessageBody()
+    payload: UserAndRoom,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(`${payload.user.userId} is trying to leave ${payload.roomName}`);
+    await this.roomService.removeUserFromRoom(
+      payload.roomName,
+      payload.user.userId,
+    );
+    this.server.in(client.id).socketsLeave(payload.roomName);
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+
+    this.logger.log(`this is what is in there ${JSON.stringify(userList)}`);
+    this.server.to(payload.roomName).emit('room_users', userList);
+    const myRoomlist: RoomShowDto[] = await this.roomService.getMyRooms(
+      payload.user.userId,
+    );
+    this.server.to(client.id).emit('my_rooms', myRoomlist);
+    this.logger.log(`${payload.user.userId} left ${payload.roomName}`);
+    const roomList: RoomShowDto[] = await this.roomService.getRoomsAvailable();
+    this.server.emit('chat_rooms', roomList);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('chat_users')
+  async joinchat(
+    @MessageBody()
+    user: UserDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(`${user.userName} joined the chat`);
+    //guard for avoid user using more than one socket
+    await this.userService.addUser(user, client.id);
+    const users = await this.userService.getAllUsers();
+    this.server.emit('chat_users', users);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('chat_rooms')
+  async getAllRooms(
+    @MessageBody()
+    user: UserDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    await this.userService.addUser(user, client.id);
+    const roomList: RoomShowDto[] = await this.roomService.getRoomsAvailable();
+    const myRoomlist: RoomShowDto[] = await this.roomService.getMyRooms(
+      user.userId,
+    );
+    this.server.to(client.id).emit('chat_rooms', roomList);
+    this.server.to(client.id).emit('my_rooms', myRoomlist);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('add_user')
+  async addUser(
+    @MessageBody()
+    payload: ToDoUserRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    await this.userService.addUser(payload.user, client.id);
+    this.logger.log(  `${payload.user.userId} is trying to add ${payload.toDoUser}`);
+    const response = await this.roomService.addUserToRoom(
+      payload.user.userId,
+      payload.roomName,
+      payload.toDoUser,
+    );
+    this.logger.log(response);
+    this.server.to(client.id).emit('add_user_response', response);
+    if (response !== 'Success') {
+      return;
+    }
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+    this.logger.log(  `${payload.user.userId} added ${payload.toDoUser}`)
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('kick_user')
+  async kickUser(
+    @MessageBody()
+    payload: ToDoUserRoomDto,
+    @ConnectedSocket()  client: Socket,
+  ): Promise<void> {
+    await this.userService.addUser(payload.user, client.id);
+    this.logger.log(  `${payload.user.userId} is trying to kick ${payload.toDoUser}`);
+    const response = await this.roomService.kickUserFromRoom(
+      payload.roomName,
+      payload.user.userId,
+      payload.toDoUser,
+    );
+    this.server.to(client.id).emit('kick_user_response', response);
+    if (response !== 'Success') {
+      return;
+    }
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('ban_user')
+  async banUser(
+    @MessageBody()
+    payload: ToDoUserRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    await this.userService.addUser(payload.user, client.id);
+    this.logger.log(  `${payload.user.userId} is trying to ban ${payload.toDoUser}`);
+    const response = await this.roomService.addUserToBanned(
+      payload.roomName,
+      payload.user.userId,
+      payload.toDoUser,
+    );
+    this.server.to(client.id).emit('ban_user_response', response);
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('unban_user')
+  async unBanUser(
+    @MessageBody()
+    payload: ToDoUserRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    await this.userService.addUser(payload.user, client.id);
+    this.logger.log(  `${payload.user.userId} is trying to unban ${payload.toDoUser}`);
+    await this.roomService.removeUserFromBanned(
+      payload.roomName,
+      payload.user.userId,
+      payload.toDoUser,
+    );
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('mute_user')
+  async muteUser(
+    @MessageBody()
+    payload: ToDoUserRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    await this.userService.addUser(payload.user, client.id);
+    this.logger.log(  `${payload.user.userId} is trying to mute ${payload.toDoUser} for ${payload.timer} seconds`);
+    await this.roomService.addUserToMuted(
+      payload.roomName,
+      payload.user.userId,
+      payload.toDoUser,
+      payload.timer,
+    );
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('unmute_user')
+  async unMuteUser(
+    @MessageBody()
+    payload: ToDoUserRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    await this.userService.addUser(payload.user, client.id);
+    this.logger.log(  `${payload.user.userId} is trying to unmute ${payload.toDoUser}`);
+    await this.roomService.removeUserFromMuted(
+      payload.roomName,
+      payload.user.userId,
+      payload.toDoUser,
+    );
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('make_admin')
+  async addAdmin(
+    @MessageBody()
+    payload: ToDoUserRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    await this.userService.addUser(payload.user, client.id);
+    this.logger.log(  `${payload.user.userId} is trying to make admin ${payload.toDoUser}`);
+    await this.roomService.addUserToAdmin(
+      payload.roomName,
+      payload.user.userId,
+      payload.toDoUser,
+    );
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @SubscribeMessage('remove_admin')
+  async removeAdmin(
+    @MessageBody()
+    payload: ToDoUserRoomDto,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    this.logger.log(`${payload.user.userId} is trying to remove admin ${payload.toDoUser}`);
+    await this.userService.addUser(payload.user, client.id);
+    await this.roomService.removeUserFromAdmin(
+      payload.roomName,
+      payload.user.userId,
+      payload.toDoUser,
+    );
+    const userList = await this.roomService.getUserInRoom(
+      payload.roomName,
+    );
+    this.server.to(payload.roomName).emit('room_users', userList);
+  }
+
+  async handleConnection(socket: Socket): Promise<string> {
+    this.logger.log(`Socket connected: ${socket.id}`);
+    return socket.id;
+  }
+
+  async handleDisconnect(socket: Socket): Promise<void> {
+    const user: User | 'Not Existing' =
+      await this.userService.getUserBySocketId(socket.id);
+    this.logger.log(`Socket disconnected: ${socket.id}`);
+    if (user === 'Not Existing') return;
+    if (user.game !== "") {
+      const userReceiver = await this.userService.getUserById(
+        user.game,
+      );
+      if (userReceiver !== 'Not Existing')
+          userReceiver.game = "";
+    }
+    user.game = "";
+    await this.disconnetOldSocket(user, socket.id);
+    await this.userService.setUserSocketStatus(user, '', false);
+    const users = await this.userService.getAllUsers();
+    this.server.to('chat_users').emit('chat_users', users);
+    const rooms = await this.roomService.getRooms();
+    rooms.forEach(async (room) => {
+      const usersInRoom = await this.roomService.getUserInRoom(
+        room.roomName,
+      );
+      if (usersInRoom !== 'Not In The Room')
+        this.server.to(room.roomName).emit('room_users', usersInRoom);
+    });
+  }
+}
