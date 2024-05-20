@@ -7,6 +7,7 @@ import { UserService } from 'src/user/user.service';
 import { MostFrequentOpponentDto } from 'src/dto/profile-dto';
 import { Opponent } from 'src/utils/opponent.enum';
 import { IGameStatus } from 'src/utils/kafka.interface';
+import { GameStatus, GameTypes, MatchTypes } from 'src/utils/kafka.enum';
 
 @Injectable()
 export class GameService {
@@ -63,5 +64,21 @@ export class GameService {
       }),
     );
     return gameOverview;
+  }
+
+  simulateGame(player1Id: string, player2Id: string): IGameStatus {
+    const player1Score = Math.floor(Math.random() * 16);
+    const player2Score = Math.floor(Math.random() * 16);
+    const duration = Math.floor(Math.random() * 838284) + 181818;
+    return {
+      gameType: GameTypes.PONG,
+      matchType: player2Id === Opponent.BOT ? MatchTypes.SOLO : MatchTypes.PAIR,
+      status: GameStatus.COMPLETED,
+      player1ID: player1Id,
+      player1Score,
+      player2ID: player2Id,
+      player2Score,
+      duration,
+    };
   }
 }

@@ -33,4 +33,12 @@ export class UserRepository extends Repository<User> {
       return fromDB.user_name;
     }
   }
+
+  async getAllUserIds(): Promise<string[]> {
+    const result = await this.createQueryBuilder('users')
+      .select('user_id')
+      .getRawMany();
+    const allUserIds: string[] = result.map((user) => user.user_id);
+    return allUserIds;
+  }
 }

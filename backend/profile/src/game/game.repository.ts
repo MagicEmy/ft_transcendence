@@ -22,8 +22,7 @@ export class GameRepository extends Repository<Game> {
       player2_id: gameStatus.player2ID,
       player1_score: gameStatus.player1Score,
       player2_score: gameStatus.player2Score,
-      //   duration: gameStatus.duration,	// TO BE ADDED
-      duration: gameStatus.player1Score * gameStatus.player2Score * 1111,
+      duration: gameStatus.duration,
       status: gameStatus.status,
     };
 

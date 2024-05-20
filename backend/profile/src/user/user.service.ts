@@ -98,4 +98,8 @@ export class UserService {
   async getUserStatus(user_id: string): Promise<UserStatus> {
     return this.userStatusRepository.findOneBy({ user_id: user_id });
   }
+
+  async getAllUserIds(): Promise<string[]> {
+    return this.userRepository.getAllUserIds();
+  }
 }

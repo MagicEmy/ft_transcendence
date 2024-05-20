@@ -8,6 +8,7 @@ export interface IGameStatus {
   player1Score: number;
   player2ID: string | null;
   player2Score: number;
+  duration: number;
 }
 
 export interface IPlayerInfo {
