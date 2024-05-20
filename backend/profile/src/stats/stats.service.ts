@@ -26,8 +26,7 @@ export class StatsService {
   ) {}
 
   async updateStats(gameStatus: IGameStatus): Promise<void> {
-    const { player1ID, player2ID, player1Score, player2Score } = gameStatus; // duration to be added
-    const duration = gameStatus.player1Score * gameStatus.player2Score * 1111;
+    const { player1ID, player2ID, player1Score, player2Score, duration } = gameStatus; // duration to be added
     const player1 = {
       player_id: player1ID,
       //   opponent: player2_id ? Opponent.HUMAN : Opponent.BOT,
