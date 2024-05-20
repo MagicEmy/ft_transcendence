@@ -19,7 +19,7 @@ interface UserProviderProps {
 
 const UserProvider = ({ children }: UserProviderProps) => {
   const [userDetails, setUserDetails] = useState<TokenUserDetails | null>(null);
-  const [, setUserDetailsStore] = useStorage<TokenUserDetails | null>('userDetails', null);
+  const [, setUserDetailsStore, ] = useStorage<TokenUserDetails | null>('userDetails', null);
   const [authToken, setAuthToken] = useState<string | null>(Cookies.get('Authentication') || null);
 
   useEffect(() => {
@@ -49,6 +49,7 @@ const UserProvider = ({ children }: UserProviderProps) => {
     } else {
       console.log('No auth token found');
     }
+	console.log('IN CONTEXT User Details:', userDetails);
   }, [authToken]);
 
   return (

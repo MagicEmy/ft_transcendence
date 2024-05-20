@@ -35,9 +35,9 @@ interface UserProfile {
   };
   
   export const changeName = async (userId: string, newUserName: string): Promise<UserProfile> => {
-	const response = await fetch(`http://localhost:3002/profile/${userId}/${newUserName}`, {
+	const response = await fetch(`http://localhost:3002/profile/${userId}/username`, {
 	  method: 'PATCH',
-	  credentials: 'include', // to include cookies
+	  credentials: 'include', 
 	});
 	
 	if (!response.ok) {
@@ -47,4 +47,16 @@ interface UserProfile {
 	const newNameProfile: UserProfile = await response.json();
 	return newNameProfile;
   };
+
+  export const loadStatus = async (userId: string,) => {
+	const response = await fetch(`http://localhost:3002/profile/${userId}/status`, {
+	  method: 'GET',
+	  credentials: 'include',
+  });
   
+  if (!response.ok) {
+	throw new Error('Failed to fetch status');
+  }
+  const status: string = await response.json();
+  return status;
+  };
