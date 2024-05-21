@@ -4,9 +4,9 @@ import { StatsService } from './stats/stats.service';
 import { GameService } from './game/game.service';
 import { FriendService } from './friend/friend.service';
 import { FriendDto, ProfileDto } from './dto/profile-dto';
-import { Opponent } from './utils/opponent.enum';
-import { PlayerInfo } from './utils/kafka.enum';
-import { IPlayerInfo } from './utils/kafka.interface';
+import { Opponent } from './enums/opponent.enum';
+import { PlayerInfo } from './enums/kafka.enum';
+import { IPlayerInfo } from './interfaces/kafka.interface';
 import { ClientKafka } from '@nestjs/microservices';
 
 @Injectable()

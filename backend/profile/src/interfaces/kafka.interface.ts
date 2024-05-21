@@ -1,4 +1,4 @@
-import { GameStatus, GameTypes, MatchTypes } from './kafka.enum';
+import { GameStatus, GameTypes, MatchTypes } from '../enums/kafka.enum';
 
 export interface IGameStatus {
   gameType: GameTypes; //GameTypes.PONG

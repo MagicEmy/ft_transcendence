@@ -6,9 +6,9 @@ import { GameHistoryDto } from './dto/game-history-dto';
 import { StatsService } from './stats/stats.service';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { ProfileService } from './profile.service';
-import { GameStatus, KafkaTopic, PlayerInfo } from './utils/kafka.enum';
+import { GameStatus, KafkaTopic, PlayerInfo } from './enums/kafka.enum';
 import { UserService } from './user/user.service';
-import { Opponent } from './utils/opponent.enum';
+import { Opponent } from './enums/opponent.enum';
 
 @Controller()
 export class ProfileController {

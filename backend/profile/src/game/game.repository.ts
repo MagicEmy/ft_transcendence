@@ -2,7 +2,7 @@ import { Repository } from 'typeorm';
 import { Game } from './game.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GamesAgainstUserIdDto } from '../dto/games-against-userid-dto';
-import { IGameStatus } from 'src/utils/kafka.interface';
+import { IGameStatus } from 'src/interfaces/kafka.interface';
 
 export class GameRepository extends Repository<Game> {
   constructor(

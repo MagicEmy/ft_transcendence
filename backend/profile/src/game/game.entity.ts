@@ -1,4 +1,4 @@
-import { GameStatus } from 'src/utils/kafka.enum';
+import { GameStatus } from 'src/enums/kafka.enum';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()

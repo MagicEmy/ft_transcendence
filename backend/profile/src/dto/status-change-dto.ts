@@ -1,4 +1,4 @@
-import { UserStatusEnum } from 'src/utils/kafka.enum';
+import { UserStatusEnum } from 'src/enums/kafka.enum';
 
 export class StatusChangeDto {
   userId: string;

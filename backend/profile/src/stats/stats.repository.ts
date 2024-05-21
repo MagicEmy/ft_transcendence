@@ -2,7 +2,7 @@ import { Repository } from 'typeorm';
 import { Stats } from './stats.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NewUserDto } from '../dto/new-user-dto';
-import { Opponent } from '../utils/opponent.enum';
+import { Opponent } from '../enums/opponent.enum';
 import { LeaderboardStatsDto } from 'src/dto/leaderboard-stats-dto';
 
 export class StatsRepository extends Repository<Stats> {

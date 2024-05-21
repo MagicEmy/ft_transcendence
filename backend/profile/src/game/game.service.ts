@@ -5,9 +5,9 @@ import { GamesAgainstUserIdDto } from '../dto/games-against-userid-dto';
 import { GameHistoryDto } from '../dto/game-history-dto';
 import { UserService } from 'src/user/user.service';
 import { MostFrequentOpponentDto } from 'src/dto/profile-dto';
-import { Opponent } from 'src/utils/opponent.enum';
-import { IGameStatus } from 'src/utils/kafka.interface';
-import { GameStatus, GameTypes, MatchTypes } from 'src/utils/kafka.enum';
+import { Opponent } from 'src/enums/opponent.enum';
+import { IGameStatus } from 'src/interfaces/kafka.interface';
+import { GameStatus, GameTypes, MatchTypes } from 'src/enums/kafka.enum';
 
 @Injectable()
 export class GameService {

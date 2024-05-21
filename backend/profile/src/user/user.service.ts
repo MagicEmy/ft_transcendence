@@ -13,7 +13,7 @@ import { UserStatusRepository } from './user-status.repository';
 import { UserStatus } from './user-status.entity';
 import { UserInfoDto } from 'src/dto/profile-dto';
 import { UserIdNameDto } from 'src/dto/user-id-name-dto';
-import { KafkaTopic, UserStatusEnum } from 'src/utils/kafka.enum';
+import { KafkaTopic, UserStatusEnum } from 'src/enums/kafka.enum';
 import { ClientKafka } from '@nestjs/microservices';
 
 @Injectable()

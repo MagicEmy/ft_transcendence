@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CacheInterface } from './username-cache.interface';
+import { CacheInterface } from '../interfaces/username-cache.interface';
 
 @Injectable()
 export class UsernameCache {

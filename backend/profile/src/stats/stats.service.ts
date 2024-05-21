@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { NewUserDto } from '../dto/new-user-dto';
 import { StatsRepository } from './stats.repository';
 import { UpdateStatsDto } from '../dto/update-stats-dto';
-import { Opponent } from '../utils/opponent.enum';
+import { Opponent } from '../enums/opponent.enum';
 import { Stats } from './stats.entity';
 import {
   MILISECONDS_IN_A_DAY,
@@ -15,7 +15,8 @@ import {
 import { GameStatsDto, TotalTimePlayedDto } from 'src/dto/profile-dto';
 import { LeaderboardStatsDto } from '../dto/leaderboard-stats-dto';
 import { UserService } from 'src/user/user.service';
-import { IGameStatus } from 'src/utils/kafka.interface';
+import { IGameStatus } from 'src/interfaces/kafka.interface';
+import { GameResult } from 'src/enums/game-result.enum';
 
 @Injectable()
 export class StatsService {
@@ -102,13 +103,13 @@ export class StatsService {
       statsRow.total_time_playing_days = recalculated.days;
       statsRow.total_time_playing_miliseconds = recalculated.miliseconds;
       switch (updateStatsDto.result) {
-        case -1:
+        case GameResult.LOSS:
           statsRow.losses += 1;
           break;
-        case 0:
+        case GameResult.DRAW:
           statsRow.draws += 1;
           break;
-        case 1:
+        case GameResult.WIN:
           statsRow.wins += 1;
       }
       statsRow.points_total = statsRow.wins * 3 + statsRow.draws;

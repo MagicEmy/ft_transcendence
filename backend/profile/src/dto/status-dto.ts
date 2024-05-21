@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserStatusEnum } from 'src/utils/kafka.enum';
+import { UserStatusEnum } from 'src/enums/kafka.enum';
 
 export class StatusDto {
   @ApiProperty({

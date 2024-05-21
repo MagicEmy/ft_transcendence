@@ -21,11 +21,12 @@ import { Express, Response } from 'express';
 import { FriendService } from '../friend/friend.service';
 import { EventPattern } from '@nestjs/microservices';
 import { FriendWithNameDto } from 'src/dto/friend-with-name-dto';
-import { KafkaTopic } from 'src/utils/kafka.enum';
+import { KafkaTopic } from 'src/enums/kafka.enum';
 import { UserIdNameDto } from 'src/dto/user-id-name-dto';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { StatusDto } from 'src/dto/status-dto';
 import { UserNameDto } from 'src/dto/user-name-dto';
+import { UserStatus } from './user-status.entity';
 
 @Controller('user')
 export class UserController {
@@ -66,7 +67,7 @@ export class UserController {
   }
 
   @Get('/:id/status')
-  getUserStatus(@Param('id') user_id: string) {
+  getUserStatus(@Param('id') user_id: string): Promise<UserStatus> {
     return this.userService.getUserStatus(user_id);
   }
 

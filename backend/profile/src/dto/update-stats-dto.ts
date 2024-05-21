@@ -1,5 +1,5 @@
-import { GameResult } from 'src/utils/game-result.enum';
-import { Opponent } from '../utils/opponent.enum';
+import { GameResult } from 'src/enums/game-result.enum';
+import { Opponent } from '../enums/opponent.enum';
 
 export class UpdateStatsDto {
   player_id: string;
