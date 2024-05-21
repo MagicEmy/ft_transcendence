@@ -1,62 +1,110 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { extractUserIdFromToken, TokenUserDetails } from '../utils/tokenUtils';
-import useStorage from '../hooks/useStorage';
-import Cookies from 'js-cookie';
+import React, { createContext, useState, useEffect, ReactNode } from "react";
+import useStorage from "../hooks/useStorage";
 
-interface UserContextType {
-  userDetails: TokenUserDetails | null;
-  setUser: React.Dispatch<React.SetStateAction<TokenUserDetails | null>>;
+// Define User interface
+interface User {
+  userId?: string;
+  userName?: string;
 }
 
-const UserContext = createContext<UserContextType>({
-  userDetails: null,
-  setUser: () => {},
-});
+// Define UserContextType interface
+interface UserContextType {
+  userData: User;
+  userIdContext: string;
+  isLoading: boolean;
+}
+interface UserDataStorage {
+  userId?: string;
+  userName?: string;
+  [key: string]: any;
+}
 
+// Initial context value
+const initialContext: UserContextType = {
+  userData: {},
+  userIdContext: "",
+  isLoading: false,
+};
+
+// Create the context with the defined type
+const UserContext = createContext<UserContextType>(initialContext);
+
+// Define the props type for the UserProvider component
 interface UserProviderProps {
   children: ReactNode;
 }
 
-const UserProvider = ({ children }: UserProviderProps) => {
-  const [userDetails, setUserDetails] = useState<TokenUserDetails | null>(null);
-  const [, setUserDetailsStore, ] = useStorage<TokenUserDetails | null>('userDetails', null);
-  const [authToken, setAuthToken] = useState<string | null>(Cookies.get('Authentication') || null);
+export const UserProvider = ({ children }: UserProviderProps): JSX.Element => {
+  const [userProfileStore, setUserProfileStore] = useStorage<UserDataStorage>(
+    "user",
+    {}
+  );
+  const [userData, setUserData] = useState<User>(userProfileStore || {});
+  const [userIdContext, setUserIdContext] = useState<string>(
+    userProfileStore.userId || ""
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const handleAuthTokenChange = () => {
-      const newAuthToken = Cookies.get('Authentication') || null;
-      setAuthToken(newAuthToken);
-    };
-
-    // Listen for changes to cookies
-    const intervalId = setInterval(handleAuthTokenChange, 1000);
-
-    return () => clearInterval(intervalId);
-  }, []);
-
-  useEffect(() => {
-    console.log('Auth Token:', authToken);
-
-    if (authToken) {
-      const userDetails = extractUserIdFromToken(authToken);
-      if (userDetails) {
-        setUserDetails(userDetails);
-        setUserDetailsStore(userDetails);
-        console.log('User Details:', userDetails);
-      } else {
-        console.log('Failed to extract user details from token');
+    const fetchUser = async () => {
+      if (userData) {
+        setIsLoading(false);
+        return;
       }
-    } else {
-      console.log('No auth token found');
-    }
-	console.log('IN CONTEXT User Details:', userDetails);
-  }, [authToken]);
+
+      setIsLoading(true);
+      try {
+        const response = await fetch("http://localhost:3003/auth/profile", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+		
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        const profile = await response.json();
+		setUserData(profile.value);
+		setUserIdContext(profile.value.user_id);
+		setUserProfileStore(profile.value);
+		console.log("profile.value in context", profile.value);
+		console.log("profile.data in context", profile.data);
+		console.log("profile in context", profile);
+
+		// if (profile.value !== null) {
+		// 	setUserData(profile.value);
+		// 	setUserIdContext(profile.value.user_id);
+		// 	setUserProfileStore(profile.value);
+		// 	console.log("profile.data in context", profile.value);
+		// }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUser();
+  }, [userData]);
+
+  useEffect(() => {
+	console.log("User Data in context", userData);
+	console.log("User ID Context in context", userIdContext);
+
+  }, [userData, userIdContext, isLoading]);
 
   return (
-    <UserContext.Provider value={{ userDetails, setUser: setUserDetails }}>
+    <UserContext.Provider
+      value={{
+        userData,
+        userIdContext,
+        isLoading,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
 };
 
-export { UserContext, UserProvider };
+export default UserContext;

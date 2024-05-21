@@ -1,13 +1,13 @@
 // src/types/shared.ts
 
 export interface User {
-	user_id: string;
-	user_name: string;
+	user_id?: string;
+	user_name?: string;
 }
 
 
 export interface UserProfile {
-	user_id: string;
+	user_id?: string;
 	user_name: string;
 	leaderboard_position?: number;
 	total_players?: number;

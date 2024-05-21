@@ -1,14 +1,16 @@
 import React, { useContext } from 'react';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
-import { UserContext } from '../context/UserContext';
+import  UserContext  from '../context/UserContext';
 
 const PrivateRoute = () => {
-  const { userDetails } = useContext(UserContext);
+  const { userData } = useContext(UserContext);
   const location = useLocation();
 
-  if (!userDetails) {
+  console.log("PrivateRoute: userData", userData);
+  if (!userData) {
+	console.log("PrivateRoute: No user logged in");
     return <Navigate to="/" state={{ from: location }} />;
-  }
+  }	
 
   return <Outlet />;
 };

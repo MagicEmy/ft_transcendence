@@ -1,40 +1,43 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import classes from './Navbar.module.css';
 import LogoutButton from './LogoutButton';
 import useStorage from '../hooks/useStorage';
-import { loadProfile, loadProfileAvatar } from '../utils/profileData';
+import  UserContext  from '../context/UserContext';
+import { loadProfileAvatar } from '../utils/profileUtils';
 
-interface UserProfile {
-  user_id: string;
-  user_name: string;
+interface UserDataStorage {
+  userId?: string ;
+  userName?: string;
+  [key: string]: any;
 }
 
-const Navbar = () => {
-  const [userProfile] = useStorage<UserProfile | null>('user', null);
+const Navbar = (): JSX.Element => {
+  // const { userProfile } = useContext(UserContext);
+  // const { userIdContext } = useContext(UserContext);
+  const [userProfile] = useStorage<UserDataStorage>("user", {});
   const [avatar, setAvatar] = useStorage<string>('avatar', '');
-  const [userName, setUserName] = useState<string>('');
+
+  const { userData, userIdContext, isLoading } = useContext(UserContext);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (userProfile?.user_id) {
+    const fetchAvatar = async () => {
+      if (userProfile.userId) {
         try {
-          const dbProfile = await loadProfile(userProfile.user_id);
-          const imageUrl = await loadProfileAvatar(userProfile.user_id);
-          setUserName(dbProfile.user_name);
-          setAvatar(imageUrl || '');
-        } catch (error) {
-          console.error('Error fetching user data:', error);
+          const imageUrl = await loadProfileAvatar(userProfile.userId);
+		  if (imageUrl)
+	        setAvatar(imageUrl);
+        } catch (error: any) {
+          console.error('Error fetching avatar:', error.message);
         }
       }
     };
-
-    fetchUserData();
-  }, [userProfile, setAvatar, setUserName]);
-
+    fetchAvatar();
+  }, [userProfile.userId, setAvatar]);
   return (
     <header className={classes.header}>
       <div className={classes.avatar}>
+        <span>{userProfile?.userName}</span>
         <NavLink
           to="/profile"
           className={({ isActive }) => (isActive ? classes.active : undefined)}
@@ -45,7 +48,6 @@ const Navbar = () => {
             ) : (
               <p>Loading...</p>
             )}
-            <span>{userName}</span>
           </div>
         </NavLink>
       </div>
@@ -107,6 +109,6 @@ const Navbar = () => {
       </div>
     </header>
   );
-};
+}
 
 export default Navbar;
