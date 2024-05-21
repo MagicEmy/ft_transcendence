@@ -12,6 +12,7 @@ import { UserStatusEnum } from 'src/utils/user-status.enum';
 import { UserStatusRepository } from './user-status.repository';
 import { UserStatus } from './user-status.entity';
 import { UserInfoDto } from 'src/dto/profile-dto';
+import { UserIdNameDto } from 'src/dto/user-id-name-dto';
 
 @Injectable()
 export class UserService {
@@ -57,13 +58,13 @@ export class UserService {
     });
   }
 
-  async changeUsername(user_id: string, user_name: string): Promise<User> {
-    const found = await this.getUserById(user_id);
+  async changeUsername(userNameDto: UserIdNameDto): Promise<User> {
+    const found = await this.getUserById(userNameDto.userId);
     // if (!found) {
     //   throw new NotFoundException(`User with ID "${user_id}" not found`);
     // }
     // -> THIS SHOULD NOT BE NECESSARY
-    found.user_name = user_name;
+    found.user_name = userNameDto.userName;
     this.userRepository.save(found);
     return found;
   }

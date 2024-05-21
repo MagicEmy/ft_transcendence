@@ -39,22 +39,17 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
           user_name: user.user_name,
           intra_login: user.intra_login,
         });
-        resp.cookie(
-          this.configService.get('JWT_ACCES_TOKEN_COOKIE_NAME'),
+        const accessCookie = this.authService.getCookieWithTokens(
+          this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
           tokens.jwtAccessToken,
-          this.authService.getTokenCookieOptions(
-            this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
-            false,
-          ),
+          this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
         );
-        resp.cookie(
+        const refreshCookie = this.authService.getCookieWithTokens(
           this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
           tokens.jwtRefreshToken,
-          this.authService.getTokenCookieOptions(
-            this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
-            true,
-          ),
+          this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
         );
+        resp.setHeader('Set-Cookie', [accessCookie, refreshCookie]);
       } else {
         throw new UnauthorizedException();
       }
@@ -63,10 +58,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err, user, info) {
-    // console.log('in handleRequest');
-    // console.log(err);
-    // console.log(user);
-    // console.log(info);
     if (info instanceof TokenExpiredError) {
       throw info;
     } else if (!user) {
@@ -77,7 +68,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
   async activateWithRefreshToken(req): Promise<User> | null {
     // extract the refresh token from cookies
-    const refreshToken = this.extractRefreshTokenFromCookies(req);
+    const refreshToken = this.authService.extractTokenFromCookies(
+      req.get('cookie'),
+      this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
+    );
     if (!refreshToken) {
       return null;
     }
@@ -86,20 +80,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       refreshToken,
       this.configService.get('JWT_REFRESH_SECRET'),
     );
-  }
-
-  private extractRefreshTokenFromCookies(req): string | null {
-    const cookies = req.get('cookie');
-    let refreshCookieValue = null;
-    if (cookies) {
-      cookies.split(';').forEach((cookie) => {
-        const [name, value] = cookie.trim().split('=');
-        if (name === this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME')) {
-          refreshCookieValue = value;
-        }
-      });
-    }
-    return refreshCookieValue;
   }
 
   private async validateRefreshToken(
