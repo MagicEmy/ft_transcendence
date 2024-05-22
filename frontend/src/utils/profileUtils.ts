@@ -1,62 +1,62 @@
-interface UserProfile {
-	user_id: string;
-	user_name: string;
-  }
+import { UserProfile } from '../types/shared';
   
-  export const loadProfile = async (userId: string): Promise<UserProfile> => {
+export const loadProfile = async (userId: string): Promise<any> => {
 	const response = await fetch(`http://localhost:3002/profile/${userId}`, {
-	  method: 'GET',
-	  credentials: 'include', // to include cookies
+	  headers: { 'Content-Type': 'application/json' },
+	  credentials: 'include'
 	});
-	
 	if (!response.ok) {
 	  throw new Error('Failed to fetch profile');
 	}
-  
-	const profile: UserProfile = await response.json();
+	const profile = await response.json();
 	return profile;
   };
-  
-  export const loadProfileAvatar = async (userId: string): Promise<string | undefined> => {
-	if (!userId) return;
-  
-	const response = await fetch(`http://localhost:3002/user/${userId}/avatar`, {
+  export const loadStatus = async (userId: string): Promise<any> => {
+	const response = await fetch(`http://localhost:3002/user/${userId}/status`, {
 	  method: 'GET',
-	  credentials: 'include', // to include cookies
+	  headers: {
+		'Content-Type': 'application/json'
+	  },
+	  credentials: 'include'
 	});
-  
 	if (!response.ok) {
-	  throw new Error('Failed to fetch avatar');
+	  throw new Error('Failed to fetch status');
 	}
-  
-	const blob = await response.blob();
-	const imageUrl = URL.createObjectURL(blob);
-	return imageUrl;
+	const userStatus = await response.json();
+	return userStatus;
   };
-  
-  export const changeName = async (userId: string, newUserName: string): Promise<UserProfile> => {
-	const response = await fetch(`http://localhost:3002/profile/${userId}/username`, {
+
+  export const loadProfileAvatar = async (userId: string): Promise<string> => {
+	try {
+	  const response = await fetch(`http://localhost:3002/user/${userId}/avatar`, {
+		headers: {
+		  'Accept': 'application/json'
+		},
+		credentials: 'include'
+	  });
+	  if (!response.ok) {
+		throw new Error('Failed to fetch avatar');
+	  }
+	  const blob = await response.blob();
+	  const imageUrl = URL.createObjectURL(blob);
+	  return imageUrl;
+	} catch (error) {
+	  console.error('Failed to fetch avatar:', error);
+	  return '';
+	}
+  };
+
+  export const changeName = async (userId: string, newUserName: string): Promise<any> => {
+	const response = await fetch(`http://localhost:3002/profile/${userId}/${newUserName}`, {
 	  method: 'PATCH',
-	  credentials: 'include', 
+	  headers: { 'Content-Type': 'application/json' },
+	  credentials: 'include',
+	  body: JSON.stringify({ newUserName })
 	});
-	
 	if (!response.ok) {
 	  throw new Error('Failed to change name');
 	}
-  
-	const newNameProfile: UserProfile = await response.json();
+	const newNameProfile = await response.json();
 	return newNameProfile;
   };
-
-  export const loadStatus = async (userId: string,) => {
-	const response = await fetch(`http://localhost:3002/profile/${userId}/status`, {
-	  method: 'GET',
-	  credentials: 'include',
-  });
   
-  if (!response.ok) {
-	throw new Error('Failed to fetch status');
-  }
-  const status: string = await response.json();
-  return status;
-  };

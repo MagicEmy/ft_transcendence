@@ -1,101 +1,94 @@
-.main {
-    height: 100vh;
+/* @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap'); */
+
+* > * {
+    /* font-family: "Poppins", cursive; */
+    margin: 0;
+}
+
+:root{
+    --color-dark: #2C3131;
+    --color-light: #be0dea;
+}
+
+#main {
+	display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    height: calc(100vh - 40px);
     overflow-y: auto;
     scroll-behavior: smooth;
 	margin-bottom: 20em;
-    padding: 50px;
 }
 
-.profile{
+
+.board {
+    text-align: center;
+	width: 50%;
+	margin-top: 2em;
+}
+
+.board .leaderboard{
+    margin-bottom: 1em;
+	color: #0a04ad;
+	font-size: 2.5em;
+}
+
+#leadProfile{
 	border : 10px solid #0a04ad;
 	border-radius: 30px;
-    height: 100%;
     margin-top: 3em;
-	padding: 10px;
+	padding: 100px;
 	overflow-y: auto;
-	margin-bottom: 10em;
+	margin-bottom: 20em;
 	background-color: #dee5f4;
 }
 
-.profile .flex{
+#leadProfile .flex{
+    display: flex;
+    justify-content: space-between;
     gap: 1em;
     text-align: left;
     margin-bottom: 2em;
 }
 
-.profile .flex .item{
+#leadProfile .flex .item{
     display: flex;
     align-items: center;
-	gap: 1em;
-    padding: 30px;
+	gap: 3em;
 }
 
-.profile .flex img{
-    width: 100px;
-    height: 100px;
+#leadProfile .flex img{
+    width: 60px;  /* Desired width */
+    height: 60px; /* Desired height */
     object-fit: cover;
     border-radius: 50%;
 }
 
-.profile .flex .info{
-   padding: 0;
+#leadProfile .flex .info{
+   padding: 1em;
 }
 
 .text-dark{
-    color: #0d045a
+    color: var(--color-light);
 }
 
-.status-indicator {
-    height: 15px;
-    width: 15px;
-    border-radius: 50%;
-    display: inline-block;
-    /* margin-right: 5px; */
-}
-
-.online {
-    background-color: green;
-}
-
-.offline {
-    background-color: red;
-}
-
-.game{
-    background-color: blue;
-}
-
-/* .info .total-points {
+.info .total-points {
     display: block; /* Ensures that the points are on a new line */
-    /* margin-bottom: 8px; /* Adds space below the total points
-} */
+    margin-bottom: 8px; /* Adds space below the total points */
+}
 
 .stats .stat {
     display: inline-block; /* Allows items to sit side-by-side */
     margin-right: 15px; /* Space between different stats */
-
-
 }
 
 .stat strong {
 	margin-left: 5px; /* Space between the label and the number */
-    color: #0f0f0f; /* Change the color of the number */
 }
 
-
-.friends {
-    flex-direction: row;
-    margin-left: 1em;
-    margin-right: 1em;
-    border: solid 1px #f6790b;
-     display: flex;
-    align-items: left;
-    gap: 1em;
-    padding: 30px;
-}
-
-  /* Style for NavLink */
-.friend .link {
+ /* Style for NavLink */
+  .nav-link {
 	color: #333; /* Change the color of the link */
 	text-decoration: none; /* Remove underline */
 	padding: 8px 12px; /* Add padding */
@@ -104,8 +97,7 @@
   }
 
   /* Style for active NavLink */
-.friend .link.active {
+  .nav-link.active {
 	background-color: #f0f0f0; /* Change background color when active */
 	font-weight: bold; /* Make text bold when active */
   }
-

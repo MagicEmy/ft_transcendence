@@ -1,57 +1,43 @@
-import React, { createContext, useState, useEffect, ReactNode } from "react";
-import useStorage from "../hooks/useStorage";
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import { loadProfileAvatar } from '../utils/profileUtils';
 
-// Define User interface
-interface User {
-  userId?: string;
-  userName?: string;
-}
-
-// Define UserContextType interface
-interface UserContextType {
-  userData: User;
+interface IUserContext {
   userIdContext: string;
+  userNameContext: string;
+  setUserNameContext: (userName: string) => void;
+  avatarContext: string | null;
+  setAvatarContext: (avatar: string | null) => void;
+  tfaEnabled: boolean;
+  setTfaEnabled: (isEnabled: boolean) => void;
   isLoading: boolean;
 }
-interface UserDataStorage {
-  userId?: string;
-  userName?: string;
-  [key: string]: any;
-}
 
-// Initial context value
-const initialContext: UserContextType = {
-  userData: {},
-  userIdContext: "",
+const defaultState: IUserContext = {
+  userIdContext: '',
+  userNameContext: '',
+  setUserNameContext: () => {},
+  avatarContext: null,
+  setAvatarContext: () => {},
+  tfaEnabled: false,
+  setTfaEnabled: () => {},
   isLoading: false,
 };
 
-// Create the context with the defined type
-const UserContext = createContext<UserContextType>(initialContext);
+const UserContext = createContext<IUserContext>(defaultState);
 
-// Define the props type for the UserProvider component
 interface UserProviderProps {
   children: ReactNode;
 }
 
-export const UserProvider = ({ children }: UserProviderProps): JSX.Element => {
-  const [userProfileStore, setUserProfileStore] = useStorage<UserDataStorage>(
-    "user",
-    {}
-  );
-  const [userData, setUserData] = useState<User>(userProfileStore || {});
-  const [userIdContext, setUserIdContext] = useState<string>(
-    userProfileStore.userId || ""
-  );
+export const UserProvider = ({ children }: UserProviderProps) => {
+  const [userIdContext, setUserIdContext] = useState<string>('');
+  const [userNameContext, setUserNameContext] = useState<string>('');
+  const [avatarContext, setAvatarContext] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [tfaEnabled, setTfaEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (userData) {
-        setIsLoading(false);
-        return;
-      }
-
       setIsLoading(true);
       try {
         const response = await fetch("http://localhost:3003/auth/profile", {
@@ -61,44 +47,62 @@ export const UserProvider = ({ children }: UserProviderProps): JSX.Element => {
           },
           credentials: "include",
         });
-		
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
         }
         const profile = await response.json();
-		setUserData(profile.value);
-		setUserIdContext(profile.value.user_id);
-		setUserProfileStore(profile.value);
-		console.log("profile.value in context", profile.value);
-		console.log("profile.data in context", profile.data);
-		console.log("profile in context", profile);
-
-		// if (profile.value !== null) {
-		// 	setUserData(profile.value);
-		// 	setUserIdContext(profile.value.user_id);
-		// 	setUserProfileStore(profile.value);
-		// 	console.log("profile.data in context", profile.value);
-		// }
+        setUserIdContext(profile.userId);
+        setUserNameContext(profile.userName);
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching user data: error caught: ", error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchUser();
-  }, [userData]);
+    if (!userIdContext) fetchUser();
+  }, [userIdContext]);
 
   useEffect(() => {
-	console.log("User Data in context", userData);
-	console.log("User ID Context in context", userIdContext);
+    let active = true; // Flag to manage the effect lifecycle
 
-  }, [userData, userIdContext, isLoading]);
+    const cleanupPreviousAvatar = () => {
+      if (avatarContext) {
+        URL.revokeObjectURL(avatarContext);
+      }
+    };
+
+    const fetchAvatar = async () => {
+      if (userIdContext) {
+        try {
+          const url = await loadProfileAvatar(userIdContext);
+          if (active) {
+            cleanupPreviousAvatar();
+            setAvatarContext(url || null);
+          }
+        } catch (error) {
+          console.error('Error loading avatar:', error);
+        }
+      }
+    };
+
+    fetchAvatar();
+
+    return () => {
+      cleanupPreviousAvatar();
+      active = false;
+    };
+  }, [userIdContext, setAvatarContext, avatarContext]);
 
   return (
     <UserContext.Provider
       value={{
-        userData,
         userIdContext,
+        userNameContext,
+        setUserNameContext,
+        avatarContext,
+        setAvatarContext,
+        tfaEnabled,
+        setTfaEnabled,
         isLoading,
       }}
     >

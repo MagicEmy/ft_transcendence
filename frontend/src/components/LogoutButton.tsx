@@ -7,37 +7,38 @@ interface LogoutButtonProps {
 }
 
 const LogoutButton = ({ className }: LogoutButtonProps) => {
-  const [user, , removeUser] = useStorage<{ userId: string } | null>(
-    "user",
-    null
-  );
-  const [, , removeAvatar] = useStorage<string>("avatar", "");
+  const [userId, , removeUserId] = useStorage('userId', '');
+  const [userName, , removeUserName] = useStorage('userName', '');
+  const [avatar, , removeAvatar] = useStorage("avatar", '');
   const navigate = useNavigate();
 
   async function userLogout() {
     try {
-      const response = await fetch("http://localhost:3003/auth/logout", {
-        method: "POST",
+      console.log('Logging out user:', userId);
+      const response = await fetch('http://localhost:3003/auth/logout', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ user_id: user?.userId }),
-        credentials: "include",
+        credentials: 'include',
+        body: JSON.stringify({ user_id: userId })
       });
 
       if (!response.ok) {
-        throw new Error("Failed to logout");
+        throw new Error('Failed to log out');
       }
 
-      console.log("User logged out");
-      removeUser();
+      console.log('User logged out');
+      removeUserId();
+      removeUserName();
       removeAvatar();
-      navigate("/");
+      navigate('/');
     } catch (error) {
-      console.log("Error logging out:", error);
-      removeUser();
+      console.error('Error logging out:', error);
+      removeUserId();
+      removeUserName();
       removeAvatar();
-      navigate("/");
+      navigate('/');
     }
   }
 
