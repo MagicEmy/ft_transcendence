@@ -18,19 +18,89 @@ services:
       - "3000:3000"
     depends_on:
       - auth
-      - profile
+      - game_service
+      - stats_service
+      - user_service
 
 # backend
-  # gateway:
-  #   container_name: gateway
-  #   env_file: .env
-  #   build:
-  #     context: ./backend/gateway
-  #     dockerfile: Dockerfile
-  #   image: gateway
-  #   restart: unless-stopped
-  #   networks:
-  #     - backend
+  gateway:
+    container_name: gateway
+    env_file: .env
+    build:
+      context: ./backend/gateway
+      dockerfile: Dockerfile
+    image: gateway
+    volumes:
+    - "./backend/gateway:/app" #only for developement
+    - "/app/node_modules"
+    networks:
+    - backend
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+  
+  game_service:
+    container_name: game_service
+    env_file: 
+    - .env
+    - .env.profile-db
+    build:
+      context: ./backend/game-service
+      dockerfile: Dockerfile
+    image: game_service
+    volumes:
+      - "./backend/game-service:/app" #only for developement
+      - "/app/node_modules"
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - "3007:3000" #only for testing porposes
+    depends_on:
+      profile_db:
+        condition: service_healthy
+
+  user_service:
+    container_name: user_service
+    env_file: 
+    - .env
+    - .env.profile-db
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    image: user_service
+    volumes:
+      - "./backend/user-service:/app" #only for developement
+      - "/app/node_modules"
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - "3008:3000" #only for testing porposes
+    depends_on:
+      profile_db:
+        condition: service_healthy
+  
+  stats_service:
+    container_name: stats_service
+    env_file: 
+    - .env
+    - .env.profile-db
+    build:
+      context: ./backend/stats-service
+      dockerfile: Dockerfile
+    image: stats_service
+    volumes:
+      - "./backend/stats-service:/app" #only for developement
+      - "/app/node_modules"
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - "3009:3000" #only for testing porposes
+    depends_on:
+      profile_db:
+        condition: service_healthy
 
   chat:
     container_name: chat
@@ -69,27 +139,6 @@ services:
       - backend
     ports:
       - "3003:3000" # only for testing purposes
-    depends_on:
-      - profile_db
-      - kafka
-
-  profile:
-    container_name: profile
-    env_file: 
-    - .env
-    - .env.profile-db
-    build:
-      context: ./backend/profile
-      dockerfile: Dockerfile
-    image: profile
-    volumes:
-      - "./backend/profile:/app" #only for developement
-      - "/app/node_modules"
-    ports:
-      - "3002:3000" #only for testing porposes
-    restart: unless-stopped
-    networks:
-      - backend
     depends_on:
       - profile_db
       - kafka
@@ -200,6 +249,7 @@ services:
   #     - backend
   #   depends_on:
   #    - gateway
+
 
 networks:
   backend:
