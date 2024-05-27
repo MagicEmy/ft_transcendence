@@ -1,0 +1,13 @@
+import { Column, Entity, PrimaryColumn } from 'typeorm';
+
+@Entity({ name: 'avatars' })
+export class Avatar {
+  @PrimaryColumn()
+  user_id: string;
+
+  @Column({ type: 'bytea' })
+  avatar: Buffer;
+
+  @Column()
+  mime_type: string;
+}
