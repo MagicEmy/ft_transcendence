@@ -4,7 +4,7 @@ import { UserDto, ChatUserDto, BlockedUserDto } from 'src/dto/chat.dto';
 import { User } from 'src/entities/user.entity';
 import { UserRepository } from './user.repository';
 import { BlockedUserRepository } from './blocked-user.repository';
-import { UserNameDto } from 'src/kafka/dto/kafka-dto';
+import { UserIdNameDto } from 'src/kafka/dto/kafka-dto';
 import { Producer } from 'kafkajs';
 import { KafkaProducerService } from 'src/kafka/kafka-producer.service';
 
@@ -29,7 +29,7 @@ export class UserService {
     });
   }
 
-  async setUserName(userNameDto: UserNameDto): Promise<void> {
+  async setUserName(userNameDto: UserIdNameDto): Promise<void> {
     const found = await this.getUserById(userNameDto.userId);
     if (found instanceof User) {
       found.userName = userNameDto.userName;

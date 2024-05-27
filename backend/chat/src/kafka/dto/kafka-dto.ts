@@ -7,12 +7,12 @@ export class StatusChangeDto {
 }
 
 export class NewUserDto {
-  user_id: string;
-  intra_login: string;
-  user_name: string;
+  userId: string;
+  intraLogin: string;
+  userName: string;
 }
 
-export class UserNameDto {
+export class UserIdNameDto {
   userId: string;
   userName: string;
 }

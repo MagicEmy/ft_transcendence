@@ -69,13 +69,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // DM added
     await this.kafkaConsumer.run({
       eachMessage: async ({ topic, partition, message }) => {
-        this.logger.log('Kafka consumed:', topic, message.value.toString());
+        this.logger.log(
+          'Kafka consumed:',
+          topic,
+          JSON.parse(message.value.toString()),
+        );
         switch (topic) {
           case KafkaTopic.NEW_USER:
-            this.kafkaConsumerService.addNewUser(message.value.toString());
+            this.kafkaConsumerService.addNewUser(
+              JSON.parse(message.value.toString()),
+            );
             break;
           case KafkaTopic.USERNAME_CHANGE:
-            this.kafkaConsumerService.changeUsername(message.value.toString());
+            this.kafkaConsumerService.changeUsername(
+              JSON.parse(message.value.toString()),
+            );
             break;
           default:
             this.logger.error('Unknown topic:', topic);
