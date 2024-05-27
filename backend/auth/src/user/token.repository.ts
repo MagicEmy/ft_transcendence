@@ -15,7 +15,8 @@ export class TokenRepository extends Repository<Token> {
   }
 
   async createRefreshToken(refreshTokenDto: RefreshTokenDto): Promise<Token> {
-    const token = this.create(refreshTokenDto);
+    const { userId, refreshToken } = refreshTokenDto;
+    const token = this.create({ user_id: userId, refresh_token: refreshToken });
     try {
       this.save(token);
     } catch (error) {
@@ -27,12 +28,12 @@ export class TokenRepository extends Repository<Token> {
   async replaceOrCreateRefreshToken(
     refreshTokenDto: RefreshTokenDto,
   ): Promise<Token> {
-    const { user_id, refresh_token } = refreshTokenDto;
-    const token = await this.findOneBy({ user_id });
+    const { userId, refreshToken } = refreshTokenDto;
+    const token = await this.findOneBy({ user_id: userId });
     if (!token) {
       return this.createRefreshToken(refreshTokenDto);
     } else {
-      token.refresh_token = refresh_token;
+      token.refresh_token = refreshToken;
       return this.save(token);
     }
   }

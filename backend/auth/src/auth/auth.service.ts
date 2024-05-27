@@ -28,21 +28,21 @@ export class AuthService {
   async validateUserOrAddNewOne(
     validateUserDto: ValidateUserDto,
   ): Promise<User> {
-    const { intra_login, avatar_url } = validateUserDto;
-    let user = await this.userService.getUserByIntraLogin(intra_login);
+    const { intraLogin, avatarUrl } = validateUserDto;
+    let user = await this.userService.getUserByIntraLogin(intraLogin);
     if (!user) {
       user = await this.userService.createUser({
-        intra_login: intra_login,
-        user_name: intra_login,
+        intraLogin: intraLogin,
+        userName: intraLogin,
       });
 
-      this.userService.createAvatarRecord(user.user_id, avatar_url);
+      this.userService.createAvatarRecord(user.user_id, avatarUrl);
 
       // new user creation is broadcast to profile and chat
       this.statsClient.emit('new_user', {
-        user_id: user.user_id,
-        intra_login: user.intra_login,
-        user_name: user.user_name,
+        userId: user.user_id,
+        intraLogin: user.intra_login,
+        userName: user.user_name,
       });
     }
     return user;
@@ -52,8 +52,8 @@ export class AuthService {
     const { user_id, user_name, intra_login } = user;
     return this.generateJwtTokens({
       sub: user_id,
-      user_name,
-      intra_login,
+      userName: user_name,
+      intraLogin: intra_login,
     });
   }
 
@@ -61,8 +61,8 @@ export class AuthService {
     const jwtAccessToken = this.generateJwtAccessToken(jwtPayloadDto);
     const jwtRefreshToken = this.generateJwtRefreshToken(jwtPayloadDto.sub);
     this.userService.saveRefreshTokenInDB({
-      user_id: jwtPayloadDto.sub,
-      refresh_token: jwtRefreshToken,
+      userId: jwtPayloadDto.sub,
+      refreshToken: jwtRefreshToken,
     });
     return {
       jwtAccessToken: jwtAccessToken,

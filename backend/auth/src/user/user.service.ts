@@ -31,9 +31,9 @@ export class UserService {
     return this.userRepository.createUser(createUserDto);
   }
 
-  async getUserByIntraLogin(intra_login: string): Promise<User> {
+  async getUserByIntraLogin(intraLogin: string): Promise<User> {
     return await this.userRepository.findOneBy({
-      intra_login: intra_login,
+      intra_login: intraLogin,
     });
   }
 
@@ -48,17 +48,17 @@ export class UserService {
   }
 
   async getAvatarFrom42Api(
-    avatar_url: string,
-  ): Promise<{ mime_type: string; image: Buffer }> {
+    avatarUrl: string,
+  ): Promise<{ mimeType: string; image: Buffer }> {
     return await firstValueFrom(
       this.httpService
-        .get(avatar_url, {
+        .get(avatarUrl, {
           responseType: 'arraybuffer',
         })
         .pipe(
           map((value) => {
             return {
-              mime_type: value.headers['content-type'],
+              mimeType: value.headers['content-type'],
               image: value.data,
             };
           }),
@@ -66,14 +66,11 @@ export class UserService {
     );
   }
 
-  async createAvatarRecord(
-    user_id: string,
-    avatar_url: string,
-  ): Promise<string> {
-    const response = await this.getAvatarFrom42Api(avatar_url);
+  async createAvatarRecord(userId: string, avatarUrl: string): Promise<string> {
+    const response = await this.getAvatarFrom42Api(avatarUrl);
     return this.avatarRepository.createAvatarRecord({
-      user_id,
-      mime_type: response.mime_type,
+      userId,
+      mimeType: response.mimeType,
       avatar: response.image,
     });
   }
@@ -84,8 +81,8 @@ export class UserService {
 
   async deleteRefreshToken(userId: string): Promise<Token> {
     return this.tokenRepository.replaceOrCreateRefreshToken({
-      user_id: userId,
-      refresh_token: null,
+      userId: userId,
+      refreshToken: null,
     });
   }
 

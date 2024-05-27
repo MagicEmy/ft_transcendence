@@ -1,5 +1,5 @@
 export class AvatarDto {
-  user_id: string;
+  userId: string;
   avatar: Buffer;
-  mime_type: string;
+  mimeType: string;
 }

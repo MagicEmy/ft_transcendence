@@ -29,8 +29,8 @@ export class FourtyTwoStrategy extends PassportStrategy(Strategy) {
     profile: Profile,
   ): Promise<User> {
     const user = await this.authService.validateUser({
-      intra_login: profile.intra_login,
-      avatar_url: profile.avatar,
+      intraLogin: profile.intra_login,
+      avatarUrl: profile.avatar,
     });
     return user || null;
   }
