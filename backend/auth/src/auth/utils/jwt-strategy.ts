@@ -38,8 +38,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     console.log(payload);
     return {
       user_id: payload.sub,
-      user_name: payload.user_name,
-      intra_login: payload.intra_login,
-    }; // this goes into the handleRequest() function in the AuthGuard
+      user_name: payload.userName,
+      intra_login: payload.intraLogin,
+    }; // this goes into the handleRequest() method in the AuthGuard
   }
 }

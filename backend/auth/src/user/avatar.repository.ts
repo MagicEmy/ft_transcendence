@@ -17,7 +17,12 @@ export class AvatarRepository extends Repository<Avatar> {
   }
 
   async createAvatarRecord(avatarDto: AvatarDto): Promise<string> {
-    const record: Avatar = this.create(avatarDto);
+    const { userId, avatar, mimeType } = avatarDto;
+    const record: Avatar = this.create({
+      user_id: userId,
+      avatar,
+      mime_type: mimeType,
+    });
     await this.save(record);
     return record.user_id;
   }

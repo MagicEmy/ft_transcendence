@@ -36,8 +36,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         // generate new set of tokens and put them in the response
         const tokens = this.authService.generateJwtTokens({
           sub: user.user_id,
-          user_name: user.user_name,
-          intra_login: user.intra_login,
+          userName: user.user_name,
+          intraLogin: user.intra_login,
         });
         const accessCookie = this.authService.getCookieWithTokens(
           this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
