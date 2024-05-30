@@ -25,22 +25,29 @@ export class GameRepository extends Repository<Game> {
       duration: gameStatus.duration,
       status: gameStatus.status,
     };
-	try {
-		await this.save(game); // should this be in a try/catch block?
-	} catch (error) {}
+    try {
+      await this.save(game); // should this be in a try/catch block?
+    } catch (error) {}
     return game;
   }
 
   async getMostFrequentOpponent(
     userId: string,
   ): Promise<GamesAgainstUserIdDto[]> {
-    const result: GamesAgainstUserIdDto[] = await this.manager.query(
-      'WITH t AS (SELECT player1_id AS "user_id" FROM games WHERE player2_id = $1 UNION ALL SELECT player2_id AS "user_id" FROM games WHERE player1_id = $1) SELECT user_id AS "userId", COUNT(user_id) AS "totalGames" FROM t GROUP BY userId ORDER BY totalGames DESC',
+    const result = await this.manager.query(
+      'WITH t AS (SELECT player1_id AS "user_id" FROM games WHERE player2_id = $1 UNION ALL SELECT player2_id AS "user_id" FROM games WHERE player1_id = $1) SELECT user_id AS "user_id", COUNT(user_id) AS "total_games" FROM t GROUP BY user_id ORDER BY total_games DESC',
       [userId],
     );
-    const mostFrequent: GamesAgainstUserIdDto[] = result.filter(
-      (item) => item.totalGames === result[0].totalGames,
-    );
-    return mostFrequent;
+    if (result.length > 0) {
+      const mostFrequent: GamesAgainstUserIdDto[] = result
+        .filter((item) => item.total_games === result[0].total_games)
+        .map((item) => ({
+          userId: item.user_id,
+          totalGames: item.total_games,
+        }));
+      return mostFrequent;
+    } else {
+      return [];
+    }
   }
 }

@@ -41,8 +41,8 @@ export class GameService {
       .addSelect('player1_score', 'player1Score')
       .addSelect('player2_id', 'player2Id')
       .addSelect('player2_score', 'player2Score')
-      .where('player1_id = :user_id', { userId })
-      .orWhere('player2_id = :user_id', { userId })
+      .where('player1_id = :user_id', { user_id: userId })
+      .orWhere('player2_id = :user_id', { user_id: userId })
       .orderBy('game_id', 'DESC')
       .getRawMany();
 	  console.log('getGameHistory result from database: ', gameOverview);
