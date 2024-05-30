@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -7,13 +8,15 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   Res,
   StreamableFile,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AppService } from './app.service';
-import { Observable, map, mergeMap, tap } from 'rxjs';
+import { Observable, lastValueFrom, map, mergeMap, tap } from 'rxjs';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { UserStatusEnum } from './enum/kafka.enum';
 import { ProfileDto, UserIdNameStatusDto } from './dto/profile-dto';
@@ -21,16 +24,61 @@ import { IGameStatus } from './interface/kafka.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AvatarDto } from './dto/avatar-dto';
 import { Response } from 'express';
+import { JwtAuthGuard } from './jwt-auth/jwt-auth-guard';
+import { ConfigService } from '@nestjs/config';
+import { AuthService } from './jwt-auth/auth.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  // AUTH
+
+  // a uuid verification of userId is needed here
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  logout(@Req() req, @Res() resp: Response, @Body() userId: string): Response {
+    resp.clearCookie(this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'));
+    resp.clearCookie(this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'));
+    this.authService.deleteRefreshTokenFromDB({ userId: userId });
+    return resp.sendStatus(200);
+  }
+
+  //   @Get('/tokens')
+  //   generateJwtTokens(
+  //     @Body() jwtPayloadDto: JwtPayloadDto,
+  //   ): Observable<TokensDto> {
+  //     return this.appService.generateJwtTokens(jwtPayloadDto);
+  //   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  getUserInfo(@Req() req): any {
+    return this.authService.getJwtTokenPayload(req.headers.cookie).pipe(
+      map((user) => {
+        if (!user) {
+          throw new BadRequestException();
+        } else {
+          return {
+            userId: user.sub,
+            userName: user.userName,
+          };
+        }
+      }),
+    );
+  }
 
   // PROFILE
 
+  @UseGuards(JwtAuthGuard)
   @Get('/profile/:id')
-  getProfile(@Param('id') userId: string): Observable<ProfileDto> {
-    return this.appService.getProfile(userId);
+  getProfile(@Param('id') userId: string): Promise<ProfileDto> {
+    const response = this.appService.getProfile(userId);
+    return lastValueFrom(response);
   }
 
   //   @Get('/mfo/:id')
@@ -55,13 +103,16 @@ export class AppController {
 
   // LEADERBOARD
 
+  @UseGuards(JwtAuthGuard)
   @Get('/leaderboard')
   getLeaderboard(): Observable<LeaderboardStatsDto[]> {
+    console.log('in getLeaderboard() - authorization worked!');
     return this.appService.getLeaderboard();
   }
 
   // GAME
 
+  @UseGuards(JwtAuthGuard)
   @Get('/games/:id')
   getGameHistory(@Param('id') userId: string): Observable<string> {
     return this.appService.getGameHistory(userId);
@@ -69,6 +120,7 @@ export class AppController {
 
   // USER
 
+  @UseGuards(JwtAuthGuard)
   @Get('/username/:id')
   getUserName(@Param('id') userId: string): Observable<string> {
     return this.appService.getUserName(userId).pipe(
@@ -82,6 +134,7 @@ export class AppController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('username')
   changeUserName(
     @Body('userId') userId: string,
@@ -90,6 +143,7 @@ export class AppController {
     this.appService.updateUserName({ userId, userName });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/status/:id')
   getUserStatus(@Param('id') userId: string): Observable<string> {
     return this.appService.getUserStatus(userId).pipe(
@@ -132,6 +186,7 @@ export class AppController {
 
   //   FRIENDS
 
+  @UseGuards(JwtAuthGuard)
   @Post('/friend')
   createFriendship(
     @Body('userId') userId: string,
@@ -140,6 +195,7 @@ export class AppController {
     return this.appService.createFriendship({ userId, friendId });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/friend')
   removeFriendship(
     @Body('userId') userId: string,
@@ -148,6 +204,7 @@ export class AppController {
     return this.appService.removeFriendship({ userId, friendId });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/friends/:id')
   getFriends(@Param('id') userId: string): Observable<UserIdNameStatusDto[]> {
     return this.appService.getFriends(userId);
@@ -155,6 +212,7 @@ export class AppController {
 
   //   AVATAR
 
+  @UseGuards(JwtAuthGuard)
   @Patch('/avatar/:id')
   @UseInterceptors(FileInterceptor('avatar'))
   changeAvatar(
@@ -168,6 +226,7 @@ export class AppController {
     });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/avatar/:id')
   getAvatar(
     @Param('id') user_id: string,

@@ -16,7 +16,7 @@ import {
 } from 'rxjs';
 import { IGameStatus } from './interface/kafka.interface';
 import { FriendshipDto } from './dto/friendship-dto';
-import { GameStatus, KafkaTopic } from './enum/kafka.enum';
+import { GameStatus } from './enum/kafka.enum';
 import { Opponent } from './enum/opponent.enum';
 import { UserIdOpponentDto } from './dto/games-against-dto';
 import {
@@ -26,7 +26,6 @@ import {
   UserIdNameStatusDto,
 } from './dto/profile-dto';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
-import { UserStatusDto } from './dto/user-status-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
 import { UserIdGamesDto } from './dto/user-id-games-dto';
 import { AvatarDto } from './dto/avatar-dto';
@@ -132,11 +131,11 @@ export class AppService {
     return this.userService.send<string>(pattern, payload);
   }
 
-//   updateStatus(userStatusDto: UserStatusDto): void {
-//     const pattern = KafkaTopic.STATUS_CHANGE;
-//     const payload = userStatusDto;
-//     this.userService.emit(pattern, payload);
-//   }
+  //   updateStatus(userStatusDto: UserStatusDto): void {
+  //     const pattern = KafkaTopic.STATUS_CHANGE;
+  //     const payload = userStatusDto;
+  //     this.userService.emit(pattern, payload);
+  //   }
 
   getAllUserIds(): Observable<string[]> {
     const pattern = 'getAllUserIds';

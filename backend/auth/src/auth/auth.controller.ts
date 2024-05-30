@@ -1,19 +1,16 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { FourtyTwoAuthGuard } from './utils/fourty-two-auth-guard';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './utils/jwt-auth-guard';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { UserDto } from './dto/user-dto';
+import { EventPattern, MessagePattern } from '@nestjs/microservices';
+import { JwtPayloadDto } from './dto/jwt-payload-dto';
+import { Observable, of } from 'rxjs';
+import { TokensDto } from './dto/tokens-dto';
+import { CookieTokenDto } from './dto/cookie-token-dto';
+import { CookieAndCookieNameDto } from './dto/cookie-and-cookie-name-dto';
+import { UserIdNameLoginDto } from 'src/user/dto/user-id-name-login-dto';
+import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
 
 @Controller('auth')
 export class AuthController {
@@ -30,59 +27,49 @@ export class AuthController {
   handleRedirect(@Req() req, @Res() resp: Response): void {
     const tokens = this.authService.login(req.user);
     // setting the jwt tokens in cookies
-    const accessCookie = this.authService.getCookieWithTokens(
-      this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
-      tokens.jwtAccessToken,
-      this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
-    );
-    const refreshCookie = this.authService.getCookieWithTokens(
-      this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
-      tokens.jwtRefreshToken,
-      this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
-    );
+    const accessCookie = this.authService.getCookieWithTokens({
+      cookieName: this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
+      token: tokens.jwtAccessToken,
+      expirationTime: this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
+    });
+    const refreshCookie = this.authService.getCookieWithTokens({
+      cookieName: this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
+      token: tokens.jwtRefreshToken,
+      expirationTime: this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
+    });
     resp.setHeader('Set-Cookie', [accessCookie, refreshCookie]);
     return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
   }
 
-  // a uuid verification of userId is needed here
-  @UseGuards(JwtAuthGuard)
-  @Post('logout')
-  logout(@Req() req, @Res() resp: Response, @Body() userId: string): Response {
-    resp.clearCookie(this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'));
-    resp.clearCookie(this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'));
-    this.authService.deleteRefreshTokenFromDB({ userId: userId });
-    return resp.sendStatus(200);
+  // Jwt-token-related methods
+
+  @MessagePattern('getTokens')
+  getTokens(jwtPayloadDto: JwtPayloadDto): Observable<TokensDto> {
+    console.log('auth-service controller got', jwtPayloadDto);
+    return of(this.authService.generateJwtTokens(jwtPayloadDto));
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  getProfile(@Req() req, @Res({ passthrough: true }) resp): any {
-    let user;
-    if (resp.getHeaders()['set-cookie']) {
-      user = this.authService.getJwtTokenPayload(
-        resp.getHeaders()['set-cookie'],
-      );
-    } else {
-      user = this.authService.getJwtTokenPayload(req.get('cookie'));
-    }
-    const userDto: UserDto = {
-      userId: user.sub,
-      userName: user.user_name,
-    };
-    if (!userDto) {
-      throw new BadRequestException();
-    }
-    return userDto;
+  @MessagePattern('getCookie')
+  getCookieWithTokens(cookieTokenDto: CookieTokenDto): Observable<string> {
+    return of(this.authService.getCookieWithTokens(cookieTokenDto));
+  }
+
+  @MessagePattern('getTokenFromCookies')
+  extractTokenFromCookies(
+    cookieAndCookieName: CookieAndCookieNameDto,
+  ): Observable<string> {
+    return of(this.authService.extractTokenFromCookies(cookieAndCookieName));
+  }
+
+  @MessagePattern('getUserByRefreshToken')
+  async getUserByRefreshToken(
+    refreshToken: string,
+  ): Promise<Observable<UserIdNameLoginDto>> {
+    return of(await this.authService.getUserByRefreshToken(refreshToken));
+  }
+
+  @EventPattern('deleteRefreshTokenFromDB')
+  deleteRefreshTokenFromDB(deleteRefreshTokenDto: DeleteRefreshTokenDto): void {
+    this.authService.deleteRefreshTokenFromDB(deleteRefreshTokenDto);
   }
 }
-
-/**
- * This is how the TWO cookies will look like after login:
- * Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjM2RiODgxYy1mZTI3LTQzMDAtYjVmOC0zNjEzNGQ4OTE4ZTQiLCJ1c2VyX25hbWUiOiJ3aWxkX3RoaW5nIiwiaW50cmFfbG9naW4iOiJkbWFsYWNvdiIsImlhdCI6MTcxNTYzMTUyNywiZXhwIjoxNzE1NjMxNTMwfQ.vpseAjt1nklrZgYXIHKfAE_2Y-qwbLUprEnC-ADauuU; Path=/; Expires=Mon, 13 May 2024 20:18:51 GMT; Secure
- *
- * Refresh=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjM2RiODgxYy1mZTI3LTQzMDAtYjVmOC0zNjEzNGQ4OTE4ZTQiLCJpYXQiOjE3MTU2MzE1MjcsImV4cCI6MTcxNTYzMTYxM30.0ocTzIgGOM7BzXBEwD3DOxAFiF-3popkp9_t6aPyMIE; Path=/; Expires=Mon, 13 May 2024 20:20:14 GMT; HttpOnly; Secure
- *
- * and after logout:
- * Authentication=; Path=/; secure=true; Max-Age=0
- * Refresh=; Path=/; secure=true; Max-Age=0
- */

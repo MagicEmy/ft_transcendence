@@ -8,7 +8,6 @@ import { UserRepository } from 'src/user/user.repository';
 import { UserModule } from 'src/user/user.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from './utils/jwt-strategy';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { HttpModule } from '@nestjs/axios';
 
@@ -38,7 +37,6 @@ import { HttpModule } from '@nestjs/axios';
   providers: [
     AuthService,
     FourtyTwoStrategy,
-    JwtStrategy,
     ConfigService,
     UserService,
     UserRepository,
