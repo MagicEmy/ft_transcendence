@@ -17,7 +17,7 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - auth
+      - auth_service
       - game_service
       - stats_service
       - user_service
@@ -122,15 +122,15 @@ services:
     depends_on:
       - chat_db
 
-  auth:
-    container_name: auth
+  auth_service:
+    container_name: auth_service
     env_file: 
     - .env
     - .env.profile-db
     build:
       context: ./backend/auth
       dockerfile: Dockerfile
-    image: auth
+    image: auth_service
     volumes:
     - "./backend/auth:/app" # only for development
     - "/app/node_modules"
