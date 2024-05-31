@@ -26,10 +26,11 @@ import { Response } from 'express';
 import { JwtAuthGuard } from './jwt-auth/jwt-auth-guard';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from './jwt-auth/auth.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { FriendshipDto } from './dto/friendship-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
 import { UserIdDto } from './dto/user-id-dto';
+import { UploadFileDto } from './dto/upload-file-dto';
 
 @Controller()
 export class AppController {
@@ -123,7 +124,7 @@ export class AppController {
   // GAME
 
   @ApiTags('game history')
-//   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/games/:id')
   getGameHistory(@Param('id') userId: string): Observable<string> {
     return this.appService.getGameHistory(userId);
@@ -209,9 +210,11 @@ export class AppController {
   @ApiTags('avatar')
   @UseGuards(JwtAuthGuard)
   @Patch('/avatar/:id')
+  @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('avatar'))
   changeAvatar(
     @Param('id') userId: string,
+    @Body() data: UploadFileDto,
     @UploadedFile() image: Express.Multer.File,
   ): Observable<string> {
     return this.appService.setAvatar({
@@ -259,7 +262,6 @@ export class AppController {
       map((games: IGameStatus[]) => {
         games.forEach((game: IGameStatus) => {
           this.appService.createGameAndUpdateStats(game);
-		  // here sleep for 200 ms
         });
       }),
     );

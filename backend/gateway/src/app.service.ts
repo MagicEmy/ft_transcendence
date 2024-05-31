@@ -188,19 +188,6 @@ export class AppService {
     );
   }
 
-  simulateGames(allUserIds: string[]): Observable<IGameStatus[]> {
-    const pattern = 'simulateGames';
-    const payload: string[] = allUserIds;
-    return this.gameService.send<IGameStatus[]>(pattern, payload);
-  }
-
-  createGameAndUpdateStats(gameStatus: IGameStatus): void {
-    const pattern = GameStatus.TOPIC;
-    const payload: IGameStatus = gameStatus;
-    this.statsService.emit(pattern, payload);
-    this.gameService.emit(pattern, payload);
-  }
-
   //   FRIENDS
 
   async createFriendship(friendshipDto: FriendshipDto): Promise<string> {
@@ -269,5 +256,20 @@ export class AppService {
         }
       }),
     );
+  }
+
+  //   SIMULATION
+
+  simulateGames(allUserIds: string[]): Observable<IGameStatus[]> {
+    const pattern = 'simulateGames';
+    const payload: string[] = allUserIds;
+    return this.gameService.send<IGameStatus[]>(pattern, payload);
+  }
+
+  createGameAndUpdateStats(gameStatus: IGameStatus): void {
+    const pattern = GameStatus.TOPIC;
+    const payload: IGameStatus = gameStatus;
+    this.statsService.emit(pattern, payload);
+    this.gameService.emit(pattern, payload);
   }
 }
