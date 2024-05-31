@@ -1,9 +1,10 @@
 // to be removed once stuff works well
-import { Body, Controller, Get, Inject, Param, Post } from '@nestjs/common';
+import { Body, Controller, Inject, Post } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user-dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientKafka, EventPattern, MessagePattern } from '@nestjs/microservices';
+import { of } from 'rxjs';
 
 @Controller('user')
 export class UserController {
@@ -26,8 +27,8 @@ export class UserController {
   //   }
 
   //   FOR TESTING PURPOSES ONLY:
-  @Get('create/:no')
-  async createManyUsers(@Param('no') no: number) {
+  @MessagePattern('createUsers')
+  async createManyUsers(no: number) {
     const newUsers: string[] = [];
     for (let i: number = 1; i <= no; i++) {
       const number = Math.floor(Math.random() * 90000 + 10000);
@@ -47,6 +48,6 @@ export class UserController {
         userName: user.user_name,
       });
     }
-    return newUsers;
+    return of(newUsers);
   }
 }

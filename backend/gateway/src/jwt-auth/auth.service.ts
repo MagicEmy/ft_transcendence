@@ -80,4 +80,11 @@ export class AuthService {
       }),
     );
   }
+
+  createMockUsers(no: number): Observable<string[]> {
+    const pattern = 'createUsers';
+    const payload = no;
+    console.log('sending user request');
+    return this.authService.send(pattern, payload);
+  }
 }

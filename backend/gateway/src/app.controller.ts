@@ -16,9 +16,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AppService } from './app.service';
-import { Observable, lastValueFrom, map, mergeMap, tap } from 'rxjs';
+import { Observable, lastValueFrom, map, mergeMap } from 'rxjs';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
-import { UserStatusEnum } from './enum/kafka.enum';
 import { ProfileDto, UserIdNameStatusDto } from './dto/profile-dto';
 import { IGameStatus } from './interface/kafka.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -27,6 +26,10 @@ import { Response } from 'express';
 import { JwtAuthGuard } from './jwt-auth/jwt-auth-guard';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from './jwt-auth/auth.service';
+import { ApiTags } from '@nestjs/swagger';
+import { FriendshipDto } from './dto/friendship-dto';
+import { UserIdNameDto } from './dto/user-id-name-dto';
+import { UserIdDto } from './dto/user-id-dto';
 
 @Controller()
 export class AppController {
@@ -39,12 +42,17 @@ export class AppController {
   // AUTH
 
   // a uuid verification of userId is needed here
+  @ApiTags('logout')
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  logout(@Req() req, @Res() resp: Response, @Body() userId: string): Response {
+  logout(
+    @Req() req,
+    @Res() resp: Response,
+    @Body() userIdDto: UserIdDto,
+  ): Response {
     resp.clearCookie(this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'));
     resp.clearCookie(this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'));
-    this.authService.deleteRefreshTokenFromDB({ userId: userId });
+    this.authService.deleteRefreshTokenFromDB({ userId: userIdDto.userId });
     return resp.sendStatus(200);
   }
 
@@ -55,6 +63,7 @@ export class AppController {
   //     return this.appService.generateJwtTokens(jwtPayloadDto);
   //   }
 
+  @ApiTags('profile')
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getUserInfo(@Req() req): any {
@@ -74,6 +83,7 @@ export class AppController {
 
   // PROFILE
 
+  @ApiTags('profile')
   @UseGuards(JwtAuthGuard)
   @Get('/profile/:id')
   getProfile(@Param('id') userId: string): Promise<ProfileDto> {
@@ -103,16 +113,17 @@ export class AppController {
 
   // LEADERBOARD
 
+  @ApiTags('leaderboard')
   @UseGuards(JwtAuthGuard)
   @Get('/leaderboard')
   getLeaderboard(): Observable<LeaderboardStatsDto[]> {
-    console.log('in getLeaderboard() - authorization worked!');
     return this.appService.getLeaderboard();
   }
 
   // GAME
 
-  @UseGuards(JwtAuthGuard)
+  @ApiTags('game history')
+//   @UseGuards(JwtAuthGuard)
   @Get('/games/:id')
   getGameHistory(@Param('id') userId: string): Observable<string> {
     return this.appService.getGameHistory(userId);
@@ -120,6 +131,7 @@ export class AppController {
 
   // USER
 
+  @ApiTags('user')
   @UseGuards(JwtAuthGuard)
   @Get('/username/:id')
   getUserName(@Param('id') userId: string): Observable<string> {
@@ -134,15 +146,14 @@ export class AppController {
     );
   }
 
+  @ApiTags('user')
   @UseGuards(JwtAuthGuard)
   @Patch('username')
-  changeUserName(
-    @Body('userId') userId: string,
-    @Body('userName') userName: UserStatusEnum,
-  ) {
-    this.appService.updateUserName({ userId, userName });
+  changeUserName(@Body() userIdNameDto: UserIdNameDto) {
+    this.appService.updateUserName(userIdNameDto);
   }
 
+  @ApiTags('status')
   @UseGuards(JwtAuthGuard)
   @Get('/status/:id')
   getUserStatus(@Param('id') userId: string): Observable<string> {
@@ -170,40 +181,23 @@ export class AppController {
   //     return this.appService.getAllUserIds();
   //   }
 
-  @Get('/simulate')
-  simulateGames(): Observable<void> {
-    return this.appService.getAllUserIds().pipe(
-      mergeMap((allUserIds: string[]) =>
-        this.appService.simulateGames(allUserIds),
-      ),
-      map((games: IGameStatus[]) => {
-        games.forEach((game: IGameStatus) => {
-          this.appService.createGameAndUpdateStats(game);
-        });
-      }),
-    );
-  }
-
   //   FRIENDS
 
+  @ApiTags('friends')
   @UseGuards(JwtAuthGuard)
   @Post('/friend')
-  createFriendship(
-    @Body('userId') userId: string,
-    @Body('friendId') friendId: string,
-  ) {
-    return this.appService.createFriendship({ userId, friendId });
+  createFriendship(@Body() friendshipDto: FriendshipDto) {
+    return this.appService.createFriendship(friendshipDto);
   }
 
+  @ApiTags('friends')
   @UseGuards(JwtAuthGuard)
   @Delete('/friend')
-  removeFriendship(
-    @Body('userId') userId: string,
-    @Body('friendId') friendId: string,
-  ) {
-    return this.appService.removeFriendship({ userId, friendId });
+  removeFriendship(@Body() friendshipDto: FriendshipDto) {
+    return this.appService.removeFriendship(friendshipDto);
   }
 
+  @ApiTags('friends')
   @UseGuards(JwtAuthGuard)
   @Get('/friends/:id')
   getFriends(@Param('id') userId: string): Observable<UserIdNameStatusDto[]> {
@@ -212,6 +206,7 @@ export class AppController {
 
   //   AVATAR
 
+  @ApiTags('avatar')
   @UseGuards(JwtAuthGuard)
   @Patch('/avatar/:id')
   @UseInterceptors(FileInterceptor('avatar'))
@@ -226,13 +221,14 @@ export class AppController {
     });
   }
 
+  @ApiTags('avatar')
   @UseGuards(JwtAuthGuard)
   @Get('/avatar/:id')
   getAvatar(
-    @Param('id') user_id: string,
+    @Param('id') userId: string,
     @Res({ passthrough: true }) res: Response,
   ): Observable<StreamableFile> {
-    return this.appService.getAvatar(user_id).pipe(
+    return this.appService.getAvatar(userId).pipe(
       map((avatarDto: AvatarDto) => {
         if (!avatarDto) {
           throw new NotFoundException();
@@ -241,6 +237,30 @@ export class AppController {
           'Content-Type': `${avatarDto.mimeType}`,
         });
         return new StreamableFile(avatarDto.avatar);
+      }),
+    );
+  }
+
+  // SIMULATIONS
+
+  @ApiTags('simulation')
+  @Get('/create_users/:no')
+  createMockUsers(@Param('no') no: number): Observable<string[]> {
+    return this.authService.createMockUsers(no);
+  }
+
+  @ApiTags('simulation')
+  @Get('/simulate')
+  simulateGames(): Observable<void> {
+    return this.appService.getAllUserIds().pipe(
+      mergeMap((allUserIds: string[]) =>
+        this.appService.simulateGames(allUserIds),
+      ),
+      map((games: IGameStatus[]) => {
+        games.forEach((game: IGameStatus) => {
+          this.appService.createGameAndUpdateStats(game);
+		  // here sleep for 200 ms
+        });
       }),
     );
   }
