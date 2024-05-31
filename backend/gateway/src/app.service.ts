@@ -190,28 +190,30 @@ export class AppService {
 
   //   FRIENDS
 
-  async createFriendship(friendshipDto: FriendshipDto): Promise<string> {
+  createFriendship(friendshipDto: FriendshipDto): Observable<string> {
     const pattern = 'addFriend';
     const payload = friendshipDto;
-    const response = await firstValueFrom(
-      this.userService.send<string>(pattern, payload),
+    return this.userService.send<string>(pattern, payload).pipe(
+      map((response) => {
+        if (response === 'Error') {
+          throw new InternalServerErrorException();
+        }
+        return response;
+      }),
     );
-    if (response === 'Error') {
-      throw new InternalServerErrorException(); // TBD
-    }
-    return response;
   }
 
-  async removeFriendship(friendshipDto: FriendshipDto): Promise<string> {
+  removeFriendship(friendshipDto: FriendshipDto): Observable<string> {
     const pattern = 'unfriend';
     const payload = friendshipDto;
-    const response = await firstValueFrom(
-      this.userService.send<string>(pattern, payload),
+    return this.userService.send<string>(pattern, payload).pipe(
+      map((response) => {
+        if (response === 'Error') {
+          throw new InternalServerErrorException();
+        }
+        return response;
+      }),
     );
-    if (response === 'Error') {
-      throw new InternalServerErrorException(); // TBD
-    }
-    return response;
   }
 
   getFriends(userId: string): Observable<UserIdNameStatusDto[]> {

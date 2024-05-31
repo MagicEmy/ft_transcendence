@@ -16,7 +16,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AppService } from './app.service';
-import { Observable, lastValueFrom, map, mergeMap } from 'rxjs';
+import { Observable, delay, from, map, mergeMap } from 'rxjs';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { ProfileDto, UserIdNameStatusDto } from './dto/profile-dto';
 import { IGameStatus } from './interface/kafka.interface';
@@ -67,7 +67,7 @@ export class AppController {
   @ApiTags('profile')
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getUserInfo(@Req() req): any {
+  getUserInfo(@Req() req): Observable<UserIdNameDto> {
     return this.authService.getJwtTokenPayload(req.headers.cookie).pipe(
       map((user) => {
         if (!user) {
@@ -87,9 +87,8 @@ export class AppController {
   @ApiTags('profile')
   @UseGuards(JwtAuthGuard)
   @Get('/profile/:id')
-  getProfile(@Param('id') userId: string): Promise<ProfileDto> {
-    const response = this.appService.getProfile(userId);
-    return lastValueFrom(response);
+  getProfile(@Param('id') userId: string): Observable<ProfileDto> {
+    return this.appService.getProfile(userId);
   }
 
   //   @Get('/mfo/:id')
@@ -150,7 +149,7 @@ export class AppController {
   @ApiTags('user')
   @UseGuards(JwtAuthGuard)
   @Patch('username')
-  changeUserName(@Body() userIdNameDto: UserIdNameDto) {
+  changeUserName(@Body() userIdNameDto: UserIdNameDto): void {
     this.appService.updateUserName(userIdNameDto);
   }
 
@@ -185,16 +184,16 @@ export class AppController {
   //   FRIENDS
 
   @ApiTags('friends')
-  @UseGuards(JwtAuthGuard)
+//   @UseGuards(JwtAuthGuard)
   @Post('/friend')
-  createFriendship(@Body() friendshipDto: FriendshipDto) {
+  createFriendship(@Body() friendshipDto: FriendshipDto): Observable<string> {
     return this.appService.createFriendship(friendshipDto);
   }
 
   @ApiTags('friends')
-  @UseGuards(JwtAuthGuard)
+//   @UseGuards(JwtAuthGuard)
   @Delete('/friend')
-  removeFriendship(@Body() friendshipDto: FriendshipDto) {
+  removeFriendship(@Body() friendshipDto: FriendshipDto): Observable<string> {
     return this.appService.removeFriendship(friendshipDto);
   }
 
@@ -259,10 +258,11 @@ export class AppController {
       mergeMap((allUserIds: string[]) =>
         this.appService.simulateGames(allUserIds),
       ),
-      map((games: IGameStatus[]) => {
-        games.forEach((game: IGameStatus) => {
-          this.appService.createGameAndUpdateStats(game);
-        });
+      mergeMap((games: IGameStatus[]) => {
+        return from(games).pipe(
+          delay(400),
+          map((game) => this.appService.createGameAndUpdateStats(game)),
+        );
       }),
     );
   }
