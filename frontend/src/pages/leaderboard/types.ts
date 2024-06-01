@@ -1,10 +1,9 @@
 export interface LeaderboardStats {
-	user_id: string;
-	user_name?: string;
+	userId: string;
+	userName?: string;
 	wins: number;
 	losses: number;
 	draws: number;
-	points: number;
+	pointsTotal: number;
 	rank?: number;
   }
-  

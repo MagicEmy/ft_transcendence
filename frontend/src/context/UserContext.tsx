@@ -1,23 +1,17 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { loadProfileAvatar } from '../utils/profileUtils';
-
-interface IUserContext {
-  userIdContext: string;
-  userNameContext: string;
-  setUserNameContext: (userName: string) => void;
-  avatarContext: string | null;
-  setAvatarContext: (avatar: string | null) => void;
-  tfaEnabled: boolean;
-  setTfaEnabled: (isEnabled: boolean) => void;
-  isLoading: boolean;
-}
+import { Friends } from "../types/shared";
+import { IUserContext } from '../context/userContext.types';
 
 const defaultState: IUserContext = {
   userIdContext: '',
+  setUserIdContext: () => {},
   userNameContext: '',
   setUserNameContext: () => {},
   avatarContext: null,
   setAvatarContext: () => {},
+  friendsContext: [],
+  setFriendsContext: () => {},
   tfaEnabled: false,
   setTfaEnabled: () => {},
   isLoading: false,
@@ -33,6 +27,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const [userIdContext, setUserIdContext] = useState<string>('');
   const [userNameContext, setUserNameContext] = useState<string>('');
   const [avatarContext, setAvatarContext] = useState<string | null>(null);
+  const [friendsContext, setFriendsContext] = useState<Friends[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [tfaEnabled, setTfaEnabled] = useState<boolean>(false);
 
@@ -40,11 +35,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     const fetchUser = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:3003/auth/profile", {
+        const response = await fetch("http://localhost:3001/profile", {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
           credentials: "include",
         });
         if (!response.ok) {
@@ -52,6 +44,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         }
         const profile = await response.json();
         setUserIdContext(profile.userId);
+        console.log("context.userId: ", profile?.userId);
         setUserNameContext(profile.userName);
       } catch (error) {
         console.error("Error fetching user data: error caught: ", error);
@@ -60,7 +53,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       }
     };
     if (!userIdContext) fetchUser();
-  }, [userIdContext]);
+  }, []);
 
   useEffect(() => {
     let active = true; // Flag to manage the effect lifecycle
@@ -91,16 +84,19 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       cleanupPreviousAvatar();
       active = false;
     };
-  }, [userIdContext, setAvatarContext, avatarContext]);
+  }, [userIdContext]);
 
   return (
     <UserContext.Provider
       value={{
         userIdContext,
+        setUserIdContext,
         userNameContext,
         setUserNameContext,
         avatarContext,
         setAvatarContext,
+        friendsContext,
+        setFriendsContext,
         tfaEnabled,
         setTfaEnabled,
         isLoading,
@@ -112,3 +108,4 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 };
 
 export default UserContext;
+export type { IUserContext };

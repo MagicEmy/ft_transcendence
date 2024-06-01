@@ -1,26 +1,26 @@
 
 export interface User {
-	user_id?: string;
-	user_name?: string;
+	userId?: string;
+	userName?: string;
 }
 
 
 export interface UserProfile {
-	user_info: {
-		user_id?: string,
-		user_name: string,
+	userInfo: {
+		userId?: string,
+		userName: string,
 		status: string
 	  },
-	friends: Friends[],
-	leaderboard_position: number,
-	total_players: number,
-	games_against_bot: {
-		total_played_games: number,
+	friends: Friends,
+	leaderboardPosition: number,
+	totalPlayers: number,
+	gamesAgainstBot: {
+		totalPlayedGames: number,
 		wins: number,
 		losses: number,
 		draws: number,
-		max_score: number,
-		total_time_played: {
+		maxScore: number,
+		totalTimePlayed: {
 		weeks: number,
 		days: number,
 		hours: number,
@@ -28,13 +28,13 @@ export interface UserProfile {
 		seconds: number
 		}
 	},
-	games_against_human: {
-		total_played_games: number,
+	gamesAgainstHuman: {
+		totalPlayedGames: number,
 		wins: number,
 		losses: number,
 		draws: number,
-		max_score: number,
-		total_time_played: {
+		maxScore: number,
+		totalTimePlayed: {
 		weeks: number,
 		days: number,
 		hours: number,
@@ -42,19 +42,21 @@ export interface UserProfile {
 		seconds: number
 		}
 	},
-	most_frequent_opponent: [
+	mostFrequentOpponent: [
 		{
-		user_id: string,
-		user_name: string,
+		userId: string,
+		userName: string,
 		games: string
 		}
-	]	
+	]
   }
-  
+
   export interface Friends {
-	user_id: string;
-	user_name: string;
+	userId: string;
+	userName: string;
 	status: string;
   }
-  
-  
+
+  export interface UserStatus {
+	status?: string;
+  }

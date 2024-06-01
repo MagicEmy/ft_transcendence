@@ -2,110 +2,167 @@
     height: 100vh;
     overflow-y: auto;
     scroll-behavior: smooth;
-	margin-bottom: 20em;
-    padding: 50px;
-}
+    /* margin-bottom: 20em; */
+    padding: 20px;
+  }
 
-.profile{
-	border : 10px solid #0a04ad;
-	border-radius: 30px;
+.profile {
+    border: 10px solid #0a04ad;
+    border-radius: 10px;
     height: 100%;
     margin-top: 3em;
-	padding: 10px;
-	overflow-y: auto;
-	margin-bottom: 10em;
-	background-color: #dee5f4;
-}
+    padding: 10px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    margin-bottom: 10em;
+    background-color: #dee5f4;
+    box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
+  }
+
+.main::-webkit-scrollbar,
+.profile::-webkit-scrollbar {
+    width: 8px; /* Adjust the width to make the scrollbar shorter */
+  }
+
+.main::-webkit-scrollbar-thumb,
+.profile::-webkit-scrollbar-thumb {
+    background-color: #0a04ad; /* Color of the scrollbar thumb */
+    border-radius: 30px; /* Rounded corners for the scrollbar thumb */
+  }
+
+.main::-webkit-scrollbar-track,
+.profile::-webkit-scrollbar-track {
+    background: #dee5f4; /* Background color of the scrollbar track */
+    border-radius: 30px; /* Rounded corners for the scrollbar track */
+  }
+
+.main,
+.profile {
+    scrollbar-width: thin; /* Make scrollbar thinner */
+    scrollbar-color: #0a04ad #dee5f4; /* Color of thumb and track */
+  }
+
+.main,
+.profile * {
+    box-sizing: border-box; /* Ensure all child elements use border-box */
+  }
 
 .profile .flex{
-    gap: 1em;
-    text-align: left;
-    margin-bottom: 2em;
+  gap: 1em;
+  text-align: left;
+  flex-direction: column;
+
 }
 
 .profile .flex .item{
-    display: flex;
-    align-items: center;
-	gap: 1em;
-    padding: 30px;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 30px;
 }
 
 .profile .flex img{
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .profile .flex .info{
-   padding: 0;
+  padding: 0;
 }
 
-.text-dark{
-    color: #0d045a
+.profile-text-dark{
+  color: #0d045a;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #a09df0;
+
 }
 
 .status-indicator {
-    height: 15px;
-    width: 15px;
-    border-radius: 50%;
-    display: inline-block;
-    /* margin-right: 5px; */
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
 }
 
 .online {
-    background-color: green;
+  background-color: green;
 }
 
 .offline {
-    background-color: red;
+  background-color: red;
 }
 
 .game{
-    background-color: blue;
+  background-color: blue;
 }
-
-/* .info .total-points {
-    display: block; /* Ensures that the points are on a new line */
-    /* margin-bottom: 8px; /* Adds space below the total points
-} */
 
 .stats .stat {
-    display: inline-block; /* Allows items to sit side-by-side */
-    margin-right: 15px; /* Space between different stats */
-
-
+  margin-right: 15px; /* Space between different stats */
+  margin-bottom: 10px;
 }
 
+.stat-column{
+  margin-right: 15px; /* Space between different stats */
+  margin-bottom: 10px;
+  display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
 .stat strong {
 	margin-left: 5px; /* Space between the label and the number */
-    color: #0f0f0f; /* Change the color of the number */
+  color: #0f0f0f; /* Change the color of the number */
+  margin-bottom: 10px;
 }
 
+ .title {
+  display: inline;
+  color: #0a04ad;
+  font-size: 2em;
+  /* padding: 25px; */
+  }
 
 .friends {
-    flex-direction: row;
-    margin-left: 1em;
-    margin-right: 1em;
-    border: solid 1px #f6790b;
-     display: flex;
-    align-items: left;
-    gap: 1em;
-    padding: 30px;
-}
-
-  /* Style for NavLink */
-.friend .link {
-	color: #333; /* Change the color of the link */
-	text-decoration: none; /* Remove underline */
-	padding: 8px 12px; /* Add padding */
-	border-radius: 5px; /* Add rounded corners */
-	margin-bottom: 6rem;
+    /* width: 100px; */
+    border: 1px solid #a09df0;
+    width: 600px;
+    flex-direction: column;
+    /* flex-wrap: wrap; */
+    padding: 10px;
   }
 
-  /* Style for active NavLink */
-.friend .link.active {
-	background-color: #f0f0f0; /* Change background color when active */
-	font-weight: bold; /* Make text bold when active */
+  .friends ul {
+    flex-direction: column;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
   }
 
+  .friends li {
+    margin-bottom: 10px; /* Add space between nav links */
+  }
+
+.friends .nav-link {
+    color: #130682;
+    /* padding: 20px; */
+    border-radius: 30px;
+    text-decoration: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+.friends .nav-link:hover,
+.friends .nav-link.active {
+    background-color: #130682;
+    color: #ffffff;
+    padding: 10px;
+    border-radius: 30px;
+  }
+
+.friends .statsFriends {
+    display: inline-block;
+    margin-right: 15px;
+    color: #130682;
+  }

@@ -3,32 +3,29 @@ import Layout from './components/Layout';
 import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile/Profile';
-// import Game from './pages/Game';
-// import Leaderboard from './pages/Leaderboard';
+import Leaderboard from './pages/Leaderboard/Leaderboard';
 // import Settings from './pages/Settings';
+import Game from './pages/Game';
 import Error from './pages/Error';
-import PrivateRoute from './components/PrivateRoute';
+// import PrivateRoute from './components/PrivateRoute';
 
 const router = createBrowserRouter([
+
   {
     path: '/',
-    element: <Login />,
-    errorElement: <Error />,
-  },
-  {
-    path: '/app',
     // element: <PrivateRoute />,
     errorElement: <Error />,
     children: [
+      { index: true, element: <Login /> },
       {
-        path: '/app',
+        path: '/',
         element: <Layout />,
         children: [
           { path: 'dashboard', element: <Dashboard /> },
-		  { path: 'profile', element: <Profile /> },
-        //   { path: 'game', element: <Game /> },
-        //   { path: 'leaderboard', element: <Leaderboard /> },
-        //   { path: 'profile/:userId', element: <Profile /> },
+		      { path: 'profile', element: <Profile /> },
+          { path: 'profile/:userId', element: <Profile /> },
+          { path: 'leaderboard', element: <Leaderboard /> },
+          { path: 'game', element: <Game /> },
         //   { path: 'settings', element: <Settings /> },
         ],
       },

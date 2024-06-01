@@ -9,7 +9,7 @@ down:
 start:
 	docker-compose start
 
-stop: 
+stop:
 	docker-compose stop
 
 clean: down

@@ -9,13 +9,13 @@ const Leaderboard = () => {
   useEffect(() => {
     const fetchDbBoard = async () => {
       try {
-        const response = await fetch('http://localhost:3002/leaderboard', {
-          credentials: 'include',
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error fetching leaderboard: ${response.statusText}`);
-        }
+				const response = await fetch('http://localhost:3001/leaderboard', {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					credentials: 'include'
+				});
 
         const leaderboardDB: LeaderboardStats[] = await response.json();
         setLeaderboard(leaderboardDB || []);
@@ -26,7 +26,7 @@ const Leaderboard = () => {
     };
 
     fetchDbBoard();
-  }, []);
+  }, [setLeaderboard]);
 
   return (
     <div className="App" id='main'>

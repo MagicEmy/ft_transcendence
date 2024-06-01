@@ -4,10 +4,13 @@ export const loadFriends = async (userId: string): Promise<Friends[] | undefined
   if (!userId) return;
 
   try {
-    const response = await fetch(`http://localhost:3002/user/${userId}/friends`, {
-      credentials: 'include',
+    const response = await fetch(`http://localhost:3001/friends/${userId}`, {
+      method: 'GET',
+      headers: {
+      'Content-Type': 'application/json'
+      },
+      credentials: 'include'
     });
-
     if (!response.ok) {
       throw new Error(`Error loading friends: ${response.statusText}`);
     }
@@ -26,15 +29,15 @@ export const addFriend = async (userId: string, friendId: string): Promise<void>
   }
 
   try {
-    const response = await fetch('http://localhost:3002/user/friend', {
+    const response = await fetch('http://localhost:3001/friend', {
       method: 'POST',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        user_id: userId,
-        friend_id: friendId,
+        userId: userId,
+        friendId: friendId,
       }),
     });
 
@@ -56,15 +59,15 @@ export const deleteFriend = async (userId: string, friendId: string): Promise<vo
   }
 
   try {
-    const response = await fetch('http://localhost:3002/user/friend', {
+    const response = await fetch('http://localhost:3001/friend', {
       method: 'DELETE',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        user_id: userId,
-        friend_id: friendId,
+        userId: userId,
+        friendId: friendId,
       }),
     });
 

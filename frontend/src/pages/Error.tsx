@@ -1,5 +1,7 @@
 import React from 'react';
 import { useRouteError, isRouteErrorResponse } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import PageContent from '../components/PageContent';
 
 const Error = () => {
   const error = useRouteError();
@@ -28,12 +30,14 @@ const Error = () => {
     }
   }
 
-  return (
-    <div>
-      <h1>{title}</h1>
-      <p>{message}</p>
-    </div>
-  );
-};
+return (
+  <>
+    <Navbar />
+    <PageContent title={title}>
+    <p className='errror'> {message}</p>
+    </PageContent>
+  </>
+);
+}
 
 export default Error;

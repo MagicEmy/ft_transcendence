@@ -9,6 +9,9 @@ import { firstValueFrom, map } from 'rxjs';
 import { Token } from './token-entity';
 import { TokenRepository } from './token.repository';
 import { RefreshTokenDto } from './dto/refresh-token-dto';
+// import { Tfa } from './tfa.entity';
+// import { CreareTFADto } from './dto/create-tfa-dto';
+// import { TfaRepository } from './tfa.repository';
 
 @Injectable()
 export class UserService {
@@ -20,15 +23,17 @@ export class UserService {
     private avatarRepository: AvatarRepository,
     @InjectRepository(TokenRepository)
     private tokenRepository: TokenRepository,
+    // @InjectRepository(TfaRepository)
+    // private tfaRepository: TfaRepository,
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     return this.userRepository.createUser(createUserDto);
   }
 
-  async getUserByIntraLogin(intra_login: string): Promise<User> {
+  async getUserByIntraLogin(intraLogin: string): Promise<User> {
     return await this.userRepository.findOneBy({
-      intra_login: intra_login,
+      intra_login: intraLogin,
     });
   }
 
@@ -43,17 +48,17 @@ export class UserService {
   }
 
   async getAvatarFrom42Api(
-    avatar_url: string,
-  ): Promise<{ mime_type: string; image: Buffer }> {
+    avatarUrl: string,
+  ): Promise<{ mimeType: string; image: Buffer }> {
     return await firstValueFrom(
       this.httpService
-        .get(avatar_url, {
+        .get(avatarUrl, {
           responseType: 'arraybuffer',
         })
         .pipe(
           map((value) => {
             return {
-              mime_type: value.headers['content-type'],
+              mimeType: value.headers['content-type'],
               image: value.data,
             };
           }),
@@ -61,14 +66,11 @@ export class UserService {
     );
   }
 
-  async createAvatarRecord(
-    user_id: string,
-    avatar_url: string,
-  ): Promise<string> {
-    const response = await this.getAvatarFrom42Api(avatar_url);
+  async createAvatarRecord(userId: string, avatarUrl: string): Promise<string> {
+    const response = await this.getAvatarFrom42Api(avatarUrl);
     return this.avatarRepository.createAvatarRecord({
-      user_id,
-      mime_type: response.mime_type,
+      userId,
+      mimeType: response.mimeType,
       avatar: response.image,
     });
   }
@@ -79,8 +81,8 @@ export class UserService {
 
   async deleteRefreshToken(userId: string): Promise<Token> {
     return this.tokenRepository.replaceOrCreateRefreshToken({
-      user_id: userId,
-      refresh_token: null,
+      userId: userId,
+      refreshToken: null,
     });
   }
 
@@ -88,4 +90,28 @@ export class UserService {
     const token = await this.tokenRepository.findOneBy({ user_id: userId });
     return token ? token.refresh_token : null;
   }
+
+//   async addTwoFactorAuthentication(user_id: string, secret: string): Promise<Tfa> {
+//     const tfaDto : CreareTFADto = {
+//       user_id,
+//       secret,
+//       is_enabled: false,
+//     };
+//     return await this.tfaRepository.addTwoFactorAuthentication(tfaDto);
+//   }
+//   async isTwoFactorAuthenticationEnabled(user_id: string): Promise<boolean> {
+//     return await this.tfaRepository.isTwoFactorAuthenticationEnabled(user_id);
+//   }
+
+//   async enableTwoFactorAuthentication(user_id: string): Promise<Tfa> {
+//     return await this.tfaRepository.enableTwoFactorAuthentication(user_id);
+//   }
+
+//   async disableTwoFactorAuthentication(user_id: string): Promise<Tfa> {
+//     return await this.tfaRepository.disableTwoFactorAuthentication(user_id);
+//   }
+
+//   async getTwoFactorAuthenticationSecret(user_id: string): Promise<string> {
+//     return await this.tfaRepository.getTwoFactorAuthenticationSecret(user_id);
+//   }
 }

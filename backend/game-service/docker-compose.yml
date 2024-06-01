@@ -1,0 +1,101 @@
+version: "3"
+services:
+  game_service:
+    container_name: game_service
+    env_file: 
+    - .env
+    - .env.profile-db
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: game_service
+    volumes:
+      - ".:/app" #only for developement
+      - "/app/node_modules"
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - "3007:3000" #only for testing porposes
+    depends_on:
+      profile_db:
+        condition: service_healthy
+  
+  profile_db:
+    container_name: profile_db
+    env_file: 
+    - .env
+    - .env.profile-db
+    build:
+      context: ../../database
+      dockerfile: Dockerfile
+    image: postgres
+    restart: always
+    volumes:
+      - "profile_db_volume:/var/lib/postgresql"
+    ports:
+      - "5432:5432" #only for testing porposes
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+  # game:
+  #   container_name: game
+  #   env_file: .env.stage.dev
+  #   build:
+  #     context: ../game
+  #     dockerfile: Dockerfile
+  #   image: game
+  #   volumes:
+  #   - "../game:/app" #only for developement
+  #   - "/app/node_modules"
+  #   restart: unless-stopped
+  #   networks:
+  #     - backend
+  #   ports:
+  #     - "3006:3000" #only for testing porposes
+  #   depends_on:
+  #     - postgres
+  
+  # kafdrop:
+  #   image: obsidiandynamics/kafdrop
+  #   restart: "no"
+  #   ports:
+  #     - "9000:9000"
+  #   networks:
+  #     - backend 
+  #   environment:
+  #     KAFKA_BROKERCONNECT: "kafka:29092"
+  #   depends_on:
+  #     - "kafka"
+  
+  # kafka:
+  #   image: obsidiandynamics/kafka
+  #   restart: "no"
+  #   networks:
+  #     - backend
+  #   ports:
+  #     - "2181:2181"
+  #     - "9092:9092"
+  #   environment:
+  #     KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
+  #     KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+  #     KAFKA_ZOOKEEPER_SESSION_TIMEOUT: "6000"
+  #     KAFKA_RESTART_ATTEMPTS: "10"
+  #     KAFKA_RESTART_DELAY: "5"
+  #     ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
+  #     KAFKAJS_NO_PARTITIONER_WARNING: "1"
+ 
+networks:
+  backend:
+    name: backend
+    driver: bridge
+
+volumes:
+  profile_db_volume:

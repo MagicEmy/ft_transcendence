@@ -1,22 +1,11 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import classes from './Navbar.module.css';
 import LogoutButton from './LogoutButton';
-import UserContext from '../context/UserContext';
+import UserContext, { IUserContext } from '../context/UserContext';
 import { loadProfileAvatar } from '../utils/profileUtils';
 
-interface IUserContext {
-	userIdContext: string;
-	userNameContext: string;
-	setUserNameContext: (userName: string) => void;
-	avatarContext: string | null;
-	setAvatarContext: (avatar: string | null) => void;
-	tfaEnabled: boolean;
-	setTfaEnabled: (isEnabled: boolean) => void;
-	isLoading: boolean;
-  }
-
-function Navbar() {
+  export const Navbar = () => {
   const {
     userIdContext,
     userNameContext,
@@ -53,24 +42,86 @@ function Navbar() {
       cleanupPreviousAvatar();
       active = false;
     };
-  }, [userIdContext, setAvatarContext, avatarContext]);
+  }, []);
 
   return (
     <header className={classes.header}>
       <div className={classes.avatar}>
         <NavLink
           to="/profile"
-          className={({ isActive }) => isActive ? classes.active : undefined}
+          className={({ isActive }) =>
+            isActive ? classes.active : undefined
+          }
         >
           <div className={classes.avatarImage}>
-            {avatarContext ? <img src={avatarContext} alt="User Avatar" className={classes.avatarImage} /> : <p>Loading...</p>}
+            {avatarContext ? <img className={classes.avatarImage} src={avatarContext} alt="User Avatar" /> : <p>Loading...</p>}
           </div>
         </NavLink>
         <span className={classes.name}>{userNameContext}</span>
       </div>
       <nav>
         <ul className={classes.list}>
-          {/* other navigation links */}
+          <li>
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) =>
+                isActive ? classes.active : undefined
+              }
+              end
+            >
+              Home
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/profile"
+              className={({ isActive }) =>
+                isActive ? classes.active : undefined
+              }
+            >
+              Profile
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/leaderboard"
+              className={({ isActive }) =>
+                isActive ? classes.active : undefined
+              }
+            >
+              Leaderboard
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/game"
+              className={({ isActive }) =>
+                isActive ? classes.active : undefined
+              }
+            >
+              Game
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/chat"
+              className={({ isActive }) =>
+                isActive ? classes.active : undefined
+              }
+            >
+              Chat
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                isActive ? classes.active : undefined
+              }
+            >
+              Settings
+            </NavLink>
+          </li>
         </ul>
       </nav>
       <div className={classes.buttons}>

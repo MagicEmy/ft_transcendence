@@ -26,8 +26,8 @@ const Item = ({ leaderboard }: ItemProps) => {
 
   useEffect(() => {
     leaderboard.forEach(async (user) => {
-      const avatarUrl = await loadProfileAvatar(user.user_id);
-      setAvatars(prev => ({ ...prev, [user.user_id]: avatarUrl || ''}));
+      const avatarUrl = await loadProfileAvatar(user.userId);
+      setAvatars(prev => ({ ...prev, [user.userId]: avatarUrl || ''}));
     });
   }, [leaderboard]);
 
@@ -36,15 +36,16 @@ const Item = ({ leaderboard }: ItemProps) => {
       {leaderboard?.map((value, index) => (
         <div className="flex" key={index}>
           <div className="item">
-            <img src={avatars[value.user_id] || 'https://loremflickr.com/200/200/dog'} alt="" />
+            <img src={avatars[value.userId] || 'https://loremflickr.com/200/200/dog'} alt="" />
             <div className="info">
               <NavLink
-                to={`/profile/${value.user_id}`} className={({ isActive }) =>
+                to={`/profile/${value.userId}`} className={({ isActive }) =>
                   isActive ? classes.active : undefined
                 } >
-                <h3 className='name text-dark'>{value.user_name}</h3>
+                <h3 className='name text-dark'>{value.userName}</h3>
               </NavLink>
-              <span className="total-points">Total points: {value.points}</span>
+              <span className="total-points">Total points:</span>
+              <span className="points">Total points:{value.pointsTotal}</span>
               <div className="stats">
                 <span className="stat">Wins: <strong>{value.wins}</strong></span>
                 <span className="stat">Losses: <strong>{value.losses}</strong></span>

@@ -10,6 +10,9 @@ import { TokensDto } from './dto/tokens-dto';
 import { Token } from 'src/user/token-entity';
 import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
 import * as jwt from 'jsonwebtoken';
+import { CookieTokenDto } from './dto/cookie-token-dto';
+import { CookieAndCookieNameDto } from './dto/cookie-and-cookie-name-dto';
+import { UserIdNameLoginDto } from 'src/user/dto/user-id-name-login-dto';
 
 @Injectable()
 export class AuthService {
@@ -17,7 +20,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    @Inject('STATS_SERVICE') private readonly statsClient: ClientKafka,
+    @Inject('AUTH_SERVICE') private readonly statsClient: ClientKafka,
   ) {}
 
   async validateUser(validateUserDto: ValidateUserDto): Promise<User> {
@@ -28,21 +31,21 @@ export class AuthService {
   async validateUserOrAddNewOne(
     validateUserDto: ValidateUserDto,
   ): Promise<User> {
-    const { intra_login, avatar_url } = validateUserDto;
-    let user = await this.userService.getUserByIntraLogin(intra_login);
+    const { intraLogin, avatarUrl } = validateUserDto;
+    let user = await this.userService.getUserByIntraLogin(intraLogin);
     if (!user) {
       user = await this.userService.createUser({
-        intra_login: intra_login,
-        user_name: intra_login,
+        intraLogin: intraLogin,
+        userName: intraLogin,
       });
 
-      this.userService.createAvatarRecord(user.user_id, avatar_url);
+      this.userService.createAvatarRecord(user.user_id, avatarUrl);
 
       // new user creation is broadcast to profile and chat
       this.statsClient.emit('new_user', {
-        user_id: user.user_id,
-        intra_login: user.intra_login,
-        user_name: user.user_name,
+        userId: user.user_id,
+        intraLogin: user.intra_login,
+        userName: user.user_name,
       });
     }
     return user;
@@ -52,8 +55,8 @@ export class AuthService {
     const { user_id, user_name, intra_login } = user;
     return this.generateJwtTokens({
       sub: user_id,
-      user_name,
-      intra_login,
+      userName: user_name,
+      intraLogin: intra_login,
     });
   }
 
@@ -61,8 +64,8 @@ export class AuthService {
     const jwtAccessToken = this.generateJwtAccessToken(jwtPayloadDto);
     const jwtRefreshToken = this.generateJwtRefreshToken(jwtPayloadDto.sub);
     this.userService.saveRefreshTokenInDB({
-      user_id: jwtPayloadDto.sub,
-      refresh_token: jwtRefreshToken,
+      userId: jwtPayloadDto.sub,
+      refreshToken: jwtRefreshToken,
     });
     return {
       jwtAccessToken: jwtAccessToken,
@@ -87,12 +90,8 @@ export class AuthService {
     );
   }
 
-  getCookieWithTokens(
-    cookieName: string,
-    token: string,
-    expirationTime: string,
-  ): string {
-    const cookie = `${cookieName}=${token}; Path=/; HttpOnly; Secure=true; Max-Age=${expirationTime}`;
+  getCookieWithTokens(cookieTokenDto: CookieTokenDto): string {
+    const cookie = `${cookieTokenDto.cookieName}=${cookieTokenDto.token}; Path=/; HttpOnly; Secure=true; Max-Age=${cookieTokenDto.expirationTime}`;
     return cookie;
   }
 
@@ -102,8 +101,9 @@ export class AuthService {
     const { userId, refreshToken } = deleteRefreshTokenDto;
     if (!userId && refreshToken) {
       try {
-        const user = await this.getUserByRefreshToken(refreshToken);
-        return this.userService.deleteRefreshToken(user.user_id);
+        const user: UserIdNameLoginDto =
+          await this.getUserByRefreshToken(refreshToken);
+        return this.userService.deleteRefreshToken(user.userId);
       } catch (error) {}
     } else if (userId) {
       return this.userService.deleteRefreshToken(userId);
@@ -115,19 +115,34 @@ export class AuthService {
     return this.userService.getRefreshToken(userId);
   }
 
-  async getUserByRefreshToken(refreshToken: string): Promise<User> {
-    return this.userService.getUserByRefreshToken(refreshToken);
+  async getUserByRefreshToken(
+    refreshToken: string,
+  ): Promise<UserIdNameLoginDto> {
+    try {
+      const user = await this.userService.getUserByRefreshToken(refreshToken);
+      return {
+        userId: user.user_id,
+        userName: user.user_name,
+        intraLogin: user.intra_login,
+      };
+    } catch (error) {
+      return null;
+    }
   }
 
-  extractTokenFromCookies(cookies: string, tokenName: string): string {
+  extractTokenFromCookies(cookieAndCookieName: CookieAndCookieNameDto): string {
+    console.log(
+      'in extractTokenFromCookies, cookieAndCookieName is ',
+      cookieAndCookieName,
+    );
     let tokenValue = '';
-    if (cookies) {
-      cookies
+    if (cookieAndCookieName.cookie) {
+      cookieAndCookieName.cookie
         .toString()
         .split(';')
         .forEach((cookie) => {
           const [name, value] = cookie.trim().split('=');
-          if (name === tokenName) {
+          if (name === cookieAndCookieName.cookieName) {
             tokenValue = value;
           }
         });
@@ -137,10 +152,10 @@ export class AuthService {
 
   //   getJwtTokenPayload(req): UserDto {
   getJwtTokenPayload(cookies: string): any {
-    const refreshToken = this.extractTokenFromCookies(
-      cookies,
-      this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
-    );
+    const refreshToken = this.extractTokenFromCookies({
+      cookie: cookies,
+      cookieName: this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
+    });
     try {
       const user = jwt.verify(
         refreshToken,

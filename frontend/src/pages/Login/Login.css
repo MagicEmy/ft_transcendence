@@ -1,7 +1,7 @@
 * {
 	box-sizing: border-box;
   }
-  
+
   .login-container {
 	display: flex;
 	justify-content: center;
@@ -12,95 +12,135 @@
 	border : 10px solid white;
 	position: relative; /* Needed for absolute positioning of line */
   }
-  
-.login-container::before {
-	content: '';
+
+  .login-container::before {
+	 content: '';
+	 position: absolute;
+	 background-color: white; /* Color of the line */
+	 width: 100%; /* Line spans the entire width of the container */
+	 height: 10px; /* Matches the border size */
+	 top: 50%; /* Positions the line in the center vertically */
+	 transform: translateY(-50%); /* Centers it exactly at the midpoint */
+  }
+
+  .login-container main {
+	  display: flex;
+	  flex-direction: column;
+	  justify-content: center;
+	  align-items: center;
+	  height: 100vh;
+	  text-align: center;
+	  padding: 20px;
+	  margin-top: 40px;
+	  margin-bottom: 40px;
+
+	}
+
+  .login-container img {
+	display: flex;
+	justify-content: center;
+	height: 150px;
+	margin-top: 5rem ;
+	margin-bottom: 5rem ;
+  }
+
+  .button-85 {
+	/* padding: 0.6em 2em; */
+	padding: 2em 6em;
+	border: none;
+	outline: none;
+	color: rgb(255, 255, 255);
+	background: #111;
+	cursor: pointer;
+	position: relative;
+	z-index: 0;
+	border-radius: 10px;
+	user-select: none;
+	-webkit-user-select: none;
+	touch-action: manipulation;
+	margin-top: 10rem ;
+	margin-bottom: 5rem ;
+	font-size: 1.2em
+  }
+
+  .button-85:before {
+	content: "";
+	background: linear-gradient(
+	  45deg,
+	  #ff0000,
+	  #ff7300,
+	  #fffb00,
+	  #48ff00,
+	  #00ffd5,
+	  #002bff,
+	  #7a00ff,
+	  #ff00c8,
+	  #ff0000
+	);
 	position: absolute;
-	background-color: white; /* Color of the line */
-	width: 100%; /* Line spans the entire width of the container */
-	height: 10px; /* Matches the border size */
-	top: 50%; /* Positions the line in the center vertically */
-	transform: translateY(-50%); /* Centers it exactly at the midpoint */
- }
- 
- .login-container main {
-	 display: flex;
-	 flex-direction: column;
-	 justify-content: center;
-	 align-items: center;
-	 height: 100vh;
-	 text-align: center;
-	 padding: 20px;
-	 margin-top: 40px;
-	 margin-bottom: 40px;
- 
-   }
- 
- .login-container img {
-   display: flex;
-   justify-content: center;
-   height: 150px;
-   /* width: 200px; */
-   margin-top: 5rem ;
-   margin-bottom: 5rem ;
- }
- 
- .login-container button {
-   display: flex;
-	 background-color: #230bf6;
-	 padding: 1rem 2rem;
-	 border: none;
-	 box-shadow: 0 0 0 22px #230bf6; /* add a box-shadow to mimic a border */
-	 border-radius: 0.50rem;
-	 cursor: pointer;
-	 font-weight: bold;
-	 color:#110805;
-	 font-size: 3rem;
-	 margin-top : 10rem;
-	 margin-bottom : 6rem;
-	 transition: background-color 0.3s ease;
-	 text-shadow: -2px -2px 0 #474084;
- }
- .login-container button:hover {
-   background-color: #837ad6;
- }
- 
- .active {
-   background-color: #837ad6;
- }
- 
- .loader {
-   width: 200px;
-   height: 170px;
-   border: 5px solid #000;
-   padding: 0 8px;
-   box-sizing: border-box;
-   background: linear-gradient(#fff 0 0) 0 0/8px 20px,
-	 linear-gradient(#fff 0 0) 100% 0/8px 20px,
-	 radial-gradient(farthest-side, #fff 90%, #0000) 0 5px/8px 8px content-box,
-	 #000;
-   background-repeat: no-repeat;
-   animation: l3 2s infinite linear;
-   /* margin-top: 1rem ; */
-   margin-bottom: 2rem ;
- 
- }
- @keyframes l3 {
-   25% {
-	 background-position: 0 0, 100% 100%, 100% calc(100% - 5px);
-   }
-   50% {
-	 background-position: 0 100%, 100% 100%, 0 calc(100% - 5px);
-   }
-   75% {
-	 background-position: 0 100%, 100% 0, 100% 5px;
-   }
- }
- 
- 
- .image {
-	 display: flex;
-	 position: relative;
-	 justify-content: left;
-   }
- 
+	top: -2px;
+	left: -2px;
+	background-size: 400%;
+	z-index: -1;
+	filter: blur(5px);
+	-webkit-filter: blur(5px);
+	width: calc(100% + 4px);
+	height: calc(100% + 4px);
+	animation: glowing-button-85 20s linear infinite;
+	transition: opacity 0.3s ease-in-out;
+	border-radius: 10px;
+  }
+
+  @keyframes glowing-button-85 {
+	0% {
+	  background-position: 0 0;
+	}
+	50% {
+	  background-position: 400% 0;
+	}
+	100% {
+	  background-position: 0 0;
+	}
+  }
+
+  .button-85:after {
+	z-index: -1;
+	content: "";
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: #222;
+	left: 0;
+	top: 0;
+	border-radius: 10px;
+  }
+
+
+  .loader {
+	width: 200px;
+	height: 170px;
+	border: 5px solid #000;
+	padding: 0 8px;
+	box-sizing: border-box;
+	background: linear-gradient(#fff 0 0) 0 0/8px 20px,
+	  linear-gradient(#fff 0 0) 100% 0/8px 20px,
+	  radial-gradient(farthest-side, #fff 90%, #0000) 0 5px/8px 8px content-box,
+	  #000;
+	background-repeat: no-repeat;
+	animation: l3 2s infinite linear;
+	/* margin-top: 1rem ; */
+	margin-top: 2rem ;
+	margin-bottom: 2rem ;
+
+  }
+  @keyframes l3 {
+	25% {
+	  background-position: 0 0, 100% 100%, 100% calc(100% - 5px);
+	}
+	50% {
+	  background-position: 0 100%, 100% 100%, 0 calc(100% - 5px);
+	}
+	75% {
+	  background-position: 0 100%, 100% 0, 100% 5px;
+	}
+  }

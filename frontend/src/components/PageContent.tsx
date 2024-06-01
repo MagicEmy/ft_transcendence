@@ -6,7 +6,7 @@ interface PageContentProps {
   children: ReactNode;
 }
 
-const PageContent: React.FC<PageContentProps> = ({ title, children }) => {
+const PageContent = ({ title, children }: PageContentProps) => {
   return (
     <div className={classes.content}>
       <h1>{title}</h1>
