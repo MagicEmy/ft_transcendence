@@ -109,7 +109,6 @@ export class AppController {
 
   @MessagePattern('addFriend')
   async addFriend(payload: FriendshipDto): Promise<string> {
-    console.log('addFriend called', payload);
     try {
       await this.friendService.createFriendship(payload);
       return 'OK';
