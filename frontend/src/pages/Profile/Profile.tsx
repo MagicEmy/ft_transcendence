@@ -4,6 +4,7 @@ import { loadProfileAvatar } from "../../utils/profileUtils";
 import { loadFriends, addFriend, deleteFriend } from "../../utils/friendsUtils";
 import UserContext, { IUserContext } from "../../context/UserContext";
 import { UserProfile, UserStatus, Friends } from "../../types/shared";
+import useStorage from "../../hooks/useStorage";
 import "./Profile.css";
 
 export const Profile = () => {
@@ -12,6 +13,7 @@ export const Profile = () => {
   const { userIdContext, userNameContext, friendsContext, setFriendsContext } = useContext<IUserContext>(UserContext);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [userIdStorage,] = useState<string>('');
   const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [friends, setFriends] = useState<Friends[]>([]);
@@ -20,8 +22,9 @@ export const Profile = () => {
   const [isFriend, setIsFriend] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
-  const userIdOrMe = useMemo(() => userId || userIdContext, [userId, userIdContext]);
+  const userIdOrMe = useMemo(() => userId || userIdStorage, [userId, userIdStorage]);
   console.log(`userIdOrMe Profile 24 - userId?${userId}/ userIdContext?${userIdContext}/ username${userNameContext}/`)
+  console.log(`userIdStorage - ${userIdStorage}/ userIdContext?${userIdContext}`)
 
   useEffect(() => {
     if (!userIdOrMe) {

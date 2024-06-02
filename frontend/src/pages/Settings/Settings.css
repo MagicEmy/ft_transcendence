@@ -33,6 +33,7 @@
 	margin-top: 10px;
 	margin-bottom: 10px;
 	font-size: 1.5em;
+	padding: 10px;
   }
 
   .text-dark{
@@ -59,6 +60,7 @@
 
 	input[type="file"] {
 	  margin-top: 10px;
+	  margin-bottom: 10px;
 	}
 
 	input[type="text"] {
@@ -95,7 +97,18 @@
 	  flex-direction: row;
 	  align-items: center;
 		padding: 15px 30px;
-	  background: radial-gradient(circle, #bc94f0 0%, #9718f2 100%);
+		background: repeating-conic-gradient(
+			from 0deg at 80% 50%,
+			#5691f580 0% 8.25%,
+			#b338ff80 8.25% 16.5%,
+			#f8305880 16.5% 25%
+		  ), repeating-conic-gradient(
+			from 15deg at 50% 50%,
+			#e856f580 0% 8.25%,
+			#ff384c80 8.25% 16.5%,
+			#f8af3080 16.5% 25%
+		  ), repeating-conic-gradient(from 0deg at 20% 50%, #f58356ff 0% 8.25%, rgb(255, 242, 56)
+			  8.25% 16.5%, rgb(4, 106, 50) 16.5% 5%);
 	}
 
 

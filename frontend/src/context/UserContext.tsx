@@ -26,7 +26,7 @@ interface UserProviderProps {
 
 export const UserProvider = ({ children }: UserProviderProps) => {
   const [userIdContext, setUserIdContext] = useState<string>('');
-  const [userIdStorage, setUserIdStorage] = useStorage<string>('userId', '');
+  const [, setUserIdStorage] = useStorage<string>('userId', '');
   const [userNameContext, setUserNameContext] = useState<string>('');
   const [avatarContext, setAvatarContext] = useState<string | null>(null);
   const [friendsContext, setFriendsContext] = useState<Friends[]>([]);

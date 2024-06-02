@@ -46,21 +46,22 @@
 
   .button-85 {
 	/* padding: 0.6em 2em; */
-	padding: 2em 6em;
+	padding: 1.5em 4.5em;
 	border: none;
 	outline: none;
-	color: rgb(255, 255, 255);
+	color: rgb(0, 0, 0);
 	background: #111;
 	cursor: pointer;
 	position: relative;
 	z-index: 0;
-	border-radius: 10px;
+	border-radius: 30px;
 	user-select: none;
 	-webkit-user-select: none;
 	touch-action: manipulation;
 	margin-top: 10rem ;
 	margin-bottom: 5rem ;
-	font-size: 1.2em
+	font-size: 1.2em;
+	font-weight: bold;
   }
 
   .button-85:before {
@@ -84,11 +85,11 @@
 	z-index: -1;
 	filter: blur(5px);
 	-webkit-filter: blur(5px);
-	width: calc(100% + 4px);
-	height: calc(100% + 4px);
+	width: calc(100% + 5px);
+	height: calc(100% + 5px);
 	animation: glowing-button-85 20s linear infinite;
 	transition: opacity 0.3s ease-in-out;
-	border-radius: 10px;
+	border-radius: 30px;
   }
 
   @keyframes glowing-button-85 {
@@ -109,10 +110,10 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	background: #222;
+	background: #fff;
 	left: 0;
 	top: 0;
-	border-radius: 10px;
+	border-radius: 30px;
   }
 
 

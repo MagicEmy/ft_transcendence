@@ -42,7 +42,7 @@ const Item = ({ leaderboard }: ItemProps) => {
                 to={`/profile/${value.userId}`} className={({ isActive }) =>
                   isActive ? classes.active : undefined
                 } >
-                <h3 className='name text-dark'>{value.userName}</h3>
+                <h3 className='text'>{value.userName}</h3>
               </NavLink>
               <span className="total-points">Total points:</span>
               <span className="points">Total points:{value.pointsTotal}</span>

@@ -1,4 +1,8 @@
 
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
 .header {
   max-width: 100%;
   padding: 2rem;
@@ -11,10 +15,8 @@
   flex-wrap: wrap;
 }
 
-
 .name {
   position: relative;
-  margin-top: 20rem;
   color:  #FCC30A;
 }
 
@@ -81,6 +83,9 @@ background-color: #FCC30A;
 border: none;
 border-radius: 30px;
 box-shadow: 1px 2px 5px 3px #bb7d02;
+font-family: 'Roboto', sans-serif;
+font-size: 16px;
+
 }
 
 .logo {
