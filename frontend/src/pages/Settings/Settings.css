@@ -1,0 +1,101 @@
+.main {
+	height: 100vh;
+	overflow-y: auto;
+	scroll-behavior: smooth;
+	  margin-bottom: 20em;
+	padding: 50px;
+  }
+
+  .settings {
+	  border-radius: 30px;
+	height: 100%;
+	margin-top: 3em;
+	  padding: 10px;
+	  overflow-y: auto;
+	  margin-bottom: 10em;
+  }
+
+  .settings .flex{
+	gap: 1em;
+	text-align: left;
+	margin-bottom: 2em;
+  }
+
+  .settings .flex .item{
+	display: flex;
+	align-items: center;
+	gap: 1em;
+	padding: 30px;
+  }
+
+  .text{
+	color: #0d045a;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	font-size: 1.5em;
+  }
+
+  .text-dark{
+	color: #0d045a;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	border: 1px solid #a09df0;
+	padding: 10px;
+
+  }
+
+  .settings .flex img{
+	width: 100px;
+	height: 100px;
+	object-fit: cover;
+	border-radius: 50%;
+  }
+
+  .name-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	}
+
+	input[type="file"] {
+	  margin-top: 10px;
+	}
+
+	input[type="text"] {
+	  margin-top: 10px;
+	  margin-left: 55px;
+	  padding: 10px;
+	  border: 1px solid #ccc;
+	  border-radius: 5px;
+	}
+
+	.Change2FA{
+		display: flex;
+	  flex-direction: row;
+	  align-items: center;
+		margin-left: 30px;
+		margin-top: 20px;
+	}
+
+	.Info2fa {
+		color: #3e0965;
+		margin-top: 30px;
+	  margin-right: 55px;
+
+
+	}
+
+	.bi-qr-code-scan {
+		margin-right: 20px;
+	}
+
+	.TwoFA {
+		width: 200px;
+	  display: flex;
+	  flex-direction: row;
+	  align-items: center;
+		padding: 15px 30px;
+	  background: radial-gradient(circle, #bc94f0 0%, #9718f2 100%);
+	}
+
+

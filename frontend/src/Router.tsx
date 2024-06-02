@@ -4,8 +4,8 @@ import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile/Profile';
 import Leaderboard from './pages/Leaderboard/Leaderboard';
-// import Settings from './pages/Settings';
-import Game from './pages/Game';
+import Settings from './pages/Settings/Settings';
+// import Game from './pages/Game';
 import Error from './pages/Error';
 // import PrivateRoute from './components/PrivateRoute';
 
@@ -25,8 +25,8 @@ const router = createBrowserRouter([
 		      { path: 'profile', element: <Profile /> },
           { path: 'profile/:userId', element: <Profile /> },
           { path: 'leaderboard', element: <Leaderboard /> },
-          { path: 'game', element: <Game /> },
-        //   { path: 'settings', element: <Settings /> },
+          { path: 'settings', element: <Settings /> },
+          // { path: 'game', element: <Game /> },
         ],
       },
     ],

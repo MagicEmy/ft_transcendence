@@ -72,6 +72,13 @@
   padding: 0;
 }
 
+.profile-text{
+  color: #0d045a;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 1.5em;
+}
+
 .profile-text-dark{
   color: #0d045a;
   margin-top: 10px;

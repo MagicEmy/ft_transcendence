@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import useStorage from '../hooks/useStorage';
 import { loadProfileAvatar } from '../utils/profileUtils';
 import { Friends } from "../types/shared";
 import { IUserContext } from '../context/userContext.types';
@@ -25,6 +26,7 @@ interface UserProviderProps {
 
 export const UserProvider = ({ children }: UserProviderProps) => {
   const [userIdContext, setUserIdContext] = useState<string>('');
+  const [userIdStorage, setUserIdStorage] = useStorage<string>('userId', '');
   const [userNameContext, setUserNameContext] = useState<string>('');
   const [avatarContext, setAvatarContext] = useState<string | null>(null);
   const [friendsContext, setFriendsContext] = useState<Friends[]>([]);
@@ -44,6 +46,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         }
         const profile = await response.json();
         setUserIdContext(profile.userId);
+        setUserIdStorage(profile.userId);
         console.log("context.userId: ", profile?.userId);
         setUserNameContext(profile.userName);
       } catch (error) {

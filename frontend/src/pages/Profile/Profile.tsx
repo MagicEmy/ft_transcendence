@@ -9,7 +9,7 @@ import "./Profile.css";
 export const Profile = () => {
 
   const { userId } = useParams<{ userId?: string }>();
-  const { userIdContext, friendsContext, setFriendsContext } = useContext<IUserContext>(UserContext);
+  const { userIdContext, userNameContext, friendsContext, setFriendsContext } = useContext<IUserContext>(UserContext);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
@@ -21,6 +21,7 @@ export const Profile = () => {
   const [error, setError] = useState<string>('');
 
   const userIdOrMe = useMemo(() => userId || userIdContext, [userId, userIdContext]);
+  console.log(`userIdOrMe Profile 24 - userId?${userId}/ userIdContext?${userIdContext}/ username${userNameContext}/`)
 
   useEffect(() => {
     if (!userIdOrMe) {
@@ -50,6 +51,7 @@ export const Profile = () => {
     fetchDbProfile();
   }, [userIdOrMe]);
 
+
   useEffect(() => {
     if (!userIdOrMe) {
       setError('No user ID found in fetchUserStatus');
@@ -78,7 +80,7 @@ export const Profile = () => {
     };
 
     fetchUserStatus();
-  }, [userIdOrMe]);
+  }, [userIdOrMe, setUserStatus]);
 
   useEffect(() => {
     setAvatarLoading(true);
@@ -93,7 +95,7 @@ export const Profile = () => {
       }
     };
     fetchAvatar();
-  }, [userIdOrMe]);
+  }, [userIdOrMe, setAvatarUrl]);
 
   useEffect(() => {
     if (!userId) {
@@ -111,7 +113,8 @@ export const Profile = () => {
       };
       fetchFriends();
     }
-  }, [userIdContext, setFriendsContext]);
+  }, [userIdOrMe, setFriendsContext]);
+
 
   useEffect(() => {
     if (userId && friendsContext) {
@@ -150,7 +153,7 @@ export const Profile = () => {
         <div className="flex">
           <div className="item">
             {avatarLoading ? <p>Loading avatar...</p> : <img src={avatarUrl} alt="User avatar" />}
-            <h4 className='profile-text-dark'>{profile?.userInfo?.userName}</h4>
+            <h4 className='profile-text'>{profile?.userInfo?.userName}</h4>
             <div className="item">
               <span className={`status-indicator ${userStatusIndicator}`}></span>
               <span>{userStatusIndicator}</span>
@@ -220,7 +223,11 @@ export const Profile = () => {
             </div>
           </div>
         </div>
-        <div className="item"><div className="name text-dark">{error && <p>{error}</p>}</div></div>
+        {error && (
+						<div className="text-dark">
+							<p>{error}</p>
+						</div>
+					)}
         <div className="flex">
           <div className="item">
             {!userId && userId !== userIdContext && (
