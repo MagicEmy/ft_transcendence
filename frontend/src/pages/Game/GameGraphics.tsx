@@ -1,22 +1,19 @@
 import React, { useEffect, useContext } from 'react';
-import UserContext from '../context/UserContext';
+import UserContext from '../../context/UserContext';
 
-enum Game
-{
+enum Game {
 	Pong,
 }
 
-enum GamePongTheme
-{
+enum GamePongTheme {
 	Retro,
 }
 
-class GameGraphics
-{
+class GameGraphics {
 	private static instance: GameGraphics | null = null;
 	// private static userID: any = useContext(UserContext);
 
-	
+
 	private GameElement: HTMLDivElement;
 	private BackElement: HTMLCanvasElement;
 	private BackContext: CanvasRenderingContext2D;
@@ -31,8 +28,7 @@ class GameGraphics
 	private theme: number = 0;
 	private static font: string = "Arial";
 
-	private constructor()
-	{
+	private constructor() {
 		this.GameElement = this.getElement<HTMLDivElement>("game");
 		this.BackElement = this.getElement<HTMLCanvasElement>("gameBackground");
 		this.BackContext = this.getContext(this.BackElement);
@@ -46,16 +42,12 @@ class GameGraphics
 		this.resizeElements();
 	}
 
-	public static getInstance(): GameGraphics | null
-	{
-		if (!GameGraphics.instance)
-		{
-			try
-			{
+	public static getInstance(): GameGraphics | null {
+		if (!GameGraphics.instance) {
+			try {
 				GameGraphics.instance = new GameGraphics();
 			}
-			catch (error)
-			{
+			catch (error) {
 				console.error(`Error creating GameGraphics singleton: ${error}`);
 				GameGraphics.instance = null;
 			}
@@ -63,8 +55,7 @@ class GameGraphics
 		return (GameGraphics.instance);
 	}
 
-	private getElement<T extends HTMLElement>(elementId: string): T
-	{
+	private getElement<T extends HTMLElement>(elementId: string): T {
 		let element: T | null;
 
 		element = document.getElementById(elementId) as T | null;
@@ -73,19 +64,17 @@ class GameGraphics
 		return (element);
 	}
 
-	private getContext(element: HTMLCanvasElement): CanvasRenderingContext2D
-	{
+	private getContext(element: HTMLCanvasElement): CanvasRenderingContext2D {
 		let context: CanvasRenderingContext2D | null | undefined;
 
 		context = element.getContext("2d");
 
 		if (!(context instanceof CanvasRenderingContext2D))
-			throw(`Failed to get 2D context for ${element.id}`);
+			throw (`Failed to get 2D context for ${element.id}`);
 		return (context);
 	}
 
-	public resizeElements(): void
-	{
+	public resizeElements(): void {
 		this.GameElement.style.setProperty(`--TsHeightAdjust`, `${this.GameElement.offsetTop}px`);
 
 		this.adjustSize(this.BackElement);
@@ -96,60 +85,52 @@ class GameGraphics
 		this.renderBackground();
 	}
 
-	private adjustSize(element: HTMLCanvasElement): void
-	{
+	private adjustSize(element: HTMLCanvasElement): void {
 		var width: number = this.GameElement.offsetWidth;
 		var height: number = this.GameElement.offsetHeight;
 		element.width = width > height * 4 / 3 ? height * 4 / 3 : width;
 		element.height = height > width * 3 / 4 ? width * 3 / 4 : height;
 	}
 
-	private clearContext(element: HTMLCanvasElement, context: CanvasRenderingContext2D): void
-	{
+	private clearContext(element: HTMLCanvasElement, context: CanvasRenderingContext2D): void {
 		context.clearRect(0, 0, element.width, element.height);
 	}
 
-	private fillContext(element: HTMLCanvasElement, context: CanvasRenderingContext2D, color: string): void
-	{
+	private fillContext(element: HTMLCanvasElement, context: CanvasRenderingContext2D, color: string): void {
 		context.fillStyle = color;
 		context.fillRect(0, 0, element.width, element.height);
 	}
 
-/* ************************************************************************** *\
+	/* ************************************************************************** *\
+	
+		BackGround
+	
+	\* ************************************************************************** */
 
-	BackGround
-
-\* ************************************************************************** */
-
-	private renderBackground(): void
-	{
+	private renderBackground(): void {
 		this.clearContext(this.BackElement, this.BackContext);
 
-		switch (this.game)
-		{
+		switch (this.game) {
 			case Game.Pong:
-				this.renderBackgroundPong();	break ;
+				this.renderBackgroundPong(); break;
 			default:
-				console.error(`Error: Undefined game ${this.theme}`);	break ;
+				console.error(`Error: Undefined game ${this.theme}`); break;
 		}
 	}
 
-	private renderBackgroundPong()
-	{
-		switch (this.theme)
-		{
+	private renderBackgroundPong() {
+		switch (this.theme) {
 			case GamePongTheme.Retro:
-				this.renderBackgroundPongRetro();	break ;
+				this.renderBackgroundPongRetro(); break;
 			default:
-				console.error(`Error: Undefined Pong theme ${this.theme}`);	break ;
+				console.error(`Error: Undefined Pong theme ${this.theme}`); break;
 		}
 	}
 
-	private renderBackgroundPongRetro(): void
-	{
+	private renderBackgroundPongRetro(): void {
 		this.fillContext(this.BackElement, this.BackContext, "rgba(23, 23, 23, 0.99)");
 		const posX: number = this.BackElement.width / 2 - 2;
-		const square = 
+		const square =
 		{
 			height: this.BackElement.height / 60,
 			width: 4,
@@ -159,80 +140,69 @@ class GameGraphics
 			this.BackContext.fillRect(posX, posY, square.width, square.height);
 	}
 
-/* ************************************************************************** *\
+	/* ************************************************************************** *\
+	
+		Canvas
+	
+	\* ************************************************************************** */
 
-	Canvas
-
-\* ************************************************************************** */
-
-	public renderCanvas(): void
-	{
-		switch (this.game)
-		{
+	public renderCanvas(): void {
+		switch (this.game) {
 			case Game.Pong:
-				this.renderCanvasPong();	break ;
+				this.renderCanvasPong(); break;
 			default:
-				console.error(`Error: Undefined game ${this.theme}`);	break ;
+				console.error(`Error: Undefined game ${this.theme}`); break;
 		}
 	}
 
-	private renderCanvasPong(): void
-	{
-		switch (this.theme)
-		{
+	private renderCanvasPong(): void {
+		switch (this.theme) {
 			case GamePongTheme.Retro:
-				this.renderCanvasPongRetro();	break ;
+				this.renderCanvasPongRetro(); break;
 			default:
-				console.error(`Error: Undefined Pong theme ${this.theme}`);	break ;
+				console.error(`Error: Undefined Pong theme ${this.theme}`); break;
 		}
 	}
 
-	private renderCanvasPongRetro(): void
-	{
+	private renderCanvasPongRetro(): void {
 
 	}
 
-/* ************************************************************************** *\
+	/* ************************************************************************** *\
+	
+		HUD (Heads Up Display)
+	
+	\* ************************************************************************** */
 
-	HUD (Heads Up Display)
-
-\* ************************************************************************** */
-
-	public renderHUD(): void
-	{
-		switch (this.game)
-		{
+	public renderHUD(): void {
+		switch (this.game) {
 			case Game.Pong:
-				this.renderHUDPong();	break ;
+				this.renderHUDPong(); break;
 			default:
-				console.error(`Error: Undefined game ${this.theme}`);	break ;
+				console.error(`Error: Undefined game ${this.theme}`); break;
 		}
 	}
 
-	private renderHUDPong(): void
-	{
-		switch (this.theme)
-		{
+	private renderHUDPong(): void {
+		switch (this.theme) {
 			case GamePongTheme.Retro:
-				this.renderHUDPongRetro();	break ;
+				this.renderHUDPongRetro(); break;
 			default:
-				console.error(`Error: Undefined Pong theme ${this.theme}`);	break ;
+				console.error(`Error: Undefined Pong theme ${this.theme}`); break;
 		}
 	}
 
-	private renderHUDPongRetro(): void
-	{
-		
+	private renderHUDPongRetro(): void {
+
 	}
 
-/* ************************************************************************** *\
+	/* ************************************************************************** *\
+	
+		Menu
+	
+	\* ************************************************************************** */
 
-	Menu
-
-\* ************************************************************************** */
-
-	public renderMenu(selectMenu: number)
-	{
+	public renderMenu(selectMenu: number) {
 		console.error(`Undefined renderMenu ${selectMenu}`);
 	}
 }
