@@ -10,7 +10,8 @@ import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { HttpModule } from '@nestjs/axios';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-
+import { TwoFactorAuthController } from './tfa/two-factor-auth.controller';
+import { TwoFactorAuthService } from './tfa/two-factor-auth.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -52,8 +53,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       },
     ]),
   ],
-  controllers: [AppController, UserController],
-  providers: [AppService, UserService],
+  controllers: [AppController, UserController, TwoFactorAuthController],
+  providers: [AppService, UserService, TwoFactorAuthService],
   exports: [HttpModule],
 })
 export class AppModule {}
