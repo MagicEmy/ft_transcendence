@@ -10,10 +10,12 @@ import { HttpModule } from '@nestjs/axios';
 import { ClientsModule, Transport } from '@nestjs/microservices'; // ONLY FOR TESTING
 import { Token } from './token-entity';
 import { TokenRepository } from './token.repository';
+import { Tfa } from './tfa.entity';
+import { TfaRepository } from './tfa.repository';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Avatar, Token]),
+    TypeOrmModule.forFeature([User, Avatar, Token, Tfa]),
     HttpModule,
     ClientsModule.register([
       // ONLY FOR TESTING PURPOSES - to be removed
@@ -33,13 +35,14 @@ import { TokenRepository } from './token.repository';
     ]),
   ],
   controllers: [UserController],
-  providers: [UserService, UserRepository, AvatarRepository, TokenRepository],
+  providers: [UserService, UserRepository, AvatarRepository, TokenRepository, TfaRepository],
   exports: [
     TypeOrmModule,
     UserRepository,
     UserService,
     AvatarRepository,
     TokenRepository,
+    TfaRepository,
   ],
 })
 export class UserModule {}
