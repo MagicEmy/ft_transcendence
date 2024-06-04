@@ -10,8 +10,10 @@ import { HttpModule } from '@nestjs/axios';
 import { ClientsModule, Transport } from '@nestjs/microservices'; // ONLY FOR TESTING
 import { Token } from './token-entity';
 import { TokenRepository } from './token.repository';
-import { Tfa } from './tfa.entity';
-import { TfaRepository } from './tfa.repository';
+import { Tfa } from '../tfa/tfa.entity';
+import { TfaRepository } from '../tfa/tfa.repository';
+import { TwoFactorAuthController } from 'src/tfa/two-factor-auth.controller';
+import { TwoFactorAuthService } from 'src/tfa/two-factor-auth.service';
 
 @Module({
   imports: [
@@ -34,8 +36,15 @@ import { TfaRepository } from './tfa.repository';
       },
     ]),
   ],
-  controllers: [UserController],
-  providers: [UserService, UserRepository, AvatarRepository, TokenRepository, TfaRepository],
+  controllers: [UserController, TwoFactorAuthController],
+  providers: [
+    UserService,
+    UserRepository,
+    AvatarRepository,
+    TokenRepository,
+    TfaRepository,
+    TwoFactorAuthService,
+  ],
   exports: [
     TypeOrmModule,
     UserRepository,
