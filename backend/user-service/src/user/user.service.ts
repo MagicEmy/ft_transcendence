@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,7 +9,7 @@ import { UserStatus } from './user-status.entity';
 import { UserIdNameStatusDto } from './dto/user-id-name-status-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
 import { KafkaTopic, UserStatusEnum } from './enum/kafka.enum';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientKafka, RpcException } from '@nestjs/microservices';
 import { AvatarRepository } from '../avatar/avatar.repository';
 import { AvatarDto } from '../avatar/avatar-dto';
 
@@ -33,6 +28,8 @@ export class UserService {
     this.userStatuses = [];
   }
 
+  //   USER
+
   async getUserIdNameStatus(userId: string): Promise<UserIdNameStatusDto> {
     try {
       const user = await this.getUserById(userId);
@@ -43,11 +40,7 @@ export class UserService {
         status: status.status,
       };
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      } else {
-        throw new BadRequestException();
-      }
+      throw error;
     }
   }
 
@@ -56,29 +49,40 @@ export class UserService {
   }
 
   async getTotalNoOfUsers(): Promise<number> {
-    return await this.userRepository.count();
+    return this.userRepository.count();
+  }
+
+  async getAllUserIds(): Promise<string[]> {
+    return this.userRepository.getAllUserIds();
   }
 
   async setUserName(userIdNameDto: UserIdNameDto): Promise<User> {
-    const found = await this.getUserById(userIdNameDto.userId);
-    if (found) {
+    try {
+      const found = await this.getUserById(userIdNameDto.userId);
       found.user_name = userIdNameDto.userName;
       this.userRepository.save(found);
       this.userNameCache.setUserName(userIdNameDto);
       this.usernameClient.emit(KafkaTopic.USERNAME_CHANGE, userIdNameDto);
+      return found;
+    } catch (error) {
+      throw error;
     }
-    return found;
   }
 
   async getUserName(userId: string): Promise<string> {
     let userName = this.userNameCache.getUserName(userId);
-    if (userName) {
-      return userName;
+    if (!userName) {
+      try {
+        userName = await this.userRepository.getUserName(userId);
+        this.userNameCache.setUserName({ userId, userName });
+      } catch (error) {
+        throw error;
+      }
     }
-    userName = await this.userRepository.getUserName(userId);
-    this.userNameCache.setUserName({ userId, userName });
     return userName;
   }
+
+  //   STATUS
 
   async createUserStatus(userId: string): Promise<UserStatus> {
     return this.userStatusRepository.createStatusEntry({
@@ -92,14 +96,18 @@ export class UserService {
   }
 
   async getUserStatus(userId: string): Promise<UserStatus> {
-    return this.userStatusRepository.findOneBy({ user_id: userId });
+    const status = await this.userStatusRepository.findOneBy({
+      user_id: userId,
+    });
+    if (!status) {
+      throw new RpcException(
+        new NotFoundException(`User with ID "${userId}" not found`),
+      );
+    }
+    return status;
   }
 
-  async getAllUserIds(): Promise<string[]> {
-    return this.userRepository.getAllUserIds();
-  }
-
-  // Avatar
+  // AVATAR
 
   async setAvatar(avatarDto: AvatarDto): Promise<string> {
     return this.avatarRepository.uploadAvatar(avatarDto);

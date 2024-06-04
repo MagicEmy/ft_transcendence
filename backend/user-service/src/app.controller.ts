@@ -11,6 +11,7 @@ import { NewUserDto } from './user/dto/new-user-dto';
 import { AvatarDto } from './avatar/avatar-dto';
 import { FriendshipDto } from './friend/dto/friendship-dto';
 import { FriendService } from './friend/friend.service';
+import { User } from './user/user.entity';
 
 @Controller()
 export class AppController {
@@ -22,16 +23,21 @@ export class AppController {
   // Kafka-related methods
 
   @EventPattern(KafkaTopic.NEW_USER) //CHECKED
-  createUserStatus(data: NewUserDto): void {
-    this.userService.createUserStatus(data.userId);
+  createUserStatus(data: NewUserDto): Promise<UserStatus> {
+    return this.userService.createUserStatus(data.userId);
   }
 
   @MessagePattern(PlayerInfo.TOPIC) //CHECKED
   async handlePlayerInfoRequest(data: any): Promise<Observable<IPlayerInfo>> {
-    return of({
-      playerID: data.playerID,
-      playerName: await this.userService.getUserName(data.playerID),
-    }); // TBD WHAT TO RETURN WHEN USER DOESN'T EXIST
+    try {
+      const player = {
+        playerID: data.playerID,
+        playerName: await this.userService.getUserName(data.playerID),
+      };
+      return of(player);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @EventPattern(KafkaTopic.STATUS_CHANGE) // CHECKED
@@ -45,9 +51,9 @@ export class AppController {
 
   // Gateway-related methods
 
-  @EventPattern('setUserName')
-  setUserName(data: UserIdNameDto): void {
-    this.userService.setUserName(data);
+  @MessagePattern('setUserName')
+  async setUserName(data: UserIdNameDto): Promise<Observable<User>> {
+    return of(await this.userService.setUserName(data));
   }
 
   @MessagePattern('getUserName')
@@ -97,38 +103,19 @@ export class AppController {
 
   @MessagePattern('getAvatar')
   async getAvatar(userId: string): Promise<Observable<AvatarDto>> {
-    try {
-      const avatar: AvatarDto = await this.userService.getAvatar(userId);
-      return of(avatar);
-    } catch (error) {
-      return of(null);
-    }
+    return of(await this.userService.getAvatar(userId));
   }
 
   //   FRIEND
 
   @MessagePattern('addFriend')
-  async addFriend(payload: FriendshipDto): Promise<string> {
-    try {
-      await this.friendService.createFriendship(payload);
-      return 'OK';
-    } catch (error) {
-      if (error.code !== '23505') {
-        // '23505' is duplicate entry
-        return 'Error';
-      }
-      return 'Already Friends';
-    }
+  async addFriend(payload: FriendshipDto): Promise<Observable<FriendshipDto>> {
+    return of(await this.friendService.createFriendship(payload));
   }
 
   @MessagePattern('unfriend')
-  async unfriend(payload: FriendshipDto): Promise<string> {
-    try {
-      await this.friendService.removeFriendship(payload);
-      return 'OK';
-    } catch (error) {
-      return 'Error';
-    }
+  async unfriend(payload: FriendshipDto): Promise<Observable<FriendshipDto>> {
+    return of(await this.friendService.removeFriendship(payload));
   }
 
   @MessagePattern('getFriendsIds')

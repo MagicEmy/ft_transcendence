@@ -2,6 +2,8 @@ import { Repository } from 'typeorm';
 import { Friendship } from './friendship.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FriendshipDto } from './dto/friendship-dto';
+import { RpcException } from '@nestjs/microservices';
+import { InternalServerErrorException } from '@nestjs/common';
 
 export class FriendshipRepository extends Repository<Friendship> {
   constructor(
@@ -15,17 +17,20 @@ export class FriendshipRepository extends Repository<Friendship> {
     );
   }
 
-  async createFriendship(friendshipDto: FriendshipDto): Promise<Friendship> {
-    const friend = this.friendshipRepository.create({
+  async createFriendship(friendshipDto: FriendshipDto): Promise<FriendshipDto> {
+    const friend = this.create({
       user_id: friendshipDto.userId,
       friend_id: friendshipDto.friendId,
     });
     try {
-      await this.friendshipRepository.save(friend);
+      await this.save(friend);
     } catch (error) {
-      throw error;
+      if (error.code !== '23505') {
+        // '23505' means duplicate entry
+        throw new RpcException(new InternalServerErrorException());
+      }
     }
-    return friend;
+    return friendshipDto;
   }
 
   async getFriends(userId: string): Promise<string[]> {
@@ -48,8 +53,7 @@ export class FriendshipRepository extends Repository<Friendship> {
         .andWhere('user_id = :user_id', { user_id: friendshipDto.userId })
         .execute();
     } catch (error) {
-      console.log('Caught an error when trying to remove a friendship:');
-      throw error;
+      throw new RpcException(new InternalServerErrorException());
     }
     return friendshipDto;
   }
