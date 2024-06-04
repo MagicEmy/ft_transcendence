@@ -16,14 +16,12 @@ export class FriendshipRepository extends Repository<Friendship> {
   }
 
   async createFriendship(friendshipDto: FriendshipDto): Promise<Friendship> {
-    console.log('in the repo, friendshipDto is', friendshipDto);
-    const friend = this.create({
+    const friend = this.friendshipRepository.create({
       user_id: friendshipDto.userId,
       friend_id: friendshipDto.friendId,
     });
-    console.log(friend);
     try {
-      await this.save(friend);
+      await this.friendshipRepository.save(friend);
     } catch (error) {
       throw error;
     }
