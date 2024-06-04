@@ -1,6 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { Observable, of, switchMap } from 'rxjs';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import {
+  Observable,
+  catchError,
+  from,
+  map,
+  of,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
 import { CookieAndCookieNameDto } from 'src/dto/cookie-and-cookie-name-dto';
 import { CookieTokenDto } from 'src/dto/cookie-token-dto';
 import { JwtPayloadDto } from 'src/dto/jwt-payload-dto';
@@ -20,7 +29,13 @@ export class AuthService {
   generateJwtTokens(jwtPayloadDto: JwtPayloadDto): Observable<TokensDto> {
     const pattern = 'getTokens';
     const payload = jwtPayloadDto;
-    return this.authService.send<TokensDto>(pattern, payload);
+    return this.authService
+      .send<TokensDto>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   getCookieWithTokens(cookieTokenDto: CookieTokenDto): Observable<string> {
@@ -34,7 +49,13 @@ export class AuthService {
   ): Observable<string> {
     const pattern = 'getTokenFromCookies';
     const payload = cookieAndCookieName;
-    return this.authService.send<string>(pattern, payload);
+    return this.authService
+      .send<string>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   validateRefreshToken(
@@ -55,7 +76,13 @@ export class AuthService {
   getUserByRefreshToken(refreshToken: string): Observable<UserIdNameLoginDto> {
     const pattern = 'getUserByRefreshToken';
     const payload = refreshToken;
-    return this.authService.send<UserIdNameLoginDto>(pattern, payload);
+    return this.authService
+      .send<UserIdNameLoginDto>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   deleteRefreshTokenFromDB(deleteRefreshTokenDto: DeleteRefreshTokenDto): void {
@@ -69,22 +96,41 @@ export class AuthService {
       cookie: cookies,
       cookieName: this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
     }).pipe(
-      switchMap((token) => {
-        if (!token) {
-          return of(null);
-        } else {
-          return of(
-            jwt.verify(token, this.configService.get('JWT_ACCESS_SECRET')),
-          );
-        }
-      }),
+      switchMap((token) =>
+        from(
+          new Promise((resolve, reject) => {
+            jwt.verify(
+              token,
+              this.configService.get('JWT_ACCESS_SECRET'),
+              (err, decoded) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(decoded);
+                }
+              },
+            );
+          }),
+        ).pipe(
+          map((decoded: any) => {
+            return {
+              userId: decoded.sub,
+              userName: decoded.userName,
+            };
+          }),
+          catchError((error) => {
+            return throwError(
+              () => new RpcException(new UnauthorizedException()),
+            );
+          }),
+        ),
+      ),
     );
   }
 
   createMockUsers(no: number): Observable<string[]> {
     const pattern = 'createUsers';
     const payload = no;
-    console.log('sending user request');
     return this.authService.send(pattern, payload);
   }
 }

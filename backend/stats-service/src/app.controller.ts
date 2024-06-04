@@ -16,21 +16,21 @@ export class AppController {
   // Kafka-related methods
 
   @EventPattern(GameStatus.TOPIC) // CHECKED
-  handleGameEnd(data: IGameStatus): void {
-    this.statsService.updateStats(data);
+  handleGameEnd(data: IGameStatus): Promise<void> {
+    return this.statsService.updateStats(data);
   }
 
   @EventPattern(KafkaTopic.NEW_USER) //CHECKED
-  createStatsRowNewUser(data: NewUserDto): void {
-    this.statsService.createStatsRowNewUser(data.userId);
+  createStatsRowNewUser(data: NewUserDto): Promise<void> {
+    return this.statsService.createStatsRowNewUser(data.userId);
   }
 
   @MessagePattern(PlayerInfo.TOPIC) //CHECKED
   async handlePlayerInfoRequest(data: any): Promise<Observable<IPlayerInfo>> {
-	return of({
-		playerID: data.playerID,
-		playerRank: await this.statsService.getRank(data.playerID),
-	  });
+    return of({
+      playerID: data.playerID,
+      playerRank: await this.statsService.getRank(data.playerID),
+    });
   }
 
   // Gateway-related methods
@@ -39,14 +39,12 @@ export class AppController {
   async getGamesAgainst(
     data: UserIdOpponentDto,
   ): Promise<Observable<GameStatsDto>> {
-    const gamesAgainst = await this.statsService.getGamesAgainst(data);
-    return of(gamesAgainst);
+    return of(await this.statsService.getGamesAgainst(data));
   }
 
   @MessagePattern('getLeaderboard')
   async getLeaderboard(): Promise<Observable<LeaderboardStatsDto[]>> {
-    const leaderboard = await this.statsService.createLeaderboard();
-    return of(leaderboard);
+    return of(await this.statsService.createLeaderboard());
   }
 
   @MessagePattern('getRank')

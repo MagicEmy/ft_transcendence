@@ -1,19 +1,21 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   Req,
   Res,
   StreamableFile,
   UploadedFile,
+  UseFilters,
   UseGuards,
   UseInterceptors,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import {
@@ -21,6 +23,7 @@ import {
   concatMap,
   defaultIfEmpty,
   delay,
+  forkJoin,
   from,
   map,
   mergeMap,
@@ -40,7 +43,10 @@ import { FriendshipDto } from './dto/friendship-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
 import { UserIdDto } from './dto/user-id-dto';
 import { UploadFileDto } from './dto/upload-file-dto';
+import { Opponent } from './enum/opponent.enum';
+import { RpcException } from '@nestjs/microservices';
 
+@UseFilters()
 @Controller()
 export class AppController {
   constructor(
@@ -51,14 +57,13 @@ export class AppController {
 
   // AUTH
 
-  // a uuid verification of userId is needed here
   @ApiTags('logout')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Post('logout')
   logout(
     @Req() req,
     @Res() resp: Response,
-    @Body() userIdDto: UserIdDto,
+    @Body(ValidationPipe) userIdDto: UserIdDto,
   ): Response {
     resp.clearCookie(this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'));
     resp.clearCookie(this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'));
@@ -74,30 +79,45 @@ export class AppController {
   //   }
 
   @ApiTags('profile')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getUserInfo(@Req() req): Observable<UserIdNameDto> {
-    return this.authService.getJwtTokenPayload(req.headers.cookie).pipe(
-      map((user) => {
-        if (!user) {
-          throw new BadRequestException();
-        } else {
-          return {
-            userId: user.sub,
-            userName: user.userName,
-          };
-        }
-      }),
-    );
+    return this.authService.getJwtTokenPayload(req.headers.cookie)
   }
 
   // PROFILE
 
   @ApiTags('profile')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Get('/profile/:id')
-  getProfile(@Param('id') userId: string): Observable<ProfileDto> {
-    return this.appService.getProfile(userId);
+  getProfile(
+    @Param('id', ParseUUIDPipe) userId: string,
+  ): Observable<ProfileDto> {
+    return forkJoin({
+      userInfo: this.appService.getUserIdNameStatus(userId),
+      friends: this.appService.getFriends(userId),
+      leaderboardPosition: this.appService.getLeaderboardPosition(userId),
+      totalPlayers: this.appService.getTotalNoOfUsers(),
+      gamesAgainstHuman: this.appService.getGamesAgainst({
+        userId,
+        opponent: Opponent.HUMAN,
+      }),
+      gamesAgainstBot: this.appService.getGamesAgainst({
+        userId,
+        opponent: Opponent.BOT,
+      }),
+      mostFrequentOpponent: this.appService.getMostFrequentOpponent(userId),
+    }).pipe(
+      map((result) => ({
+        userInfo: result.userInfo,
+        friends: result.friends,
+        leaderboardPosition: result.leaderboardPosition,
+        totalPlayers: result.totalPlayers,
+        gamesAgainstHuman: result.gamesAgainstHuman,
+        gamesAgainstBot: result.gamesAgainstBot,
+        mostFrequentOpponent: result.mostFrequentOpponent,
+      })),
+    );
   }
 
   //   @Get('/mfo/:id')
@@ -107,13 +127,13 @@ export class AppController {
   //     return this.appService.getMostFrequentOpponent(userId);
   //   }
 
-  //   @Get('/gamesagainst')
-  //   getGamesAgainst(
-  //     @Query('id') userId: string,
-  //     @Query('opponent') opponent: Opponent,
-  //   ) {
-  //     return this.appService.getGamesAgainst({ userId, opponent });
-  //   }
+  // @Get('/gamesagainst')
+  // getGamesAgainst(
+  //   @Query('id', ParseUUIDPipe) userId: string,
+  //   @Query('opponent') opponent: Opponent,
+  // ) {
+  //   return this.appService.getGamesAgainst({ userId, opponent });
+  // }
 
   //   @Get('userInfo')
   //   getUserInfo(@Body('userId') userId: string): Observable<UserIdNameStatusDto> {
@@ -123,7 +143,7 @@ export class AppController {
   // LEADERBOARD
 
   @ApiTags('leaderboard')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Get('/leaderboard')
   getLeaderboard(): Observable<LeaderboardStatsDto[]> {
     return this.appService.getLeaderboard();
@@ -132,49 +152,39 @@ export class AppController {
   // GAME
 
   @ApiTags('game history')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Get('/games/:id')
-  getGameHistory(@Param('id') userId: string): Observable<string> {
+  getGameHistory(
+    @Param('id', ParseUUIDPipe) userId: string,
+  ): Observable<string> {
     return this.appService.getGameHistory(userId);
   }
 
   // USER
 
   @ApiTags('user')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Get('/username/:id')
-  getUserName(@Param('id') userId: string): Observable<string> {
-    return this.appService.getUserName(userId).pipe(
-      map((userName) => {
-        if (!userName) {
-          throw new NotFoundException();
-        } else {
-          return userName;
-        }
-      }),
-    );
+  getUserName(@Param('id', ParseUUIDPipe) userId: string): Observable<string> {
+    return this.appService.getUserName(userId);
   }
 
   @ApiTags('user')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Patch('username')
-  changeUserName(@Body() userIdNameDto: UserIdNameDto): void {
-    this.appService.updateUserName(userIdNameDto);
+  changeUserName(
+    @Body(ValidationPipe) userIdNameDto: UserIdNameDto,
+  ): Observable<void | { error: any }> {
+    return this.appService.updateUserName(userIdNameDto);
   }
 
   @ApiTags('status')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Get('/status/:id')
-  getUserStatus(@Param('id') userId: string): Observable<string> {
-    return this.appService.getUserStatus(userId).pipe(
-      map((status) => {
-        if (!status) {
-          throw new NotFoundException();
-        } else {
-          return status;
-        }
-      }),
-    );
+  getUserStatus(
+    @Param('id', ParseUUIDPipe) userId: string,
+  ): Observable<string> {
+    return this.appService.getUserStatus(userId);
   }
 
   //   @Patch('status')
@@ -193,35 +203,41 @@ export class AppController {
   //   FRIENDS
 
   @ApiTags('friends')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('/friend')
-  createFriendship(@Body() friendshipDto: FriendshipDto): Observable<string> {
+  createFriendship(
+    @Body(ValidationPipe) friendshipDto: FriendshipDto,
+  ): Observable<string> {
     return this.appService.createFriendship(friendshipDto);
   }
 
   @ApiTags('friends')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('/friend')
-  removeFriendship(@Body() friendshipDto: FriendshipDto): Observable<string> {
+  removeFriendship(
+    @Body(ValidationPipe) friendshipDto: FriendshipDto,
+  ): Observable<string> {
     return this.appService.removeFriendship(friendshipDto);
   }
 
   @ApiTags('friends')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Get('/friends/:id')
-  getFriends(@Param('id') userId: string): Observable<UserIdNameStatusDto[]> {
+  getFriends(
+    @Param('id', ParseUUIDPipe) userId: string,
+  ): Observable<UserIdNameStatusDto[]> {
     return this.appService.getFriends(userId);
   }
 
   //   AVATAR
 
   @ApiTags('avatar')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Patch('/avatar/:id')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('avatar'))
   changeAvatar(
-    @Param('id') userId: string,
+    @Param('id', ParseUUIDPipe) userId: string,
     @Body() data: UploadFileDto,
     @UploadedFile() image: Express.Multer.File,
   ): Observable<string> {
@@ -233,17 +249,14 @@ export class AppController {
   }
 
   @ApiTags('avatar')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Get('/avatar/:id')
   getAvatar(
-    @Param('id') userId: string,
+    @Param('id', ParseUUIDPipe) userId: string,
     @Res({ passthrough: true }) res: Response,
   ): Observable<StreamableFile> {
     return this.appService.getAvatar(userId).pipe(
       map((avatarDto: AvatarDto) => {
-        if (!avatarDto) {
-          throw new NotFoundException();
-        }
         res.set({
           'Content-Type': `${avatarDto.mimeType}`,
         });
@@ -256,7 +269,7 @@ export class AppController {
 
   @ApiTags('simulation')
   @Get('/create_users/:no')
-  createMockUsers(@Param('no') no: number): Observable<string[]> {
+  createMockUsers(@Param('no', ParseIntPipe) no: number): Observable<string[]> {
     return this.authService.createMockUsers(no);
   }
 
@@ -266,9 +279,7 @@ export class AppController {
     return this.appService.getAllUserIds().pipe(
       defaultIfEmpty([]),
       mergeMap((allUserIds: string[]) =>
-        this.appService.simulateGames(allUserIds).pipe(
-          defaultIfEmpty([]),
-        ),
+        this.appService.simulateGames(allUserIds).pipe(defaultIfEmpty([])),
       ),
       mergeMap((games: IGameStatus[]) => {
         if (games.length > 0) {
@@ -282,9 +293,23 @@ export class AppController {
             ),
           );
         } else {
-			return of(undefined);
-		}
+          return of(undefined);
+        }
       }),
     );
   }
+
+  //   @Get('/playerinfo/:id')
+  //   handlePlayerInfoRequest(
+  //     @Param('id')
+  //     playerID: string,
+  //   ) {
+  //     return this.appService.statsService
+  //       .send('requestPlayerInfo', {
+  //         playerID,
+  //       })
+  //       .pipe(catchError((error) =>
+  // 		throwError(() => new RpcException(error.response)),
+  // 	  ),);
+  //   }
 }

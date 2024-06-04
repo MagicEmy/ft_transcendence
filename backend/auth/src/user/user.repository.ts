@@ -3,6 +3,7 @@ import { User } from './user.entity';
 import { v4 as uuid } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user-dto';
+import { InternalServerErrorException } from '@nestjs/common';
 
 export class UserRepository extends Repository<User> {
   constructor(
@@ -28,7 +29,8 @@ export class UserRepository extends Repository<User> {
       await this.save(user);
     } catch (error) {
       if (error.code !== '23505') {
-        console.log(error);
+        // '23505' means duplicate entry
+        throw new InternalServerErrorException();
       }
     }
     return user;

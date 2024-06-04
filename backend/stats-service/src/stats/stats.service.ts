@@ -1,6 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { NewUserDto } from './dto/new-user-dto';
 import { StatsRepository } from './stats.repository';
 import { UpdateStatsDto } from './dto/update-stats-dto';
 import { Opponent } from './enum/opponent.enum';
@@ -17,6 +20,7 @@ import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { IGameStatus } from './interface/kafka.interface';
 import { GameResult } from './enum/game-result.enum';
 import { UserIdOpponentDto } from './dto/games-against-dto';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class StatsService {
@@ -28,12 +32,12 @@ export class StatsService {
   //   Kafka-related methods
 
   async createStatsRowNewUser(userId: string): Promise<void> {
-    this.statsRepository.createStatsRowNewUser(userId);
+    return this.statsRepository.createStatsRowNewUser(userId);
   }
 
   async updateStats(gameStatus: IGameStatus): Promise<void> {
     const { player1ID, player2ID, player1Score, player2Score, duration } =
-      gameStatus; // duration to be added
+      gameStatus;
     const player1 = {
       playerId: player1ID,
       //   opponent: player2_id ? Opponent.HUMAN : Opponent.BOT,
@@ -47,7 +51,11 @@ export class StatsService {
             : GameResult.LOSS,
       duration: +duration,
     };
-    await this.updateStatsOfPlayer(player1);
+    try {
+      await this.updateStatsOfPlayer(player1);
+    } catch (error) {
+      throw error;
+    }
     // if (player2ID) {
     if (player2ID != Opponent.BOT) {
       const player2 = {
@@ -62,7 +70,11 @@ export class StatsService {
               : GameResult.LOSS,
         duration: +duration,
       };
-      await this.updateStatsOfPlayer(player2);
+      try {
+        await this.updateStatsOfPlayer(player2);
+      } catch (error) {
+        throw error;
+      }
     }
   }
 
@@ -72,34 +84,39 @@ export class StatsService {
       opponent: updateStatsDto.opponent,
     });
     if (!statsRow) {
-      console.log(
-        `Couldn't find stats row with player_id ${updateStatsDto.playerId} and opponent ${updateStatsDto.opponent}`,
+      throw new RpcException(
+        new NotFoundException(
+          `Couldn't find stats row with player_id ${updateStatsDto.playerId} and opponent ${updateStatsDto.opponent}`,
+        ),
       );
-    } else {
-      statsRow.max_score =
-        updateStatsDto.score > statsRow.max_score
-          ? updateStatsDto.score
-          : statsRow.max_score;
-      const recalculated = this.recalculatePlayingTime(
-        statsRow.total_time_playing_days,
-        statsRow.total_time_playing_miliseconds,
-        updateStatsDto.duration,
-      );
-      statsRow.total_time_playing_days = recalculated.days;
-      statsRow.total_time_playing_miliseconds = recalculated.miliseconds;
-      switch (updateStatsDto.result) {
-        case GameResult.LOSS:
-          statsRow.losses += 1;
-          break;
-        case GameResult.DRAW:
-          statsRow.draws += 1;
-          break;
-        case GameResult.WIN:
-          statsRow.wins += 1;
-      }
-      statsRow.points_total += updateStatsDto.result;
     }
-    await this.statsRepository.save(statsRow);
+    statsRow.max_score =
+      updateStatsDto.score > statsRow.max_score
+        ? updateStatsDto.score
+        : statsRow.max_score;
+    const recalculated = this.recalculatePlayingTime(
+      statsRow.total_time_playing_days,
+      statsRow.total_time_playing_miliseconds,
+      updateStatsDto.duration,
+    );
+    statsRow.total_time_playing_days = recalculated.days;
+    statsRow.total_time_playing_miliseconds = recalculated.miliseconds;
+    switch (updateStatsDto.result) {
+      case GameResult.LOSS:
+        statsRow.losses += 1;
+        break;
+      case GameResult.DRAW:
+        statsRow.draws += 1;
+        break;
+      case GameResult.WIN:
+        statsRow.wins += 1;
+    }
+    statsRow.points_total += updateStatsDto.result;
+    try {
+      await this.statsRepository.save(statsRow);
+    } catch (error) {
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 
   private async getStatsRowByIdAndOpponent(
@@ -152,6 +169,13 @@ export class StatsService {
   ): Promise<GameStatsDto> {
     const statsRow: Stats =
       await this.getStatsRowByIdAndOpponent(userIdOpponentDto);
+    if (!statsRow) {
+      throw new RpcException(
+        new NotFoundException(
+          `Couldn't find stats row with player_id ${userIdOpponentDto.userId} and opponent ${userIdOpponentDto.opponent}`,
+        ),
+      );
+    }
     const totalTimePlayed: TotalTimePlayedDto = this.getTotalTimePlayed(
       statsRow.total_time_playing_days,
       statsRow.total_time_playing_miliseconds,
@@ -188,9 +212,11 @@ export class StatsService {
       .where('user_id LIKE :userId', { userId })
       .andWhere('opponent LIKE :opponent', { opponent: Opponent.HUMAN })
       .getRawOne();
-	if (!result) {
-		  return 0;
-	  }
+    if (!result) {
+      throw new RpcException(
+        new NotFoundException(`User with id ${userId} not found`),
+      );
+    }
     const rank = await this.statsRepository
       .createQueryBuilder('stats')
       .where('opponent LIKE :opponent', { opponent: Opponent.HUMAN })
