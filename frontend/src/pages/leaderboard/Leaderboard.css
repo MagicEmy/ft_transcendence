@@ -48,8 +48,8 @@
 }
 
 #leadProfile .flex img{
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     object-fit: cover;
     border-radius: 50%;
 }
@@ -58,7 +58,14 @@
    padding: 1em;
 }
 
-.text-dark{
+#leadProfile .text {
+	color: #0d045a;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	font-size: 1.2em;
+  }
+
+.text-dark {
     color: var(--color-light);
 }
 

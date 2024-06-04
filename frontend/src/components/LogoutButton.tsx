@@ -1,37 +1,45 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import UserContext, { IUserContext } from '../context/UserContext';
+import useStorage from '../hooks/useStorage';
+
 
 interface LogoutButtonProps {
   className?: string;
 }
 const LogoutButton = ({ className }: LogoutButtonProps) => {
-  const { userIdContext, setUserIdContext, setUserNameContext } = useContext<IUserContext>(UserContext);
-
+  const { setUserIdContext } = useContext<IUserContext>(UserContext);
+  const [userIdStorage, , removeUserIdStorage] = useStorage('userId', '');
+  const [ , , removeUserNameStorage] = useStorage<string>('userName', '');
   const navigate = useNavigate();
 
   async function userLogout() {
     try {
-      console.log('Logging out user:', userIdContext);
-      const response = await fetch('http://localhost:3003/auth/logout', {
+      console.log('Logging out user:', userIdStorage);
+      const response = await fetch('http://localhost:3001/logout', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({ userId: userIdContext })
+        body: JSON.stringify({
+          userId: userIdStorage
+        })
       });
-
-      if (!response.ok) {
+      if (response.ok) {
+        console.log('User logged out');
+        setUserIdContext('');
+        removeUserIdStorage();
+        removeUserNameStorage();
+        navigate('/');
+      } else {
         throw new Error('Failed to log out');
       }
-
-      console.log('User logged out');
-      setUserIdContext('');
-      setUserNameContext('');
-      navigate('/');
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.log('Error logging out:', error);
+      setUserIdContext('');
+      removeUserIdStorage();
+      removeUserNameStorage();
       navigate('/');
     }
   }

@@ -5,7 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile/Profile';
 import Leaderboard from './pages/Leaderboard/Leaderboard';
 import Settings from './pages/Settings/Settings';
-import Game from './pages/Game/Game';
+// import Game from './pages/Game/Game';
 import Error from './pages/Error';
 // import PrivateRoute from './components/PrivateRoute';
 
@@ -26,7 +26,7 @@ const router = createBrowserRouter([
           { path: 'profile/:userId', element: <Profile /> },
           { path: 'leaderboard', element: <Leaderboard /> },
           { path: 'settings', element: <Settings /> },
-          { path: 'game', element: <Game /> },
+          // { path: 'game', element: <Game /> },
         ],
       },
     ],
