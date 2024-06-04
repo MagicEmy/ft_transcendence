@@ -9,6 +9,7 @@ import { firstValueFrom, map } from 'rxjs';
 import { Token } from './token-entity';
 import { TokenRepository } from './token.repository';
 import { RefreshTokenDto } from './dto/refresh-token-dto';
+import { RpcException } from '@nestjs/microservices';
 // import { Tfa } from './tfa.entity';
 // import { CreareTFADto } from './dto/create-tfa-dto';
 // import { TfaRepository } from './tfa.repository';
@@ -32,7 +33,7 @@ export class UserService {
   }
 
   async getUserByIntraLogin(intraLogin: string): Promise<User> {
-    return await this.userRepository.findOneBy({
+    return this.userRepository.findOneBy({
       intra_login: intraLogin,
     });
   }
@@ -42,7 +43,7 @@ export class UserService {
       refresh_token: refreshToken,
     });
     if (!token) {
-      throw new NotFoundException(`Refresh token "${refreshToken}" not found`);
+      throw new RpcException(new NotFoundException(`Refresh token not found`));
     }
     return this.userRepository.findOneBy({ user_id: token.user_id });
   }
@@ -86,32 +87,32 @@ export class UserService {
     });
   }
 
-  async getRefreshToken(userId: string): Promise<string> | null {
+  async getRefreshTokenFromDB(userId: string): Promise<string> | null {
     const token = await this.tokenRepository.findOneBy({ user_id: userId });
     return token ? token.refresh_token : null;
   }
 
-//   async addTwoFactorAuthentication(user_id: string, secret: string): Promise<Tfa> {
-//     const tfaDto : CreareTFADto = {
-//       user_id,
-//       secret,
-//       is_enabled: false,
-//     };
-//     return await this.tfaRepository.addTwoFactorAuthentication(tfaDto);
-//   }
-//   async isTwoFactorAuthenticationEnabled(user_id: string): Promise<boolean> {
-//     return await this.tfaRepository.isTwoFactorAuthenticationEnabled(user_id);
-//   }
+  //   async addTwoFactorAuthentication(user_id: string, secret: string): Promise<Tfa> {
+  //     const tfaDto : CreareTFADto = {
+  //       user_id,
+  //       secret,
+  //       is_enabled: false,
+  //     };
+  //     return await this.tfaRepository.addTwoFactorAuthentication(tfaDto);
+  //   }
+  //   async isTwoFactorAuthenticationEnabled(user_id: string): Promise<boolean> {
+  //     return await this.tfaRepository.isTwoFactorAuthenticationEnabled(user_id);
+  //   }
 
-//   async enableTwoFactorAuthentication(user_id: string): Promise<Tfa> {
-//     return await this.tfaRepository.enableTwoFactorAuthentication(user_id);
-//   }
+  //   async enableTwoFactorAuthentication(user_id: string): Promise<Tfa> {
+  //     return await this.tfaRepository.enableTwoFactorAuthentication(user_id);
+  //   }
 
-//   async disableTwoFactorAuthentication(user_id: string): Promise<Tfa> {
-//     return await this.tfaRepository.disableTwoFactorAuthentication(user_id);
-//   }
+  //   async disableTwoFactorAuthentication(user_id: string): Promise<Tfa> {
+  //     return await this.tfaRepository.disableTwoFactorAuthentication(user_id);
+  //   }
 
-//   async getTwoFactorAuthenticationSecret(user_id: string): Promise<string> {
-//     return await this.tfaRepository.getTwoFactorAuthenticationSecret(user_id);
-//   }
+  //   async getTwoFactorAuthenticationSecret(user_id: string): Promise<string> {
+  //     return await this.tfaRepository.getTwoFactorAuthenticationSecret(user_id);
+  //   }
 }
