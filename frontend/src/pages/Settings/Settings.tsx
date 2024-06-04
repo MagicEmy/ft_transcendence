@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext, ChangeEvent, FormEvent } from "react";
 import UserContext, { IUserContext } from "../../context/UserContext";
+import useStorage from "../../hooks/useStorage";
+
 import "./Settings.css";
 
 const Settings = () => {
 	const {
-		userIdContext,
 		userNameContext,
 		setUserNameContext,
 		avatarContext,
@@ -13,6 +14,8 @@ const Settings = () => {
 		setTfaEnabled,
 	} = useContext<IUserContext>(UserContext);
 
+	const [userIdStorage, , ] = useStorage<string>('userId', '');
+	const [ , setUserNameStorage, ] = useStorage<string>('userName', '');
 	const [newUserName, setNewUserName] = useState<string>("");
 	const [file, setFile] = useState<File | null>(null);
 	const [avatarLoading, setAvatarLoading] = useState<boolean>(false);
@@ -30,7 +33,7 @@ const Settings = () => {
 						'Content-Type': 'application/json'
 					},
 					body: JSON.stringify({
-						userId: userIdContext,
+						userId: userIdStorage,
 						userName: newUserName
 					}),
 					credentials: 'include'
@@ -38,6 +41,7 @@ const Settings = () => {
 
 				if (response.ok) {
 					setUserNameContext(newUserName);
+					setUserNameStorage(newUserName);
 					setFeedback("Username updated successfully.");
 				} else {
 					throw new Error('Failed to update username.');
@@ -74,7 +78,7 @@ const Settings = () => {
 		formData.append("avatar", file);
 
 		try {
-			const response = await fetch(`http://localhost:3001/avatar/${userIdContext}`, {
+			const response = await fetch(`http://localhost:3001/avatar/${userIdStorage}`, {
 				method: 'PATCH',
 				body: formData,
 				credentials: 'include'
@@ -105,7 +109,7 @@ const Settings = () => {
 	}, [avatarContext]);
 
 	const handleClick2FA = async () => {
-		if (userIdContext) {
+		if (userIdStorage) {
 			try {
 				const response = await fetch('http://localhost:3003/auth/disabled2fa', {
 					method: 'POST',
@@ -185,6 +189,7 @@ const Settings = () => {
 						</div>
 					)}
 				</div>
+
 			</div>
 		</div>
 	);

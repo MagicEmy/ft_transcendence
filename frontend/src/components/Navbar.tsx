@@ -1,17 +1,19 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import classes from './Navbar.module.css';
 import LogoutButton from './LogoutButton';
 import UserContext, { IUserContext } from '../context/UserContext';
+import useStorage from "../hooks/useStorage";
 import { loadProfileAvatar } from '../utils/profileUtils';
 
   export const Navbar = () => {
   const {
-    userIdContext,
     userNameContext,
     avatarContext,
     setAvatarContext,
   } = useContext<IUserContext>(UserContext);
+  const [userIdStorage, , ] = useStorage<string>('userId', '');
+
 
   useEffect(() => {
     let active = true; // Flag to manage the effect lifecycle
@@ -23,9 +25,9 @@ import { loadProfileAvatar } from '../utils/profileUtils';
     };
 
     const fetchAvatar = async () => {
-      if (userIdContext) {
+      if (userIdStorage) {
         try {
-          const url = await loadProfileAvatar(userIdContext);
+          const url = await loadProfileAvatar(userIdStorage);
           if (active) {
             cleanupPreviousAvatar();
             setAvatarContext(url || null);

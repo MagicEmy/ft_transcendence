@@ -10,6 +10,7 @@ interface LogoutButtonProps {
 const LogoutButton = ({ className }: LogoutButtonProps) => {
   const { setUserIdContext } = useContext<IUserContext>(UserContext);
   const [userIdStorage, , removeUserIdStorage] = useStorage('userId', '');
+  const [ , , removeUserNameStorage] = useStorage<string>('userName', '');
   const navigate = useNavigate();
 
   async function userLogout() {
@@ -29,6 +30,7 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
         console.log('User logged out');
         setUserIdContext('');
         removeUserIdStorage();
+        removeUserNameStorage();
         navigate('/');
       } else {
         throw new Error('Failed to log out');
@@ -37,6 +39,7 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
       console.log('Error logging out:', error);
       setUserIdContext('');
       removeUserIdStorage();
+      removeUserNameStorage();
       navigate('/');
     }
   }

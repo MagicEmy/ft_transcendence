@@ -93,22 +93,15 @@ input[type="text"] {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+	border: none;
 	border-radius: 30px;
 	padding: 15px 30px;
-	background: repeating-conic-gradient(
-	from 0deg at 80% 50%,
-	#5691f580 0% 8.25%,
-	#b338ff80 8.25% 16.5%,
-	#f8305880 16.5% 25%
-	), repeating-conic-gradient(
-	from 15deg at 50% 50%,
-	#e856f580 0% 8.25%,
-	#ff384c80 8.25% 16.5%,
-	#f8af3080 16.5% 25%
-	), repeating-conic-gradient(from 0deg at 20% 50%,
-		#f58356ff 0% 8.25%,
-		rgb(255, 242, 56) 8.25% 16.5%,
-		rgb(4, 106, 50) 16.5% 5%);
+	background: linear-gradient(138deg, rgb(113, 153, 247) 36.7%, rgb(10, 4, 173) 84.4%, rgb(255, 255, 255) 119.7%);
 }
 
+.TwoFA:hover {
+	box-shadow: rgba(113, 153, 247, .2) 0 3px 15px inset, rgba(10, 4, 173, .91) 0 3px 5px, rgba(10, 4, 173, .91) 0 10px 13px;
+	transform: scale(1.05);
+}
 
+/* background: radial-gradient(circle, #7199f7 0%, #0a04ad 100%); */

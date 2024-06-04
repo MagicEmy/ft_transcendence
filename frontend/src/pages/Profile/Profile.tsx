@@ -10,10 +10,10 @@ import "./Profile.css";
 export const Profile = () => {
 
   const { userId } = useParams<{ userId?: string }>();
-  const { userIdContext, userNameContext, friendsContext, setFriendsContext } = useContext<IUserContext>(UserContext);
+  const { userIdContext, friendsContext, setFriendsContext } = useContext<IUserContext>(UserContext);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [userIdStorage,] = useState<string>('');
+  const [userIdStorage, , ] = useStorage<string>('userId', '');
   const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [friends, setFriends] = useState<Friends[]>([]);
@@ -23,8 +23,7 @@ export const Profile = () => {
   const [error, setError] = useState<string>('');
 
   const userIdOrMe = useMemo(() => userId || userIdStorage, [userId, userIdStorage]);
-  console.log(`userIdOrMe Profile 24 - userId?${userId}/ userIdContext?${userIdContext}/ username${userNameContext}/`)
-  console.log(`userIdStorage - ${userIdStorage}/ userIdContext?${userIdContext}`)
+  console.log(`IN PROFILE userIdStorage - ${userIdStorage}/ userIdContext?${userIdContext}`)
 
   useEffect(() => {
     if (!userIdOrMe) {
@@ -98,7 +97,7 @@ export const Profile = () => {
       }
     };
     fetchAvatar();
-  }, [userIdOrMe, setAvatarUrl]);
+  }, [userIdOrMe]);
 
   useEffect(() => {
     if (!userId) {
