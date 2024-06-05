@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FriendshipRepository } from './friendship.repository';
 import { FriendshipDto } from './dto/friendship-dto';
-import { Friendship } from './friendship.entity';
 
 @Injectable()
 export class FriendService {
@@ -11,7 +10,7 @@ export class FriendService {
     private readonly friendshipRepository: FriendshipRepository,
   ) {}
 
-  async createFriendship(friendshipDto: FriendshipDto): Promise<Friendship> {
+  async createFriendship(friendshipDto: FriendshipDto): Promise<FriendshipDto> {
     return this.friendshipRepository.createFriendship(friendshipDto);
   }
 

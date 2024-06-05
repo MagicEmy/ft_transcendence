@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Avatar } from './avatar.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,13 +17,16 @@ export class AvatarRepository extends Repository<Avatar> {
   }
 
   async createAvatarRecord(avatarDto: AvatarDto): Promise<string> {
-    const { userId, avatar, mimeType } = avatarDto;
     const record: Avatar = this.create({
-      user_id: userId,
-      avatar,
-      mime_type: mimeType,
+      user_id: avatarDto.userId,
+      mime_type: avatarDto.mimeType,
+      avatar: avatarDto.avatar,
     });
-    await this.save(record);
+    try {
+      await this.save(record);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
     return record.user_id;
   }
 }

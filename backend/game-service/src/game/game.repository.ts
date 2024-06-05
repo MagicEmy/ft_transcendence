@@ -3,6 +3,8 @@ import { Game } from './game.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IGameStatus } from './interface/kafka.interface';
 import { GamesAgainstUserIdDto } from './dto/games-against-userid-dto';
+import { RpcException } from '@nestjs/microservices';
+import { InternalServerErrorException } from '@nestjs/common';
 
 export class GameRepository extends Repository<Game> {
   constructor(
@@ -26,8 +28,10 @@ export class GameRepository extends Repository<Game> {
       status: gameStatus.status,
     };
     try {
-      await this.save(game); // should this be in a try/catch block?
-    } catch (error) {}
+      await this.save(game);
+    } catch (error) {
+      throw new RpcException(new InternalServerErrorException());
+    }
     return game;
   }
 

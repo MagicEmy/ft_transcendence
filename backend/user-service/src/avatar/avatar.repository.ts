@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { Avatar } from './avatar.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AvatarDto } from './avatar-dto';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class AvatarRepository extends Repository<Avatar> {
@@ -16,16 +17,6 @@ export class AvatarRepository extends Repository<Avatar> {
     );
   }
 
-  async createAvatarRecord(avatarDto: AvatarDto): Promise<string> {
-    const record: Avatar = this.create({
-      user_id: avatarDto.userId,
-      mime_type: avatarDto.mimeType,
-      avatar: avatarDto.avatar,
-    });
-    await this.save(record);
-    return record.user_id;
-  }
-
   async uploadAvatar(avatarDto: AvatarDto): Promise<string> {
     const { userId, avatar, mimeType } = avatarDto;
     const record = await this.findOneBy({ user_id: userId });
@@ -35,8 +26,10 @@ export class AvatarRepository extends Repository<Avatar> {
       this.save(record);
       return record.user_id;
     } else {
-      throw new NotFoundException(
-        `No avatar record found for user with ID ${userId}`,
+      throw new RpcException(
+        new NotFoundException(
+          `No avatar record found for user with ID ${userId}`,
+        ),
       );
     }
   }
@@ -44,8 +37,10 @@ export class AvatarRepository extends Repository<Avatar> {
   async getAvatar(user_id: string): Promise<AvatarDto> {
     const record = await this.findOneBy({ user_id });
     if (!record) {
-      throw new NotFoundException(
-        `No avatar record found for user with ID ${user_id}`,
+      throw new RpcException(
+        new NotFoundException(
+          `No avatar record found for user with ID ${user_id}`,
+        ),
       );
     } else {
       return {

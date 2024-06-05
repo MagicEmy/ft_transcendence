@@ -1,9 +1,10 @@
 import { Repository } from 'typeorm';
 import { Stats } from './stats.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { NewUserDto } from './dto/new-user-dto';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { Opponent } from './enum/opponent.enum';
+import { RpcException } from '@nestjs/microservices';
+import { InternalServerErrorException } from '@nestjs/common';
 
 export class StatsRepository extends Repository<Stats> {
   constructor(
@@ -22,14 +23,18 @@ export class StatsRepository extends Repository<Stats> {
       user_id: userId,
       opponent: Opponent.HUMAN,
     });
-    await this.save(statsHuman);
-
     // adding one line for games against the bot
     const statsBot = this.create({
       user_id: userId,
       opponent: Opponent.BOT,
     });
-    await this.save(statsBot);
+    try {
+      this.save(statsHuman);
+      this.save(statsBot);
+      return;
+    } catch (error) {
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 
   async getStatsForLeaderboard(): Promise<LeaderboardStatsDto[]> {
