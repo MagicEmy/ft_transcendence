@@ -44,12 +44,11 @@ const Item = ({ leaderboard }: ItemProps) => {
                 } >
                 <h3 className='text'>{value.userName}</h3>
               </NavLink>
-              <span className="total-points">Total points:</span>
               <span className="points">Total points:{value.pointsTotal}</span>
               <div className="stats">
-                <span className="stat">Wins: <strong>{value.wins}</strong></span>
-                <span className="stat">Losses: <strong>{value.losses}</strong></span>
-                <span className="stat">Draws: <strong>{value.draws}</strong></span>
+                <span className="stat"><strong>{value.wins}</strong>Wins</span>
+                <span className="stat"><strong>{value.draws}</strong>Draws</span>
+                <span className="stat"><strong>{value.losses}</strong>Losses</span>
               </div>
             </div>
           </div>

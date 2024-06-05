@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useContext, useMemo } from "react";
 import { useParams, NavLink } from "react-router-dom";
-import { loadProfileAvatar } from "../../utils/profileUtils";
+import { loadProfileAvatar, loadGames } from "../../utils/profileUtils";
 import { loadFriends, addFriend, deleteFriend } from "../../utils/friendsUtils";
 import UserContext, { IUserContext } from "../../context/UserContext";
-import { UserProfile, UserStatus, Friends } from "../../types/shared";
+import { UserProfile, UserStatus, Friends, Games } from "../../types/shared";
 import useStorage from "../../hooks/useStorage";
 import "./Profile.css";
 
@@ -13,11 +13,12 @@ export const Profile = () => {
   const { userIdContext, friendsContext, setFriendsContext } = useContext<IUserContext>(UserContext);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [userIdStorage, , ] = useStorage<string>('userId', '');
+  const [userIdStorage, ,] = useStorage<string>('userId', '');
   const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [friends, setFriends] = useState<Friends[]>([]);
-  const [avatarLoading, setAvatarLoading] = useState<boolean>(false);
+  const [games, setGames] = useState<Games[]>([]);
+  const [avatarLoading, setAvatarLoading] = useState<boolean>(false); // loading avatar
   const [friendsLoading, setFriendsLoading] = useState<boolean>(false);
   const [isFriend, setIsFriend] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -27,9 +28,7 @@ export const Profile = () => {
 
   useEffect(() => {
     if (!userIdOrMe) {
-      setError('No user ID found in fetchDbProfile');
-      console.log('userIdOrMe ', userIdOrMe);
-      console.log('userIdContext ', userIdContext);
+      setError('No user ID found in Profile');
       return;
     }
     const fetchDbProfile = async () => {
@@ -56,9 +55,7 @@ export const Profile = () => {
 
   useEffect(() => {
     if (!userIdOrMe) {
-      setError('No user ID found in fetchUserStatus');
-      console.log('userIdOrMe ', userIdOrMe);
-      console.log('userIdContext ', userIdContext);
+      setError('No user ID found in Profile');
       return;
     }
     const fetchUserStatus = async () => {
@@ -85,6 +82,10 @@ export const Profile = () => {
   }, [userIdOrMe, setUserStatus]);
 
   useEffect(() => {
+    if (!userIdOrMe) {
+      setError('No user ID found in Profile');
+      return;
+    }
     setAvatarLoading(true);
     const fetchAvatar = async () => {
       try {
@@ -100,22 +101,43 @@ export const Profile = () => {
   }, [userIdOrMe]);
 
   useEffect(() => {
-    if (!userId) {
-      setFriendsLoading(true);
-      const fetchFriends = async () => {
-        try {
-          const listFriends = await loadFriends(userIdContext);
-          setFriends(listFriends ?? []); // Handle undefined case by defaulting to an empty array
-          setFriendsContext(listFriends ?? []); // Handle undefined case by defaulting to an empty array
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        } finally {
-          setFriendsLoading(false);
-        }
-      };
-      fetchFriends();
+    if (!userIdOrMe) {
+      setError('No user ID found in Profile');
+      return;
     }
+    setFriendsLoading(true);
+    const fetchFriends = async () => {
+      try {
+        const listFriends = await loadFriends(userIdOrMe);
+        setFriends(listFriends ?? []);
+        setFriendsContext(listFriends ?? []);
+      } catch (error) {
+        console.error("Error fetching friends:", error);
+      } finally {
+        setFriendsLoading(false);
+      }
+    };
+    fetchFriends();
   }, [userIdOrMe, setFriendsContext]);
+
+  useEffect(() => {
+    if (!userIdOrMe) {
+      setError('No user ID found in Profile');
+      return;
+    }
+    const fetchGames = async () => {
+      try {
+        const gameHystory = await loadGames(userIdOrMe);
+        setGames(gameHystory);
+        console.log('IN fetchGames games', gameHystory)
+
+      } catch (error) {
+        console.error("Error fetching games History:", error);
+      }
+    };
+    fetchGames();
+    console.log('IN PROFILE games', games)
+  }, [userIdOrMe, setGames]);
 
 
   useEffect(() => {
@@ -126,14 +148,14 @@ export const Profile = () => {
 
   const handleFriendClick = async () => {
     if (isFriend) {
-      const deleted = await deleteFriend(userIdContext, userId!);
+      const deleted = await deleteFriend(userIdStorage, userId!);
       if (deleted !== null) {
         const newFriends = friendsContext.filter(friend => friend.userId !== userId);
         setFriendsContext(newFriends);
         setIsFriend(false);
       }
     } else {
-      const added = await addFriend(userIdContext, userId!);
+      const added = await addFriend(userIdStorage, userId!);
       if (added !== null) {
         const newFriends = [...friendsContext, { userId: userId!, userName: '', status: '' }];
         setFriendsContext(newFriends);
@@ -149,6 +171,8 @@ export const Profile = () => {
 
   const userStatusIndicator = userStatus?.status;
 
+  console.log('IN PROFILE games', games)
+
   return (
     <div className="main">
       <div className="profile">
@@ -161,7 +185,7 @@ export const Profile = () => {
               <span>{userStatusIndicator}</span>
             </div>
             <div >
-              {userId && userId !== userIdContext && (
+              {userId && userId !== userIdStorage && (
                 <button onClick={handleFriendClick}>
                   {isFriend ? 'Delete Friend' : 'Add Friend'}
                 </button>
@@ -171,9 +195,9 @@ export const Profile = () => {
           <div className="item">
             <div className="info">
               <div className="stats">
-                <h4 className='profile-text-dark'>Leaderboard position: <span className="stat"><strong>{profile?.leaderboardPosition}</strong></span></h4>
-                <span className="stat">Total players <strong>{profile?.totalPlayers}</strong></span>
-                <h4 className='profile-text-dark'>Most freuent Opponents</h4>
+                <h4 className='profile-text-dark'>Leaderboard position: <span className="stat"><strong>{profile?.leaderboard?.position}</strong>of</span><strong>{profile?.totalPlayers}</strong></h4>
+                <span className="stat">Total points: <strong>{profile?.leaderboard?.totalPoints}</strong></span>
+                <h4 className='profile-text-dark'>Most frequent Opponent</h4>
                 {profile && profile.mostFrequentOpponent?.map((opponent) => (
                   <div key={opponent.userId}>
                     <div className="stat-column"></div>
@@ -185,10 +209,10 @@ export const Profile = () => {
                   <div className="stat-column">
                     <span className="stat">Total played games <strong>{profile?.gamesAgainstHuman?.totalPlayedGames}</strong></span>
                     <span className="stat">High score <strong>{profile?.gamesAgainstHuman?.maxScore}</strong></span>
-                    <span className="stat">Wins: <strong>{profile?.gamesAgainstHuman?.wins}</strong></span>
-                    <span className="stat">Draws: <strong>{profile?.gamesAgainstHuman?.draws}</strong></span>
-                    <span className="stat">Losses: <strong>{profile?.gamesAgainstHuman?.losses}</strong></span>
                   </div>
+                    <span className="stat"><strong>{profile?.gamesAgainstHuman?.wins}</strong>Wins</span>
+                    <span className="stat"><strong>{profile?.gamesAgainstHuman?.draws}</strong>Draws</span>
+                    <span className="stat"><strong>{profile?.gamesAgainstHuman?.losses}</strong> Losses</span>
                 </div>
 
                 <h4 className='profile-text-dark'>Total time played against players</h4>
@@ -203,7 +227,7 @@ export const Profile = () => {
                 </div>
                 <h4 className='profile-text-dark'>Games Against bot</h4>
                 <div className="flex">
-                  <div className="stat-column">
+                  <div className="item info">
                     <span className="stat">Total played games <strong>{profile?.gamesAgainstBot?.totalPlayedGames}</strong></span>
                     <span className="stat">High score <strong>{profile?.gamesAgainstBot?.maxScore}</strong></span>
                     <span className="stat">Wins: <strong>{profile?.gamesAgainstBot?.wins}</strong></span>
@@ -226,46 +250,49 @@ export const Profile = () => {
           </div>
         </div>
         {error && (
-						<div className="text-dark">
-							<p>{error}</p>
-						</div>
-					)}
+          <div className="text-dark">
+            <p>{error}</p>
+          </div>
+        )}
         <div className="flex">
           <div className="item">
-            {!userId && userId !== userIdContext && (
-              <>
-                {friendsLoading ? (
-                  <p>Loading friends...</p>
-                ) : (
-                  <div>
-                    <h4 className='title'>Friends</h4>
-                    {friends && friends.length > 0 ? (
-                      <div className="friends">
-                        <ul>
-                          {friends.map((friend) => (
-                            <li key={friend.userId}>
-                              <NavLink
-                                to={`/profile/${friend.userId}`}
-                                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-                              >
-                                {friend.userName}
-                              </NavLink>
-                              <span className="statsFriends">Status:</span>
-                              <span className={`status-indicator ${friend.status}`}></span>
-                              <span>{friend.status}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : <div className="friends">
-                      <span className="statsFriends">No friends to display</span>
-                    </div>}
-                  </div>
-                )}
-              </>
-            )}
+            {/* {!userId && userId !== userIdStorage && ( */}
+            <>
+              {friendsLoading ? (
+                <p>Loading friends...</p>
+              ) : (
+                <div>
+                  <h4 className='title'>Friends</h4>
+                  {friends && friends.length > 0 ? (
+                    <div className="friends">
+                      <ul>
+                        {friends.map((friend) => (
+                          <li key={friend.userId}>
+                            <NavLink
+                              to={`/profile/${friend.userId}`}
+                              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+                            >
+                              {friend.userName}
+                            </NavLink>
+                            <span className="statsFriends">Status:</span>
+                            <span className={`status-indicator ${friend.status}`}></span>
+                            <span>{friend.status}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : <div className="friends">
+                    <span className="statsFriends">You have no friends :(</span>
+                  </div>}
+                </div>
+              )}
+            </>
+            {/* )} */}
           </div>
         </div>
+      </div>
+      <div className="userMatchHistory">
+
       </div>
     </div>
   );

@@ -2,7 +2,6 @@
     height: 100vh;
     overflow-y: auto;
     scroll-behavior: smooth;
-    /* margin-bottom: 20em; */
     padding: 20px;
   }
 
@@ -16,30 +15,30 @@
     scroll-behavior: smooth;
     margin-bottom: 10em;
     background-color: #dee5f4;
-    box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
+    box-sizing: border-box;
   }
 
 .main::-webkit-scrollbar,
 .profile::-webkit-scrollbar {
-    width: 8px; /* Adjust the width to make the scrollbar shorter */
+    width: 8px;
   }
 
 .main::-webkit-scrollbar-thumb,
 .profile::-webkit-scrollbar-thumb {
-    background-color: #0a04ad; /* Color of the scrollbar thumb */
-    border-radius: 30px; /* Rounded corners for the scrollbar thumb */
+    background-color: #0a04ad;
+    border-radius: 30px;
   }
 
 .main::-webkit-scrollbar-track,
 .profile::-webkit-scrollbar-track {
-    background: #dee5f4; /* Background color of the scrollbar track */
-    border-radius: 30px; /* Rounded corners for the scrollbar track */
+    background: #dee5f4;
+    border-radius: 30px;
   }
 
 .main,
 .profile {
-    scrollbar-width: thin; /* Make scrollbar thinner */
-    scrollbar-color: #0a04ad #dee5f4; /* Color of thumb and track */
+    scrollbar-width: thin;
+    scrollbar-color: #0a04ad #dee5f4;
   }
 
 .main,
@@ -108,7 +107,8 @@
 }
 
 .stats .stat {
-  margin-right: 15px; /* Space between different stats */
+  margin-right: 15px;
+  margin-left: 15px;
   margin-bottom: 10px;
 }
 
@@ -172,4 +172,10 @@
     display: inline-block;
     margin-right: 15px;
     color: #130682;
+  }
+
+  .userMatchHistory {
+    border: 1px solid #a09df0;
+    padding: 10px;
+    margin-top: 10px;
   }
