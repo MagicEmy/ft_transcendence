@@ -18,7 +18,9 @@ const MenuList =
 	INFINITE:	"Infinite Load",
 	EXIT:		"Exit",
 	EXTRA:		"ExtraTSX",
-};
+} as const;
+type MenuKey = keyof typeof MenuList;
+const menuKeys = Object.keys(MenuList) as MenuKey[];
 
 enum Button
 {
@@ -83,7 +85,7 @@ class GameLogic
 
 \* ************************************************************************** */
 
-private keyPressConnect(key, event): void
+private keyPressConnect(key: any, event: any): void
 {
 	if (event === "keydown")
 		return ;
@@ -102,7 +104,7 @@ private keyPressConnect(key, event): void
 
 \* ************************************************************************** */
 
-	private keyPressMenu(key, event): void
+	private keyPressMenu(key: any, event: any): void
 	{
 		if (event === "keyup")
 			return ;
@@ -123,7 +125,7 @@ private keyPressConnect(key, event): void
 
 	private keyPressMenuEnter(): void
 	{
-		switch (MenuList[this.menuSelect])
+		switch (MenuList[menuKeys[this.menuSelect]])
 		{
 			case MenuList.SOLO:
 				this.connectToGame("pong", "solo");	break ;
@@ -157,7 +159,7 @@ private keyPressConnect(key, event): void
 
 \* ************************************************************************** */
 
-	private keyPressMatch(key, event): void
+	private keyPressMatch(key: any, event: any): void
 	{
 		if (event === "keyup")
 			return ;
@@ -181,7 +183,7 @@ private keyPressConnect(key, event): void
 
 \* ************************************************************************** */
 
-	private keyPressLoading(key, event): void
+	private keyPressLoading(key: any, event: any): void
 	{
 		if (event === "keyup")
 			return ;
@@ -205,7 +207,7 @@ private keyPressConnect(key, event): void
 
 \* ************************************************************************** */
 
-	private keyPressPlaying(key, event): void
+	private keyPressPlaying(key: any, event: any): void
 	{
 		if (event === "keyup")
 			return ;

@@ -1,4 +1,4 @@
-import GameGraphics from "./GameGraphics.tsx";
+import GameGraphics from "./GameGraphics";
 
 class GameEventListener
 {

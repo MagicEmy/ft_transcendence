@@ -23,7 +23,7 @@ class GameSocket
 			console.log("Socket.IO connection established");
 		});
 
-		this.socket.on("ServerReady"/* SockEventNames.SERVERREADY */, (message) =>
+		this.socket.on("ServerReady"/* SockEventNames.SERVERREADY */, (message: any) =>
 		{
 			if (message)
 				console.log("Server ready:", message);
@@ -54,7 +54,7 @@ class GameSocket
 		});
 	}
 
-	public static createInstance(UserContext): GameSocket | null
+	public static createInstance(UserContext: any): GameSocket | null
 	{
 		if (!GameSocket.instance)
 		{
@@ -72,7 +72,7 @@ class GameSocket
 		return (GameSocket.instance);
 	}
 
-	private static setUser(UserContext)
+	private static setUser(UserContext: any)
 	{
 		if (GameSocket.instance)
 			GameSocket.userContext = UserContext;

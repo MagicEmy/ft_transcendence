@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useContext } from 'react';
 import UserContext, { IUserContext } from "../../context/UserContext";
 
-import GameSocket from './GameSocket.tsx';
-import GameEventListener from './GameEventListener.tsx';
-import GameGraphics from './GameGraphics.tsx';
+import GameSocket from './GameSocket';
+import GameEventListener from './GameEventListener';
+import GameGraphics from './GameGraphics';
 
 import './GameCss.css';
 
@@ -27,10 +27,10 @@ const Game: React.FC = () => {
 			graphics.current.resizeElements();
 
 		return () => {
-			if (socket)
-				socket.disconnect();
-			if (events)
-				events.stopListening();
+			if (socket.current)
+				socket.current.disconnect();
+			if (events.current)
+				events.current.stopListening();
 		};
 	}, []);
 
