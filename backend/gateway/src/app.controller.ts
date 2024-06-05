@@ -44,7 +44,7 @@ import { UserIdNameDto } from './dto/user-id-name-dto';
 import { UserIdDto } from './dto/user-id-dto';
 import { UploadFileDto } from './dto/upload-file-dto';
 import { Opponent } from './enum/opponent.enum';
-import { RpcException } from '@nestjs/microservices';
+import { GameHistoryDto } from './dto/game-history-dto';
 
 @UseFilters()
 @Controller()
@@ -58,7 +58,7 @@ export class AppController {
   // AUTH
 
   @ApiTags('logout')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
   logout(
     @Req() req,
@@ -79,16 +79,16 @@ export class AppController {
   //   }
 
   @ApiTags('profile')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
   getUserInfo(@Req() req): Observable<UserIdNameDto> {
-    return this.authService.getJwtTokenPayload(req.headers.cookie)
+    return this.authService.getJwtTokenPayload(req.headers.cookie);
   }
 
   // PROFILE
 
   @ApiTags('profile')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/profile/:id')
   getProfile(
     @Param('id', ParseUUIDPipe) userId: string,
@@ -96,7 +96,7 @@ export class AppController {
     return forkJoin({
       userInfo: this.appService.getUserIdNameStatus(userId),
       friends: this.appService.getFriends(userId),
-      leaderboardPosition: this.appService.getLeaderboardPosition(userId),
+      leaderboard: this.appService.getLeaderboardPositionAndTotalPoints(userId),
       totalPlayers: this.appService.getTotalNoOfUsers(),
       gamesAgainstHuman: this.appService.getGamesAgainst({
         userId,
@@ -111,7 +111,7 @@ export class AppController {
       map((result) => ({
         userInfo: result.userInfo,
         friends: result.friends,
-        leaderboardPosition: result.leaderboardPosition,
+        leaderboard: result.leaderboard,
         totalPlayers: result.totalPlayers,
         gamesAgainstHuman: result.gamesAgainstHuman,
         gamesAgainstBot: result.gamesAgainstBot,
@@ -143,7 +143,7 @@ export class AppController {
   // LEADERBOARD
 
   @ApiTags('leaderboard')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/leaderboard')
   getLeaderboard(): Observable<LeaderboardStatsDto[]> {
     return this.appService.getLeaderboard();
@@ -152,25 +152,25 @@ export class AppController {
   // GAME
 
   @ApiTags('game history')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/games/:id')
   getGameHistory(
     @Param('id', ParseUUIDPipe) userId: string,
-  ): Observable<string> {
+  ): Observable<GameHistoryDto[]> {
     return this.appService.getGameHistory(userId);
   }
 
   // USER
 
   @ApiTags('user')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/username/:id')
   getUserName(@Param('id', ParseUUIDPipe) userId: string): Observable<string> {
     return this.appService.getUserName(userId);
   }
 
   @ApiTags('user')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch('username')
   changeUserName(
     @Body(ValidationPipe) userIdNameDto: UserIdNameDto,
@@ -179,7 +179,7 @@ export class AppController {
   }
 
   @ApiTags('status')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/status/:id')
   getUserStatus(
     @Param('id', ParseUUIDPipe) userId: string,
@@ -203,7 +203,7 @@ export class AppController {
   //   FRIENDS
 
   @ApiTags('friends')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Post('/friend')
   createFriendship(
     @Body(ValidationPipe) friendshipDto: FriendshipDto,
@@ -212,7 +212,7 @@ export class AppController {
   }
 
   @ApiTags('friends')
-  @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Delete('/friend')
   removeFriendship(
     @Body(ValidationPipe) friendshipDto: FriendshipDto,
@@ -221,7 +221,7 @@ export class AppController {
   }
 
   @ApiTags('friends')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/friends/:id')
   getFriends(
     @Param('id', ParseUUIDPipe) userId: string,
@@ -232,7 +232,7 @@ export class AppController {
   //   AVATAR
 
   @ApiTags('avatar')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch('/avatar/:id')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('avatar'))
@@ -249,7 +249,7 @@ export class AppController {
   }
 
   @ApiTags('avatar')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/avatar/:id')
   getAvatar(
     @Param('id', ParseUUIDPipe) userId: string,

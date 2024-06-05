@@ -1,8 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  UseFilters,
-} from '@nestjs/common';
+import { Inject, Injectable, UseFilters } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {
   Observable,
@@ -13,6 +9,7 @@ import {
   map,
   of,
   switchMap,
+  mergeMap,
   throwError,
 } from 'rxjs';
 import { IGameStatus } from './interface/kafka.interface';
@@ -22,12 +19,14 @@ import { UserIdOpponentDto } from './dto/games-against-dto';
 import {
   GameStatsDto,
   MostFrequentOpponentDto,
+  PositionTotalPointsDto,
   UserIdNameStatusDto,
 } from './dto/profile-dto';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
 import { UserIdGamesDto } from './dto/user-id-games-dto';
 import { AvatarDto } from './dto/avatar-dto';
+import { GameHistoryDto } from './dto/game-history-dto';
 
 @Injectable()
 export class AppService {
@@ -88,11 +87,11 @@ export class AppService {
     );
   }
 
-  getLeaderboardPosition(userId: string): Observable<number> {
-    const pattern = 'getRank';
+  getLeaderboardPositionAndTotalPoints(userId: string): Observable<PositionTotalPointsDto> {
+    const pattern = 'getPositionAndTotalPoints';
     const payload = userId;
     return this.statsService
-      .send<number>(pattern, payload)
+      .send<PositionTotalPointsDto>(pattern, payload)
       .pipe(
         catchError((error) =>
           throwError(() => new RpcException(error.response)),
@@ -170,16 +169,30 @@ export class AppService {
 
   //   GAMES
 
-  getGameHistory(userId: string): Observable<string> {
+  getGameHistory(userId: string): Observable<GameHistoryDto[]> {
     const pattern = 'getGameHistory';
     const payload = userId;
-    return this.gameService
-      .send<string>(pattern, payload)
-      .pipe(
-        catchError((error) =>
-          throwError(() => new RpcException(error.response)),
-        ),
-      );
+    return this.gameService.send<GameHistoryDto[]>(pattern, payload).pipe(
+      catchError((error) => throwError(() => new RpcException(error.response))),
+      mergeMap((games: GameHistoryDto[]) => {
+        if (games.length === 0) {
+          return of([]);
+        }
+        const gamesWithNames$ = games.map((game) =>
+          forkJoin({
+            player1Name: this.getUserName(game.player1Id),
+            player2Name: this.getUserName(game.player2Id),
+          }).pipe(
+            map(({ player1Name, player2Name }) => ({
+              ...game,
+              player1Name,
+              player2Name,
+            })),
+          ),
+        );
+        return forkJoin(gamesWithNames$);
+      }),
+    );
   }
 
   getMostFrequentOpponent(

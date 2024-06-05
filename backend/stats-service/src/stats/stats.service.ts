@@ -21,6 +21,7 @@ import { IGameStatus } from './interface/kafka.interface';
 import { GameResult } from './enum/game-result.enum';
 import { UserIdOpponentDto } from './dto/games-against-dto';
 import { RpcException } from '@nestjs/microservices';
+import { PositionTotalPointsDto } from './dto/position-total-points-dto';
 
 @Injectable()
 export class StatsService {
@@ -205,7 +206,9 @@ export class StatsService {
     return totalTimePlayed;
   }
 
-  async getRank(userId: string): Promise<number> {
+  async getPositionAndTotalPoints(
+    userId: string,
+  ): Promise<PositionTotalPointsDto> {
     const result = await this.statsRepository
       .createQueryBuilder('stats')
       .select('points_total', 'pointsTotal')
@@ -222,6 +225,9 @@ export class StatsService {
       .where('opponent LIKE :opponent', { opponent: Opponent.HUMAN })
       .andWhere('points_total > :points', { points: result.pointsTotal })
       .getCount();
-    return rank + 1;
+    return {
+      position: rank + 1,
+      totalPoints: result.pointsTotal,
+    };
   }
 }

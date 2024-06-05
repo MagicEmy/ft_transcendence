@@ -3,7 +3,7 @@ import { UserStatusEnum } from 'src/enum/kafka.enum';
 export class ProfileDto {
   userInfo: UserIdNameStatusDto;
   friends: UserIdNameStatusDto[];
-  leaderboardPosition: number;
+  leaderboard: PositionTotalPointsDto;
   totalPlayers: number;
   gamesAgainstHuman: GameStatsDto;
   gamesAgainstBot: GameStatsDto;
@@ -37,4 +37,9 @@ export class MostFrequentOpponentDto {
   userId: string;
   userName: string;
   games: number;
+}
+
+export class PositionTotalPointsDto {
+  position: number;
+  totalPoints: number;
 }

@@ -8,6 +8,7 @@ import { UserIdOpponentDto } from './stats/dto/games-against-dto';
 import { GameStatsDto } from './stats/dto/game-stats-dto';
 import { Observable, of } from 'rxjs';
 import { LeaderboardStatsDto } from './stats/dto/leaderboard-stats-dto';
+import { PositionTotalPointsDto } from './stats/dto/position-total-points-dto';
 
 @Controller()
 export class AppController {
@@ -27,10 +28,16 @@ export class AppController {
 
   @MessagePattern(PlayerInfo.TOPIC) //CHECKED
   async handlePlayerInfoRequest(data: any): Promise<Observable<IPlayerInfo>> {
-    return of({
-      playerID: data.playerID,
-      playerRank: await this.statsService.getRank(data.playerID),
-    });
+    try {
+      const positionAndPoints =
+        await this.statsService.getPositionAndTotalPoints(data.playerID);
+      return of({
+        playerID: data.playerID,
+        playerRank: positionAndPoints.position,
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 
   // Gateway-related methods
@@ -47,8 +54,10 @@ export class AppController {
     return of(await this.statsService.createLeaderboard());
   }
 
-  @MessagePattern('getRank')
-  async getRank(userId: string): Promise<Observable<number>> {
-    return of(await this.statsService.getRank(userId));
+  @MessagePattern('getPositionAndTotalPoints')
+  async getPositionAndTotalPoints(
+    userId: string,
+  ): Promise<Observable<PositionTotalPointsDto>> {
+    return of(await this.statsService.getPositionAndTotalPoints(userId));
   }
 }
