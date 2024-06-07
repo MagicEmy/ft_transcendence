@@ -19,14 +19,14 @@ export class GameRepository extends Repository<Game> {
   }
 
   async createGame(gameStatus: IGameStatus): Promise<Game> {
-    const game: Game = {
+    const game: Game = this.create({
       player1_id: gameStatus.player1ID,
       player2_id: gameStatus.player2ID,
       player1_score: gameStatus.player1Score,
       player2_score: gameStatus.player2Score,
       duration: gameStatus.duration,
       status: gameStatus.status,
-    };
+    });
     try {
       await this.save(game);
     } catch (error) {

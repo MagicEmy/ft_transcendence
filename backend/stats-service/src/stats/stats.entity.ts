@@ -1,12 +1,19 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Opponent } from './enum/opponent.enum';
+import { User } from './user.entity';
 
 @Entity()
 export class Stats {
   @PrimaryGeneratedColumn()
   stats_id: string;
 
-  @Column()
+  @Column({ type: 'uuid' })
   user_id: string;
 
   @Column()
@@ -32,4 +39,8 @@ export class Stats {
 
   @Column({ default: 0 })
   max_score: number;
+
+  @ManyToOne(() => User, (user) => user.user_id, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

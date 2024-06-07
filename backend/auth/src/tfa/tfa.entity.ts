@@ -1,8 +1,18 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { User } from 'src/user/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'tfa' })
 export class Tfa {
-  @PrimaryColumn({ unique: true })
+  @PrimaryGeneratedColumn()
+  id: string;
+
+  @Column({ type: 'uuid' })
   user_id: string;
 
   @Column({ nullable: true })
@@ -10,4 +20,8 @@ export class Tfa {
 
   @Column()
   is_enabled: boolean;
+
+  @OneToOne(() => User, (user) => user.user_id, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

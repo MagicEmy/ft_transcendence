@@ -210,7 +210,7 @@ export class StatsService {
     const result = await this.statsRepository
       .createQueryBuilder('stats')
       .select('points_total', 'pointsTotal')
-      .where('user_id LIKE :userId', { userId })
+      .where('user_id = :userId', { userId })
       .andWhere('opponent LIKE :opponent', { opponent: Opponent.HUMAN })
       .getRawOne();
     if (!result) {

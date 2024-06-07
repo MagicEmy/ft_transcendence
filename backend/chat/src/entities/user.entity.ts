@@ -1,5 +1,5 @@
 import { UserDto } from '../dto/chat.dto';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity({ name: 'users' })
 export class User implements UserDto {
@@ -7,10 +7,7 @@ export class User implements UserDto {
     Object.assign(this, attrs);
   }
 
-  @PrimaryGeneratedColumn()
-  id: string;
-
-  @Column({ unique: true })
+  @PrimaryColumn({ type: 'uuid' })
   userId: string;
 
   @Column()
