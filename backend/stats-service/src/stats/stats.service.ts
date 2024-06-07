@@ -41,8 +41,7 @@ export class StatsService {
       gameStatus;
     const player1 = {
       playerId: player1ID,
-      //   opponent: player2_id ? Opponent.HUMAN : Opponent.BOT,
-      opponent: player2ID != Opponent.BOT ? Opponent.HUMAN : Opponent.BOT,
+      opponent: player2ID ? Opponent.HUMAN : Opponent.BOT,
       score: +player1Score,
       result:
         player1Score === player2Score
@@ -57,8 +56,7 @@ export class StatsService {
     } catch (error) {
       throw error;
     }
-    // if (player2ID) {
-    if (player2ID != Opponent.BOT) {
+    if (player2ID) {
       const player2 = {
         playerId: player2ID,
         opponent: Opponent.HUMAN,

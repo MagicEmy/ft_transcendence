@@ -1,8 +1,8 @@
 import { Opponent } from '../enum/opponent.enum';
 
 export class GamesAgainstUserIdDto {
-  userId: string;
-  games: number;
+  userId: string | null;
+  totalGames: number;
 }
 
 export class UserIdOpponentDto {

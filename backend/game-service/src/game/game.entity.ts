@@ -9,7 +9,7 @@ export class Game {
   @Column()
   player1_id: string;
 
-  @Column()
+  @Column({ nullable: true })
   player2_id: string;
 
   @Column()

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GameRepository } from './game.repository';
 import { IGameStatus } from './interface/kafka.interface';
-import { UserIdGamesDto } from './dto/user-id-games-dto';
 import { GamesAgainstUserIdDto } from './dto/games-against-userid-dto';
 import { GameHistoryDto } from './dto/game-history-dto';
 import { GameStatus, GameTypes, MatchTypes } from './enum/kafka.enum';
@@ -22,13 +21,13 @@ export class GameService {
   }
 
   // Gateway-related methods
-  async mostFrequentOpponent(userId: string): Promise<UserIdGamesDto[]> {
+  async mostFrequentOpponent(userId: string): Promise<GamesAgainstUserIdDto[]> {
     const mostFrequentOpponentNoname: GamesAgainstUserIdDto[] =
       await this.gameRepository.getMostFrequentOpponent(userId);
-    const mostFrequentOpponent: UserIdGamesDto[] = await Promise.all(
+    const mostFrequentOpponent: GamesAgainstUserIdDto[] = await Promise.all(
       mostFrequentOpponentNoname.map(async (opponent) => ({
         userId: opponent.userId,
-        games: opponent.totalGames,
+        totalGames: opponent.totalGames,
       })),
     );
     return mostFrequentOpponent;
@@ -81,7 +80,7 @@ export class GameService {
       status: GameStatus.COMPLETED,
       player1ID: player1Id,
       player1Score,
-      player2ID: player2Id,
+      player2ID: player2Id === Opponent.BOT ? null : player2Id,
       player2Score,
       duration,
     };
