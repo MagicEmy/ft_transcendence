@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, createRoutesFromElements } from 'react-router-dom';
 import Layout from './components/Layout';
 import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard';
@@ -7,8 +7,14 @@ import Leaderboard from './pages/Leaderboard/Leaderboard';
 import Settings from './pages/Settings/Settings';
 import Game from './pages/Game/Game';
 import Error from './pages/Error';
-// import PrivateRoute from './components/PrivateRoute';
+import PrivateRoute from './components/PrivateRoute';
+import { UserProvider } from './context/UserContext';
 
+// const router = createBrowserRouter(
+//   createRoutesFromElements(
+//     <Route
+//   )
+// )
 const router = createBrowserRouter([
 
   {
@@ -17,9 +23,16 @@ const router = createBrowserRouter([
     errorElement: <Error />,
     children: [
       { index: true, element: <Login /> },
+      // { path: 'twofa', element: <TwoFA /> },
       {
         path: '/',
-        element: <Layout />,
+        element:
+          <UserProvider>
+            <PrivateRoute>
+            <Layout />
+            </PrivateRoute>
+            </UserProvider>
+        ,
         children: [
           { path: 'dashboard', element: <Dashboard /> },
           { path: 'profile', element: <Profile /> },

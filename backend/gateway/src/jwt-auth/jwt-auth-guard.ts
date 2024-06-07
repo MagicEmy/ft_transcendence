@@ -8,8 +8,18 @@ import { TokenExpiredError } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
-import { Observable, forkJoin, lastValueFrom, map, of, switchMap } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  forkJoin,
+  lastValueFrom,
+  map,
+  of,
+  switchMap,
+  throwError,
+} from 'rxjs';
 import { UserIdNameLoginDto } from 'src/dto/user-id-name-login-dto';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -30,6 +40,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         // explore validation with refresh token and get the user that the token belongs to
         const refreshTokenActivation: Observable<boolean> =
           this.activateWithRefreshToken(req).pipe(
+            catchError((error) => throwError(() => new UnauthorizedException())),
             switchMap((user: UserIdNameLoginDto) => {
               if (!user) {
                 // token is missing, invalid, expired or has been destroyed
@@ -112,10 +123,16 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
             return of(null);
           } else {
             // validate the refresh token and get the user that the token belongs to
-            return this.authService.validateRefreshToken(
-              refreshToken,
-              this.configService.get('JWT_REFRESH_SECRET'),
-            );
+            return this.authService
+              .validateRefreshToken(
+                refreshToken,
+                this.configService.get('JWT_REFRESH_SECRET'),
+              )
+              .pipe(
+                catchError((error) =>
+                  throwError(() => new RpcException(error.response)),
+                ),
+              );
           }
         }),
       );

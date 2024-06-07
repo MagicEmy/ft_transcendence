@@ -1,8 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UserStatus } from './user-status.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserStatusDto } from './dto/user-status-dto';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class UserStatusRepository extends Repository<UserStatus> {
@@ -25,11 +30,8 @@ export class UserStatusRepository extends Repository<UserStatus> {
       await this.save(status);
     } catch (error) {
       if (error.code !== '23505') {
-        console.log(error);
-      } else {
-        console.log(
-          `Status entry for user ${userStatusDto.userId} is already present`,
-        );
+        // '23505' means duplicate entry
+        throw new RpcException(new InternalServerErrorException());
       }
     }
     return status;
@@ -38,7 +40,17 @@ export class UserStatusRepository extends Repository<UserStatus> {
   async changeUserStatus(userStatusDto: UserStatusDto): Promise<UserStatus> {
     const { userId, status } = userStatusDto;
     const statusEntry = await this.findOneBy({ user_id: userId });
-    statusEntry.status = status;
-    return this.save(statusEntry);
+    if (statusEntry) {
+      statusEntry.status = status;
+    } else {
+      throw new RpcException(
+        new NotFoundException(`User with ID "${userId}" not found`),
+      );
+    }
+    try {
+      return this.save(statusEntry);
+    } catch (error) {
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 }

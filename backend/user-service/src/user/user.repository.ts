@@ -2,6 +2,7 @@ import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 
 export class UserRepository extends Repository<User> {
   constructor(
@@ -17,7 +18,9 @@ export class UserRepository extends Repository<User> {
   async getUserById(userId: string): Promise<User> {
     const found = await this.findOneBy({ user_id: userId });
     if (!found) {
-      throw new NotFoundException(`User with ID "${userId}" not found`);
+      throw new RpcException(
+        new NotFoundException(`User with ID "${userId}" not found`),
+      );
     }
     return found;
   }
@@ -28,7 +31,9 @@ export class UserRepository extends Repository<User> {
       .where('user_id = :user_id', { user_id: userId })
       .getRawOne();
     if (!fromDB) {
-      return null;
+      throw new RpcException(
+        new NotFoundException(`User with ID "${userId}" not found`),
+      );
     } else {
       return fromDB.userName;
     }

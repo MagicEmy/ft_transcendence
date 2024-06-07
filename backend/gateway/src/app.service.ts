@@ -1,83 +1,66 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { Inject, Injectable, UseFilters } from '@nestjs/common';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {
   Observable,
-  firstValueFrom,
+  catchError,
   forkJoin,
   from,
   iif,
   map,
   of,
   switchMap,
+  mergeMap,
+  throwError,
 } from 'rxjs';
 import { IGameStatus } from './interface/kafka.interface';
 import { FriendshipDto } from './dto/friendship-dto';
 import { GameStatus } from './enum/kafka.enum';
-import { Opponent } from './enum/opponent.enum';
 import { UserIdOpponentDto } from './dto/games-against-dto';
 import {
   GameStatsDto,
   MostFrequentOpponentDto,
-  ProfileDto,
+  PositionTotalPointsDto,
   UserIdNameStatusDto,
 } from './dto/profile-dto';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
 import { UserIdGamesDto } from './dto/user-id-games-dto';
 import { AvatarDto } from './dto/avatar-dto';
+import { GameHistoryDto } from './dto/game-history-dto';
+import { Opponent } from './enum/opponent.enum';
 
 @Injectable()
 export class AppService {
   constructor(
     @Inject('GameService') private readonly gameService: ClientProxy,
     @Inject('UserService') private readonly userService: ClientProxy,
-    @Inject('StatsService') private readonly statsService: ClientProxy,
+    @Inject('StatsService') readonly statsService: ClientProxy,
   ) {}
 
   //   PROFILE
 
-  getProfile(userId: string): Observable<ProfileDto> {
-    return forkJoin({
-      userInfo: this.getUserIdNameStatus(userId),
-      friends: this.getFriends(userId),
-      leaderboardPosition: this.getLeaderboardPosition(userId),
-      totalPlayers: this.getTotalNoOfUsers(),
-      gamesAgainstHuman: this.getGamesAgainst({
-        userId,
-        opponent: Opponent.HUMAN,
-      }),
-      gamesAgainstBot: this.getGamesAgainst({
-        userId,
-        opponent: Opponent.BOT,
-      }),
-      mostFrequentOpponent: this.getMostFrequentOpponent(userId),
-    }).pipe(
-      map((result) => ({
-        userInfo: result.userInfo,
-        friends: result.friends,
-        leaderboardPosition: result.leaderboardPosition,
-        totalPlayers: result.totalPlayers,
-        gamesAgainstHuman: result.gamesAgainstHuman,
-        gamesAgainstBot: result.gamesAgainstBot,
-        mostFrequentOpponent: result.mostFrequentOpponent,
-      })),
-    );
-  }
-
-  private getGamesAgainst(userIdOpponentDto: UserIdOpponentDto) {
+  getGamesAgainst(userIdOpponentDto: UserIdOpponentDto) {
     const pattern = 'getGamesAgainst';
     const payload: UserIdOpponentDto = userIdOpponentDto;
-    return this.statsService.send<GameStatsDto>(pattern, payload);
+    return this.statsService
+      .send<GameStatsDto>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
-  private getUserIdNameStatus(userId: string): Observable<UserIdNameStatusDto> {
+  getUserIdNameStatus(userId: string): Observable<UserIdNameStatusDto> {
     const pattern = 'getUserIdNameStatus';
     const payload = userId;
-    return this.userService.send<UserIdNameStatusDto>(pattern, payload);
+    return this.userService
+      .send<UserIdNameStatusDto>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   //   LEADERBOARD
@@ -105,30 +88,57 @@ export class AppService {
     );
   }
 
-  getLeaderboardPosition(userId: string): Observable<number> {
-    const pattern = 'getRank';
+  getLeaderboardPositionAndTotalPoints(userId: string): Observable<PositionTotalPointsDto> {
+    const pattern = 'getPositionAndTotalPoints';
     const payload = userId;
-    return this.statsService.send<number>(pattern, payload);
+    return this.statsService
+      .send<PositionTotalPointsDto>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   //   USER
 
   getUserName(userId: string): Observable<string> {
+	if (userId === Opponent.BOT) {
+		return of(Opponent.BOT);
+	}
     const pattern = 'getUserName';
     const payload = userId;
-    return this.userService.send<string>(pattern, payload);
+    return this.userService
+      .send<string>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
-  updateUserName(userIdNameDto: UserIdNameDto): void {
+  updateUserName(userIdNameDto: UserIdNameDto): Observable<void> {
     const pattern = 'setUserName';
     const payload = userIdNameDto;
-    this.userService.emit(pattern, payload);
+    return this.userService
+      .send(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   getUserStatus(userId: string): Observable<string> {
     const pattern = 'getStatus';
     const payload = userId;
-    return this.userService.send<string>(pattern, payload);
+    return this.userService
+      .send<string>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   //   updateStatus(userStatusDto: UserStatusDto): void {
@@ -140,21 +150,53 @@ export class AppService {
   getAllUserIds(): Observable<string[]> {
     const pattern = 'getAllUserIds';
     const payload = {};
-    return this.userService.send<string[]>(pattern, payload);
+    return this.userService
+      .send<string[]>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   getTotalNoOfUsers(): Observable<number> {
     const pattern = 'getNoOfUsers';
     const payload = {};
-    return this.userService.send<number>(pattern, payload);
+    return this.userService
+      .send<number>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   //   GAMES
 
-  getGameHistory(userId: string): Observable<string> {
+  getGameHistory(userId: string): Observable<GameHistoryDto[]> {
     const pattern = 'getGameHistory';
     const payload = userId;
-    return this.gameService.send<string>(pattern, payload);
+    return this.gameService.send<GameHistoryDto[]>(pattern, payload).pipe(
+      catchError((error) => throwError(() => new RpcException(error.response))),
+      mergeMap((games: GameHistoryDto[]) => {
+        if (games.length === 0) {
+          return of([]);
+        }
+        const gamesWithNames$ = games.map((game) =>
+          forkJoin({
+            player1Name: this.getUserName(game.player1Id),
+            player2Name: this.getUserName(game.player2Id),
+          }).pipe(
+            map(({ player1Name, player2Name }) => ({
+              ...game,
+              player1Name,
+              player2Name,
+            })),
+          ),
+        );
+        return forkJoin(gamesWithNames$);
+      }),
+    );
   }
 
   getMostFrequentOpponent(
@@ -193,29 +235,28 @@ export class AppService {
   createFriendship(friendshipDto: FriendshipDto): Observable<string> {
     const pattern = 'addFriend';
     const payload = friendshipDto;
-    return this.userService.send<string>(pattern, payload).pipe(
-      map((response) => {
-        if (response === 'Error') {
-          throw new InternalServerErrorException();
-        }
-        return response;
-      }),
-    );
+    return this.userService
+      .send<string>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   removeFriendship(friendshipDto: FriendshipDto): Observable<string> {
     const pattern = 'unfriend';
     const payload = friendshipDto;
-    return this.userService.send<string>(pattern, payload).pipe(
-      map((response) => {
-        if (response === 'Error') {
-          throw new InternalServerErrorException();
-        }
-        return response;
-      }),
-    );
+    return this.userService
+      .send<string>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
+  @UseFilters()
   getFriends(userId: string): Observable<UserIdNameStatusDto[]> {
     return this.getFriendsIds(userId).pipe(
       switchMap((friends: string[]) =>
@@ -233,7 +274,13 @@ export class AppService {
   private getFriendsIds(userId: string): Observable<string[]> {
     const pattern = 'getFriendsIds';
     const payload = userId;
-    return this.userService.send<string[]>(pattern, payload);
+    return this.userService
+      .send<string[]>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   // avatar
@@ -241,13 +288,20 @@ export class AppService {
   setAvatar(avatarDto: AvatarDto): Observable<string> {
     const pattern = 'setAvatar';
     const payload = avatarDto;
-    return this.userService.send<string>(pattern, payload);
+    return this.userService
+      .send<string>(pattern, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new RpcException(error.response)),
+        ),
+      );
   }
 
   getAvatar(userId: string): Observable<AvatarDto | string> {
     const pattern = 'getAvatar';
     const payload = userId;
     return this.userService.send(pattern, payload).pipe(
+      catchError((error) => throwError(() => new RpcException(error.response))),
       map((response) => {
         if (response) {
           return {

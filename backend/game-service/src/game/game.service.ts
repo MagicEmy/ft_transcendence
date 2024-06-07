@@ -7,6 +7,7 @@ import { GamesAgainstUserIdDto } from './dto/games-against-userid-dto';
 import { GameHistoryDto } from './dto/game-history-dto';
 import { GameStatus, GameTypes, MatchTypes } from './enum/kafka.enum';
 import { Opponent } from './enum/game.enum';
+import { Game } from './game.entity';
 
 @Injectable()
 export class GameService {
@@ -16,8 +17,8 @@ export class GameService {
   ) {}
 
   // Kafka-related methods
-  async createGame(gameStatus: IGameStatus): Promise<void> {
-    this.gameRepository.createGame(gameStatus);
+  async createGame(gameStatus: IGameStatus): Promise<Game> {
+    return this.gameRepository.createGame(gameStatus);
   }
 
   // Gateway-related methods
@@ -34,7 +35,6 @@ export class GameService {
   }
 
   async getGameHistory(userId: string): Promise<GameHistoryDto[]> {
-    // to be added: user_id validation
     const gameOverview: GameHistoryDto[] = await this.gameRepository
       .createQueryBuilder()
       .select('player1_id', 'player1Id')
@@ -45,7 +45,6 @@ export class GameService {
       .orWhere('player2_id = :user_id', { user_id: userId })
       .orderBy('game_id', 'DESC')
       .getRawMany();
-	  console.log('getGameHistory result from database: ', gameOverview);
     return gameOverview;
   }
 
