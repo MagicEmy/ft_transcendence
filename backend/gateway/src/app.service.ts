@@ -27,6 +27,7 @@ import { UserIdNameDto } from './dto/user-id-name-dto';
 import { UserIdGamesDto } from './dto/user-id-games-dto';
 import { AvatarDto } from './dto/avatar-dto';
 import { GameHistoryDto } from './dto/game-history-dto';
+import { Opponent } from './enum/opponent.enum';
 
 @Injectable()
 export class AppService {
@@ -102,6 +103,9 @@ export class AppService {
   //   USER
 
   getUserName(userId: string): Observable<string> {
+	if (userId === Opponent.BOT) {
+		return of(Opponent.BOT);
+	}
     const pattern = 'getUserName';
     const payload = userId;
     return this.userService
