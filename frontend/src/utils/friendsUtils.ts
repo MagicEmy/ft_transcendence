@@ -76,6 +76,7 @@ export const deleteFriend = async (userId: string, friendId: string): Promise<vo
     }
 
     const data = await response.json();
+    return data;
     console.log('Friend deleted:', data);
   } catch (error) {
     console.error('Error deleting friend:', error);
