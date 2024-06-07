@@ -20,7 +20,8 @@ export class TokenRepository extends Repository<Token> {
     try {
       this.save(token);
     } catch (error) {
-      // TBD: do we want to rewrite the token or maybe invalidate it?
+      // No action needed, token won't be saved in database
+      // user will log in again once access token expires
     }
     return token;
   }

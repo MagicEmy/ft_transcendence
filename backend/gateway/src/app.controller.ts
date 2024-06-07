@@ -195,15 +195,17 @@ export class AppController {
   //     this.appService.updateStatus({ userId, status });
   //   }
 
-  //   @Get('/allUsers')
-  //   getAllUserIds(): Observable<string[]> {
-  //     return this.appService.getAllUserIds();
-  //   }
+  @ApiTags('user')
+  @UseGuards(JwtAuthGuard)
+  @Get('/allUsers')
+  getAllUserIds(): Observable<string[]> {
+    return this.appService.getAllUserIds();
+  }
 
   //   FRIENDS
 
   @ApiTags('friends')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('/friend')
   createFriendship(
     @Body(ValidationPipe) friendshipDto: FriendshipDto,
@@ -212,7 +214,7 @@ export class AppController {
   }
 
   @ApiTags('friends')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('/friend')
   removeFriendship(
     @Body(ValidationPipe) friendshipDto: FriendshipDto,
