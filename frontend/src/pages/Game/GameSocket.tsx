@@ -2,16 +2,21 @@ import { io, Socket } from "socket.io-client";
 
 // import React, { useEffect, useContext } from 'react';
 // import UserContext from '../context/UserContext';
+import GameLogic from "./GameLogic";
+import GameGraphics from "./GameGraphics";
 
 class GameSocket
 {
 	private static instance: GameSocket | null = null;
+	// private static UserPack: any;
+	private static UserPack: { playerID: string, playerName: string };
 	private static userContext: any | null = null;
 
 	private host: string = "localhost";
 	private port: number = 3006;
 	private socket: Socket | null = null;
 
+	private gameInterval: any;
 
 	private constructor()
 	{
@@ -21,6 +26,7 @@ class GameSocket
 		this.socket.on("connect", () =>
 		{
 			console.log("Socket.IO connection established");
+
 		});
 
 		this.socket.on("ServerReady"/* SockEventNames.SERVERREADY */, (message: any) =>
@@ -30,38 +36,57 @@ class GameSocket
 			else
 				console.log("Server ready!");
 
-			const userPack =
-			{
-				playerID: GameSocket.userContext.userIdContext,
-				playerName: GameSocket.userContext.userNameContext,
-			};
-
-			if (!userPack.playerID || !userPack.playerName)
-			{
-				console.error("Hardcoding userPack");
-				userPack.playerID = "1";
-				userPack.playerName = "lorem";
-			}
-			if (userPack.playerID && userPack.playerName)
-				GameSocket.instance?.emit("UserPack", JSON.stringify(userPack));
+			if (GameSocket.UserPack.playerID &&
+				GameSocket.UserPack.playerName)
+				GameSocket.instance?.emit("UserPack", JSON.stringify(GameSocket.UserPack));
 			else
-				console.error(`Invalid UserPack ${userPack}`);
+				console.error(`Invalid UserPack ${GameSocket.UserPack}`);
 		});
 
-		this.socket.onAny((event: any, ...args: any[]) =>
+		this.socket.on("PlayerReady", (message: any) =>
 		{
-			console.error(`Error: unhandled event "${event}"`, ...args);
+			if (message)
+				console.log("Player ready:", message);
+			else
+				console.log("Player ready!");
+
+			GameLogic.getInstance()?.SetGameStateTo(1);
 		});
+
+		this.socket.on("GameHUD", (message: any) =>
+		{
+			GameGraphics.getInstance()?.renderHUD(message);
+		});
+
+		this.socket.on("GameImage", (message: any) =>
+		{
+			console.warn("Should: render image");
+		});
+
+		// this.socket.onAny((event: any, ...args: any[]) =>
+		// {
+		// 	console.error(`Error: unhandled event "${event}"`, ...args);
+		// });
+
+		this.gameInterval = setInterval(() => { this.socket?.emit("GameImage"); }, 320);
+		  
 	}
 
-	public static createInstance(UserContext: any): GameSocket | null
+	public static createInstance(userIdContext: any, userNameContext: any): GameSocket | null
 	{
 		if (!GameSocket.instance)
 		{
 			try
 			{
 				GameSocket.instance = new GameSocket();
-				GameSocket.setUser(UserContext);
+				GameSocket.UserPack =
+				{
+					playerID: userIdContext,
+					playerName: userNameContext,
+				};
+				if (!GameSocket.UserPack.playerID ||
+					!GameSocket.UserPack.playerName)
+					throw (`Bad User Context ${GameSocket.UserPack}`);
 			}
 			catch (error)
 			{
@@ -88,28 +113,29 @@ class GameSocket
 
 	public emit(event: string, data?: any): void
 	{
+		console.warn(`emitting to ${event}/${data}`);
 		if (this.socket)
 			this.socket.emit(event, data);
 		else
 			console.error("Tried to emit to non-existing socket.");
 	}
 
-	public emitUserPack(userID: any)
-	{
-		// console.log(`ID received for sending [${userID}][${userID.userIdContext}][${userID.userNameContext}]`);
-		const userPack =
-		{
-			playerID: userID.userIdContext,
-			playerName: userID.userNameContext,
-		};
+	// public emitUserPack(userID: any)
+	// {
+	// 	// console.log(`ID received for sending [${userID}][${userID.userIdContext}][${userID.userNameContext}]`);
+	// 	const userPack =
+	// 	{
+	// 		playerID: userID.userIdContext,
+	// 		playerName: userID.userNameContext,
+	// 	};
 
-		userPack.playerID = 1;
-		userPack.playerName = "lorem";
-		if (userPack.playerID && userPack.playerName)
-			this.emit("UserPack", JSON.stringify(userPack));
-		else
-			console.error(userPack);
-	}
+	// 	userPack.playerID = 1;
+	// 	userPack.playerName = "lorem";
+	// 	if (userPack.playerID && userPack.playerName)
+	// 		this.emit("UserPack", JSON.stringify(userPack));
+	// 	else
+	// 		console.error(userPack);
+	// }
 
 	public disconnect(): void
 	{

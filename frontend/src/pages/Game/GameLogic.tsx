@@ -1,4 +1,5 @@
 import GameGraphics from "./GameGraphics";
+import GameSocket from "./GameSocket";
 
 enum GameState
 {
@@ -45,7 +46,7 @@ class GameLogic
 		this.menuSelect = 0;
 	}
 
-	public getInstance(): GameLogic | null
+	public static getInstance(): GameLogic | null
 	{
 		if (!GameLogic.instance)
 			GameLogic.instance = new GameLogic();
@@ -54,7 +55,7 @@ class GameLogic
 
 	public keyPress(key: any, event: any): void
 	{
-		console.log(`Key[${key}]: ${event}`);
+		// console.log(`Key[${key}]: ${event}`);
 		switch(this.gameState)
 		{
 			case GameState.CONNECT:
@@ -69,13 +70,45 @@ class GameLogic
 				this.keyPressPlaying(key, event);	break ;
 			default:
 				console.error(`Error: Undefined game state ${this.gameState}`);	break ;
+		}
+		this.UpdateGraphics();
+	}
 
+	public UpdateGraphics(): void
+	{
+		var instance: GameGraphics | null = GameGraphics.getInstance();
+		if (instance === null)
+		{
+			console.error("Could not find GameGraphics");
+			return ;
+		}
+		switch(this.gameState)
+		{
+			case GameState.CONNECT:
+				instance.RenderWord("Connecting");	break;
+			case GameState.MENU:
+				instance.renderMenu(this.menuSelect);	break ;
+			// case GameState.MATCH:
+			// 	this.keyPressMatch(key, event);	break ;
+			case GameState.LOADING:
+				instance.RenderWord("Loading");	break ;
+			// case GameState.PLAYING:
+			// 	this.keyPressPlaying(key, event);	break ;
+			default:
+				console.error(`Error: Undefined game state ${this.gameState}`);	break ;
 		}
 	}
 
-	private connectToGame(gameType: string, matchType: string): void
+	private connectToGame(mode: string, type: string): void
 	{
-		console.error(`Need to socket ${gameType}/${matchType}`);
+		const data =
+		{
+			mode: mode,
+			type: type,
+			data: "",
+		}
+		GameSocket.getInstance()?.emit("PlayGame", JSON.stringify(data));
+		// console.error(`Need to socket ${gameType}/${matchType}`);
 		this.gameState = GameState.LOADING;
 	}
 
@@ -98,11 +131,31 @@ private keyPressConnect(key: any, event: any): void
 	}
 }
 
+public SetGameStateTo(state: GameState)
+{
+	switch (state)
+	{
+		case GameState.MENU:
+			this.gameState = GameState.MENU;	break;
+		case GameState.PLAYING:
+			this.gameState = GameState.PLAYING;	break;
+		default:
+			console.warn(`Trying to set GameState to protected ${state}`);
+			break ;
+	}
+	this.UpdateGraphics();
+}
+
 /* ************************************************************************** *\
 
 	Menu
 
 \* ************************************************************************** */
+
+	public getMenuList(): string[]
+	{
+		return (Object.values(MenuList));
+	}
 
 	private keyPressMenu(key: any, event: any): void
 	{
@@ -128,11 +181,11 @@ private keyPressConnect(key: any, event: any): void
 		switch (MenuList[menuKeys[this.menuSelect]])
 		{
 			case MenuList.SOLO:
-				this.connectToGame("pong", "solo");	break ;
+				this.connectToGame("solo", "pong");	break ;
 			case MenuList.LOCAL:
-				this.connectToGame("pong", "local");	break ;
+				this.connectToGame("local", "pong");	break ;
 			case MenuList.MATCH:
-				this.connectToGame("pong", "match");	break ;
+				this.connectToGame("match", "pong");	break ;
 			case MenuList.INFINITE:
 				this.gameState = GameState.LOADING;	break ;
 			case MenuList.EXIT:
@@ -198,7 +251,7 @@ private keyPressConnect(key: any, event: any): void
 
 	private keyPressLoadingEscape(): void
 	{
-		console.error(`Undefined keyPressLoadingEscape`);
+		this.gameState = GameState.MENU;
 	}
 
 /* ************************************************************************** *\
@@ -209,6 +262,11 @@ private keyPressConnect(key: any, event: any): void
 
 	private keyPressPlaying(key: any, event: any): void
 	{
+		const eventData = {
+		code:	key,
+		event:	event,
+	};
+		GameSocket.getInstance()?.emit("Button", JSON.stringify({code: key, event: event}))
 		if (event === "keyup")
 			return ;
 		switch (key)
