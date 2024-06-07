@@ -5,14 +5,16 @@ import LogoutButton from './LogoutButton';
 import UserContext, { IUserContext } from '../context/UserContext';
 import useStorage from "../hooks/useStorage";
 import { loadProfileAvatar } from '../utils/profileUtils';
+import { NavigationButton } from './NavigationButton';
+import { isLinkActive } from '../utils/isLinkActive';
 
-  export const Navbar = () => {
+export const Navbar = () => {
   const {
     userNameContext,
     avatarContext,
     setAvatarContext,
   } = useContext<IUserContext>(UserContext);
-  const [userIdStorage, , ] = useStorage<string>('userId', '');
+  const [userIdStorage, ,] = useStorage<string>('userId', '');
 
 
   useEffect(() => {
@@ -69,20 +71,20 @@ import { loadProfileAvatar } from '../utils/profileUtils';
               className={({ isActive }) =>
                 isActive ? classes.active : undefined
               }
+              replace={true}
               end
             >
               Home
             </NavLink>
           </li>
           <li>
-            <NavLink
+            <NavigationButton
               to="/profile"
-              className={({ isActive }) =>
-                isActive ? classes.active : undefined
-              }
+              className={isLinkActive('/profile') ? classes.active : undefined}
+
             >
               Profile
-            </NavLink>
+            </NavigationButton>
           </li>
           <li>
             <NavLink
@@ -90,6 +92,7 @@ import { loadProfileAvatar } from '../utils/profileUtils';
               className={({ isActive }) =>
                 isActive ? classes.active : undefined
               }
+              replace={true}
             >
               Leaderboard
             </NavLink>
@@ -100,6 +103,7 @@ import { loadProfileAvatar } from '../utils/profileUtils';
               className={({ isActive }) =>
                 isActive ? classes.active : undefined
               }
+              replace={true}
             >
               Game
             </NavLink>
@@ -110,6 +114,7 @@ import { loadProfileAvatar } from '../utils/profileUtils';
               className={({ isActive }) =>
                 isActive ? classes.active : undefined
               }
+              replace={true}
             >
               Chat
             </NavLink>
@@ -120,6 +125,7 @@ import { loadProfileAvatar } from '../utils/profileUtils';
               className={({ isActive }) =>
                 isActive ? classes.active : undefined
               }
+              replace={true}
             >
               Settings
             </NavLink>
@@ -134,3 +140,5 @@ import { loadProfileAvatar } from '../utils/profileUtils';
 }
 
 export default Navbar;
+
+//window.location  in console!!
