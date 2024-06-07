@@ -1,11 +1,11 @@
 import React from 'react';
-import { useRouteError, isRouteErrorResponse } from 'react-router-dom';
+import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import PageContent from '../components/PageContent';
 
 const Error = () => {
   const error = useRouteError();
-
+  const navigate = useNavigate()
   let title = 'Error';
   let message = 'An unknown error occurred';
 
@@ -30,14 +30,17 @@ const Error = () => {
     }
   }
 
-return (
-  <>
-    <Navbar />
-    <PageContent title={title}>
-    <p className='errror'> {message}</p>
-    </PageContent>
-  </>
-);
+  return (
+    <>
+      {/* <Navbar /> */}
+      <PageContent title={title}>
+        <p className='errror'> {message}</p>
+        <button onClick={() => {
+          navigate('/')
+        }}>back</button>
+      </PageContent>
+    </>
+  );
 }
 
 export default Error;

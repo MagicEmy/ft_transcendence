@@ -47,7 +47,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         }
         const profile = await response.json();
         setUserIdContext(profile.userId);
-        setUserIdStorage(profile.userId);
+        if (!userIdStorage) setUserIdStorage(profile.userId);
         setUserNameStorage(profile.userName);
         setUserNameContext(profile.userName);
       } catch (error) {
@@ -59,7 +59,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     if (!userIdContext) fetchUser();
   }, []);
 
-  console.log('HERE')
   useEffect(() => {
     let active = true; // Flag to manage the effect lifecycle
 
