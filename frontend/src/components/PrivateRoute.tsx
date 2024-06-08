@@ -1,15 +1,13 @@
-import React, { useContext, ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { useNavigate } from "react-router-dom";
-
-import UserContext from '../context/UserContext';
+import useStorage from '../hooks/useStorage';
 
 const PrivateRoute = ({ children }: { children: ReactNode }) => {
-  const { userIdContext } = useContext(UserContext);
+  const [userIdStorage ] = useStorage<string>('userId', '');
   // const location = useLocation();
   const navigate = useNavigate();
 
-  console.log("PrivateRoute: userData", userIdContext);
-  if (!userIdContext) {
+  if (!userIdStorage) {
     console.log("PrivateRoute: No user logged in");
     navigate('/');
     return <></>;

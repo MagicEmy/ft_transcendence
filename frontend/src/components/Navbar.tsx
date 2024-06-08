@@ -1,19 +1,17 @@
 import React, { useContext, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import classes from './Navbar.module.css';
 import LogoutButton from './LogoutButton';
 import UserContext, { IUserContext } from '../context/UserContext';
 import useStorage from "../hooks/useStorage";
 import { loadProfileAvatar } from '../utils/profileUtils';
+import { NavigationButton } from './NavigationButton';
+import { NavigateAvatar } from './NavigateAvatar';
 
-  export const Navbar = () => {
-  const {
-    userNameContext,
-    avatarContext,
-    setAvatarContext,
-  } = useContext<IUserContext>(UserContext);
-  const [userIdStorage, , ] = useStorage<string>('userId', '');
-
+export const Navbar = () => {
+  const { userNameContext, avatarContext, setAvatarContext } = useContext<IUserContext>(UserContext);
+  const [userIdStorage, ,] = useStorage<string>('userId', '');
+  const navigate = useNavigate();
 
   useEffect(() => {
     let active = true; // Flag to manage the effect lifecycle
@@ -49,80 +47,30 @@ import { loadProfileAvatar } from '../utils/profileUtils';
   return (
     <header className={classes.header}>
       <div className={classes.avatar}>
-        <NavLink
-          to="/profile"
-          className={({ isActive }) =>
-            isActive ? classes.active : undefined
-          }
-        >
-          <div className={classes.avatarImage}>
-            {avatarContext ? <img className={classes.avatarImage} src={avatarContext} alt="User Avatar" /> : <p>Loading...</p>}
-          </div>
-        </NavLink>
+        <div className={classes.avatarImage} onClick={() => navigate('/profile')}>
+          {avatarContext ? <img className={classes.avatarImage} src={avatarContext} alt="User Avatar" /> : <p>Loading...</p>}
+        </div>
         <span className={classes.name}>{userNameContext}</span>
       </div>
       <nav>
         <ul className={classes.list}>
           <li>
-            <NavLink
-              to="/dashboard"
-              className={({ isActive }) =>
-                isActive ? classes.active : undefined
-              }
-              end
-            >
-              Home
-            </NavLink>
+            <NavigationButton to="/dashboard" className="button">Dashboard</NavigationButton>
           </li>
           <li>
-            <NavLink
-              to="/profile"
-              className={({ isActive }) =>
-                isActive ? classes.active : undefined
-              }
-            >
-              Profile
-            </NavLink>
+            <NavigationButton to="/profile" className="button">Profile</NavigationButton>
           </li>
           <li>
-            <NavLink
-              to="/leaderboard"
-              className={({ isActive }) =>
-                isActive ? classes.active : undefined
-              }
-            >
-              Leaderboard
-            </NavLink>
+            <NavigationButton to="/leaderboard" className="button">Leaderboard</NavigationButton>
           </li>
           <li>
-            <NavLink
-              to="/game"
-              className={({ isActive }) =>
-                isActive ? classes.active : undefined
-              }
-            >
-              Game
-            </NavLink>
+            <NavigationButton to="/game" className="button">Game</NavigationButton>
           </li>
           <li>
-            <NavLink
-              to="/chat"
-              className={({ isActive }) =>
-                isActive ? classes.active : undefined
-              }
-            >
-              Chat
-            </NavLink>
+            <NavigationButton to="/chat" className="button">Chat</NavigationButton>
           </li>
           <li>
-            <NavLink
-              to="/settings"
-              className={({ isActive }) =>
-                isActive ? classes.active : undefined
-              }
-            >
-              Settings
-            </NavLink>
+            <NavigationButton to="/settings" className="button">Settings</NavigationButton>
           </li>
         </ul>
       </nav>

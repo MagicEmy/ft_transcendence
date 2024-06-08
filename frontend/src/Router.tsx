@@ -29,9 +29,9 @@ const router = createBrowserRouter([
         element:
           <UserProvider>
             <PrivateRoute>
-            <Layout />
+              <Layout />
             </PrivateRoute>
-            </UserProvider>
+          </UserProvider>
         ,
         children: [
           { path: 'dashboard', element: <Dashboard /> },
