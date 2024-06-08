@@ -8,7 +8,7 @@
 .profile {
     border: 10px solid #0a04ad;
     border-radius: 10px;
-    height: 100%;
+    height: auto;
     margin-top: 3em;
     padding: 10px;
     overflow-y: auto;
@@ -18,73 +18,73 @@
     box-sizing: border-box;
   }
 
-.main::-webkit-scrollbar,
-.profile::-webkit-scrollbar {
+/* .main::-webkit-scrollbar, */
+.main::-webkit-scrollbar {
     width: 8px;
   }
 
-.main::-webkit-scrollbar-thumb,
-.profile::-webkit-scrollbar-thumb {
+/* .main::-webkit-scrollbar-thumb, */
+.main::-webkit-scrollbar-thumb {
     background-color: #0a04ad;
     border-radius: 30px;
   }
 
-.main::-webkit-scrollbar-track,
-.profile::-webkit-scrollbar-track {
+/* .main::-webkit-scrollbar-track, */
+.main::-webkit-scrollbar-track {
     background: #dee5f4;
     border-radius: 30px;
   }
 
-.main,
-.profile {
+/* .main, */
+.main {
     scrollbar-width: thin;
     scrollbar-color: #0a04ad #dee5f4;
   }
 
-.main,
 .profile * {
-    box-sizing: border-box; /* Ensure all child elements use border-box */
+    box-sizing: border-box;
   }
 
-.profile .flex{
+
+.profile .flex {
   width: 50%;
   gap: 1em;
   text-align: left;
-  flex-direction: column;
+  flex-direction: row;
 
 }
 
-.profile .columnsWrapper{
+.profile .columnsWrapper {
   display: flex;
   flex-direction: row;
 }
 
-.profile .flex .item{
+.profile .flex .item {
   display: flex;
   align-items: center;
   gap: 1em;
   padding: 30px;
 }
 
-.profile .flex img{
+.profile .flex img {
   width: 100px;
   height: 100px;
   object-fit: cover;
   border-radius: 50%;
 }
 
-.profile .flex .info{
+.profile .flex .info {
   padding: 0;
 }
 
-.profile-text{
+.profile-text {
   color: #0a04ad;
   margin-top: 10px;
   margin-bottom: 10px;
   font-size: 1.5em;
 }
 
-.profile-text-dark{
+.profile-text-dark {
   color: #0d045a;
   margin-top: 10px;
   margin-bottom: 10px;
@@ -108,8 +108,12 @@
   background-color: red;
 }
 
-.game{
+.game {
   background-color: blue;
+}
+
+.chat {
+  background-color: rgb(255, 234, 0);
 }
 
 .stats .stat {
@@ -117,7 +121,7 @@
   margin-bottom: 10px;
 }
 
-.stat-column{
+.stat-column {
   margin-right: 15px; /* Space between different stats */
   margin-bottom: 10px;
   display: flex;
@@ -133,28 +137,26 @@
 }
 
  .title {
-  display: inline;
+  display: inline;;
   color: #0a04ad;
   font-size: 2em;
-  /* padding: 25px; */
   }
 
 .friends {
     margin-top: 10px;
-
     width: 100%;
     flex-direction: column;
     padding: 10px;
   }
 
-  .friends ul {
+.friends ul {
     flex-direction: column;
     list-style-type: none;
     padding: 0;
     margin: 0;
   }
 
-  .friends li {
+.friends li {
     margin-bottom: 10px; /* Add space between nav links */
   }
 
@@ -181,21 +183,58 @@
   }
 
   .userMatchHistory {
-    border: 1px solid #a09df0;
+    margin-top: 150px;
     padding: 10px;
-    margin-top: 10px;
   }
+
+  .title {
+    margin-left: 40px;
+    color: #0a04ad;
+    font-size: 2em;
+    }
 
   .gameHistory {
     color: #130682;
     padding: 10px;
   }
-  .game .player {
+  .gameHistory .player {
     display: flex;
+    border: 1px solid #f09dea;
     flex-direction: column;
+    margin-right: 15px;
     gap: 1em;
   }
 
-  .player-name {
+  .gameHistory .player-name {
+    padding: 10px;
     color: #130682;
+  }
+
+  .gameHistory {
+    display: flex;
+    align-items: center;
+    font-size: 16px; /* Adjust the font size as needed */
+  }
+
+  .player-info {
+    display: flex;
+    align-items: center;
+  }
+
+  .player-name {
+    margin-right: 8px; /* Adjust the spacing between name and score */
+    color: #130682;
+
+  }
+
+  .player-score {
+    font-weight: bold;
+    margin-right: 8px;
+    color: #130682;
+
+  }
+
+  .separator {
+    margin: 0 15px; /* Adjust the spacing around the separator */
+    font-weight: bold;
   }

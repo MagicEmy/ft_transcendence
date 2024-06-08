@@ -8,7 +8,7 @@ import { useGetFriends, useGetProfile, useGetUserStatus, useGetAvatar } from "..
 import { MatchHistory } from "../../components/MatchHistory";
 import { FriendsList } from "../../components/FriendsList";
 import { UserStats } from "../../components/UserStats";
-import { AddFriendButton } from "./AddFriendButton";
+import { AddFriendButton } from "../../components/AddFriendButton";
 
 export const Profile = () => {
 
@@ -94,24 +94,3 @@ export const Profile = () => {
 }
 
 export default Profile;
-
-/*
-player1Id
-:
-"8a201d4a-8d97-4e47-944e-62a94dff8d05"
-player1Name
-:
-"emlicame"
-player1Score
-:
-10
-player2Id
-:
-"2bb73bf2-3937-444b-8087-17624499edb2"
-player2Name
-:
-"Rando49776"
-player2Score
-:
-2
-*/

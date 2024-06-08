@@ -6,8 +6,7 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	height: 100vh;
-	/* background: #02893a; */
+	height: auto;
 	background: radial-gradient(circle, #94aff0 0%, #0a04ad 100%);
 	border : 10px solid white;
 	position: relative; /* Needed for absolute positioning of line */

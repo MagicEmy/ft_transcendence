@@ -26,7 +26,6 @@ const Error = () => {
           message = parsedMessage;
         }
       } catch (e) {
-        // Handle JSON parsing error if needed
       }
     }
   }

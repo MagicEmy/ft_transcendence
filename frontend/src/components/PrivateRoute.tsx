@@ -1,16 +1,23 @@
-import React, { ReactNode } from 'react';
-import { useNavigate } from "react-router-dom";
+import React, { ReactNode, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useStorage from '../hooks/useStorage';
 
 const PrivateRoute = ({ children }: { children: ReactNode }) => {
-  const [userIdStorage ] = useStorage<string>('userId', '');
-  // const location = useLocation();
+  const [userIdStorage] = useStorage<string>('userId', '');
   const navigate = useNavigate();
+  const [loading, setLoading] = React.useState(true);
 
-  if (!userIdStorage) {
-    console.log("PrivateRoute: No user logged in");
-    navigate('/');
-    return <></>;
+  useEffect(() => {
+    if (!userIdStorage) {
+      console.log('PrivateRoute: No user logged in');
+      navigate('/');
+    } else {
+      setLoading(false);
+    }
+  }, [userIdStorage, navigate]);
+
+  if (loading) {
+    return <div>Loading...</div>; // Replace with your loading spinner or fallback UI
   }
 
   return <>{children}</>;
