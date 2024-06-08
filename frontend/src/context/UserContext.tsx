@@ -27,7 +27,7 @@ interface UserProviderProps {
 export const UserProvider = ({ children }: UserProviderProps) => {
   const [userIdContext, setUserIdContext] = useState<string>('');
   const [userIdStorage, setUserIdStorage, ] = useStorage<string>('userId', '');
-  const [ , setUserNameStorage, ] = useStorage<string>('userName', '');
+  const [userNameStorage, setUserNameStorage, ] = useStorage<string>('userName', '');
   const [userNameContext, setUserNameContext] = useState<string>('');
   const [avatarContext, setAvatarContext] = useState<string | null>(null);
   const [friendsContext, setFriendsContext] = useState<Friends[]>([]);
@@ -48,7 +48,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         const profile = await response.json();
         setUserIdContext(profile.userId);
         if (!userIdStorage) setUserIdStorage(profile.userId);
-        setUserNameStorage(profile.userName);
+        if (!userNameStorage) setUserNameStorage(profile.userName);
         setUserNameContext(profile.userName);
       } catch (error) {
         console.error("Error fetching user data: error caught: ", error);

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useContext } from 'react';
-import UserContext, { IUserContext } from "../../context/UserContext";
+import React, { useEffect, useRef } from 'react';
+import useStorage from "../../hooks/useStorage";
 
 import GameSocket from './GameSocket';
 import GameEventListener from './GameEventListener';
@@ -13,11 +13,12 @@ const Game: React.FC = () => {
 	const logic = useRef<GameLogic | null>(null);
 	const graphics = useRef<GameGraphics | null>(null);
 	const events = useRef<GameEventListener | null>(null);
-	const { userIdContext, userNameContext } = useContext<IUserContext>(UserContext);
+	const [userIdStorage, , ] = useStorage<string>('userId', '');
+  	const [userNameStorage, , ] = useStorage<string>('userName', '');
 
 	useEffect(() => {
 		if (socket.current === null)
-			socket.current = GameSocket.createInstance(userIdContext, userNameContext);
+			socket.current = GameSocket.createInstance(userIdStorage, userNameStorage);
 		if (logic.current === null)
 			logic.current = GameLogic.getInstance();
 		if (graphics.current === null)
