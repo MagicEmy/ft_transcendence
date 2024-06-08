@@ -25,16 +25,9 @@ export const FriendsList = ({ userId }: FriendsListProps) => {
 
                   <button onClick={() => {
                     navigate(`/profile/${friend.userId}`, { replace: true })
-                  }}>
+                  }} className='button'>
                     {friend.userName}
                   </button>
-                  { /* <NavLink
-                    to={`/profile/${friend.userId}`}
-                    replace={true}
-                    className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-                  >
-                    {friend.userName}
-                  </NavLink> */ }
                   <span className="statsFriends"></span>
                   <span className={`status-indicator ${friend.status}`}></span>
                   <span>{friend.status}</span>

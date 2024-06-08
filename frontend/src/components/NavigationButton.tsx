@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useLocation, } from 'react-router-dom';
-import { isLinkActive } from '../utils/isLinkActive';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface NavigationButtonProps {
   children: React.ReactNode;
@@ -9,26 +8,9 @@ interface NavigationButtonProps {
 }
 export const NavigationButton = ({ children, to, className }: NavigationButtonProps) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [navigateTo, setNavigateTo] = React.useState<string | null>(null);
-
-  useEffect(() => {
-    if (navigateTo) {
-      navigate(navigateTo, { replace: true });
-      setNavigateTo(null); // Reset after navigation
-    }
-  }, [navigateTo, navigate]);
   const onClick = () => {
-    setNavigateTo(to);
+    navigate(to, { replace: true })
   };
-
-  const isActive = isLinkActive(location.pathname, to);
-  const buttonClassName = `${className || ''} ${isActive ? 'active' : ''}`.trim();
-
-  return (
-    <button onClick={onClick} className={buttonClassName}>
-      {children}
-    </button>
-  );
-}
+  return <button onClick={onClick} className={className}>{children}</button>;
+};
 

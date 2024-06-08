@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Friends } from "../types/shared";
 import { loadFriends } from "../utils/friendsUtils";
 
+
 export const useGetFriends = (userId?: string) => {
   const [friends, setFriends] = useState<Array<Friends> | null>();
   const [loading, setLoading] = useState(false);

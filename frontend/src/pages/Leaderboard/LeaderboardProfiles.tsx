@@ -9,7 +9,6 @@ interface LeaderboardProfilesProps {
 }
 
 const LeaderboardProfiles = ({ leaderboard }: LeaderboardProfilesProps) => {
-  console.log("Leaderboard data:", leaderboard);
   return (
     <div id="leadProfile">
       {leaderboard && Array.isArray(leaderboard) ? <Item leaderboard={leaderboard} /> : <p>No leaderboard data available.</p>}

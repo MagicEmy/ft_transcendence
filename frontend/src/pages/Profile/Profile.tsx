@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useParams, NavLink } from "react-router-dom";
+import React, { useEffect, useState, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { addFriend, deleteFriend } from "../../utils/friendsUtils";
 import { Friends, } from "../../types/shared";
 import useStorage from "../../hooks/useStorage";
@@ -14,7 +14,8 @@ export const Profile = () => {
 
   const { userId } = useParams<{ userId?: string }>();
   const [userIdStorage, ,] = useStorage<string>('userId', '');
-  const userIdOrMe = userId || userIdStorage;
+  const userIdOrMe = useMemo(() => userId || userIdStorage, [userId, userIdStorage]);
+
   const { profile } = useGetProfile(userIdOrMe);
   const { userStatus } = useGetUserStatus(userIdOrMe);
   const { avatar: avatarUrl, isLoading: avatarLoading } = useGetAvatar(userIdOrMe);
@@ -23,8 +24,6 @@ export const Profile = () => {
   const { friends: loggedUserFriends } = useGetFriends(userIdStorage);
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe);
   const [friends, setFriends] = useState<Friends[]>([]);
-
-  console.log(`IN PROFILE userIdStorage - ${userIdStorage}`)
 
   useEffect(() => {
     if (userId && loggedUserFriends) {
@@ -55,7 +54,6 @@ export const Profile = () => {
     }
   };
 
-
   const userStatusIndicator = userStatus?.status;
 
   return (
@@ -71,7 +69,7 @@ export const Profile = () => {
                 <span>{userStatusIndicator}</span>
               </div>
               {userId && userId !== userIdStorage && (
-                <AddFriendButton onClick={handleFriendClick}>
+                <AddFriendButton onClick={handleFriendClick} className="button" >
                   {isFriend ? 'Delete Friend' : 'Add Friend'}
                 </AddFriendButton>
               )}

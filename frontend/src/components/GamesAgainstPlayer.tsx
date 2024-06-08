@@ -1,4 +1,3 @@
-// GamesAgainstBotStats.tsx
 import React from 'react';
 import StatItem from './StatItem';
 
@@ -10,7 +9,7 @@ interface TotalTimePlayed {
 	seconds: number;
 }
 
-interface GamesAgainstBot {
+interface gamesAgainstHuman {
 	totalPlayedGames: number;
 	wins: number;
 	losses: number;
@@ -20,30 +19,30 @@ interface GamesAgainstBot {
 }
 
 interface Profile {
-	gamesAgainstBot: GamesAgainstBot;
+	gamesAgainstHuman: gamesAgainstHuman;
 }
 
 interface GamesAgainstBotStatsProps {
 	profile?: Profile | null;
 }
 
-const GamesAgainstBotStats = ({ profile }: GamesAgainstBotStatsProps) => {
-	if (!profile || !profile.gamesAgainstBot) {
+const gamesAgainstHumanStats = ({ profile }: GamesAgainstBotStatsProps) => {
+	if (!profile || !profile.gamesAgainstHuman) {
 		return <span className="stat">No games played yet</span>;
 	}
 
-	const { totalPlayedGames, wins, losses, draws, maxScore, totalTimePlayed } = profile.gamesAgainstBot;
+	const { totalPlayedGames, wins, losses, draws, maxScore, totalTimePlayed } = profile.gamesAgainstHuman;
 	const { weeks, days, hours, minutes, seconds } = totalTimePlayed;
 
 	return (
 		<>
 			<div className="stat-column">
-				<span className="stat">Total played games <strong>{profile?.gamesAgainstBot?.totalPlayedGames}</strong></span>
-				<span className="stat">High score <strong>{profile?.gamesAgainstBot?.maxScore}</strong></span>
+				<span className="stat">Total played games <strong>{totalPlayedGames}</strong></span>
+				<span className="stat">High score <strong>{maxScore}</strong></span>
 			</div>
-			<StatItem label="Weeks" value={wins} />
-			<StatItem label="Weeks" value={draws} />
-			<StatItem label="Weeks" value={losses} />
+			<StatItem label="Wins" value={wins} />
+			<StatItem label="Draws" value={draws} />
+			<StatItem label="Losses" value={losses} />
 			<h4 className='profile-text-dark'>Total time played against bot</h4>
 			<div className="item info">
 				<StatItem label="Weeks" value={weeks} />
@@ -56,4 +55,4 @@ const GamesAgainstBotStats = ({ profile }: GamesAgainstBotStatsProps) => {
 	);
 };
 
-export default GamesAgainstBotStats;
+export default gamesAgainstHumanStats;

@@ -38,8 +38,8 @@ const GamesAgainstBotStats = ({ profile }: GamesAgainstBotStatsProps) => {
 	return (
 		<>
 			<div className="stat-column">
-				<span className="stat">Total played games <strong>{profile?.gamesAgainstBot?.totalPlayedGames}</strong></span>
-				<span className="stat">High score <strong>{profile?.gamesAgainstBot?.maxScore}</strong></span>
+				<span className="stat">Total played games <strong>{totalPlayedGames}</strong></span>
+				<span className="stat">High score <strong>{maxScore}</strong></span>
 			</div>
 			<StatItem label="Wins" value={wins} />
 			<StatItem label="Draws" value={draws} />
