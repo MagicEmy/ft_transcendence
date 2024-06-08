@@ -45,7 +45,6 @@ export class AuthController {
 
   @MessagePattern('getTokens')
   getTokens(jwtPayloadDto: JwtPayloadDto): Observable<TokensDto> {
-    console.log('auth-service controller got', jwtPayloadDto);
     return of(this.authService.generateJwtTokens(jwtPayloadDto));
   }
 
