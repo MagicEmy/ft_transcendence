@@ -7,7 +7,7 @@ export const loadFriends = async (userId: string): Promise<Friends[] | undefined
     const response = await fetch(`http://localhost:3001/friends/${userId}`, {
       method: 'GET',
       headers: {
-      'Content-Type': 'application/json'
+        'Content-Type': 'application/json'
       },
       credentials: 'include'
     });
@@ -18,7 +18,7 @@ export const loadFriends = async (userId: string): Promise<Friends[] | undefined
     const friends: Friends[] = await response.json();
     return friends;
   } catch (error) {
-    console.error('Error loading friends:', error);
+    console.error('Error loading friends json:', error);
   }
 };
 
@@ -76,6 +76,7 @@ export const deleteFriend = async (userId: string, friendId: string): Promise<vo
     }
 
     const data = await response.json();
+    return data;
     console.log('Friend deleted:', data);
   } catch (error) {
     console.error('Error deleting friend:', error);

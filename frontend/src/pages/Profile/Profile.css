@@ -54,6 +54,11 @@
 
 }
 
+.profile .columnsWrapper{
+  display: flex;
+  flex-direction: row;
+}
+
 .profile .flex .item{
   display: flex;
   align-items: center;
@@ -136,8 +141,8 @@
 
 .friends {
     margin-top: 10px;
-    border: 1px solid #a09df0;
-    width: 600px;
+
+    width: 100%;
     flex-direction: column;
     padding: 10px;
   }
