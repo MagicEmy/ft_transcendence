@@ -6,7 +6,6 @@ import UserContext, { IUserContext } from '../context/UserContext';
 import useStorage from "../hooks/useStorage";
 import { loadProfileAvatar } from '../utils/profileUtils';
 import { NavigationButton } from './NavigationButton';
-import { NavigateAvatar } from './NavigateAvatar';
 
 export const Navbar = () => {
   const { userNameContext, avatarContext, setAvatarContext } = useContext<IUserContext>(UserContext);

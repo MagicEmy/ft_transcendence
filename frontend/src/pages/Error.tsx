@@ -1,6 +1,7 @@
 import React from 'react';
 import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import NavbarError from '../components/NavbarError';
+import classes from './../components/Navbar.module.css';
 import PageContent from '../components/PageContent';
 
 const Error = () => {
@@ -32,10 +33,10 @@ const Error = () => {
 
   return (
     <>
-      {/* <Navbar /> */}
+      <NavbarError />
       <PageContent title={title}>
         <p className='errror'> {message}</p>
-        <button onClick={() => {
+        <button className={classes.button} onClick={() => {
           navigate('/')
         }}>back</button>
       </PageContent>
