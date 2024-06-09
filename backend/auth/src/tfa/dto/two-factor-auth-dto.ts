@@ -1,4 +1,4 @@
-export class TwoFactorAuthDto{
-    userId: string;
-    secret: string;
+export class TwoFactorAuthDto {
+  userId: string;
+  code: string;
 }

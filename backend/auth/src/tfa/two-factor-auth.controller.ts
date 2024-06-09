@@ -22,8 +22,7 @@ export class TwoFactorAuthController {
   ) {
     const isCodeValid =
       await this.authenticationService.isTwoFactorAuthenticationCodeValid(
-        twoFactorAuthDto.secret,
-        twoFactorAuthDto.userId,
+        twoFactorAuthDto,
       );
     if (!isCodeValid) {
       await this.authenticationService.disableTwoFactorAuthentication(
@@ -33,18 +32,17 @@ export class TwoFactorAuthController {
     }
   }
 
-  @Post('authenticate')
-  async authenticate(@Body() twoFactorAuthDto: TwoFactorAuthDto) {
-    const isCodeValid =
-      await this.authenticationService.isTwoFactorAuthenticationCodeValid(
-        twoFactorAuthDto.secret,
-        twoFactorAuthDto.userId,
-      );
+//   @Post('authenticate')
+//   async authenticate(@Body() twoFactorAuthDto: TwoFactorAuthDto) {
+//     const isCodeValid =
+//       await this.authenticationService.isTwoFactorAuthenticationCodeValid(
+//         twoFactorAuthDto,
+//       );
 
-    if (!isCodeValid) {
-      throw new UnauthorizedException('Wrong authentication code');
-    }
-  }
+//     if (!isCodeValid) {
+//       throw new UnauthorizedException('Wrong authentication code');
+//     }
+//   }
 
   @Post('disable')
   async disableTwoFactorAuthentication(@Body() userId: string) {

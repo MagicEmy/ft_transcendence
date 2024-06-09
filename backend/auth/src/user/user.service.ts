@@ -29,6 +29,12 @@ export class UserService {
     return this.userRepository.createUser(createUserDto);
   }
 
+  async getUserById(userId: string): Promise<User> {
+    return this.userRepository.findOneBy({
+      user_id: userId,
+    });
+  }
+
   async getUserByIntraLogin(intraLogin: string): Promise<User> {
     return this.userRepository.findOneBy({
       intra_login: intraLogin,

@@ -10,6 +10,9 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { HttpModule } from '@nestjs/axios';
+import { TfaStrategy } from './utils/tfa-strategy';
+import { TwoFactorAuthService } from 'src/tfa/two-factor-auth.service';
+import { TfaRepository } from 'src/tfa/tfa.repository';
 
 @Module({
   imports: [
@@ -40,6 +43,9 @@ import { HttpModule } from '@nestjs/axios';
     ConfigService,
     UserService,
     UserRepository,
+    TfaStrategy,
+    TwoFactorAuthService,
+    TfaRepository,
   ],
   exports: [PassportModule],
 })

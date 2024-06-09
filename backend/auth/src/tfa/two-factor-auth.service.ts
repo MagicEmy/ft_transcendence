@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { TfaRepository } from './tfa.repository';
 import { Tfa } from './tfa.entity';
 import { CreareTFADto } from './dto/create-tfa-dto';
+import { TwoFactorAuthDto } from './dto/two-factor-auth-dto';
 
 @Injectable()
 export class TwoFactorAuthService {
@@ -26,14 +27,16 @@ export class TwoFactorAuthService {
   }
 
   async isTwoFactorAuthenticationCodeValid(
-    twoFactorAuthenticationCode: string,
-    userId: string,
-  ) {
+    twoFactorAuthDto: TwoFactorAuthDto,
+  ): Promise<boolean> {
     return authenticator.verify({
-      token: twoFactorAuthenticationCode,
-      secret: await this.getTwoFactorAuthenticationSecret(userId),
+      token: twoFactorAuthDto.code,
+      secret: await this.getTwoFactorAuthenticationSecret(
+        twoFactorAuthDto.userId,
+      ),
     });
   }
+
   async disableTwoFactorAuthentication(userId: string) {
     await this.tfaRepository.disableTwoFactorAuthentication(userId);
   }
@@ -61,5 +64,9 @@ export class TwoFactorAuthService {
     userId: string,
   ): Promise<string> {
     return await this.tfaRepository.getTwoFactorAuthenticationSecret(userId);
+  }
+
+  async createTfaRecord(userId: string): Promise<Tfa> {
+    return this.tfaRepository.createTfaRecord(userId);
   }
 }
