@@ -1,4 +1,4 @@
-import { createBrowserRouter, createRoutesFromElements } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import Layout from './components/Layout';
 import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard';
@@ -10,20 +10,15 @@ import Error from './pages/Error';
 import PrivateRoute from './components/PrivateRoute';
 import { UserProvider } from './context/UserContext';
 
-// const router = createBrowserRouter(
-//   createRoutesFromElements(
-//     <Route
-//   )
-// )
+
 const router = createBrowserRouter([
 
   {
     path: '/',
-    // element: <PrivateRoute />,
     errorElement: <Error />,
     children: [
       { index: true, element: <Login /> },
-      // { path: 'twofa', element: <TwoFA /> },
+      // { path: 'tfa', element: <TwoFA /> },
       {
         path: '/',
         element:

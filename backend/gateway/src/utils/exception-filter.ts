@@ -6,9 +6,10 @@ import { Observable, throwError } from 'rxjs';
 export class RpcToHttpExceptionFilter implements ExceptionFilter {
   catch(exception: RpcException, host: ArgumentsHost) {
 	console.log('RpcToHttp filter triggered');
+  console.log('exception: ', exception);
     const error: any = exception.getError();
     const response = host.switchToHttp().getResponse();
-    response.status(error.statusCode || error.status).json(error);
+    response.status(error?.statusCode || error?.status).json(error);
   }
 }
 
