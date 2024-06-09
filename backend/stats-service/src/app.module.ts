@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configValidationSchema } from './config.schema';
 import { Stats } from './stats/stats.entity';
+import { User } from './stats/user.entity';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { Stats } from './stats/stats.entity';
         synchronize: true,
       }),
     }),
-    TypeOrmModule.forFeature([Stats]),
+    TypeOrmModule.forFeature([Stats, User]),
   ],
   controllers: [AppController],
   providers: [StatsService, StatsRepository],

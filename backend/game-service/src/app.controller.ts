@@ -4,9 +4,9 @@ import { Observable, of } from 'rxjs';
 import { GameService } from './game/game.service';
 import { GameHistoryDto } from './game/dto/game-history-dto';
 import { GameStatus } from './game/enum/kafka.enum';
-import { UserIdGamesDto } from './game/dto/user-id-games-dto';
 import { IGameStatus } from './game/interface/kafka.interface';
 import { Game } from './game/game.entity';
+import { GamesAgainstUserIdDto } from './game/dto/games-against-userid-dto';
 
 @Controller()
 export class AppController {
@@ -29,7 +29,7 @@ export class AppController {
   @MessagePattern('getMostFrequentOpponent')
   async getMostFrequentOpponent(
     userId: string,
-  ): Promise<Observable<UserIdGamesDto[]>> {
+  ): Promise<Observable<GamesAgainstUserIdDto[]>> {
     return of(await this.gameService.mostFrequentOpponent(userId));
   }
 

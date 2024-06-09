@@ -1,5 +1,12 @@
 import { UserStatusEnum } from './enum/kafka.enum';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { User } from './user.entity';
 
 @Entity({ name: 'user_status' })
 export class UserStatus {
@@ -11,4 +18,8 @@ export class UserStatus {
 
   @Column()
   status: UserStatusEnum;
+
+  @OneToOne(() => User, (user) => user.user_id, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

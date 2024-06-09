@@ -1,4 +1,4 @@
 export class GamesAgainstUserIdDto {
-  userId: string;
+  userId: string | null;
   totalGames: number;
 }

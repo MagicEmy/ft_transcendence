@@ -15,7 +15,10 @@ import {
 import { IGameStatus } from './interface/kafka.interface';
 import { FriendshipDto } from './dto/friendship-dto';
 import { GameStatus } from './enum/kafka.enum';
-import { UserIdOpponentDto } from './dto/games-against-dto';
+import {
+  GamesAgainstUserIdDto,
+  UserIdOpponentDto,
+} from './dto/games-against-dto';
 import {
   GameStatsDto,
   MostFrequentOpponentDto,
@@ -24,7 +27,6 @@ import {
 } from './dto/profile-dto';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
-import { UserIdGamesDto } from './dto/user-id-games-dto';
 import { AvatarDto } from './dto/avatar-dto';
 import { GameHistoryDto } from './dto/game-history-dto';
 import { Opponent } from './enum/opponent.enum';
@@ -88,7 +90,9 @@ export class AppService {
     );
   }
 
-  getLeaderboardPositionAndTotalPoints(userId: string): Observable<PositionTotalPointsDto> {
+  getLeaderboardPositionAndTotalPoints(
+    userId: string,
+  ): Observable<PositionTotalPointsDto> {
     const pattern = 'getPositionAndTotalPoints';
     const payload = userId;
     return this.statsService
@@ -102,10 +106,10 @@ export class AppService {
 
   //   USER
 
-  getUserName(userId: string): Observable<string> {
-	if (userId === Opponent.BOT) {
-		return of(Opponent.BOT);
-	}
+  getUserName(userId: string | null): Observable<string> {
+    if (!userId) {
+      return of(Opponent.BOT);
+    }
     const pattern = 'getUserName';
     const payload = userId;
     return this.userService
@@ -204,30 +208,32 @@ export class AppService {
   ): Observable<MostFrequentOpponentDto[]> {
     const pattern = 'getMostFrequentOpponent';
     const payload = userId;
-    return this.gameService.send<UserIdGamesDto[]>(pattern, payload).pipe(
-      switchMap((opponents: UserIdGamesDto[]) =>
-        iif(
-          () => opponents.length > 0,
-          forkJoin(
-            opponents.map((opponent: UserIdGamesDto) =>
-              from(
-                this.getUserName(opponent.userId).pipe(
-                  map((userName) => {
-                    const mfo: MostFrequentOpponentDto = {
-                      userId: opponent.userId,
-                      userName: userName,
-                      games: Number(opponent.games),
-                    };
-                    return mfo;
-                  }),
+    return this.gameService
+      .send<GamesAgainstUserIdDto[]>(pattern, payload)
+      .pipe(
+        switchMap((opponents: GamesAgainstUserIdDto[]) =>
+          iif(
+            () => opponents.length > 0,
+            forkJoin(
+              opponents.map((opponent: GamesAgainstUserIdDto) =>
+                from(
+                  this.getUserName(opponent.userId).pipe(
+                    map((userName) => {
+                      const mfo: MostFrequentOpponentDto = {
+                        userId: opponent.userId,
+                        userName: userName,
+                        games: Number(opponent.totalGames),
+                      };
+                      return mfo;
+                    }),
+                  ),
                 ),
               ),
             ),
+            of([]),
           ),
-          of([]),
         ),
-      ),
-    );
+      );
   }
 
   //   FRIENDS

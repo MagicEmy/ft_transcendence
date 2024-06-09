@@ -51,4 +51,19 @@ export class TfaRepository extends Repository<Tfa> {
     const tfa = await this.findOne({ where: { user_id: user_id } });
     return tfa.is_enabled;
   }
+
+  async createTfaRecord(userId: string): Promise<Tfa> {
+    const tfa = this.create({
+      user_id: userId,
+      secret: null,
+      is_enabled: false,
+    });
+    try {
+      this.save(tfa);
+      return tfa;
+    } catch (error) {
+      console.log('TFA repository caught', error);
+      throw error;
+    }
+  }
 }

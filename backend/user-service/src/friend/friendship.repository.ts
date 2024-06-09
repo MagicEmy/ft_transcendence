@@ -3,7 +3,10 @@ import { Friendship } from './friendship.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FriendshipDto } from './dto/friendship-dto';
 import { RpcException } from '@nestjs/microservices';
-import { InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
 export class FriendshipRepository extends Repository<Friendship> {
   constructor(
@@ -25,9 +28,18 @@ export class FriendshipRepository extends Repository<Friendship> {
     try {
       await this.save(friend);
     } catch (error) {
-      if (error.code !== '23505') {
+      if (error.code === '23503') {
+        // '23503' means query error (constraint violation)
+        throw new RpcException(
+          new BadRequestException(error.driverError + '; ' + error.detail),
+        );
+      } else if (error.code !== '23505') {
         // '23505' means duplicate entry
-        throw new RpcException(new InternalServerErrorException());
+        throw new RpcException(
+          new InternalServerErrorException(
+            error.driverError + '; ' + error.detail,
+          ),
+        );
       }
     }
     return friendshipDto;
@@ -36,7 +48,7 @@ export class FriendshipRepository extends Repository<Friendship> {
   async getFriends(userId: string): Promise<string[]> {
     const friendsRaw = await this.createQueryBuilder('friendships')
       .select('friend_id')
-      .where('user_id LIKE :userId', { userId: userId })
+      .where('user_id = :userId', { userId: userId })
       .getRawMany();
     if (friendsRaw.length === 0) {
       return [];

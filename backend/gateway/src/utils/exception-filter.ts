@@ -1,6 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { Observable, throwError } from 'rxjs';
 
 @Catch(RpcException)
 export class RpcToHttpExceptionFilter implements ExceptionFilter {
@@ -12,4 +11,3 @@ export class RpcToHttpExceptionFilter implements ExceptionFilter {
     response.status(error?.statusCode || error?.status).json(error);
   }
 }
-

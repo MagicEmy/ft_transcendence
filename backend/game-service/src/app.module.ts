@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Game } from './game/game.entity';
 import { configValidationSchema } from './config.schema';
+import { User } from './game/user.entity';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { configValidationSchema } from './config.schema';
         synchronize: true,
       }),
     }),
-    TypeOrmModule.forFeature([Game]),
+    TypeOrmModule.forFeature([Game, User]),
   ],
   controllers: [AppController],
   providers: [GameService, GameRepository],

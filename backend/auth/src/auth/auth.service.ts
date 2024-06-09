@@ -12,6 +12,8 @@ import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
 import { CookieTokenDto } from './dto/cookie-token-dto';
 import { CookieAndCookieNameDto } from './dto/cookie-and-cookie-name-dto';
 import { UserIdNameLoginDto } from 'src/user/dto/user-id-name-login-dto';
+import { TwoFactorAuthService } from 'src/tfa/two-factor-auth.service';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +21,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly tfaService: TwoFactorAuthService,
     @Inject('AUTH_SERVICE') private readonly statsClient: ClientKafka,
   ) {}
 
@@ -40,6 +43,7 @@ export class AuthService {
         });
 
         this.userService.createAvatarRecord(user.user_id, avatarUrl);
+        this.tfaService.createTfaRecord(user.user_id);
       } catch (error) {
         return null;
       }
@@ -52,6 +56,10 @@ export class AuthService {
       });
     }
     return user;
+  }
+
+  async getUser(userId: string): Promise<User> {
+    return this.userService.getUserById(userId);
   }
 
   login(user: User): TokensDto {
@@ -146,5 +154,26 @@ export class AuthService {
         });
     }
     return tokenValue;
+  }
+
+  addCookiesToResponse(resp: Response, user): Response {
+    const tokens = this.login(user);
+    // setting the jwt tokens in cookies
+    const accessCookie = this.getCookieWithTokens({
+      cookieName: this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
+      token: tokens.jwtAccessToken,
+      expirationTime: this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
+    });
+    const refreshCookie = this.getCookieWithTokens({
+      cookieName: this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
+      token: tokens.jwtRefreshToken,
+      expirationTime: this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
+    });
+    resp.setHeader('Set-Cookie', [accessCookie, refreshCookie]);
+    return resp;
+  }
+
+  async isTfaEnabled(userId): Promise<boolean> {
+    return this.tfaService.isTwoFactorAuthenticationEnabled(userId);
   }
 }

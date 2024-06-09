@@ -23,8 +23,16 @@ export class UserService {
     private tokenRepository: TokenRepository,
   ) {}
 
+  // User
+
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     return this.userRepository.createUser(createUserDto);
+  }
+
+  async getUserById(userId: string): Promise<User> {
+    return this.userRepository.findOneBy({
+      user_id: userId,
+    });
   }
 
   async getUserByIntraLogin(intraLogin: string): Promise<User> {
@@ -42,6 +50,8 @@ export class UserService {
     }
     return this.userRepository.findOneBy({ user_id: token.user_id });
   }
+
+  //   Avatar
 
   async getAvatarFrom42Api(
     avatarUrl: string,
@@ -70,6 +80,8 @@ export class UserService {
       avatar: response.image,
     });
   }
+
+  //   Token
 
   async saveRefreshTokenInDB(refreshTokenDto: RefreshTokenDto): Promise<Token> {
     return this.tokenRepository.replaceOrCreateRefreshToken(refreshTokenDto);
