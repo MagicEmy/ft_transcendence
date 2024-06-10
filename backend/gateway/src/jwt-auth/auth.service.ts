@@ -1,15 +1,6 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import {
-  Observable,
-  catchError,
-  from,
-  map,
-  of,
-  switchMap,
-  tap,
-  throwError,
-} from 'rxjs';
+import { Observable, catchError, from, map, switchMap, throwError } from 'rxjs';
 import { CookieAndCookieNameDto } from 'src/dto/cookie-and-cookie-name-dto';
 import { CookieTokenDto } from 'src/dto/cookie-token-dto';
 import { JwtPayloadDto } from 'src/dto/jwt-payload-dto';
@@ -58,18 +49,16 @@ export class AuthService {
       );
   }
 
-  validateRefreshToken(
-    refreshToken: string,
-    secret: string,
-  ): Observable<UserIdNameLoginDto | null> {
+  validateRefreshToken(refreshToken: string, secret: string): any {
     try {
-      jwt.verify(refreshToken, secret);
-      return this.getUserByRefreshToken(refreshToken);
+      const user = jwt.verify(refreshToken, secret);
+      console.log('verify output:', user);
+      return user;
     } catch (error) {
       this.deleteRefreshTokenFromDB({
         refreshToken: refreshToken,
       });
-      return of(null);
+      throw error;
     }
   }
 

@@ -95,7 +95,6 @@ export class AppController {
   ): Observable<ProfileDto> {
     return forkJoin({
       userInfo: this.appService.getUserIdNameStatus(userId),
-      friends: this.appService.getFriends(userId),
       leaderboard: this.appService.getLeaderboardPositionAndTotalPoints(userId),
       totalPlayers: this.appService.getTotalNoOfUsers(),
       gamesAgainstHuman: this.appService.getGamesAgainst({
@@ -110,7 +109,6 @@ export class AppController {
     }).pipe(
       map((result) => ({
         userInfo: result.userInfo,
-        friends: result.friends,
         leaderboard: result.leaderboard,
         totalPlayers: result.totalPlayers,
         gamesAgainstHuman: result.gamesAgainstHuman,

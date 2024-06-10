@@ -2,6 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreareTFADto } from '../user/dto/create-tfa-dto';
 import { Repository } from 'typeorm';
 import { Tfa } from './tfa.entity';
+import { NotFoundException } from '@nestjs/common';
 
 export class TfaRepository extends Repository<Tfa> {
   constructor(@InjectRepository(Tfa) private tfaRepository: Repository<Tfa>) {
@@ -49,6 +50,9 @@ export class TfaRepository extends Repository<Tfa> {
 
   async isTwoFactorAuthenticationEnabled(user_id: string): Promise<boolean> {
     const tfa = await this.findOne({ where: { user_id: user_id } });
+    if (!tfa) {
+      throw new NotFoundException(`No Tfa record found for user ${user_id}`);
+    }
     return tfa.is_enabled;
   }
 
