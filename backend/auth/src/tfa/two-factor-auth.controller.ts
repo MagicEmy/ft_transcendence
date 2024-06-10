@@ -1,4 +1,11 @@
-import { Controller, Body, Post, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Post,
+  UnauthorizedException,
+  Query,
+  Get,
+} from '@nestjs/common';
 import { TwoFactorAuthService } from './two-factor-auth.service';
 import { TwoFactorAuthDto } from './dto/two-factor-auth-dto';
 
@@ -32,20 +39,27 @@ export class TwoFactorAuthController {
     }
   }
 
-//   @Post('authenticate')
-//   async authenticate(@Body() twoFactorAuthDto: TwoFactorAuthDto) {
-//     const isCodeValid =
-//       await this.authenticationService.isTwoFactorAuthenticationCodeValid(
-//         twoFactorAuthDto,
-//       );
+  //   @Post('authenticate')
+  //   async authenticate(@Body() twoFactorAuthDto: TwoFactorAuthDto) {
+  //     const isCodeValid =
+  //       await this.authenticationService.isTwoFactorAuthenticationCodeValid(
+  //         twoFactorAuthDto,
+  //       );
 
-//     if (!isCodeValid) {
-//       throw new UnauthorizedException('Wrong authentication code');
-//     }
-//   }
+  //     if (!isCodeValid) {
+  //       throw new UnauthorizedException('Wrong authentication code');
+  //     }
+  //   }
 
   @Post('disable')
   async disableTwoFactorAuthentication(@Body() userId: string) {
     await this.authenticationService.disableTwoFactorAuthentication(userId);
+  }
+
+  @Get('isEnabled')
+  async isTwoFactorAuthenticationEnabled(
+    @Query('id') userId: string,
+  ): Promise<boolean> {
+    return this.authenticationService.isTwoFactorAuthenticationEnabled(userId);
   }
 }
