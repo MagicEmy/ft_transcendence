@@ -48,7 +48,6 @@ export const addFriend = async (userId: string, friendId: string): Promise<void>
     }
 
     const data = await response.json();
-    console.log('Friend added:', data);
     return data;
   } catch (error) {
     console.error('Error adding friend:', error);

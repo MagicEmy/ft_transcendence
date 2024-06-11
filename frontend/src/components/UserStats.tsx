@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useContext} from 'react';
 import { useGetProfile } from '../hooks';
 import { NavLink, useParams } from 'react-router-dom';
-import useStorage from '../hooks/useStorage';
+import UserContext, { IUserContext } from '../context/UserContext';
+
 import GamesAgainstBotStats from './GamesAgainstBot';
 
 export const UserStats = () => {
+  const { userIdContext } = useContext<IUserContext>(UserContext);
   const { userId } = useParams<{ userId?: string }>();
-  const [userIdStorage, ,] = useStorage<string>('userId', '');
-  const userIdOrMe = userId || userIdStorage;
+  const userIdOrMe = userId || userIdContext;
   const { profile } = useGetProfile(userIdOrMe)
 
   return (

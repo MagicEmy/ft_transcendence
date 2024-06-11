@@ -1,6 +1,7 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, RouteObject } from 'react-router-dom';
 import Layout from './components/Layout';
 import Login from './pages/Login/Login';
+import TwoFA from './pages/TwoFA/TwoFA';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile/Profile';
 import Leaderboard from './pages/Leaderboard/Leaderboard';
@@ -10,38 +11,71 @@ import Error from './pages/Error';
 import PrivateRoute from './components/PrivateRoute';
 import { UserProvider } from './context/UserContext';
 
-
-const router = createBrowserRouter([
-
+// Define routes separately for clarity
+const publicRoutes: RouteObject[] = [
   {
     path: '/',
-    errorElement: <Error />,
-    children: [
-      { index: true, element: <Login /> },
-      // { path: 'tfa', element: <TwoFA /> },
-      {
-        path: '/',
-        element:
-          <UserProvider>
-            <PrivateRoute>
-              <Layout />
-            </PrivateRoute>
-          </UserProvider>
-        ,
-        children: [
-          { path: 'dashboard', element: <Dashboard /> },
-          { path: 'profile', element: <Profile /> },
-          { path: 'profile/:userId', element: <Profile /> },
-          { path: 'leaderboard', element: <Leaderboard /> },
-          { path: 'settings', element: <Settings /> },
-          { path: 'game', element: <Game /> },
-        ],
-      },
-    ],
+    element: <Login />,
+  },
+  {
+    path: '/twofa',
+    element: <TwoFA />,
   },
   {
     path: '*',
     element: <Error />,
+  },
+];
+
+const privateRoutes: RouteObject[] = [
+  {
+    path: 'dashboard',
+    element: <Dashboard />,
+  },
+  {
+    path: 'profile',
+    element: <Profile />,
+    children: [
+      {
+        path: ':userId',
+        element: <Profile />,
+      },
+      {
+        path: '*',
+        element: <Error />,
+      },
+    ],
+  },
+  {
+    path: 'leaderboard',
+    element: <Leaderboard />,
+  },
+  {
+    path: 'settings',
+    element: <Settings />,
+  },
+  {
+    path: 'game',
+    element: <Game />,
+  },
+  {
+    path: '*',
+    element: <Error />, // Catch all invalid paths under authenticated routes
+  },
+];
+
+const router = createBrowserRouter([
+  ...publicRoutes,
+  {
+    path: '/',
+    element: (
+      <UserProvider>
+        <PrivateRoute>
+          <Layout />
+        </PrivateRoute>
+      </UserProvider>
+    ),
+    children: privateRoutes,
   },
 ]);
 

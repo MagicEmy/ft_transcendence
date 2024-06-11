@@ -6,8 +6,8 @@
   }
 
 .profile {
-    border: 10px solid #0a04ad;
-    border-radius: 10px;
+    border: 2px solid #0a04ad;
+    border-radius: 30px;
     height: auto;
     margin-top: 3em;
     padding: 10px;
@@ -16,6 +16,8 @@
     margin-bottom: 10em;
     background-color: #dee5f4;
     box-sizing: border-box;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+
   }
 
 /* .main::-webkit-scrollbar, */
@@ -71,6 +73,7 @@
   height: 100px;
   object-fit: cover;
   border-radius: 50%;
+  box-shadow: 8px 5px 5px #0d045a;
 }
 
 .profile .flex .info {
@@ -82,14 +85,15 @@
   margin-top: 10px;
   margin-bottom: 10px;
   font-size: 1.5em;
+  text-shadow: #0d045a;
 }
 
 .profile-text-dark {
   color: #0d045a;
   margin-top: 10px;
   margin-bottom: 10px;
-  border: 1px solid #a09df0;
-
+  border: 2px solid #a09df0;
+  box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
 }
 
 .status-indicator {
@@ -171,7 +175,7 @@
 
 .friends .button:hover,
 .friends .button.active {
-    background-color: #130682;
+    background-color: #1e09d6;
     color: #ffffff;
     padding:0.3em 2.5em;
     border-radius: 30px;
@@ -211,20 +215,16 @@
   }
 
   .userMatchHistory {
-    margin-top: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+	  gap: 1em;
+    border: 2px solid #a09df0;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
     padding: 10px;
   }
 
-  .title {
-    margin-left: 40px;
-    color: #0a04ad;
-    font-size: 2em;
-    }
 
-  .gameHistory {
-    color: #130682;
-    padding: 10px;
-  }
   .gameHistory .player {
     display: flex;
     border: 1px solid #f09dea;
@@ -243,6 +243,11 @@
     align-items: center;
     font-size: 16px; /* Adjust the font size as needed */
   }
+  .title {
+    color: #0a04ad;
+    font-size: 2em;
+    }
+
 
   .player-info {
     display: flex;

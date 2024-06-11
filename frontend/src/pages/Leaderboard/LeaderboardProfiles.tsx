@@ -43,7 +43,9 @@ const Item = ({ leaderboard }: ItemProps) => {
                 } >
                 <h3 className='text'>{value.userName}</h3>
               </NavLink>
-              <span className="points">Total points:{value.pointsTotal}</span>
+              <div className="info">
+              <span className="total-points">Total points:<span className="points">{value.pointsTotal}</span></span>
+              </div>
               <div className="stats">
                 <span className="stat"><strong>{value.wins}</strong>Wins</span>
                 <span className="stat"><strong>{value.draws}</strong>Draws</span>
@@ -51,7 +53,7 @@ const Item = ({ leaderboard }: ItemProps) => {
               </div>
             </div>
           </div>
-          <span className="item">
+          <span className="rank">
             <span>{value.rank}</span>
           </span>
         </div>

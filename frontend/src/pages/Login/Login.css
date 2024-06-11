@@ -11,6 +11,17 @@
 	border : 10px solid white;
 	position: relative; /* Needed for absolute positioning of line */
   }
+  .error-bar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	background-color: rgba(255, 0, 0, 0.7); /* red with 70% opacity */
+	color: white;
+	text-align: center;
+	padding: 10px 0;
+	font-size: 16px;
+  }
 
   .login-container::before {
 	 content: '';
@@ -43,7 +54,7 @@
 	margin-bottom: 5rem ;
   }
 
-  .button-85 {
+  .button-login {
 	/* padding: 0.6em 2em; */
 	padding: 1.5em 4.5em;
 	border: none;
@@ -63,7 +74,7 @@
 	font-weight: bold;
   }
 
-  .button-85:before {
+  .button-login:before {
 	content: "";
 	background: linear-gradient(
 	  45deg,
@@ -86,12 +97,12 @@
 	-webkit-filter: blur(5px);
 	width: calc(100% + 5px);
 	height: calc(100% + 5px);
-	animation: glowing-button-85 20s linear infinite;
+	animation: glowing-button-login 20s linear infinite;
 	transition: opacity 0.3s ease-in-out;
 	border-radius: 30px;
   }
 
-  @keyframes glowing-button-85 {
+  @keyframes glowing-button-login {
 	0% {
 	  background-position: 0 0;
 	}
@@ -103,7 +114,7 @@
 	}
   }
 
-  .button-85:after {
+  .button-login:after {
 	z-index: -1;
 	content: "";
 	position: absolute;
@@ -143,4 +154,23 @@
 	75% {
 	  background-position: 0 100%, 100% 0, 100% 5px;
 	}
+  }
+
+  .error-bar {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    text-align: center;
+}
+
+
+  .errortext {
+	color: red;
+	font-size: 1rem;
+	background: #fff;
+	padding: 10px 20px;
+	border: 1px solid red;
+	border-radius: 5px;
   }

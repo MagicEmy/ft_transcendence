@@ -8,7 +8,7 @@ const Error = () => {
   const error = useRouteError();
   const navigate = useNavigate()
   let title = 'Error';
-  let message = 'An unknown error occurred';
+  let message = 'Page not found';
 
   if (isRouteErrorResponse(error)) {
     if (error.status === 404) {

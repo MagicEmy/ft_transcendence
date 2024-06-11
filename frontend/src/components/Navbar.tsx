@@ -3,13 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import classes from './Navbar.module.css';
 import LogoutButton from './LogoutButton';
 import UserContext, { IUserContext } from '../context/UserContext';
-import useStorage from "../hooks/useStorage";
 import { loadProfileAvatar } from '../utils/profileUtils';
 import { NavigationButton } from './NavigationButton';
 
 export const Navbar = () => {
-  const { userNameContext, avatarContext, setAvatarContext } = useContext<IUserContext>(UserContext);
-  const [userIdStorage, ,] = useStorage<string>('userId', '');
+  const { userIdContext, userNameContext, avatarContext, setAvatarContext } = useContext<IUserContext>(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,9 +20,9 @@ export const Navbar = () => {
     };
 
     const fetchAvatar = async () => {
-      if (userIdStorage) {
+      if (userIdContext) {
         try {
-          const url = await loadProfileAvatar(userIdStorage);
+          const url = await loadProfileAvatar(userIdContext);
           if (active) {
             cleanupPreviousAvatar();
             setAvatarContext(url || null);

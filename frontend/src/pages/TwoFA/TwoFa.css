@@ -1,0 +1,75 @@
+
+.loginTfa {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	height: 100vh;
+	background-color: #f0f2f5;
+  }
+
+  .tfa-title {
+	font-size: 2rem;
+	color: #333;
+	margin-bottom: 20px;
+  }
+
+  .tfa-form {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+  }
+
+  .input {
+	width: 300px;
+	height: 2.5rem;
+	font-size: 1rem;
+	margin-bottom: 20px;
+	padding: 0 10px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	box-sizing: border-box;
+  }
+
+  .input::placeholder {
+	font-size: 1rem;
+	color: #888;
+  }
+
+  .twoFaButton {
+	width: 300px;
+	border: none;
+	border-radius: 30px;
+	padding: 15px 30px;
+	background: linear-gradient(138deg, rgb(113, 153, 247) 36.7%, rgb(10, 4, 173) 84.4%);
+	color: #fff;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: transform 0.2s, box-shadow 0.2s;
+	box-sizing: border-box;
+  }
+
+  .twoFaButton:hover {
+	box-shadow: rgba(113, 153, 247, 0.2) 0 3px 15px inset, rgba(10, 4, 173, 0.91) 0 3px 5px, rgba(10, 4, 173, 0.91) 0 10px 13px;
+	transform: scale(1.05);
+  }
+
+.error-bar {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    text-align: center;
+}
+
+
+  .errortext {
+	color: red;
+	font-size: 1rem;
+	background: #fff;
+	padding: 10px 20px;
+	border: 1px solid red;
+	border-radius: 5px;
+  }

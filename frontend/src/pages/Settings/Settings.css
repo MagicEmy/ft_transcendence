@@ -7,14 +7,22 @@
   }
 
 .settings {
+	border : 2px solid #0a04ad;
 	border-radius: 30px;
-	height: 100%;
-	margin-top: 3em;
-	padding: 10px;
+    margin-top: 3em;
+	padding: 30px;
 	overflow-y: auto;
-	margin-bottom: 10em;
+	margin-bottom: 20em;
+	background-color: #dee5f4;
+	box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
 }
 
+.title {
+	display: flex;
+	justify-content: center;
+	color: #0d045a;
+	padding: 20px;
+}
 .settings .flex{
 	gap: 1em;
 	text-align: left;
@@ -23,13 +31,19 @@
 
 .settings .flex .item{
 	display: flex;
-	align-items: center;
-	gap: 1em;
-	padding: 30px;
+    width: 100%;
+	margin-top: 20px;
+    align-items: center;
+	gap: 2em;
+    border: 2px solid #a09df0;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+    padding: 10px;
 }
 
 .text{
 	color: #0d045a;
+	border: 2px solid #a09df0;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
 	margin-top: 10px;
 	margin-bottom: 10px;
 	font-size: 1.5em;
@@ -44,11 +58,12 @@
 	padding: 10px;
 }
 
-.settings .flex img{
-	width: 100px;
-	height: 100px;
-	object-fit: cover;
-	border-radius: 50%;
+.avatar {
+width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 8px 5px 5px #0d045a;
 }
 
 .name-container {
@@ -64,18 +79,15 @@ input[type="file"] {
 
 input[type="text"] {
 	margin-top: 10px;
-	margin-left: 55px;
+	margin-left: 5px;
 	padding: 10px;
 	border: 1px solid #ccc;
 	border-radius: 5px;
 }
 
-.Change2FA{
+.Change2FA {
 	display: flex;
 	flex-direction: row;
-	align-items: center;
-	margin-left: 30px;
-	margin-top: 20px;
 }
 
 .Info2fa {
@@ -86,6 +98,40 @@ input[type="text"] {
 
 .bi-qr-code-scan {
 	margin-right: 20px;
+
+}
+
+.qr-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-top: 20px;
+	border: none;
+  }
+
+  .qr-code {
+	max-width: 200px;
+	margin-bottom: 20px;
+	width: 200px;
+	border-radius: 0;
+	padding: 10px;
+  }
+
+.submit {
+	width: 150px;
+	border: none;
+	border-radius: 30px;
+	padding: 5px 20px;
+	background: linear-gradient(138deg, rgb(113, 153, 247) 36.7%, rgb(10, 4, 173) 84.4%);
+	color: #fff;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.submit:hover {
+	box-shadow: rgba(113, 153, 247, .2) 0 3px 15px inset, rgba(10, 4, 173, .91) 0 3px 5px, rgba(10, 4, 173, .91) 0 10px 13px;
+	transform: scale(1.05);
 }
 
 .TwoFA {
@@ -95,7 +141,7 @@ input[type="text"] {
 	align-items: center;
 	border: none;
 	border-radius: 30px;
-	padding: 15px 30px;
+	padding: 1px 30px;
 	background: linear-gradient(138deg, rgb(113, 153, 247) 36.7%, rgb(10, 4, 173) 84.4%, rgb(255, 255, 255) 119.7%);
 }
 
