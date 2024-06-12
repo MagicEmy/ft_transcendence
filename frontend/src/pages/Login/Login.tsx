@@ -7,16 +7,16 @@ const Login = () => {
   const [showError, setShowError] = useState(false)
 	const [errorName, setErrorName] = useState('')
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const status = urlParams.get('status');
+//   useEffect(() => {
+//     const urlParams = new URLSearchParams(window.location.search);
+//     const status = urlParams.get('status');
 
-    if (status) {
-      setErrorName('invalid username or password');
-      setShowError(true);
-      window.history.pushState({}, '', window.location.pathname);
-    }
-  }, []);
+//     if (status) {
+//       setErrorName('invalid username or password');
+//       setShowError(true);
+//       window.history.pushState({}, '', window.location.pathname);
+//     }
+//   }, []);
 
   const handleLogin = async (): Promise<void> => {
     window.location.href = LOGIN_AUTH0;
@@ -24,11 +24,11 @@ const Login = () => {
 
   return (
     <div className="login-container">
-       {showError && (
+       {/* {showError && (
 			<div className="error-bar">
 			  <p className="errortext">{errorName}</p>
 			</div>
-		  )}
+		  )} */}
     <main className="login-main">
       <img className="login-img" src={logo} alt="Logo" />
       <button className="button-login" onClick={handleLogin}>
