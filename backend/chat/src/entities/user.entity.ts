@@ -7,7 +7,7 @@ export class User implements UserDto {
     Object.assign(this, attrs);
   }
 
-  @PrimaryColumn({ type: 'uuid' })
+  @PrimaryColumn({ type: 'uuid', unique: true })
   userId: string;
 
   @Column()

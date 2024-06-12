@@ -28,9 +28,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = this.getRequest(context);
-    console.log(
-      `JWT AuthGuard triggered for target ${req.get('Host')}${req.url} with cookie ${req.get('cookie')}`,
-    );
     const resp: Response = context.switchToHttp().getResponse();
     try {
       await super.canActivate(context);

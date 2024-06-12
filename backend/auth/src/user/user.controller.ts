@@ -3,7 +3,7 @@ import { Body, Controller, Inject, Post } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user-dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
-import { ClientKafka, EventPattern, MessagePattern } from '@nestjs/microservices';
+import { ClientKafka, MessagePattern } from '@nestjs/microservices';
 import { of } from 'rxjs';
 
 @Controller('user')

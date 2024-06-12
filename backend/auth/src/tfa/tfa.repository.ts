@@ -1,5 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreareTFADto } from '../user/dto/create-tfa-dto';
+import { CreateTFADto } from '../user/dto/create-tfa-dto';
 import { Repository } from 'typeorm';
 import { Tfa } from './tfa.entity';
 import { NotFoundException } from '@nestjs/common';
@@ -12,7 +12,7 @@ export class TfaRepository extends Repository<Tfa> {
       tfaRepository.queryRunner,
     );
   }
-  async addTwoFactorAuthentication(createTfaDto: CreareTFADto): Promise<Tfa> {
+  async addTwoFactorAuthentication(createTfaDto: CreateTFADto): Promise<Tfa> {
     let tfa = await this.findOne({
       where: { user_id: createTfaDto.user_id },
     });
