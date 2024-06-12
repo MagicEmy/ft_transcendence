@@ -24,7 +24,10 @@ export class AuthService {
       .send<TokensDto>(pattern, payload)
       .pipe(
         catchError((error) =>
-          throwError(() => new RpcException(error.response)),
+          throwError(
+            () =>
+              new RpcException(error.response || 'An unknown error occurred'),
+          ),
         ),
       );
   }
@@ -44,7 +47,10 @@ export class AuthService {
       .send<string>(pattern, payload)
       .pipe(
         catchError((error) =>
-          throwError(() => new RpcException(error.response)),
+          throwError(
+            () =>
+              new RpcException(error.response || 'An unknown error occurred'),
+          ),
         ),
       );
   }
@@ -52,7 +58,6 @@ export class AuthService {
   validateRefreshToken(refreshToken: string, secret: string): any {
     try {
       const user = jwt.verify(refreshToken, secret);
-      console.log('verify output:', user);
       return user;
     } catch (error) {
       this.deleteRefreshTokenFromDB({
@@ -69,7 +74,10 @@ export class AuthService {
       .send<UserIdNameLoginDto>(pattern, payload)
       .pipe(
         catchError((error) =>
-          throwError(() => new RpcException(error.response)),
+          throwError(
+            () =>
+              new RpcException(error.response || 'An unknown error occurred'),
+          ),
         ),
       );
   }
