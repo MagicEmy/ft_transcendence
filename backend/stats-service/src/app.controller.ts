@@ -3,7 +3,7 @@ import { StatsService } from './stats/stats.service';
 import { GameStatus, KafkaTopic, PlayerInfo } from './stats/enum/kafka.enum';
 import { IGameStatus, IPlayerInfo } from './stats/interface/kafka.interface';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
-import { NewUserDto } from './stats/dto/new-user-dto';
+import { UserIdNameLoginDto } from './stats/dto/user-id-name-login-dto';
 import { UserIdOpponentDto } from './stats/dto/games-against-dto';
 import { GameStatsDto } from './stats/dto/game-stats-dto';
 import { Observable, of } from 'rxjs';
@@ -22,7 +22,7 @@ export class AppController {
   }
 
   @EventPattern(KafkaTopic.NEW_USER) //CHECKED
-  createStatsRowNewUser(data: NewUserDto): Promise<void> {
+  createStatsRowNewUser(data: UserIdNameLoginDto): Promise<void> {
     return this.statsService.createStatsRowNewUser(data.userId);
   }
 
@@ -46,18 +46,33 @@ export class AppController {
   async getGamesAgainst(
     data: UserIdOpponentDto,
   ): Promise<Observable<GameStatsDto>> {
-    return of(await this.statsService.getGamesAgainst(data));
+    try {
+      const result = await this.statsService.getGamesAgainst(data);
+      return of(result);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @MessagePattern('getLeaderboard')
   async getLeaderboard(): Promise<Observable<LeaderboardStatsDto[]>> {
-    return of(await this.statsService.createLeaderboard());
+    try {
+      const result = await this.statsService.createLeaderboard();
+      return of(result);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @MessagePattern('getPositionAndTotalPoints')
   async getPositionAndTotalPoints(
     userId: string,
   ): Promise<Observable<PositionTotalPointsDto>> {
-    return of(await this.statsService.getPositionAndTotalPoints(userId));
+    try {
+      const result = await this.statsService.getPositionAndTotalPoints(userId);
+      return of(result);
+    } catch (error) {
+      throw error;
+    }
   }
 }

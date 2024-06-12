@@ -22,7 +22,7 @@ import { TfaRepository } from 'src/tfa/tfa.repository';
         transport: Transport.KAFKA,
         options: {
           client: {
-            clientId: 'stats',
+            clientId: 'auth',
             brokers: ['kafka:29092'],
           },
           consumer: {

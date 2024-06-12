@@ -28,6 +28,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
+
   @UseGuards(FourtyTwoAuthGuard)
   @Get('42/login')
   async handleLogin() {}
@@ -35,7 +36,6 @@ export class AuthController {
   @UseGuards(FourtyTwoAuthGuard)
   @Get('42/redirect')
   async handleRedirect(@Req() req, @Res() resp: Response): Promise<void> {
-    console.log('user is', req.user);
     if (await this.authService.isTfaEnabled(req.user.user_id)) {
       return resp.redirect(302, this.configService.get('2FA_URL'));
     } else {
@@ -56,26 +56,47 @@ export class AuthController {
 
   @MessagePattern('getTokens')
   getTokens(jwtPayloadDto: JwtPayloadDto): Observable<TokensDto> {
-    return of(this.authService.generateJwtTokens(jwtPayloadDto));
+    try {
+      const result = this.authService.generateJwtTokens(jwtPayloadDto);
+      return of(result);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @MessagePattern('getCookie')
   getCookieWithTokens(cookieTokenDto: CookieTokenDto): Observable<string> {
-    return of(this.authService.getCookieWithTokens(cookieTokenDto));
+    try {
+      const result = this.authService.getCookieWithTokens(cookieTokenDto);
+      return of(result);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @MessagePattern('getTokenFromCookies')
   extractTokenFromCookies(
     cookieAndCookieName: CookieAndCookieNameDto,
   ): Observable<string> {
-    return of(this.authService.extractTokenFromCookies(cookieAndCookieName));
+    try {
+      const result =
+        this.authService.extractTokenFromCookies(cookieAndCookieName);
+      return of(result);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @MessagePattern('getUserByRefreshToken')
   async getUserByRefreshToken(
     refreshToken: string,
   ): Promise<Observable<UserIdNameLoginDto>> {
-    return of(await this.authService.getUserByRefreshToken(refreshToken));
+    try {
+      const result = await this.authService.getUserByRefreshToken(refreshToken);
+      return of(result);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @EventPattern('deleteRefreshTokenFromDB')

@@ -1,24 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { StatusChangeDto } from './dto/kafka-dto';
 import { INewGame, KafkaTopic } from './kafka.enum';
-import { Producer } from 'kafkajs';
+import { ClientKafka } from '@nestjs/microservices';
 
 @Injectable()
 export class KafkaProducerService {
-  announceStartOfPairGame(newGame: INewGame, kafkaProducer: Producer) {
-    kafkaProducer.send({
-      topic: KafkaTopic.NEW_GAME,
-      messages: [{ value: JSON.stringify(newGame) }],
-    });
+  constructor(
+    @Inject('CHAT_SERVICE') private readonly kafkaProducerService: ClientKafka,
+  ) {}
+  announceStartOfPairGame(newGame: INewGame) {
+    this.kafkaProducerService.send(KafkaTopic.NEW_GAME, newGame);
   }
 
-  announceChangeOfStatus(
-    statusChangeDto: StatusChangeDto,
-    kafkaProducer: Producer,
-  ) {
-    kafkaProducer.send({
-      topic: KafkaTopic.STATUS_CHANGE,
-      messages: [{ value: JSON.stringify(statusChangeDto) }],
-    });
+  announceChangeOfStatus(statusChangeDto: StatusChangeDto) {
+    this.kafkaProducerService.send(KafkaTopic.STATUS_CHANGE, statusChangeDto);
   }
 }

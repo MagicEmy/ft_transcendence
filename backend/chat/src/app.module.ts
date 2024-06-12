@@ -5,8 +5,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configValidationSchema } from './config.schema';
 import { User } from './entities/user.entity';
 import { BlockedUser } from './entities/blocked-user.entity';
+import { KafkaController } from './kafka/kafka.controller';
+import { KafkaModule } from './kafka/kafka.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
+  controllers: [KafkaController],
   imports: [
     ConfigModule.forRoot({
       envFilePath: ['.env'],
@@ -26,7 +30,23 @@ import { BlockedUser } from './entities/blocked-user.entity';
         synchronize: true,
       }),
     }),
+    ClientsModule.register([
+      {
+        name: 'CHAT_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'chat-client',
+            brokers: ['kafka:29092'],
+          },
+          consumer: {
+            groupId: 'game-consumer',
+          },
+        },
+      },
+    ]),
     ChatGatewayModule,
+    KafkaModule,
   ],
 })
 export class AppModule {}

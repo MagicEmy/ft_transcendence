@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
@@ -14,6 +19,8 @@ import { CookieAndCookieNameDto } from './dto/cookie-and-cookie-name-dto';
 import { UserIdNameLoginDto } from 'src/user/dto/user-id-name-login-dto';
 import { TwoFactorAuthService } from 'src/tfa/two-factor-auth.service';
 import { Response } from 'express';
+import { catchError, lastValueFrom, throwError } from 'rxjs';
+import { KafkaTopic } from 'src/enum/kafka.enum';
 
 @Injectable()
 export class AuthService {
@@ -22,8 +29,13 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly tfaService: TwoFactorAuthService,
-    @Inject('AUTH_SERVICE') private readonly statsClient: ClientKafka,
+    @Inject('AUTH_SERVICE') private readonly authClient: ClientKafka,
   ) {}
+
+  async onModuleInit() {
+    this.authClient.subscribeToResponseOf(KafkaTopic.NEW_USER);
+    await this.authClient.connect();
+  }
 
   async validateUser(validateUserDto: ValidateUserDto): Promise<User> {
     const user = await this.validateUserOrAddNewOne(validateUserDto);
@@ -42,20 +54,41 @@ export class AuthService {
           userName: intraLogin,
         });
 
-        this.userService.createAvatarRecord(user.user_id, avatarUrl);
-        this.tfaService.createTfaRecord(user.user_id);
+        await this.userService.createAvatarRecord(user.user_id, avatarUrl);
+        await this.tfaService.createTfaRecord(user.user_id);
       } catch (error) {
         return null;
       }
 
       // new user creation is broadcast to profile and chat
-      this.statsClient.emit('new_user', {
-        userId: user.user_id,
-        intraLogin: user.intra_login,
-        userName: user.user_name,
-      });
+      try {
+        await this.announceNewUser({
+          userId: user.user_id,
+          intraLogin: user.intra_login,
+          userName: user.user_name,
+        });
+        return user;
+      } catch (error) {
+        try {
+          await new Promise((sleep) => setTimeout(sleep, 200));
+          this.userService.deleteUser(user.user_id);
+        } catch (error) {
+          console.log('error when deleting user:', error);
+          return null;
+        }
+      }
     }
-    return user;
+  }
+
+  private announceNewUser(userIdNameLoginDto: UserIdNameLoginDto): any {
+    const result = this.authClient
+      .send(KafkaTopic.NEW_USER, userIdNameLoginDto)
+      .pipe(
+        catchError((error) =>
+          throwError(() => new InternalServerErrorException()),
+        ),
+      );
+    return lastValueFrom(result);
   }
 
   async getUser(userId: string): Promise<User> {

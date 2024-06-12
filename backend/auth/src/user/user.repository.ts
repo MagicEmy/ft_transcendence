@@ -35,4 +35,15 @@ export class UserRepository extends Repository<User> {
     }
     return user;
   }
+
+  async deleteUser(userId: string): Promise<void> {
+    try {
+      this.createQueryBuilder()
+        .delete()
+        .where('user_id = :user_id', { user_id: userId })
+        .execute();
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
 }

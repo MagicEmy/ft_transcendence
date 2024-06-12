@@ -1,4 +1,7 @@
-import { NotFoundException } from '@nestjs/common';
+import {
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from 'src/dto/chat.dto';
 import { User } from 'src/entities/user.entity';
@@ -19,8 +22,17 @@ export class UserRepository extends Repository<User> {
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const newUser = this.create(createUserDto);
-    this.save(newUser);
-    console.log(`User ${newUser.userName} created.`);
+    try {
+      this.save(newUser);
+      console.log(`User ${newUser.userName} created.`);
+    } catch (error) {
+      if (error.code !== '23505') {
+        // '23505' means duplicate entry
+        throw new InternalServerErrorException(
+          `[chat_db] error when creating user id ${newUser.userId}`,
+        );
+      }
+    }
     return newUser;
   }
 
