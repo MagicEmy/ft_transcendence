@@ -4,9 +4,7 @@ import { UserDto, ChatUserDto, BlockedUserDto } from 'src/dto/chat.dto';
 import { User } from 'src/entities/user.entity';
 import { UserRepository } from './user.repository';
 import { BlockedUserRepository } from './blocked-user.repository';
-import { UserIdNameDto } from 'src/kafka/dto/kafka-dto';
-import { Producer } from 'kafkajs';
-import { KafkaProducerService } from 'src/kafka/kafka-producer.service';
+import { StatusChangeDto, UserIdNameDto } from 'src/kafka/dto/kafka-dto';
 
 @Injectable()
 export class UserService {
@@ -15,7 +13,6 @@ export class UserService {
     private readonly userRepository: UserRepository,
     @InjectRepository(BlockedUserRepository)
     private readonly blockedUserRepository: BlockedUserRepository,
-    private readonly kafkaProducerService: KafkaProducerService,
   ) {}
   private users: User[] = [];
 
@@ -80,21 +77,15 @@ export class UserService {
     return user;
   }
 
-
   async setUserSocketStatus(
     user: UserDto,
     socketId: string,
     status: boolean,
-    kafkaProducer: Producer,
-  ): Promise<void> {
-    const statusChange = await this.userRepository.setUserSocketStatus(
+  ): Promise<StatusChangeDto> {
+    return this.userRepository.setUserSocketStatus(
       user.userId,
       socketId,
       status,
-    );
-    this.kafkaProducerService.announceChangeOfStatus(
-      statusChange,
-      kafkaProducer,
     );
   }
 
@@ -106,10 +97,9 @@ export class UserService {
     return await this.blockedUserRepository.setUserAsUnblocked(blockedUserDto);
   }
 
-
- // returns a list of userIds that are blocked by a specific user (blockingUserId), a.k.a. a.k.a. "WHOM DID I BLOCK?"
+  // returns a list of userIds that are blocked by a specific user (blockingUserId), a.k.a. a.k.a. "WHOM DID I BLOCK?"
   async getAllBlockedUsersByBlockingUserId(
-  blockingUserId: string,
+    blockingUserId: string,
   ): Promise<string[]> {
     return await this.blockedUserRepository.getAllBlockedUsersByBlockingUserId(
       blockingUserId,
@@ -149,4 +139,3 @@ export class UserService {
     return 'Not Blocked';
   }
 }
-

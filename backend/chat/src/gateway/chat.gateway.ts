@@ -24,74 +24,20 @@ import { UserService } from 'src/user/user.service';
 import { RoomService } from 'src/room/room.service';
 import { User } from 'src/entities/user.entity';
 import { ValidationPipe, UsePipes } from '@nestjs/common';
-import { Consumer, Kafka, Producer } from 'kafkajs';
-import { KafkaConsumerService } from 'src/kafka/kafka-consumer.service';
-import { KafkaTopic } from 'src/kafka/kafka.enum';
 import { KafkaProducerService } from 'src/kafka/kafka-producer.service';
+import { GameTypes, MatchTypes } from 'src/kafka/kafka.enum';
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  private kafka: Kafka;
-  private kafkaProducer: Producer;
-  private kafkaConsumer: Consumer;
-
   constructor(
     private roomService: RoomService,
     private userService: UserService,
-    private readonly kafkaConsumerService: KafkaConsumerService, // DM added
-    private readonly kafkaProducerService: KafkaProducerService, // DM added
-  ) {
-    console.log('Connecting to Kafka');
-    this.setupKafka().then(() => {
-      console.log('Connected to Kafka');
-    }); // DM added
-  }
+    private readonly kafkaProducerService: KafkaProducerService,
+  ) {}
 
   @WebSocketServer() server: Server;
 
   private logger = new Logger('chatGateway');
-
-  private async setupKafka() {
-    this.kafka = new Kafka({
-      clientId: 'Chat',
-      brokers: ['kafka:29092'],
-      //   logLevel: logLevel.ERROR,
-    });
-    this.kafkaProducer = this.kafka.producer();
-    await this.kafkaProducer.connect();
-
-    this.kafkaConsumer = this.kafka.consumer({ groupId: 'chat-consumer' });
-    await this.kafkaConsumer.connect();
-
-    await this.kafkaConsumer.subscribe({ topic: KafkaTopic.NEW_USER });
-    await this.kafkaConsumer.subscribe({ topic: KafkaTopic.USERNAME_CHANGE });
-
-    // DM added
-    await this.kafkaConsumer.run({
-      eachMessage: async ({ topic, partition, message }) => {
-        this.logger.log(
-          'Kafka consumed:',
-          topic,
-          JSON.parse(message.value.toString()),
-        );
-        switch (topic) {
-          case KafkaTopic.NEW_USER:
-            this.kafkaConsumerService.addNewUser(
-              JSON.parse(message.value.toString()),
-            );
-            break;
-          case KafkaTopic.USERNAME_CHANGE:
-            this.kafkaConsumerService.changeUsername(
-              JSON.parse(message.value.toString()),
-            );
-            break;
-          default:
-            this.logger.error('Unknown topic:', topic);
-            break;
-        }
-      },
-    });
-  }
 
   async disconnetOldSocket(user: UserDto, socketId) {
     const userOld = await this.userService.getUserById(user.userId);
@@ -457,7 +403,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     this.logger.log(`game started`);
-    ///TODO kafka
+    this.kafkaProducerService.announceStartOfPairGame({
+      gameType: GameTypes.PONG,
+      matchType: MatchTypes.PAIR,
+      player1ID: payload.userCreator.userId,
+      player2ID: payload.userReceiver.userId,
+    }); // DM added
     const accept = {
       type: 'start the game',
       user: payload.userCreator,
@@ -755,12 +706,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     user.game = '';
     await this.disconnetOldSocket(user, socket.id);
-    await this.userService.setUserSocketStatus(
+    const statusChange = await this.userService.setUserSocketStatus(
       user,
       '',
       false,
-      this.kafkaProducer,
     );
+    this.kafkaProducerService.announceChangeOfStatus(statusChange);
     const users = await this.userService.getAllUsers();
     this.server.to('chat_users').emit('chat_users', users);
     const rooms = await this.roomService.getRooms();
