@@ -1,17 +1,20 @@
 import { useState, useContext } from 'react';
 import UserContext, { IUserContext } from '../context/UserContext';
+import useStorage from '../hooks/useStorage';
 import { TFA_QR, TFA_ENABLE } from '../utils/constants';
-// import { useGetTfaEnabled } from '../hooks/useGetTfaEnabled';
+import { useGetTfaEnabled } from '../hooks/useGetTfaEnabled';
 
 
 export const TwoFaEnable = () => {
 	const { userIdContext, setTfaEnabled, } = useContext<IUserContext>(UserContext);
+	const [ userIdStorage ] = useStorage<string>('userId', '');
+
 	const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
 	const [authCode, setAuthCode] = useState<string>('');
 	const [showError, setShowError] = useState(false);
 	const [errorName, setErrorName] = useState('');
-	// const { tfaStatus } = useGetTfaEnabled(userIdContext);
-	const { tfaStatus } = { tfaStatus: false };
+	const { tfaStatus } = useGetTfaEnabled(userIdContext);
+	// const { tfaStatus } = { tfaStatus: false };
 
 	const handleClick2FA = async () => {
 		if (userIdContext) {

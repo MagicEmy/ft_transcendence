@@ -60,8 +60,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         if (!userIdContext) fetchUser();
 
       }, []);
-    // fetchUser();
-    // }, [setUserIdContext]);
+
 
   useEffect(() => {
     let active = true; // Flag to manage the effect lifecycle

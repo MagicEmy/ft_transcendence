@@ -11,7 +11,6 @@ import Error from './components/Error/Error';
 import PrivateRoute from './components/PrivateRoute';
 import { UserProvider } from './context/UserContext';
 
-// Define routes separately for clarity
 const publicRoutes: RouteObject[] = [
   {
     path: '/',
@@ -60,7 +59,7 @@ const privateRoutes: RouteObject[] = [
   },
   {
     path: '*',
-    element: <Error />, // Catch all invalid paths under authenticated routes
+    element: <Error />,
   },
 ];
 
