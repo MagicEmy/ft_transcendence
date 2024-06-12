@@ -6,10 +6,9 @@ import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 export const ChangeAvatar = () => {
 	const { userIdContext, avatarContext, setAvatarContext } = useContext<IUserContext>(UserContext);
 	const [file, setFile] = useState<File | null>(null);
+	const [fileName, setFileName] = useState<string>("");
 	const [feedback, setFeedback] = useState<string>("");
 	const [avatarLoading, setAvatarLoading] = useState<boolean>(false);
-
-	console.log('IN ChangeAvatar avatar', avatarContext);
 
 	const handleAvatarSubmit = async (event: FormEvent) => {
 		event.preventDefault();
@@ -44,6 +43,7 @@ export const ChangeAvatar = () => {
 
 			if (response.ok) {
 				const localUrl = URL.createObjectURL(file);
+				console.log("avatar change response.ok ");
 				setAvatarContext(localUrl);
 				setFeedback("Avatar updated successfully.");
 			} else {
@@ -75,24 +75,18 @@ export const ChangeAvatar = () => {
 				)}
 				<div className="text">Change Profile Picture:</div>
 				<form onSubmit={handleAvatarSubmit}>
-					<input
-						type="file"
-						id="file"
-						onChange={(e: ChangeEvent<HTMLInputElement>) =>
-							setFile(e.target.files ? e.target.files[0] : null)
-						}
-						disabled={avatarLoading}
-						style={{ display: 'none' }} // Hide the default file input field
-					/>
-					<label htmlFor="file" className="settings-button">
-						Choose File
-					</label>
-					<br />
-					<br />
-					<button type="button" className="settings-button" disabled={avatarLoading}>
-						Upload Picture
-					</button>
-				</form>
+							<input
+								type="file"
+								onChange={(e: ChangeEvent<HTMLInputElement>) =>
+									setFile(e.target.files ? e.target.files[0] : null)
+								}
+								disabled={avatarLoading}
+							/>
+							<br />
+							<button type="submit" className="submit-button" disabled={avatarLoading}>
+								Upload New Profile Picture
+							</button>
+						</form>
 			</div>
 			{feedback && (
 				<div className="text-dark">
