@@ -7,7 +7,7 @@ import Profile from './pages/Profile/Profile';
 import Leaderboard from './pages/Leaderboard/Leaderboard';
 import Settings from './pages/Settings/Settings';
 import Game from './pages/Game/Game';
-import Error from './pages/Error';
+import Error from './components/Error/Error';
 import PrivateRoute from './components/PrivateRoute';
 import { UserProvider } from './context/UserContext';
 

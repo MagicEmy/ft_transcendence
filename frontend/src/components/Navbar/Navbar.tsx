@@ -1,9 +1,9 @@
 import React, { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classes from './Navbar.module.css';
-import LogoutButton from './LogoutButton';
-import UserContext, { IUserContext } from '../context/UserContext';
-import { loadProfileAvatar } from '../utils/profileUtils';
+import LogoutButton from '../LogoutButton';
+import UserContext, { IUserContext } from '../../context/UserContext';
+import { loadProfileAvatar } from '../../utils/profileUtils';
 import { NavigationButton } from './NavigationButton';
 
 export const Navbar = () => {

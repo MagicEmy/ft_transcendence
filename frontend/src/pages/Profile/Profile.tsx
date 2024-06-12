@@ -5,9 +5,9 @@ import { Friends, } from "../../types/shared";
 // import useStorage from "../../hooks/useStorage";
 import "./Profile.css";
 import { useGetFriends, useGetProfile, useGetUserStatus, useGetAvatar } from "../../hooks";
-import { MatchHistory } from "../../components/MatchHistory";
+import { MatchHistory } from "../../components/ProfileStats/MatchHistory";
 import { FriendsList } from "../../components/FriendsList";
-import { UserStats } from "../../components/UserStats";
+import { UserStats } from "../../components/ProfileStats/ProfileStats";
 import { AddFriendButton } from "../../components/AddFriendButton";
 import UserContext, { IUserContext } from '../../context/UserContext';
 
@@ -60,7 +60,7 @@ export const Profile = () => {
     if (userId && loggedUserFriends) {
       setIsFriend(loggedUserFriends.some(friend => friend.userId === userId));
     }
-  }, []);
+  }, [loggedUserFriends, userId]);
 
   console.log('loggedUserFriends', loggedUserFriends);
   const userStatusIndicator = userStatus?.status;

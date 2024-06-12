@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-interface NavigationButtonProps {
+interface NavigateAvatarProps {
   to: string;
   className?: string;
 
 }
-export const NavigateAvatar = ({ to, className }: NavigationButtonProps) => {
+export const NavigateAvatar = ({ to, className }: NavigateAvatarProps) => {
   const navigate = useNavigate();
   const [navigateTo, setNavigateTo] = React.useState<string | null>(null);
 

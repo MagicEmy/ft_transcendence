@@ -215,10 +215,10 @@
   }
 
   .userMatchHistory {
+    margin-top: 200px;
     display: flex;
     flex-direction: column;
     align-items: center;
-	  gap: 1em;
     border: 2px solid #a09df0;
     box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
     padding: 10px;
@@ -241,7 +241,11 @@
   .gameHistory {
     display: flex;
     align-items: center;
-    font-size: 16px; /* Adjust the font size as needed */
+    font-size: 16px;
+    border: 2px solid #a09df0;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+    padding: 10px;
+
   }
   .title {
     color: #0a04ad;

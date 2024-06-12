@@ -1,5 +1,5 @@
 import React from 'react';
-import classes from './Navbar.module.css';
+import classes from '../../components/Navbar/Navbar.module.css';
 
 export const NavbarError = () => {
 
