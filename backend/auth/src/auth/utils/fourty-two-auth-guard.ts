@@ -18,8 +18,7 @@ export class FourtyTwoAuthGuard extends AuthGuard('42') {
         return true;
       }
     } catch (error) {
-      console.log(error);
-      throw error;
+      return false;
     }
   }
 }

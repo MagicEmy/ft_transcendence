@@ -51,6 +51,10 @@ export class UserService {
     return this.userRepository.findOneBy({ user_id: token.user_id });
   }
 
+  async deleteUser(userId: string): Promise<void> {
+    return this.userRepository.deleteUser(userId);
+  }
+
   //   Avatar
 
   async getAvatarFrom42Api(
