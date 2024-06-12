@@ -1,13 +1,15 @@
 .content {
-	margin: 5em auto;
+	margin: 3em auto;
 	text-align: center;
+	color: #0a04ad;
   }
 
-  .imageWithMargin {
-	margin-left: 250px;
+  .title {
+	font-size: 2em;
+	color: #0a04ad;
   }
 
-	.backButton {
+  .backButton {
 		width: 200px;
 		flex-direction: row;
 		align-items: center;
@@ -15,9 +17,9 @@
 		border-radius: 30px;
 		padding: 5px 30px;
 		background: linear-gradient(138deg, rgb(113, 153, 247) 41.7%, rgb(66, 63, 157) 94.4%, rgb(255, 255, 255) 119.7%);
-	}
+  }
 
-	.backButton:hover {
+  .backButton:hover {
 		box-shadow: rgba(113, 153, 247, .2) 0 3px 15px inset, rgba(10, 4, 173, .91) 0 3px 5px, rgba(10, 4, 173, .91) 0 10px 13px;
 		transform: scale(1.05);
-	}
+  }

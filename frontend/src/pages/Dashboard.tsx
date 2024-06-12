@@ -8,7 +8,7 @@ export const Dashboard = () => {
     <>
       <PageContent title="Welcome!">
         <br />
-        <p>Play or chat</p>
+        <p>Hit Play! Chat Away - Pong Awaits!</p>
         <img src={smash} alt="Logo" style={{ marginLeft: '300px', opacity: 0.5 }} />
       </PageContent>
     </>

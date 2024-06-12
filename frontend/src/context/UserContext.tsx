@@ -57,8 +57,11 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         setIsLoading(false);
       }
     };
-    fetchUser();
-  }, [setUserIdContext]);
+        if (!userIdContext) fetchUser();
+
+      }, []);
+    // fetchUser();
+    // }, [setUserIdContext]);
 
   useEffect(() => {
     let active = true; // Flag to manage the effect lifecycle
@@ -89,9 +92,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       cleanupPreviousAvatar();
       active = false;
     };
-  }, [userIdContext]);
+  }, []);
 
   console.log("userIdContext: ", userIdContext);
+  console.log("userIdStorage: ", userIdStorage);
 
   return (
     <UserContext.Provider

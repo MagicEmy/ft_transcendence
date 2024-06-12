@@ -20,12 +20,12 @@ export const Profile = () => {
 
   const { profile } = useGetProfile(userIdOrMe);
   const { userStatus } = useGetUserStatus(userIdOrMe);
-  const { avatar: avatarUrl, isLoading: avatarLoading } = useGetAvatar(userIdOrMe);
-  const [isFriend, setIsFriend] = useState<boolean>(false);
+  const { avatar: avatarUrl } = useGetAvatar(userIdOrMe);
+  const [ isFriend, setIsFriend] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const { friends: loggedUserFriends } = useGetFriends(userIdContext);
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe);
-  const [friends, setFriends] = useState<Friends[]>([]);
+  const [ friends, setFriends] = useState<Friends[]>([]);
 
   useEffect(() => {
     if (userId && loggedUserFriends) {
@@ -71,7 +71,7 @@ export const Profile = () => {
         <div className="columnsWrapper">
           <div className="flex">
             <div className="item">
-              {avatarLoading ? <p>Loading avatar...</p> : <img src={avatarUrl} alt="User avatar" />}
+              {avatarUrl ?  <img src={avatarUrl} alt="User avatar" /> : <p>Loading avatar...</p>}
               <h4 className='profile-text'>{profile?.userInfo?.userName}</h4>
               <div className="item">
                 <span className={`status-indicator ${userStatusIndicator}`}></span>

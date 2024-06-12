@@ -1,8 +1,8 @@
 .main {
-    height: 100vh;
+    height: auto;
     overflow-y: auto;
     scroll-behavior: smooth;
-    padding: 20px;
+    /* padding: 20px; */
   }
 
 .profile {
@@ -10,7 +10,7 @@
     border-radius: 30px;
     height: auto;
     margin-top: 3em;
-    padding: 10px;
+    padding: 30px;
     overflow-y: auto;
     scroll-behavior: smooth;
     margin-bottom: 10em;
@@ -23,6 +23,7 @@
 /* .main::-webkit-scrollbar, */
 .main::-webkit-scrollbar {
     width: 8px;
+    height: 100%;
   }
 
 /* .main::-webkit-scrollbar-thumb, */
@@ -40,7 +41,7 @@
 /* .main, */
 .main {
     scrollbar-width: thin;
-    scrollbar-color: #0a04ad #dee5f4;
+    scrollbar-color: #FCC30A #0a04ad;
   }
 
 .profile * {
@@ -49,7 +50,7 @@
 
 
 .profile .flex {
-  width: 50%;
+  width: 60%;
   gap: 1em;
   text-align: left;
   flex-direction: row;
