@@ -17,7 +17,6 @@ export const useIsLoggedIn = () => {
 			return;
 		  }
         const profile = await response.json();
-		console.log("profile: ", profile);
         if (profile.userId) setIsLoggedin(true);
       } catch (error) {
         console.error("Error fetching user data: error caught: ", error);

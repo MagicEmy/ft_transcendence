@@ -10,7 +10,10 @@
 	background: radial-gradient(circle, #94aff0 0%, #0a04ad 100%);
 	border : 10px solid white;
 	position: relative; /* Needed for absolute positioning of line */
+    overflow-y: auto;
+    scroll-behavior: smooth;
   }
+
   .error-bar {
 	position: absolute;
 	top: 0;

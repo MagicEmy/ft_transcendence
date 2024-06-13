@@ -6,14 +6,12 @@ import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 
 export const ChangeAvatar = () => {
 	const { userIdContext, avatarContext, setAvatarContext } = useContext<IUserContext>(UserContext);
-	const { avatar: avatarUrl } = useGetAvatar(userIdContext);
+	// const { avatar: avatarUrl } = useGetAvatar(userIdContext);
 
 	const [file, setFile] = useState<File | null>(null);
 	// const [fileName, setFileName] = useState<string>("");
 	const [feedback, setFeedback] = useState<string>("");
 	const [avatarLoading, setAvatarLoading] = useState<boolean>(false);
-
-	console.log("ChangeAvatar userIdContext: ", userIdContext);
 
 	const handleAvatarSubmit = async (event: FormEvent) => {
 		event.preventDefault();
@@ -73,8 +71,8 @@ export const ChangeAvatar = () => {
 	return (
 		<>
 			<div className="item">
-				{avatarUrl ? (
-					<img className="avatar" src={avatarUrl} alt="User Avatar" />
+				{avatarContext ? (
+					<img className="avatar" src={avatarContext} alt="User Avatar" />
 				) : (
 					<p>Loading avatar...</p>
 				)}

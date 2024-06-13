@@ -8,10 +8,14 @@ import { FriendsList } from "../../components/FriendsList";
 import { UserStats } from "../../components/ProfileStats/ProfileStats";
 import { AddFriendButton } from "../../components/AddFriendButton";
 // import useStorage from "../../hooks/useStorage";
-import  ApiErrorPage  from "../../pages/Error/ApiErrorPage";
+// import  ApiErrorPage  from "../../pages/Error/ApiErrorPage";
 import UserContext, { IUserContext } from '../../context/UserContext';
 import "./Profile.css";
 
+interface ErrorDetails {
+  message: string;
+  statusCode?: number;
+}
 
 export const Profile = () => {
 
@@ -25,16 +29,16 @@ export const Profile = () => {
   const { friends: loggedUserFriends } = useGetFriends(userIdContext);
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe);
   const [ isFriend, setIsFriend] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<ErrorDetails | undefined>();
   const [ friends, setFriends] = useState<Friends[]>([]);
 
-  
+
   useEffect(() => {
     if (apiError) {
-      setError(apiError.message);
+      setError(apiError);
     }
-  }
-  , [apiError]);
+  }, [apiError]);
+
 
   useEffect(() => {
     if (userId && loggedUserFriends) {
@@ -71,7 +75,6 @@ export const Profile = () => {
     }
   }, [loggedUserFriends, userId]);
 
-  console.log('loggedUserFriends', loggedUserFriends);
   const userStatusIndicator = userStatus?.status;
 
   return (
@@ -82,7 +85,7 @@ export const Profile = () => {
             <div className="item">
               {avatarUrl ?  <img src={avatarUrl} alt="User avatar" /> : <p>Loading avatar...</p>}
               <h4 className='profile-text'>{profile?.userInfo?.userName}</h4>
-              <div className="item">
+              <div className="status">
                 <span className={`status-indicator ${userStatusIndicator}`}></span>
                 <span>{userStatusIndicator}</span>
               </div>
@@ -101,7 +104,8 @@ export const Profile = () => {
         </div>
         {error && (
           <div className="text-dark">
-            <p>{error}</p>
+            <p>{apiError?.statusCode}</p>
+            <p>{apiError?.message}</p>
           </div>
         )}
       </div>

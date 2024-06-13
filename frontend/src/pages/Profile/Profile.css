@@ -1,3 +1,8 @@
+#html, body, main {
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
 .main {
     height: auto;
     overflow-y: auto;
@@ -50,7 +55,7 @@
 
 
 .profile .flex {
-  width: 60%;
+  width: 50%;
   gap: 1em;
   text-align: left;
   flex-direction: row;
@@ -69,9 +74,17 @@
   padding: 30px;
 }
 
+.profile .flex .status {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 5px;
+}
+
 .profile .flex img {
   width: 100px;
   height: 100px;
+  margin-right: 25px;
   object-fit: cover;
   border-radius: 50%;
   box-shadow: 8px 5px 5px #0d045a;
@@ -111,15 +124,15 @@
 }
 
 .offline {
-  background-color: red;
+  background-color: gray;
 }
 
 .game {
-  background-color: blue;
+  background-color: red;
 }
 
 .chat {
-  background-color: rgb(255, 234, 0);
+  background-color: #FCC30A;
 }
 
 .stats .stat {
