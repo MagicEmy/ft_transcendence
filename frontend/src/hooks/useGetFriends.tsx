@@ -7,6 +7,9 @@ export const useGetFriends = (userId?: string) => {
   const [friends, setFriends] = useState<Array<Friends> | null>();
   const [loading, setLoading] = useState(false);
 
+  console.log("useGetFriends userId: ", userId);
+
+
   useEffect(() => {
     const getFriends = async (uId: string) => {
       setLoading(true);

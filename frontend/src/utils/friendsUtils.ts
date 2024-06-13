@@ -1,12 +1,12 @@
 import { Friends } from '../types/shared';
-import { BASE_URL } from '../utils/constants';
+import { BASE_URL, FRIENDS, ADD_FRIEND, DEL_FRIEND } from '../utils/constants';
 
 
 export const loadFriends = async (userId: string): Promise<Friends[] | undefined> => {
   if (!userId) return;
 
   try {
-    const response = await fetch(`${BASE_URL}/friends/${userId}`, {
+    const response = await fetch(`${FRIENDS}/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -31,7 +31,7 @@ export const addFriend = async (userId: string, friendId: string): Promise<void>
   }
 
   try {
-    const response = await fetch(`${BASE_URL}/friend`, {
+    const response = await fetch( ADD_FRIEND, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -61,7 +61,7 @@ export const deleteFriend = async (userId: string, friendId: string): Promise<vo
   }
 
   try {
-    const response = await fetch(`${BASE_URL}/friend`, {
+    const response = await fetch( DEL_FRIEND, {
       method: 'DELETE',
       credentials: 'include',
       headers: {

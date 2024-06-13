@@ -1,14 +1,19 @@
 import { useContext } from 'react';
 import { AVATAR } from '../utils/constants';
 import UserContext, { IUserContext } from '../context/UserContext';
+import { useGetAvatar } from "../hooks/useGetAvatar";
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 
 export const ChangeAvatar = () => {
 	const { userIdContext, avatarContext, setAvatarContext } = useContext<IUserContext>(UserContext);
+	const { avatar: avatarUrl } = useGetAvatar(userIdContext);
+
 	const [file, setFile] = useState<File | null>(null);
-	const [fileName, setFileName] = useState<string>("");
+	// const [fileName, setFileName] = useState<string>("");
 	const [feedback, setFeedback] = useState<string>("");
 	const [avatarLoading, setAvatarLoading] = useState<boolean>(false);
+
+	console.log("ChangeAvatar userIdContext: ", userIdContext);
 
 	const handleAvatarSubmit = async (event: FormEvent) => {
 		event.preventDefault();
@@ -68,8 +73,8 @@ export const ChangeAvatar = () => {
 	return (
 		<>
 			<div className="item">
-				{avatarContext ? (
-					<img className="avatar" src={avatarContext} alt="User Avatar" />
+				{avatarUrl ? (
+					<img className="avatar" src={avatarUrl} alt="User Avatar" />
 				) : (
 					<p>Loading avatar...</p>
 				)}
@@ -83,8 +88,8 @@ export const ChangeAvatar = () => {
 								disabled={avatarLoading}
 							/>
 							<br />
-							<button type="submit" className="submit-button" disabled={avatarLoading}>
-								Upload New Profile Picture
+							<button type="submit" className="settings-button" disabled={avatarLoading}>
+								Upload Picture
 							</button>
 						</form>
 			</div>

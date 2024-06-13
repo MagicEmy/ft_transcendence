@@ -1,11 +1,12 @@
 import { UserStatus } from '../types/shared';
 import { Games } from '../types/shared';
+import { USER, GAMES, STATUS, AVATAR } from './constants';
 
 export const loadGames = async (userId: string): Promise<Games[]> => {
 	if (!userId) return [];
 
 	try {
-	  const response = await fetch(`http://localhost:3001/games/${userId}`, {
+	  const response = await fetch(`${GAMES}/${userId}`, {
 		method: 'GET',
 		headers: {
 		  'Content-Type': 'application/json'
@@ -27,7 +28,7 @@ export const loadGames = async (userId: string): Promise<Games[]> => {
 
 
   export const loadStatus = async (userId: string): Promise<UserStatus> => {
-	const response = await fetch(`http://localhost:3001/status/${userId}`, {
+	const response = await fetch(`${STATUS}/${userId}`, {
 	  method: 'GET',
 	  headers: {
 		'Content-Type': 'application/json'
@@ -43,7 +44,7 @@ export const loadGames = async (userId: string): Promise<Games[]> => {
 
   export const loadProfileAvatar = async (userId: string): Promise<string> => {
 	try {
-	  const response = await fetch(`http://localhost:3001/avatar/${userId}`, {
+	  const response = await fetch(`${AVATAR}/${userId}`, {
 		method: 'GET',
 		credentials: 'include'
 	  });
@@ -62,7 +63,7 @@ export const loadGames = async (userId: string): Promise<Games[]> => {
   };
 
   export const changeName = async (userId: string, newUserName: string): Promise<any> => {
-	const response = await fetch(`http://localhost:3001/profile/${userId}/${newUserName}`, {
+	const response = await fetch(`${USER}/${userId}/${newUserName}`, {
 	  method: 'PATCH',
 	  headers: { 'Content-Type': 'application/json' },
 	  credentials: 'include',

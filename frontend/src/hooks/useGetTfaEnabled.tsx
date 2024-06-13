@@ -8,16 +8,13 @@ export const useGetTfaEnabled = (userId: string) => {
 
   useEffect(() => {
 	const getTfaEnabled = async () => {
-		console.log(`${TFA_STATUS}${userId}`)
 	  const response = await fetch(`${TFA_STATUS}${userId}`, {
 		method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
       });
-	  console.log(response);
 	  if (response.ok) {
-		const data = await response.json();
-		console.log(data);
+		  const data = await response.json();
 		setTfaStatus(data);
 	  }
 	};

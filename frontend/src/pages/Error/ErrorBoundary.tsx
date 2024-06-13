@@ -1,4 +1,6 @@
 import React, { Component, ReactNode, ErrorInfo } from 'react';
+import PageContent from '../../components/PageContent'
+import classes from '../../components/PageContent.module.css';
 
 interface Props {
   children: ReactNode;
@@ -23,14 +25,19 @@ class ErrorBoundary extends Component<Props, State> {
     console.error("ErrorBoundary caught an error", error, errorInfo);
     // Log error to an error reporting service here if needed
   }
+  handleRedirect = () => {
+    window.location.href = '/'; // Redirect to login or home page
+  };
 
   render() {
     if (this.state.hasError) {
       return (
-        <div>
-          <h1>Something went wrong.</h1>
-          <p>{this.state.error?.message}</p>
-        </div>
+        <>
+          <PageContent title={"Something went wrong"}>
+            <p className='errror'>{this.state.error?.message}</p>
+            <button className={classes.button} onClick={this.handleRedirect}>Back to start</button>
+          </PageContent>
+        </>
       );
     }
 
@@ -39,3 +46,4 @@ class ErrorBoundary extends Component<Props, State> {
 }
 
 export default ErrorBoundary;
+

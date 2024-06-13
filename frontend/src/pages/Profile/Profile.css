@@ -95,6 +95,7 @@
   margin-bottom: 10px;
   border: 2px solid #a09df0;
   box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+  padding: 5px;
 }
 
 .status-indicator {
@@ -246,6 +247,8 @@
     border: 2px solid #a09df0;
     box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
     padding: 10px;
+    margin-left: 70px;
+
 
   }
   .title {
