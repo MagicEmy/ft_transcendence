@@ -67,7 +67,6 @@ export class AuthService {
           intraLogin: user.intra_login,
           userName: user.user_name,
         });
-        return user;
       } catch (error) {
         try {
           await new Promise((sleep) => setTimeout(sleep, 200));
@@ -78,6 +77,7 @@ export class AuthService {
         }
       }
     }
+    return user;
   }
 
   private announceNewUser(userIdNameLoginDto: UserIdNameLoginDto): any {
