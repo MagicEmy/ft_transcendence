@@ -13,18 +13,18 @@ export const TwoFaEnable = () => {
 	const [authCode, setAuthCode] = useState<string>('');
 	const [showError, setShowError] = useState(false);
 	const [errorName, setErrorName] = useState('');
-	const { tfaStatus } = useGetTfaEnabled(userIdContext);
+	const { tfaStatus } = useGetTfaEnabled(userIdStorage);
 	// const { tfaStatus } = { tfaStatus: false };
 
 	const handleClick2FA = async () => {
-		if (userIdContext) {
+		if (userIdStorage) {
 			try {
 				const response = await fetch(TFA_QR, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ userId: userIdContext }),
+					body: JSON.stringify({ userId: userIdStorage }),
 					credentials: 'include',
 				});
 				if (!response.ok) {
@@ -41,8 +41,8 @@ export const TwoFaEnable = () => {
 	};
 
 	const handleEnable2FA = async () => {
-		console.log('Enabling 2FA...authCode', authCode, 'userIdContext', userIdContext);
-		if (authCode && userIdContext) {
+		console.log('Enabling 2FA...authCode', authCode, 'userIdContext', userIdStorage);
+		if (authCode && userIdStorage) {
 			try {
 				const response = await fetch(TFA_ENABLE, {
 					method: 'POST',
