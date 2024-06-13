@@ -1,10 +1,14 @@
 import React from 'react';
 import { RouterProvider } from 'react-router-dom';
 import router from './Router';
+import ErrorBoundary from './pages/Error/ErrorBoundary';
+
 
 const App = () => {
   return (
-    <RouterProvider router={router} />
+    <ErrorBoundary>
+      <RouterProvider router={router} />
+    </ErrorBoundary>
   );
 };
 

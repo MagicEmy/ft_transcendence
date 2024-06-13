@@ -8,7 +8,7 @@ import { FriendsList } from "../../components/FriendsList";
 import { UserStats } from "../../components/ProfileStats/ProfileStats";
 import { AddFriendButton } from "../../components/AddFriendButton";
 // import useStorage from "../../hooks/useStorage";
-// import  ApiErrorPage  from "../../pages/Error/ApiErrorPage";
+import  ApiErrorPage  from "../../pages/Error/ApiErrorPage";
 import UserContext, { IUserContext } from '../../context/UserContext';
 import "./Profile.css";
 
@@ -28,9 +28,13 @@ export const Profile = () => {
   const [error, setError] = useState<string>('');
   const [ friends, setFriends] = useState<Friends[]>([]);
 
-  // if (apiError) {
-  //   return <ApiErrorPage error={apiError} />;
-  // }
+  
+  useEffect(() => {
+    if (apiError) {
+      setError(apiError.message);
+    }
+  }
+  , [apiError]);
 
   useEffect(() => {
     if (userId && loggedUserFriends) {
