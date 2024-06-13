@@ -2,14 +2,15 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { addFriend, deleteFriend } from "../../utils/friendsUtils";
 import { Friends, } from "../../types/shared";
-// import useStorage from "../../hooks/useStorage";
-import "./Profile.css";
 import { useGetFriends, useGetProfile, useGetUserStatus, useGetAvatar } from "../../hooks";
 import { MatchHistory } from "../../components/ProfileStats/MatchHistory";
 import { FriendsList } from "../../components/FriendsList";
 import { UserStats } from "../../components/ProfileStats/ProfileStats";
 import { AddFriendButton } from "../../components/AddFriendButton";
+// import useStorage from "../../hooks/useStorage";
+// import  ApiErrorPage  from "../../pages/Error/ApiErrorPage";
 import UserContext, { IUserContext } from '../../context/UserContext';
+import "./Profile.css";
 
 
 export const Profile = () => {
@@ -20,12 +21,16 @@ export const Profile = () => {
 
   const { profile } = useGetProfile(userIdOrMe);
   const { userStatus } = useGetUserStatus(userIdOrMe);
-  const { avatar: avatarUrl } = useGetAvatar(userIdOrMe);
-  const [ isFriend, setIsFriend] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
+  const { avatar: avatarUrl, error: apiError } = useGetAvatar(userIdOrMe);
   const { friends: loggedUserFriends } = useGetFriends(userIdContext);
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe);
+  const [ isFriend, setIsFriend] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
   const [ friends, setFriends] = useState<Friends[]>([]);
+
+  // if (apiError) {
+  //   return <ApiErrorPage error={apiError} />;
+  // }
 
   useEffect(() => {
     if (userId && loggedUserFriends) {

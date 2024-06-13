@@ -7,7 +7,8 @@ import Profile from './pages/Profile/Profile';
 import Leaderboard from './pages/Leaderboard/Leaderboard';
 import Settings from './pages/Settings/Settings';
 import Game from './pages/Game/Game';
-import Error from './components/Error/Error';
+import Error from './pages/Error/Error';
+import ErrorBoundary from './pages/Error/ErrorBoundary';
 import PrivateRoute from './components/PrivateRoute';
 import { UserProvider } from './context/UserContext';
 
@@ -69,9 +70,11 @@ const router = createBrowserRouter([
     path: '/',
     element: (
       <UserProvider>
-        <PrivateRoute>
-          <Layout />
-        </PrivateRoute>
+        <ErrorBoundary>
+          <PrivateRoute>
+            <Layout />
+          </PrivateRoute>
+        </ErrorBoundary>
       </UserProvider>
     ),
     children: privateRoutes,

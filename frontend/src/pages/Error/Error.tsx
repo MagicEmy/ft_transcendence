@@ -2,7 +2,7 @@ import React from 'react';
 import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom';
 import NavbarError from './NavbarError';
 import classes from '../../components/Navbar/Navbar.module.css';
-import PageContent from '../PageContent';
+import PageContent from '../../components/PageContent'
 
 const Error = () => {
   const error = useRouteError();

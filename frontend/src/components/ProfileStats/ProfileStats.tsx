@@ -17,7 +17,7 @@ export const UserStats = () => {
         <h4 className='profile-text-dark'>Leaderboard position: <span className="stat"><strong>{profile?.leaderboard?.position}</strong>of</span><strong>{profile?.totalPlayers}</strong></h4>
         <span className="stat">Total points: <strong>{profile?.leaderboard?.totalPoints}</strong></span>
         <h4 className='profile-text-dark'>Most frequent Opponent</h4>
-        {profile && profile.mostFrequentOpponent.length > 0 ? profile.mostFrequentOpponent?.map((opponent) => (
+        {profile && profile.mostFrequentOpponent?.length > 0 ? profile.mostFrequentOpponent?.map((opponent) => (
           <div key={opponent.userId}>
             <div className="stat-column"></div>
             <NavLink to={`/profile/${opponent.userId}`}>{opponent.userName}</NavLink>

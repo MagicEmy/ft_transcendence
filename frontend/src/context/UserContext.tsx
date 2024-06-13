@@ -91,7 +91,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       cleanupPreviousAvatar();
       active = false;
     };
-  }, []);
+  }, [userIdContext]);
 
   console.log("userIdContext: ", userIdContext);
   console.log("userIdStorage: ", userIdStorage);
