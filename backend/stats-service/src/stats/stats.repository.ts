@@ -17,21 +17,30 @@ export class StatsRepository extends Repository<Stats> {
     );
   }
 
-  async createStatsRowNewUser(userId: string): Promise<void> {
+  async createStatsRowHuman(userId: string): Promise<Stats> {
     // adding one line for games against another human
     const statsHuman = this.create({
       user_id: userId,
       opponent: Opponent.HUMAN,
     });
+    try {
+      return this.save(statsHuman);
+    } catch (error) {
+      if (error.code !== '23505') {
+        // '23505' means duplicate entry
+        throw new RpcException(new InternalServerErrorException());
+      }
+    }
+  }
+
+  async createStatsRowBot(userId: string): Promise<Stats> {
     // adding one line for games against the bot
     const statsBot = this.create({
       user_id: userId,
       opponent: Opponent.BOT,
     });
     try {
-      this.save(statsHuman);
-      this.save(statsBot);
-      return;
+      return this.save(statsBot);
     } catch (error) {
       throw new RpcException(new InternalServerErrorException());
     }
