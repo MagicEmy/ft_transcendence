@@ -1,16 +1,19 @@
 all: up
 
-up:
-	docker-compose up
+build start up stop kill down:
+	docker-compose $@
 
-down:
-	docker-compose down
+# up:
+# 	docker-compose up
 
-start:
-	docker-compose start
+# down:
+# 	docker-compose down
 
-stop:
-	docker-compose stop
+# start:
+# 	docker-compose start
+
+# stop:
+# 	docker-compose stop
 
 clean: down
 	docker rmi $(shell docker images -q)

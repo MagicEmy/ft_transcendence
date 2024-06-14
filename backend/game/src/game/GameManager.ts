@@ -7,11 +7,13 @@ import { PlayerStatus } from './GamePong.enums';
 import { PlayerRanked } from './GamePong.interfaces';
 
 import { SockEventNames, PlayerInfo, IPlayerInfo, ISockConnectGame, MatchTypes, ISockRemoveMatch, GameTypes, GameStatus, NewGame } from './GamePong.communication';
+import { GamePlayer } from './GamePlayer';
 
 @WebSocketGateway({ cors: true })
 export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 {
 	private games: GamePong[];
+	private players: GamePlayer[];
 
 	private matchQueue: PlayerRanked[];
 	private matchInterval: any;
@@ -27,6 +29,7 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 	{
 		console.log("Setting up Games storage");
 		this.games = [];
+		this.players = [];
 		this.matchQueue = [];
 
 		console.log("Connecting to Kafka");
@@ -211,6 +214,17 @@ handleRemoveFromMAtchMaking(client: object, message: string)
 	const msg:	any = JSON.parse(message);
 	if (msg.id)
 		this.rmPlayerFromMatchMaking(msg.id);
+}
+
+@SubscribeMessage("UserPack")
+runthis(client: any, message: string)
+{
+	const msg: any = JSON.parse(message);
+	let player: GamePlayer = new GamePlayer(client, msg.playerID);
+	this.players.push(player);
+	player.name = msg.playerName;
+
+	client.emit("PlayerReady");
 }
 
 // @SubscribeMessage("findPongPaired")

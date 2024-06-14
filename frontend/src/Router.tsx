@@ -1,39 +1,83 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, RouteObject } from 'react-router-dom';
 import Layout from './components/Layout';
 import Login from './pages/Login/Login';
+import TwoFA from './pages/TwoFA/TwoFA';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile/Profile';
 import Leaderboard from './pages/Leaderboard/Leaderboard';
 import Settings from './pages/Settings/Settings';
-// import Game from './pages/Game/Game';
-import Error from './pages/Error';
-// import PrivateRoute from './components/PrivateRoute';
+import Game from './pages/Game/Game';
+import Error from './pages/Error/Error';
+import ErrorBoundary from './pages/Error/ErrorBoundary';
+import PrivateRoute from './components/PrivateRoute';
+import { UserProvider } from './context/UserContext';
 
-const router = createBrowserRouter([
-
+const publicRoutes: RouteObject[] = [
   {
     path: '/',
-    // element: <PrivateRoute />,
-    errorElement: <Error />,
-    children: [
-      { index: true, element: <Login /> },
-      {
-        path: '/',
-        element: <Layout />,
-        children: [
-          { path: 'dashboard', element: <Dashboard /> },
-          { path: 'profile', element: <Profile /> },
-          { path: 'profile/:userId', element: <Profile /> },
-          { path: 'leaderboard', element: <Leaderboard /> },
-          { path: 'settings', element: <Settings /> },
-          // { path: 'game', element: <Game /> },
-        ],
-      },
-    ],
+    element: <Login />,
+  },
+  {
+    path: '/twofa',
+    element: <TwoFA />,
   },
   {
     path: '*',
     element: <Error />,
+  },
+];
+
+const privateRoutes: RouteObject[] = [
+  {
+    path: 'dashboard',
+    element: <Dashboard />,
+  },
+  {
+    path: 'profile',
+    element: <Profile />,
+    children: [
+      {
+        path: ':userId',
+        element: <Profile />,
+      },
+      {
+        path: '*',
+        element: <Error />,
+      },
+    ],
+  },
+  {
+    path: 'leaderboard',
+    element: <Leaderboard />,
+  },
+  {
+    path: 'settings',
+    element: <Settings />,
+  },
+  {
+    path: 'game',
+    element: <Game />,
+  },
+  {
+    path: '*',
+    element: <Error />,
+  },
+];
+
+const router = createBrowserRouter([
+  ...publicRoutes,
+  {
+    path: '/',
+    element: (
+      <UserProvider>
+        <ErrorBoundary>
+          <PrivateRoute>
+            <Layout />
+          </PrivateRoute>
+        </ErrorBoundary>
+      </UserProvider>
+    ),
+    children: privateRoutes,
   },
 ]);
 

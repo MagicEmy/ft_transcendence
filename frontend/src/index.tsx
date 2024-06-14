@@ -10,7 +10,4 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 
 root.render(
-  <UserProvider>
-    <App />
-  </UserProvider>
-);
+  <App />);

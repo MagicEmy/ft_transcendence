@@ -1,18 +1,33 @@
-import React, { useContext } from 'react';
-import { Outlet, Navigate, useLocation } from 'react-router-dom';
-import  UserContext  from '../context/UserContext';
+import React, { ReactNode, useContext } from 'react';
+import UserContext, { IUserContext } from '../context/UserContext';
+import { useIsLoggedIn } from '../hooks/useIsLoggedIn';
+import PageContent from './PageContent';
+import classes from './PageContent.module.css';
+import { useNavigate } from "react-router-dom";
 
-const PrivateRoute = () => {
-  const { userIdContext } = useContext(UserContext);
-  const location = useLocation();
 
-  console.log("PrivateRoute: userData", userIdContext);
-  if (!userIdContext) {
-	console.log("PrivateRoute: No user logged in");
-    return <Navigate to="/" state={{ from: location }} />;
+const PrivateRoute = ({ children }: { children: ReactNode }) => {
+  const { userIdContext } = useContext<IUserContext>(UserContext);
+  const navigate = useNavigate();
+  const { isLoggedin,  } = useIsLoggedIn();
+
+  if (isLoggedin === false || (!userIdContext && !isLoggedin)) {
+    console.log('PrivateRoute: No user logged in');
+    const title = 'Error';
+    const message = 'You must be logged in to view this page';
+    return (
+      <>
+        <PageContent title={title}>
+          <p className='errror'> {message}</p>
+          <button className={classes.backButton} onClick={() => {
+            navigate('/')
+          }}>Back to login</button>
+        </PageContent>
+      </>
+    );
   }
 
-  return <Outlet />;
+  return <>{children}</>;
 };
 
 export default PrivateRoute;

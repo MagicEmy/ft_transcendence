@@ -12,7 +12,10 @@ export interface UserProfile {
 		status: string
 	  },
 	friends: Friends,
-	leaderboardPosition: number,
+	leaderboard: {
+		position: number,
+		totalPoints: number,
+	},
 	totalPlayers: number,
 	gamesAgainstBot: {
 		totalPlayedGames: number,
@@ -59,4 +62,13 @@ export interface UserProfile {
 
   export interface UserStatus {
 	status?: string;
+  }
+
+  export interface Games {
+	player1Id: string;
+	player1Name?: string;
+	player1Score: number;
+	player2Id: string;
+	player2Name?: string;
+	player2Score: number;
   }

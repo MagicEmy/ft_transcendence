@@ -1,13 +1,15 @@
 import { Friends } from '../types/shared';
+import { BASE_URL, FRIENDS, ADD_FRIEND, DEL_FRIEND } from '../utils/constants';
+
 
 export const loadFriends = async (userId: string): Promise<Friends[] | undefined> => {
   if (!userId) return;
 
   try {
-    const response = await fetch(`http://localhost:3001/friends/${userId}`, {
+    const response = await fetch(`${FRIENDS}/${userId}`, {
       method: 'GET',
       headers: {
-      'Content-Type': 'application/json'
+        'Content-Type': 'application/json'
       },
       credentials: 'include'
     });
@@ -18,7 +20,7 @@ export const loadFriends = async (userId: string): Promise<Friends[] | undefined
     const friends: Friends[] = await response.json();
     return friends;
   } catch (error) {
-    console.error('Error loading friends:', error);
+    console.error('Error loading friends json:', error);
   }
 };
 
@@ -29,7 +31,7 @@ export const addFriend = async (userId: string, friendId: string): Promise<void>
   }
 
   try {
-    const response = await fetch('http://localhost:3001/friend', {
+    const response = await fetch( ADD_FRIEND, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -46,7 +48,7 @@ export const addFriend = async (userId: string, friendId: string): Promise<void>
     }
 
     const data = await response.json();
-    console.log('Friend added:', data);
+    return data;
   } catch (error) {
     console.error('Error adding friend:', error);
   }
@@ -59,7 +61,7 @@ export const deleteFriend = async (userId: string, friendId: string): Promise<vo
   }
 
   try {
-    const response = await fetch('http://localhost:3001/friend', {
+    const response = await fetch( DEL_FRIEND, {
       method: 'DELETE',
       credentials: 'include',
       headers: {
@@ -76,7 +78,7 @@ export const deleteFriend = async (userId: string, friendId: string): Promise<vo
     }
 
     const data = await response.json();
-    console.log('Friend deleted:', data);
+    return data;
   } catch (error) {
     console.error('Error deleting friend:', error);
   }

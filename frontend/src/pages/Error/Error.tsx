@@ -1,13 +1,14 @@
 import React from 'react';
-import { useRouteError, isRouteErrorResponse } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import PageContent from '../components/PageContent';
+import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom';
+import NavbarError from './NavbarError';
+import classes from '../../components/Navbar/Navbar.module.css';
+import PageContent from '../../components/PageContent'
 
 const Error = () => {
   const error = useRouteError();
-
+  const navigate = useNavigate()
   let title = 'Error';
-  let message = 'An unknown error occurred';
+  let message = 'Page not found';
 
   if (isRouteErrorResponse(error)) {
     if (error.status === 404) {
@@ -25,19 +26,21 @@ const Error = () => {
           message = parsedMessage;
         }
       } catch (e) {
-        // Handle JSON parsing error if needed
       }
     }
   }
 
-return (
-  <>
-    <Navbar />
-    <PageContent title={title}>
-    <p className='errror'> {message}</p>
-    </PageContent>
-  </>
-);
+  return (
+    <>
+      <NavbarError />
+      <PageContent title={title}>
+        <p className='errror'> {message}</p>
+        <button className={classes.button} onClick={() => {
+          navigate('/')
+        }}>back</button>
+      </PageContent>
+    </>
+  );
 }
 
 export default Error;

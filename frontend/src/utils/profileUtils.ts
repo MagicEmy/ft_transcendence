@@ -1,7 +1,34 @@
 import { UserStatus } from '../types/shared';
+import { Games } from '../types/shared';
+import { USER, GAMES, STATUS, AVATAR } from './constants';
 
-  export const loadStatus = async (userId: string): Promise<any> => {
-	const response = await fetch(`http://localhost:3001/status/${userId}`, {
+export const loadGames = async (userId: string): Promise<Games[]> => {
+	if (!userId) return [];
+
+	try {
+	  const response = await fetch(`${GAMES}/${userId}`, {
+		method: 'GET',
+		headers: {
+		  'Content-Type': 'application/json'
+		},
+		credentials: 'include'
+	  });
+
+	  if (!response.ok) {
+		throw new Error(`Error loading friends: ${response.statusText}`);
+	  }
+
+	  const games: Games[] = await response.json();
+	  return games;
+	} catch (error) {
+	  console.error('Error loading friends:', error);
+	  return [];
+	}
+  };
+
+
+  export const loadStatus = async (userId: string): Promise<UserStatus> => {
+	const response = await fetch(`${STATUS}/${userId}`, {
 	  method: 'GET',
 	  headers: {
 		'Content-Type': 'application/json'
@@ -17,7 +44,7 @@ import { UserStatus } from '../types/shared';
 
   export const loadProfileAvatar = async (userId: string): Promise<string> => {
 	try {
-	  const response = await fetch(`http://localhost:3001/avatar/${userId}`, {
+	  const response = await fetch(`${AVATAR}/${userId}`, {
 		method: 'GET',
 		credentials: 'include'
 	  });
@@ -36,7 +63,7 @@ import { UserStatus } from '../types/shared';
   };
 
   export const changeName = async (userId: string, newUserName: string): Promise<any> => {
-	const response = await fetch(`http://localhost:3001/profile/${userId}/${newUserName}`, {
+	const response = await fetch(`${USER}/${userId}/${newUserName}`, {
 	  method: 'PATCH',
 	  headers: { 'Content-Type': 'application/json' },
 	  credentials: 'include',

@@ -9,7 +9,7 @@ interface PageContentProps {
 const PageContent = ({ title, children }: PageContentProps) => {
   return (
     <div className={classes.content}>
-      <h1>{title}</h1>
+      <h1 className={classes.title}>{title}</h1>
       <br />
       {children}
     </div>

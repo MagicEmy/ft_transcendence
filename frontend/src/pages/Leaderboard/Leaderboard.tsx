@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import LeaderboardProfiles from './LeaderboardProfiles';
 import { LeaderboardStats } from './types';
+import { LEADERBOARD } from '../../utils/constants';
 import "./Leaderboard.css";
 
 const Leaderboard = () => {
@@ -9,7 +10,7 @@ const Leaderboard = () => {
   useEffect(() => {
     const fetchDbBoard = async () => {
       try {
-				const response = await fetch('http://localhost:3001/leaderboard', {
+				const response = await fetch(LEADERBOARD, {
 					method: 'GET',
 					headers: {
 						'Content-Type': 'application/json'

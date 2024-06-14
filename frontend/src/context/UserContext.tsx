@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import useStorage from '../hooks/useStorage';
 import { loadProfileAvatar } from '../utils/profileUtils';
 import { Friends } from "../types/shared";
+import { USER } from '../utils/constants';
 import { IUserContext } from '../context/userContext.types';
 
 const defaultState: IUserContext = {
@@ -27,7 +28,7 @@ interface UserProviderProps {
 export const UserProvider = ({ children }: UserProviderProps) => {
   const [userIdContext, setUserIdContext] = useState<string>('');
   const [userIdStorage, setUserIdStorage, ] = useStorage<string>('userId', '');
-  const [ , setUserNameStorage, ] = useStorage<string>('userName', '');
+  const [, setUserNameStorage, ] = useStorage<string>('userName', '');
   const [userNameContext, setUserNameContext] = useState<string>('');
   const [avatarContext, setAvatarContext] = useState<string | null>(null);
   const [friendsContext, setFriendsContext] = useState<Friends[]>([]);
@@ -38,7 +39,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     const fetchUser = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:3001/profile", {
+        const response = await fetch(USER, {
           method: "GET",
           credentials: "include",
         });
@@ -47,8 +48,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         }
         const profile = await response.json();
         setUserIdContext(profile.userId);
-        setUserIdStorage(profile.userId);
-        setUserNameStorage(profile.userName);
+        if (profile.userId) setUserIdStorage(profile.userId);
+        if (profile.userName) setUserNameStorage(profile.userName);
         setUserNameContext(profile.userName);
       } catch (error) {
         console.error("Error fetching user data: error caught: ", error);
@@ -56,10 +57,11 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         setIsLoading(false);
       }
     };
-    if (!userIdContext) fetchUser();
-  }, []);
+        if (!userIdContext) fetchUser();
 
-  console.log('HERE')
+      }, []);
+
+
   useEffect(() => {
     let active = true; // Flag to manage the effect lifecycle
 
@@ -91,8 +93,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     };
   }, [userIdContext]);
 
-  console.log("userIdStorage: ", userIdStorage);
   console.log("userIdContext: ", userIdContext);
+  console.log("userIdStorage: ", userIdStorage);
 
   return (
     <UserContext.Provider

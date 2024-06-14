@@ -1,0 +1,168 @@
+
+html, body {
+    box-sizing: border-box;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+html::-webkit-scrollbar {
+    width: 8px;
+    height: 100%;
+  }
+
+/* .main::-webkit-scrollbar-thumb, */
+html::-webkit-scrollbar-thumb {
+    background-color: #0a04ad;
+    border-radius: 30px;
+  }
+
+/* .main::-webkit-scrollbar-track, */
+html::-webkit-scrollbar-track {
+    background: #dee5f4;
+    border-radius: 30px;
+  }
+
+/* .main, */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #FCC30A #0a04ad;
+  }
+#main {
+	display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    height: auto;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+
+.board {
+    text-align: center;
+	width: 70%;
+	margin-top: 2em;
+}
+
+.board .leaderboard{
+    margin-bottom: 1em;
+	color: #0a04ad;
+	font-size: 2.5em;
+}
+
+#leadProfile{
+	border : 2px solid #0a04ad;
+	border-radius: 30px;
+    margin-top: 3em;
+	padding: 100px;
+	overflow-y: auto;
+	margin-bottom: 20em;
+	background-color: #dee5f4;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+
+}
+
+#leadProfile .flex{
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
+    text-align: left;
+    margin-bottom: 2em;
+}
+
+#leadProfile .flex .item{
+    display: flex;
+    width: 1000px;
+    align-items: center;
+	gap: 3em;
+    border: 2px solid #a09df0;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+    padding: 10px;
+}
+#leadProfile .flex .item-points{
+    display: flex;
+    width: 100px;
+    align-items: center;
+	gap: 3em;
+    border: 2px solid #a09df0;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+    padding: 5px;
+}
+
+#leadProfile .flex img{
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 50%;
+    box-shadow: 8px 5px 5px #0d045a;
+}
+
+#leadProfile .flex .info{
+   /* padding: 1em; */
+}
+
+#leadProfile .text {
+    color: #0a04ad;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 1.3em;
+    text-shadow: #0d045a;
+    border: 2px solid #a09df0;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+  }
+
+.text-dark {
+    color: var(--color-light);
+}
+
+.info .total-points {
+    display: block; /* Ensures that the points are on a new line */
+    margin-bottom: 8px; /* Adds space below the total points */
+    margin-right: 15px; /* Space between different stats */
+
+
+}
+.info .points {
+    display: inline-block;
+    margin-bottom: 8px;
+    margin-left: 10px;
+
+}
+
+.rank{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    align-items: center;
+    border: 2px solid #a09df0;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+    padding: 50px;
+    font-size: 1.2em;
+    color: #0a04ad;
+    text-shadow: 5px 5px 5px #a09df0;
+}
+
+.stats .stat {
+    display: inline-block; /* Allows items to sit side-by-side */
+    margin-right: 15px; /* Space between different stats */
+}
+
+.stat strong {
+	margin-left: 5px;
+}
+
+ /* Style for NavLink */
+  .nav-link {
+	color: #333;
+	text-decoration: none;
+	padding: 8px 12px;
+	border-radius: 5px;
+	margin-bottom: 6rem;
+  }
+
+  /* Style for active NavLink */
+  .nav-link.active {
+	background-color: #f0f0f0;
+	font-weight: bold;
+  }

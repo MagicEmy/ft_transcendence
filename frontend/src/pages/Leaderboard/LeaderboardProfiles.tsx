@@ -9,7 +9,6 @@ interface LeaderboardProfilesProps {
 }
 
 const LeaderboardProfiles = ({ leaderboard }: LeaderboardProfilesProps) => {
-  console.log("Leaderboard data:", leaderboard);
   return (
     <div id="leadProfile">
       {leaderboard && Array.isArray(leaderboard) ? <Item leaderboard={leaderboard} /> : <p>No leaderboard data available.</p>}
@@ -44,16 +43,17 @@ const Item = ({ leaderboard }: ItemProps) => {
                 } >
                 <h3 className='text'>{value.userName}</h3>
               </NavLink>
-              <span className="total-points">Total points:</span>
-              <span className="points">Total points:{value.pointsTotal}</span>
+              <div className="info">
+              <span className="total-points">Total points:<span className="points">{value.pointsTotal}</span></span>
+              </div>
               <div className="stats">
-                <span className="stat">Wins: <strong>{value.wins}</strong></span>
-                <span className="stat">Losses: <strong>{value.losses}</strong></span>
-                <span className="stat">Draws: <strong>{value.draws}</strong></span>
+                <span className="stat"><strong>{value.wins}</strong>Wins</span>
+                <span className="stat"><strong>{value.draws}</strong>Draws</span>
+                <span className="stat"><strong>{value.losses}</strong>Losses</span>
               </div>
             </div>
           </div>
-          <span className="item">
+          <span className="rank">
             <span>{value.rank}</span>
           </span>
         </div>

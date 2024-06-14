@@ -2,33 +2,32 @@ import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import UserContext, { IUserContext } from '../context/UserContext';
 import useStorage from '../hooks/useStorage';
+import { LOGOUT } from '../utils/constants';
 
 
 interface LogoutButtonProps {
   className?: string;
 }
 const LogoutButton = ({ className }: LogoutButtonProps) => {
-  const { setUserIdContext } = useContext<IUserContext>(UserContext);
-  const [userIdStorage, , removeUserIdStorage] = useStorage('userId', '');
+  const { userIdContext } = useContext<IUserContext>(UserContext);
+  const [, , removeUserIdStorage] = useStorage('userId', '');
   const [ , , removeUserNameStorage] = useStorage<string>('userName', '');
   const navigate = useNavigate();
 
   async function userLogout() {
     try {
-      console.log('Logging out user:', userIdStorage);
-      const response = await fetch('http://localhost:3001/logout', {
+      const response = await fetch(LOGOUT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({
-          userId: userIdStorage
+          userId: userIdContext
         })
       });
       if (response.ok) {
         console.log('User logged out');
-        setUserIdContext('');
         removeUserIdStorage();
         removeUserNameStorage();
         navigate('/');
@@ -37,7 +36,6 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
       }
     } catch (error) {
       console.log('Error logging out:', error);
-      setUserIdContext('');
       removeUserIdStorage();
       removeUserNameStorage();
       navigate('/');

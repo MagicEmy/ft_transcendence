@@ -2,9 +2,10 @@
 
 * {
   box-sizing: border-box;
-  scroll-behavior: smooth;
-  font-family: "Arial";
+  overflow: hidden;
 }
+
+
 
 :root {
   font-family: "Roboto", sans-serif;

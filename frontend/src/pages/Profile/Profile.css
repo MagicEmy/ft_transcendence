@@ -1,90 +1,114 @@
+#html, body, main {
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
 .main {
-    height: 100vh;
+    height: auto;
     overflow-y: auto;
     scroll-behavior: smooth;
-    /* margin-bottom: 20em; */
-    padding: 20px;
+    /* padding: 20px; */
   }
 
 .profile {
-    border: 10px solid #0a04ad;
-    border-radius: 10px;
-    height: 100%;
+    border: 2px solid #0a04ad;
+    border-radius: 30px;
+    height: auto;
     margin-top: 3em;
-    padding: 10px;
+    padding: 30px;
     overflow-y: auto;
     scroll-behavior: smooth;
     margin-bottom: 10em;
     background-color: #dee5f4;
-    box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
+    box-sizing: border-box;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+
   }
 
-.main::-webkit-scrollbar,
-.profile::-webkit-scrollbar {
-    width: 8px; /* Adjust the width to make the scrollbar shorter */
+/* .main::-webkit-scrollbar, */
+.main::-webkit-scrollbar {
+    width: 8px;
+    height: 100%;
   }
 
-.main::-webkit-scrollbar-thumb,
-.profile::-webkit-scrollbar-thumb {
-    background-color: #0a04ad; /* Color of the scrollbar thumb */
-    border-radius: 30px; /* Rounded corners for the scrollbar thumb */
+/* .main::-webkit-scrollbar-thumb, */
+.main::-webkit-scrollbar-thumb {
+    background-color: #0a04ad;
+    border-radius: 30px;
   }
 
-.main::-webkit-scrollbar-track,
-.profile::-webkit-scrollbar-track {
-    background: #dee5f4; /* Background color of the scrollbar track */
-    border-radius: 30px; /* Rounded corners for the scrollbar track */
+/* .main::-webkit-scrollbar-track, */
+.main::-webkit-scrollbar-track {
+    background: #dee5f4;
+    border-radius: 30px;
   }
 
-.main,
-.profile {
-    scrollbar-width: thin; /* Make scrollbar thinner */
-    scrollbar-color: #0a04ad #dee5f4; /* Color of thumb and track */
+/* .main, */
+.main {
+    scrollbar-width: thin;
+    scrollbar-color: #FCC30A #0a04ad;
   }
 
-.main,
 .profile * {
-    box-sizing: border-box; /* Ensure all child elements use border-box */
+    box-sizing: border-box;
   }
 
-.profile .flex{
+
+.profile .flex {
+  width: 50%;
   gap: 1em;
   text-align: left;
-  flex-direction: column;
+  flex-direction: row;
 
 }
 
-.profile .flex .item{
+.profile .columnsWrapper {
+  display: flex;
+  flex-direction: row;
+}
+
+.profile .flex .item {
   display: flex;
   align-items: center;
   gap: 1em;
   padding: 30px;
 }
 
-.profile .flex img{
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 50%;
+.profile .flex .status {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 5px;
 }
 
-.profile .flex .info{
+.profile .flex img {
+  width: 100px;
+  height: 100px;
+  margin-right: 25px;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 8px 5px 5px #0d045a;
+}
+
+.profile .flex .info {
   padding: 0;
 }
 
-.profile-text{
-  color: #0d045a;
+.profile-text {
+  color: #0a04ad;
   margin-top: 10px;
   margin-bottom: 10px;
   font-size: 1.5em;
+  text-shadow: #0d045a;
 }
 
-.profile-text-dark{
+.profile-text-dark {
   color: #0d045a;
   margin-top: 10px;
   margin-bottom: 10px;
-  border: 1px solid #a09df0;
-
+  border: 2px solid #a09df0;
+  box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+  padding: 5px;
 }
 
 .status-indicator {
@@ -100,72 +124,77 @@
 }
 
 .offline {
+  background-color: gray;
+}
+
+.game {
   background-color: red;
 }
 
-.game{
-  background-color: blue;
+.chat {
+  background-color: #FCC30A;
 }
 
 .stats .stat {
-  margin-right: 15px; /* Space between different stats */
+  margin-right: 15px;
   margin-bottom: 10px;
 }
 
-.stat-column{
+.stat-column {
   margin-right: 15px; /* Space between different stats */
   margin-bottom: 10px;
   display: flex;
-    flex-direction: column;
-    gap: 0.5em;
+  flex-direction: column;
+  gap: 0.5em;
 }
 .stat strong {
 	margin-left: 5px; /* Space between the label and the number */
   color: #0f0f0f; /* Change the color of the number */
   margin-bottom: 10px;
+  margin-right: 15px;
+
 }
 
  .title {
-  display: inline;
+  display: inline;;
   color: #0a04ad;
   font-size: 2em;
-  /* padding: 25px; */
   }
 
 .friends {
-    /* width: 100px; */
-    border: 1px solid #a09df0;
-    width: 600px;
+    margin-top: 10px;
+    width: 100%;
     flex-direction: column;
-    /* flex-wrap: wrap; */
     padding: 10px;
   }
 
-  .friends ul {
+.friends ul {
     flex-direction: column;
     list-style-type: none;
     padding: 0;
     margin: 0;
   }
 
-  .friends li {
+.friends li {
     margin-bottom: 10px; /* Add space between nav links */
   }
 
-.friends .nav-link {
-    color: #130682;
-    /* padding: 20px; */
+.friends .button {
+    background-color: #130682;
+    color: #ffffff;
+    padding:0.3em 2.5em;
     border-radius: 30px;
     text-decoration: none;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-.friends .nav-link:hover,
-.friends .nav-link.active {
-    background-color: #130682;
+.friends .button:hover,
+.friends .button.active {
+    background-color: #1e09d6;
     color: #ffffff;
-    padding: 10px;
+    padding:0.3em 2.5em;
     border-radius: 30px;
+    border-color: #9592f8;
   }
 
 .friends .statsFriends {
@@ -173,3 +202,95 @@
     margin-right: 15px;
     color: #130682;
   }
+
+  .button {
+    display:inline-block;
+    padding:0.3em 2.5em;
+    margin:0 0.1em 0.1em 0;
+    background-color: #0a04ad;
+    border:0.16em solid rgba(255,255,255,0);
+    border-radius:2em;
+    box-sizing: border-box;
+    text-decoration:none;
+    font-family:'Roboto',sans-serif;
+    font-weight:300;
+    color:#FFFFFF;
+    text-shadow: 0 0.04em 0.04em rgba(0,0,0,0.35);
+    text-align:center;
+    transition: all 0.2s;
+    }
+    .button:hover{
+     border-color: #3d37e5;
+    }
+    @media all and (max-width:30em){
+     .button{
+      display:block;
+      margin:0.2em auto;
+    }
+  }
+
+  .userMatchHistory {
+    margin-top: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid #a09df0;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+    padding: 10px;
+  }
+
+
+  .gameHistory .player {
+    display: flex;
+    border: 1px solid #f09dea;
+    flex-direction: column;
+    margin-right: 15px;
+    gap: 1em;
+  }
+
+  .gameHistory .player-name {
+    padding: 10px;
+    color: #130682;
+  }
+
+  .gameHistory {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    border: 2px solid #a09df0;
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+    padding: 10px;
+    margin-left: 70px;
+
+
+  }
+  .title {
+    color: #0a04ad;
+    font-size: 2em;
+    }
+
+
+  .player-info {
+    display: flex;
+    align-items: center;
+  }
+
+  .player-name {
+    margin-right: 8px; /* Adjust the spacing between name and score */
+    color: #130682;
+
+  }
+
+  .player-score {
+    font-weight: bold;
+    margin-right: 8px;
+    color: #130682;
+
+  }
+
+  .separator {
+    margin: 0 15px; /* Adjust the spacing around the separator */
+    font-weight: bold;
+  }
+
+
