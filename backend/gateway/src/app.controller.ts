@@ -45,7 +45,6 @@ import { UserIdDto } from './dto/user-id-dto';
 import { UploadFileDto } from './dto/upload-file-dto';
 import { Opponent } from './enum/opponent.enum';
 import { GameHistoryDto } from './dto/game-history-dto';
-import { TokensDto } from './dto/tokens-dto';
 
 @UseFilters()
 @Controller()
@@ -74,24 +73,9 @@ export class AppController {
 
   @ApiTags('auth')
   @UseGuards(JwtAuthGuard)
-  @Get('/tokens')
-  getJwtTokens(@Req() req): Observable<TokensDto> {
-    const cookie = req.get('cookie');
-    return forkJoin({
-      jwtAccessToken: this.authService.extractTokenFromCookies({
-        cookie,
-        cookieName: this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
-      }),
-      jwtRefreshToken: this.authService.extractTokenFromCookies({
-        cookie,
-        cookieName: this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
-      }),
-    }).pipe(
-      map((result) => ({
-        jwtAccessToken: result.jwtAccessToken,
-        jwtRefreshToken: result.jwtRefreshToken,
-      })),
-    );
+  @Get('/jwtValid')
+  getJwtTokens(): boolean {
+    return true;
   }
 
   @ApiTags('profile')
