@@ -5,6 +5,59 @@ import { IGame } from "./IGame"
 import { GamePlayer } from './GamePlayer';
 import { SockEventNames } from './GamePong.communication';
 import { GamePong } from './NewGamePong';
+import { MatchMaker } from './NewGameMatchMaker';
+
+class GameMenu
+{
+	public name:	string;
+	public flag:	string;
+	public active:	boolean;
+	public up:	GameMenu | null;
+	public down:	GameMenu | null;
+	public left:	GameMenu | null;
+	public right:	GameMenu | null;
+
+	public constructor(name: string, flag: string)
+	{
+		this.name = name;
+		this.flag = flag;
+		this.active = false;
+		this.up = null;
+		this.down = null;
+		this.left = null;
+		this.right = null;
+	}
+
+	public ToJson()
+	{
+		const nodes: any[] = [];
+		let current: GameMenu | null = this;
+		// while (current && current.up !== null)
+		// 	current = current.up;
+		// while (current && current.left !== null)
+		// 	current = current.left;
+		console.log("Creating nodes");
+		while (current)
+		{
+			for (let row: any; row; row = row.down)
+			{
+				nodes.push(
+				{
+					name:	row.name,
+					flag:	row.flag,
+					active:	row.active,
+					up:		row.up,
+					down:	row.down,
+					left:	row.left,
+					right:	row.right,
+				});
+				console.log("added node");
+			}
+			current = current.right;
+		}
+		return JSON.stringify(nodes);
+	}
+}
 
 @WebSocketGateway({ cors: true })
 export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
@@ -118,7 +171,40 @@ Socket.io
 		this.players.push(player);
 		player.name = msg.playerName;
 
-		client.emit("PlayerReady");
+		this.EmitMenu(client);
+	}
+
+	// @SubscribeMessage("PlayGame")
+	// handlerPlayGame(client: any, message: string): void
+	// {
+	// 	const msg: string[] = JSON.parse(message);
+	// 	switch (msg[0])
+	// 	{
+	// 		case GamePong.GetFlag():
+	// 			console.log("Pong requested");
+	// 			break ;
+	// 		case MatchMaker.GetFlag():
+	// 			console.log("Matchmaker requested");
+	// 			break ;
+	// 		default:
+	// 			console.error(`Error: Unknown target flag '${msg[0]}'`);
+	// 			break ;
+	// 	}
+	// }
+
+/* ************************************************************************** *\
+
+	Menu
+
+\* ************************************************************************** */
+
+	private EmitMenu(client: any)
+	{
+		const menuJson = { rows: [] };
+
+		menuJson.rows.push(GamePong.GetMenuRowJson());
+		menuJson.rows.push(MatchMaker.GetMenuRowJson());
+		client.emit("GameMenu", JSON.stringify(menuJson));
 	}
 
 /* ************************************************************************** *\
@@ -127,50 +213,77 @@ Socket.io
 
 \* ************************************************************************** */
 
-	public PlayGame(player: GamePlayer, mode: string, type: string, data: string)
+	public CreateGame(player: GamePlayer, game: string, data: string[], players: string[]): IGame | null
 	{
-		switch (mode)
+		let gameInstance: IGame;
+		try
 		{
-			case "solo":
-				this.PlayGameSolo(player, type, data);
-				break;
-			case "local":
-				console.log("time to play solo");
-				break;
-			case "match":
-				console.log("time to find a match!");
-				break;
-			default:
-				console.error(`Error: Unknown game mode:`, mode);
-				break;
+			switch (game)
+			{
+				case GamePong.GetFlag():
+					gameInstance = new GamePong(data, players);
+					break ;
+				case MatchMaker.GetFlag():
+					gameInstance = new MatchMaker();
+					break ;
+				default:
+					console.error(`Error: Unknown target flag: ${game}`);
+					return (null);
+			}
+			this.games.push(gameInstance);
+			return (gameInstance);
+		}
+		catch (error)
+		{
+			console.error(`Error: Failed to create game: ${error.message}`);
+			return (null);
 		}
 	}
 
-	private PlayGameSolo(player: GamePlayer, type: string, data: string)
-	{
-		var game: IGame;
-		switch (type)
-		{
-			case "pong":
-				const dataPack = { IDs: [player.getId()] };
-				game = new GamePong(type, JSON.stringify(dataPack));
-				break ;
-			default:
-				console.error(`Error: Unknown game type:`, type);
-				return ;
-		}
-		if (!game.AddPlayer(player))
-			console.error("Failed to add player");
-	}
+	// public PlayGame(player: GamePlayer, mode: string, type: string, data: string)
+	// {
+	// 	switch (mode)
+	// 	{
+	// 		case "solo":
+	// 			this.PlayGameSolo(player, type, data);
+	// 			break;
+	// 		case "local":
+	// 			console.log("time to play solo");
+	// 			break;
+	// 		case "match":
+	// 			console.log("time to find a match!");
+	// 			break;
+	// 		default:
+	// 			console.error(`Error: Unknown game mode:`, mode);
+	// 			break;
+	// 	}
+	// }
 
-	public FindExistingGame(player: GamePlayer): boolean
+	// private PlayGameSolo(player: GamePlayer, type: string, data: string)
+	// {
+	// 	var game: IGame;
+	// 	switch (type)
+	// 	{
+	// 		case "pong":
+	// 			const dataPack = { IDs: [player.getId()] };
+	// 			game = new GamePong(type, JSON.stringify(dataPack));
+	// 			break ;
+	// 		default:
+	// 			console.error(`Error: Unknown game type:`, type);
+	// 			return ;
+	// 	}
+	// 	if (!game.AddPlayer(player))
+	// 		console.error("Failed to add player");
+	// }
+
+	public FindExistingGame(player: GamePlayer): IGame | null
 	{
 		for (const game of this.games)
 			if (game.PlayerIsInGame(player))
 			{
-				return (true);
+				return (game);
 			}
-		return (false);
+		return (null);
 	}
 
 	public removeGame(gameToRemove: IGame): void
@@ -203,5 +316,4 @@ Socket.io
 		if (index != -1)
 			this.players.splice(index, 1)[0];
 	}
-
 }
