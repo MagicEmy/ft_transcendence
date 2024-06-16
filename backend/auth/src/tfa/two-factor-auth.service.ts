@@ -6,6 +6,7 @@ import { TfaRepository } from './tfa.repository';
 import { Tfa } from './tfa.entity';
 import { CreareTFADto } from './dto/create-tfa-dto';
 import { TwoFactorAuthDto } from './dto/two-factor-auth-dto';
+import { UserIdNameDto } from './dto/user-id-name-dto';
 
 @Injectable()
 export class TwoFactorAuthService {
@@ -14,10 +15,14 @@ export class TwoFactorAuthService {
     private readonly tfaRepository: TfaRepository,
   ) {}
 
-  async generateTwoFactorAuthenticationSecret(userId: string) {
+  async generateTwoFactorAuthenticationSecret(userIdNameDto: UserIdNameDto) {
     const secret = authenticator.generateSecret();
-    const otpAuthUrl = authenticator.keyuri(userId, 'CTRL-ALT-DEFEAT', secret);
-    await this.addTwoFactorAuthentication(userId, secret);
+    const otpAuthUrl = authenticator.keyuri(
+      userIdNameDto.userName,
+      'CTRL-ALT-DEFEAT',
+      secret,
+    );
+    await this.addTwoFactorAuthentication(userIdNameDto.userId, secret);
 
     return otpAuthUrl;
   }

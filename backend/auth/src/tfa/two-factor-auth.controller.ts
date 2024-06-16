@@ -8,16 +8,17 @@ import {
 } from '@nestjs/common';
 import { TwoFactorAuthService } from './two-factor-auth.service';
 import { TwoFactorAuthDto } from './dto/two-factor-auth-dto';
+import { UserIdNameDto } from './dto/user-id-name-dto';
 
 @Controller('TwoFactorAuth')
 export class TwoFactorAuthController {
   constructor(private readonly authenticationService: TwoFactorAuthService) {}
 
   @Post('create')
-  async register(@Body() userId: string) {
+  async register(@Body() userIdNameDto: UserIdNameDto) {
     const otpAuthUrl =
       await this.authenticationService.generateTwoFactorAuthenticationSecret(
-        userId,
+        userIdNameDto,
       );
 
     return await this.authenticationService.generateQrCodeDataURL(otpAuthUrl);
@@ -52,7 +53,7 @@ export class TwoFactorAuthController {
   //   }
 
   @Post('disable')
-  async disableTwoFactorAuthentication(@Body() userId: string) {
+  async disableTwoFactorAuthentication(@Body('userId') userId: string) {
     await this.authenticationService.disableTwoFactorAuthentication(userId);
   }
 
