@@ -28,6 +28,7 @@ import {
   map,
   mergeMap,
   of,
+  switchMap,
 } from 'rxjs';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { ProfileDto, UserIdNameStatusDto } from './dto/profile-dto';
@@ -41,7 +42,6 @@ import { AuthService } from './jwt-auth/auth.service';
 import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { FriendshipDto } from './dto/friendship-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
-import { UserIdDto } from './dto/user-id-dto';
 import { UploadFileDto } from './dto/upload-file-dto';
 import { Opponent } from './enum/opponent.enum';
 import { GameHistoryDto } from './dto/game-history-dto';
@@ -60,23 +60,43 @@ export class AppController {
   @ApiTags('logout')
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  logout(
-    @Req() req,
-    @Res() resp: Response,
-    @Body(ValidationPipe) userIdDto: UserIdDto,
-  ): Response {
-    resp.clearCookie(this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'));
-    resp.clearCookie(this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'));
-    this.authService.deleteRefreshTokenFromDB({ userId: userIdDto.userId });
-    return resp.sendStatus(200);
+  logout(@Req() req, @Res() resp: Response): void {
+    this.authService
+      .extractTokenFromCookies({
+        cookie: req.get('cookie'),
+        cookieName: this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
+      })
+      .pipe(
+        switchMap((refreshToken: string) => {
+          this.authService.deleteRefreshTokenFromDB({
+            refreshToken: refreshToken,
+          });
+          return of(undefined);
+        }),
+      )
+      .subscribe({
+        next: () => {
+          resp.clearCookie(
+            this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
+          );
+          resp.clearCookie(
+            this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
+          );
+          return resp.sendStatus(200);
+        },
+        error: (err) => {
+          console.log('error when logging out:', err);
+          return resp.sendStatus(200);
+        },
+      });
   }
 
-  //   @Get('/tokens')
-  //   generateJwtTokens(
-  //     @Body() jwtPayloadDto: JwtPayloadDto,
-  //   ): Observable<TokensDto> {
-  //     return this.appService.generateJwtTokens(jwtPayloadDto);
-  //   }
+  @ApiTags('auth')
+  @UseGuards(JwtAuthGuard)
+  @Get('/jwtValid')
+  getJwtTokens(): boolean {
+    return true;
+  }
 
   @ApiTags('profile')
   @UseGuards(JwtAuthGuard)

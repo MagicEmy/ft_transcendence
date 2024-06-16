@@ -1,5 +1,5 @@
 import { Friends } from '../types/shared';
-import { BASE_URL, FRIENDS, ADD_FRIEND, DEL_FRIEND } from '../utils/constants';
+import { FRIENDS, ADD_FRIEND, DEL_FRIEND } from '../utils/constants';
 
 
 export const loadFriends = async (userId: string): Promise<Friends[] | undefined> => {
@@ -31,16 +31,18 @@ export const addFriend = async (userId: string, friendId: string): Promise<void>
   }
 
   try {
+    const addFriendBody = {
+      userId: userId,
+      friendId: friendId,
+    };
+    const body = JSON.stringify(addFriendBody);
     const response = await fetch( ADD_FRIEND, {
       method: 'POST',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        userId: userId,
-        friendId: friendId,
-      }),
+      body: body,
     });
 
     if (!response.ok) {
@@ -61,16 +63,18 @@ export const deleteFriend = async (userId: string, friendId: string): Promise<vo
   }
 
   try {
+    const delFriendBody = {
+      userId: userId,
+      friendId: friendId,
+    };
+    const body = JSON.stringify(delFriendBody);
     const response = await fetch( DEL_FRIEND, {
       method: 'DELETE',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        userId: userId,
-        friendId: friendId,
-      }),
+      body: body,
     });
 
     if (!response.ok) {

@@ -36,7 +36,8 @@ export class GameService {
   async getGameHistory(userId: string): Promise<GameHistoryDto[]> {
     const gameOverview: GameHistoryDto[] = await this.gameRepository
       .createQueryBuilder()
-      .select('player1_id', 'player1Id')
+      .select('game_id', 'gameId')
+      .addSelect('player1_id', 'player1Id')
       .addSelect('player1_score', 'player1Score')
       .addSelect('player2_id', 'player2Id')
       .addSelect('player2_score', 'player2Score')
@@ -54,7 +55,6 @@ export class GameService {
       const repeats = Math.floor(Math.random() * 4);
       for (let i = 0; i < repeats; i++) {
         games.push(this.simulateOneGame(userId, Opponent.BOT));
-        // await this.gameService.createGame(gameStatus);
       }
       let idxOpp = idx + 1;
       while (idxOpp < allUserIds.length) {
@@ -62,7 +62,6 @@ export class GameService {
         const repeats = Math.floor(Math.random() * 7) + 1;
         for (let i = 0; i < repeats; i++) {
           games.push(this.simulateOneGame(userId, allUserIds[idxOpp]));
-          //   await this.gameService.createGame(gameStatus);
         }
         idxOpp++;
       }

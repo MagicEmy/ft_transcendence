@@ -23,7 +23,12 @@ export class AppController {
 
   @EventPattern(KafkaTopic.NEW_USER) //CHECKED
   createStatsRowNewUser(data: UserIdNameLoginDto): Promise<void> {
-    return this.statsService.createStatsRowNewUser(data.userId);
+    try {
+      this.statsService.createStatsRowNewUser(data.userId);
+      return;
+    } catch (error) {
+      throw error;
+    }
   }
 
   @MessagePattern(PlayerInfo.TOPIC) //CHECKED

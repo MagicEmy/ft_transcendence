@@ -10,7 +10,9 @@ import {
   UserAndRoom,
   UserShowDto,
   RoomUserDto,
-  UpdateRoomDto
+  UpdateRoomDto,
+  MessageRoomDto,
+  MessageUserDto,
 } from '../dto/chat.dto';
 import { User } from 'src/entities/user.entity';
 import { Room } from 'src/entities/room.entity';
@@ -248,7 +250,7 @@ export class RoomService {
   async getAllMessages(
     user: UserDto['userId'],
     roomName: string,
-  ): Promise<Message[]> {
+  ): Promise<MessageRoomDto[]> {
     const roomIndex = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
       throw 'Not Existing Room';
@@ -260,7 +262,23 @@ export class RoomService {
     if (!(await this.isUser(roomIndex, newUser.userId))) {
       throw 'Not Room User';
     }
-    return this.rooms[roomIndex].messages;
+    let messages: MessageRoomDto[] = [];
+    for (const message of this.rooms[roomIndex].messages){
+      const user: MessageUserDto = {
+        userId: message.user.userId,
+        userName: message.user.userName,
+        blockedBy: await this.userService.getAllBlockingUsersByBlockedUserId(message.user.userId),
+        blockedUsers: await this.userService.getAllBlockedUsersByBlockingUserId(message.user.userId),
+      };
+      const messageDto: MessageRoomDto = {
+        user: user,
+        roomName: message.roomName,
+        message: message.message,
+        timesent: message.timesent,
+      };
+      messages.push(messageDto);
+    };
+    return messages;
   }
 
   //  method that menage users

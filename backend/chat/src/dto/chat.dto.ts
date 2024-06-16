@@ -147,3 +147,16 @@ export class BlockedUserDto {
   blockingUserId: string;
   blockedUserId: string;
 }
+
+export class MessageUserDto {
+  userId: string;
+  userName: string;
+  blockedUsers: string[];
+  blockedBy: string[];
+}
+export class MessageRoomDto {
+  roomName: string;
+  message: string;
+  timesent: Date;
+  user: MessageUserDto;
+}
