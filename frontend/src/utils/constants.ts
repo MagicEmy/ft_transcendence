@@ -1,4 +1,5 @@
 export const BASE_URL = 'http://localhost:3001';
+export const JWT_CHECK = 'http://localhost:3001/jwtValid';
 export const LOGIN_AUTH0 = 'http://localhost:3003/auth/42/login';
 export const USER = 'http://localhost:3001/profile';
 export const FRIENDS = 'http://localhost:3001/friends';

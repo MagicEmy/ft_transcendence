@@ -21,7 +21,6 @@
 	display: flex;
 	justify-content: center;
 	color: #0d045a;
-	/* padding: 20px; */
 }
 .settings .flex{
 	gap: 1em;
@@ -109,13 +108,14 @@ input[type="text"] {
 
 .qr-container {
 	display: flex;
-	/* flex-direction: column; */
 	align-items: center;
+	flex-direction: column;
+
 	margin-top: 20px;
 	border: none;
   }
 
-  .qr-code {
+.qr-code {
 	max-width: 200px;
 	margin-bottom: 20px;
 	width: 200px;
@@ -141,14 +141,16 @@ input[type="text"] {
 
 .TwoFA {
 	width: 150px;
-	color: #fff;
+	height: 55px;
 	display: flex;
-	flex-direction: row;
 	align-items: center;
 	border: none;
 	border-radius: 30px;
-	padding: 0.5px 30px;
-	background: linear-gradient(138deg, rgb(113, 153, 247) 36.7%, rgb(10, 4, 173) 84.4%, rgb(255, 255, 255) 119.7%);
+	padding: 5px 20px;
+	background: linear-gradient(138deg, rgb(113, 153, 247) 36.7%, rgb(10, 4, 173) 84.4%);
+	color: #fff;
+	cursor: pointer;
+	transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .TwoFA:hover {
@@ -162,17 +164,16 @@ input[type="text"] {
 	padding: 10px;
 	border-radius: 5px;
 	text-align: center;
-	position: fixed; /* Position it relative to the viewport */
-	bottom: 0; /* Stick to the bottom */
+	position: fixed;
+	bottom: 0;
 	left: 0;
-	width: 100%; /* Span the entire width of the viewport */
-	margin: 0; /* Remove the top and bottom margin */
-	box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); /* Optional: Add a shadow for better visibility */
+	width: 100%;
+	margin: 0;
+	box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   }
-/* background: radial-gradient(circle, #7199f7 0%, #0a04ad 100%); */
 
 .custom-file-input {
-    display: none; /* Hide the default file input */
+    display: none;
 }
 
 .custom-file-label {
@@ -192,9 +193,9 @@ input[type="text"] {
 }
 
 .custom-file-label:disabled {
-    background-color: #ccc; /* Grey background for disabled state */
-    color: #666; /* Dark grey text for disabled state */
-    cursor: not-allowed; /* Indicate disabled state */
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
 }
 
 .custom-file-label-off {
