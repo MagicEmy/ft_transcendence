@@ -71,12 +71,12 @@ export class AppController {
     return resp.sendStatus(200);
   }
 
-  //   @Get('/tokens')
-  //   generateJwtTokens(
-  //     @Body() jwtPayloadDto: JwtPayloadDto,
-  //   ): Observable<TokensDto> {
-  //     return this.appService.generateJwtTokens(jwtPayloadDto);
-  //   }
+  @ApiTags('auth')
+  @UseGuards(JwtAuthGuard)
+  @Get('/jwtValid')
+  getJwtTokens(): boolean {
+    return true;
+  }
 
   @ApiTags('profile')
   @UseGuards(JwtAuthGuard)

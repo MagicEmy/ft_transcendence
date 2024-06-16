@@ -8,7 +8,7 @@ import { StatusChangeDto, UserIdNameDto } from 'src/kafka/dto/kafka-dto';
 
 @Injectable()
 export class UserService {
-  constructor(
+  constructor( 
     @InjectRepository(UserRepository)
     private readonly userRepository: UserRepository,
     @InjectRepository(BlockedUserRepository)

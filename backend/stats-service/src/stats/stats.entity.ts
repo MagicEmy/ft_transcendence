@@ -4,11 +4,13 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { Opponent } from './enum/opponent.enum';
 import { User } from './user.entity';
 
 @Entity()
+@Unique(['user_id', 'opponent'])
 export class Stats {
   @PrimaryGeneratedColumn()
   stats_id: string;

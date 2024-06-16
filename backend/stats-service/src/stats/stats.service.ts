@@ -32,8 +32,14 @@ export class StatsService {
 
   //   Kafka-related methods
 
-  async createStatsRowNewUser(userId: string): Promise<void> {
-    return this.statsRepository.createStatsRowNewUser(userId);
+  async createStatsRowNewUser(userId: string): Promise<string> {
+    try {
+      await this.statsRepository.createStatsRowHuman(userId);
+      await this.statsRepository.createStatsRowBot(userId);
+    } catch (error) {
+      throw error;
+    }
+    return 'OK';
   }
 
   async updateStats(gameStatus: IGameStatus): Promise<void> {
@@ -83,11 +89,17 @@ export class StatsService {
       opponent: updateStatsDto.opponent,
     });
     if (!statsRow) {
-      throw new RpcException(
-        new NotFoundException(
-          `Couldn't find stats row with player_id ${updateStatsDto.playerId} and opponent ${updateStatsDto.opponent}`,
-        ),
-      );
+      // stats row for some reason missing, add new one before proceeding
+      try {
+        await this.createStatsRowNewUser(updateStatsDto.playerId);
+        return this.updateStatsOfPlayer(updateStatsDto);
+      } catch (error) {
+        throw new RpcException(
+          new InternalServerErrorException(
+            `Error when adding missing stats row for user ${updateStatsDto.playerId}`,
+          ),
+        );
+      }
     }
     statsRow.max_score =
       updateStatsDto.score > statsRow.max_score
@@ -166,14 +178,22 @@ export class StatsService {
   async getGamesAgainst(
     userIdOpponentDto: UserIdOpponentDto,
   ): Promise<GameStatsDto> {
-    const statsRow: Stats =
+    let statsRow: Stats =
       await this.getStatsRowByIdAndOpponent(userIdOpponentDto);
     if (!statsRow) {
-      throw new RpcException(
-        new NotFoundException(
-          `Couldn't find stats row with player_id ${userIdOpponentDto.userId} and opponent ${userIdOpponentDto.opponent}`,
-        ),
-      );
+      try {
+        await this.createStatsRowNewUser(userIdOpponentDto.userId);
+        statsRow = await this.getStatsRowByIdAndOpponent(userIdOpponentDto);
+        if (!statsRow) {
+          throw new NotFoundException();
+        }
+      } catch (error) {
+        throw new RpcException(
+          new InternalServerErrorException(
+            `Error when adding missing stats row for user ${userIdOpponentDto.userId}`,
+          ),
+        );
+      }
     }
     const totalTimePlayed: TotalTimePlayedDto = this.getTotalTimePlayed(
       statsRow.total_time_playing_days,
@@ -214,9 +234,16 @@ export class StatsService {
       .andWhere('opponent LIKE :opponent', { opponent: Opponent.HUMAN })
       .getRawOne();
     if (!result) {
-      throw new RpcException(
-        new NotFoundException(`User with id ${userId} not found`),
-      );
+      try {
+        await this.createStatsRowNewUser(userId);
+        return this.getPositionAndTotalPoints(userId);
+      } catch (error) {
+        throw new RpcException(
+          new InternalServerErrorException(
+            `Error when adding missing stats row for user ${userId}`,
+          ),
+        );
+      }
     }
     const rank = await this.statsRepository
       .createQueryBuilder('stats')

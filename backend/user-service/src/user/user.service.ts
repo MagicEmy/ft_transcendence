@@ -1,4 +1,8 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -96,13 +100,19 @@ export class UserService {
   }
 
   async getUserStatus(userId: string): Promise<UserStatus> {
-    const status = await this.userStatusRepository.findOneBy({
+    let status = await this.userStatusRepository.findOneBy({
       user_id: userId,
     });
     if (!status) {
-      throw new RpcException(
-        new NotFoundException(`User with ID "${userId}" not found`),
-      );
+      try {
+        status = await this.createUserStatus(userId);
+      } catch (error) {
+        throw new RpcException(
+          new InternalServerErrorException(
+            `Error when adding status of user ${userId} to database`,
+          ),
+        );
+      }
     }
     return status;
   }
