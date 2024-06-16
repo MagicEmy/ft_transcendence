@@ -13,6 +13,28 @@ enum GamePongTheme
 	Retro,
 }
 
+class GameMenu
+{
+	public name:	string;
+	public flag:	string;
+	public active:	boolean;
+	public up:	GameMenu | null;
+	public down:	GameMenu | null;
+	public left:	GameMenu | null;
+	public right:	GameMenu | null;
+
+	public constructor(name: string, flag: string)
+	{
+		this.name = name;
+		this.flag = flag;
+		this.active = false;
+		this.up = null;
+		this.down = null;
+		this.left = null;
+		this.right = null;
+	}
+}
+
 class GameGraphics
 {
 	private static instance: GameGraphics | null = null;
@@ -302,9 +324,44 @@ class GameGraphics
 		this.renderMenuList(selectMenu);
 	}
 
+	public renderMenu2(menuList: string[], selectMenu: number): void
+	{
+		this.fillContext(this.HUDElement, this.HUDContext, GameStyle.Menu.BODY);
+		this.RenderHead("Menu");
+		this.renderMenuList2(menuList, selectMenu);
+	}
+
+	private renderMenuList2(menuList: string[], selectMenu: number): void
+	{
+		let size = this.HUDElement.height * 0.77 / menuList.length;
+		for (let i = 0; i < menuList.length; ++i)
+		{
+			let temp = this.getFontSize(this.HUDContext, menuList[i], 
+										this.HUDElement.height * 0.77 / (menuList.length + 2),
+										this.HUDElement.width * 0.75,
+										GameStyle.Menu.FONT);
+			if (temp < size)
+				size = temp;
+		}
+		this.HUDContext.font = size + "px " + GameStyle.Menu.FONT;
+		const sizeH = this.HUDContext.measureText("M").actualBoundingBoxAscent;
+		this.HUDContext.font = size * 0.75 + "px " + GameStyle.Menu.FONT;
+
+		for (let i: number = 0; i < menuList.length; ++i)
+		{
+			if (i === selectMenu)
+				this.HUDContext.fillStyle = GameStyle.Menu.FONTFOCUS;
+			else
+				this.HUDContext.fillStyle = GameStyle.Menu.FONTDEFAULT;
+			const posX = this.HUDElement.width * 0.5 - this.HUDContext.measureText(menuList[i]).width / 2;
+			const posY = this.HUDElement.height * 0.23 + sizeH * (i + 2);
+			this.HUDContext.fillText(menuList[i], posX, posY);
+		}
+	}
+
 	private renderMenuList(selectMenu: number): void
 	{
-		const menuList: string[] | undefined = GameLogic.getInstance()?.getMenuList();
+		const menuList: string[] | undefined = GameLogic.getInstance()?.getMenuStruct();
 		if (menuList === undefined)
 		{
 			console.error("Couldn't find list for menu");

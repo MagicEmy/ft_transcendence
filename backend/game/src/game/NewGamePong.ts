@@ -33,15 +33,40 @@ interface Ball
 
 export class GamePong implements IGame
 {
+	private static gameFlag: string = "PONG";
+	private mode: string;
 	private player1: Player;
 	private player2: Player;
 	private ball: Ball | null;
 
-	constructor(type: string, dataPack: string)
+	constructor(data: string[], players: string[])
 	{
-		const data = JSON.parse(dataPack);
-		this.player1 = this.ConstructPlayer(data.IDs[0], 1/23);
-		this.player2 = this.ConstructPlayer(data.IDs[1], 22/23);
+		console.log(`Creating new pong game ${data}/${players}`);
+		this.mode = data[0];
+		let player1: string;
+		let player2: string | null = null;
+
+		player1 = players[0];
+		switch (this.mode)
+		{
+			case "solo":
+				if (players.length != 1)
+					throw ("Wrong amount of players");
+				break ;
+			case "local":
+				if (players.length != 1)
+					throw ("Wrong amount of players");
+				break ;
+			case "match":
+				if (players.length != 2)
+					throw ("Wrong amount of players");
+				player2 = players[1];
+				break;
+			default:
+				throw (`Unknown game mode ${this.mode}`);
+		}
+		this.player1 = this.ConstructPlayer(player1, 1/23);
+		this.player2 = this.ConstructPlayer(player2, 22/23);
 		this.ball = null;
 	}
 
@@ -60,6 +85,7 @@ export class GamePong implements IGame
 	
 	public AddPlayer(playerToAdd: GamePlayer): boolean
 	{
+		console.log("Adding player to pong");
 		let playerPos: Player;
 		if (playerToAdd.getId() === this.player1.id)
 			playerPos = this.player1;
@@ -193,5 +219,36 @@ export class GamePong implements IGame
 			score:	player.score,
 			status:	player.status,
 		});
+	}
+
+
+/* ************************************************************************** *\
+
+	Menu
+
+\* ************************************************************************** */
+
+	public static GetFlag(): string
+	{
+		return (GamePong.gameFlag);
+	}
+
+	public static GetMenuRowJson(): any
+	{
+		return {
+			name: "Pong",
+			flag: GamePong.gameFlag,
+			options:
+			[
+				[
+					{ name: "Solo", flag: "solo" },
+					{ name: "Local", flag: "local" }
+				],
+				[
+					{ name: "Retro", flag: "retro" },
+					{ name: "Modern", flag: "modern" }
+				]
+			]
+		};
 	}
 }

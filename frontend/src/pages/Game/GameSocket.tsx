@@ -58,6 +58,13 @@ class GameSocket
 			GameGraphics.getInstance()?.renderHUD(message);
 		});
 
+		this.socket.on("GameMenu", (message: any) =>
+		{
+			const instance: GameLogic | null = GameLogic.getInstance();
+			instance?.setMenu(JSON.parse(message));
+			instance?.SetGameStateTo(1);
+		});
+
 		this.socket.on("GameImage", (message: any) =>
 		{
 			console.warn("Should: render image");

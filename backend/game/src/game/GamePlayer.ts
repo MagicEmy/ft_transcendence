@@ -1,16 +1,17 @@
 import { SockEventNames } from "./GamePong.communication";
+import { IGame } from "./IGame";
 import { GameManager } from "./NewGameManager";
 
 export class GamePlayer
 {
 	private client: any | null;
-	private id:	any;
+	private id:	string;
 	public name: string;
 	public rank: number;
 	public status: string;
 	public button: {[key: number]: boolean};
 
-	constructor(client: any, id: any)
+	constructor(client: any, id: string)
 	{
 		console.log("Creating player");
 		this.client = client;
@@ -23,13 +24,19 @@ export class GamePlayer
 
 	private handlerPlayGame(message: string)
 	{
-		const msg: any = JSON.parse(message);
+		const msg: string[] = JSON.parse(message);
+		console.log(`msg: ${msg[0]}/${msg}`);
 		const gm: GameManager | null = GameManager.getInstance();
 		if (gm !== null)
 		{
-			if (gm.FindExistingGame(this))
-				return ;
-			gm.PlayGame(this, msg.mode, msg.type, msg.data);
+			let gameInstance: IGame | null;
+			gameInstance = gm.FindExistingGame(this);
+			if (!gameInstance)
+				gameInstance = gm.CreateGame(this, msg[0], msg.slice(1), [this.id]);
+			if (gameInstance)
+				gameInstance.AddPlayer(this);
+			else
+				console.error(`Failing to add player to game ${gameInstance}`);
 		}
 	}
 

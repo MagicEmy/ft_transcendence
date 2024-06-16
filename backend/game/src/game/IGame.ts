@@ -1,8 +1,12 @@
 import { GamePlayer } from "./GamePlayer";
 
-export interface IGame
+export abstract class IGame
 {
-	AddPlayer(player: GamePlayer): boolean;
-	PlayerIsInGame(player: GamePlayer): boolean;
-	clearGame(): void;
+	public abstract AddPlayer(player: GamePlayer): boolean;
+	public abstract PlayerIsInGame(player: GamePlayer): boolean;
+	public abstract clearGame(): void;
+	
+	// protected static gameFlag = "DEFAULT";
+	// public static GetFlag(): string {return this.gameFlag};
+	// public static GetMenuRowJson(): any
 }

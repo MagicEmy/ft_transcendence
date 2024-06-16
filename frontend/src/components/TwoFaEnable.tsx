@@ -14,7 +14,7 @@ export const TwoFaEnable = () => {
 	const [showError, setShowError] = useState(false);
 	const [errorName, setErrorName] = useState('');
 	const { tfaStatus } = useGetTfaEnabled(userIdStorage);
-	// const { tfaStatus } = { tfaStatus: false };
+
 
 	const handleClick2FA = async () => {
 		if (userIdStorage) {
@@ -24,7 +24,7 @@ export const TwoFaEnable = () => {
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ userId: userIdStorage }),
+					body: userIdStorage,
 					credentials: 'include',
 				});
 				if (!response.ok) {
@@ -44,12 +44,17 @@ export const TwoFaEnable = () => {
 		console.log('Enabling 2FA...authCode', authCode, 'userIdContext', userIdStorage);
 		if (authCode && userIdStorage) {
 			try {
+				const enableBody = {
+					userId: userIdStorage,
+					code: authCode,
+				};
+				const body = JSON.stringify(enableBody);
 				const response = await fetch(TFA_ENABLE, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ userId: userIdContext, code: authCode }),
+					body: body,
 					credentials: 'include',
 				});
 				console.log('response', response);
@@ -68,7 +73,6 @@ export const TwoFaEnable = () => {
 		}
 	};
 
-
 	return (
 		<div className="settings-container">
 			<div className="item">
@@ -78,7 +82,7 @@ export const TwoFaEnable = () => {
 				<div className="Change2FA">
 					<button
 						type="button"
-						className="settings-button"
+						className="TwoFA"
 						onClick={handleClick2FA}
 					>
 						<i className="bi bi-qr-code-scan fs-1"></i>

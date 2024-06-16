@@ -1,6 +1,28 @@
 import GameGraphics from "./GameGraphics";
 import GameSocket from "./GameSocket";
 
+class GameMenu
+{
+	public name:	string;
+	public flag:	string;
+	// public active:	boolean;
+	public up:	GameMenu | null;
+	public down:	GameMenu | null;
+	public left:	GameMenu | null;
+	public right:	GameMenu | null;
+
+	public constructor(name: string, flag: string)
+	{
+		this.name = name;
+		this.flag = flag;
+		// this.active = false;
+		this.up = null;
+		this.down = null;
+		this.left = null;
+		this.right = null;
+	}
+}
+
 enum GameState
 {
 	ERROR = -1,
@@ -11,24 +33,26 @@ enum GameState
 	PLAYING,
 }
 
-const MenuList =
-{
-	SOLO:		"Solo Game",
-	LOCAL:		"Local Game",
-	MATCH:		"Find Match",
-	INFINITE:	"Infinite Load",
-	EXIT:		"Exit",
-	EXTRA:		"ExtraTSX",
-} as const;
-type MenuKey = keyof typeof MenuList;
-const menuKeys = Object.keys(MenuList) as MenuKey[];
+// const MenuList =
+// {
+// 	SOLO:		"Solo Game",
+// 	LOCAL:		"Local Game",
+// 	MATCH:		"Find Match",
+// 	INFINITE:	"Infinite Load",
+// 	EXIT:		"Exit",
+// 	EXTRA:		"ExtraTSX",
+// } as const;
+// type MenuKey = keyof typeof MenuList;
+// const menuKeys = Object.keys(MenuList) as MenuKey[];
 
 enum Button
 {
 	ENTER = 13,
 	ESCAPE = 27,
 	SPACE = 32,
+	ARROWLEFT = 37,
 	ARROWUP = 38,
+	ARROWRIGHT = 39,
 	ARROWDOWN = 40,
 	s = 83,
 	w = 87,
@@ -38,12 +62,12 @@ class GameLogic
 {
 	private static instance: GameLogic | null = null;
 	private gameState: GameState = GameState.ERROR;
-	private menuSelect: number;
+	private menuList: GameMenu | null = null;
+	private menuActive: GameMenu | null = null;
 
 	private constructor()
 	{
 		this.gameState = GameState.CONNECT;
-		this.menuSelect = 0;
 	}
 
 	public static getInstance(): GameLogic | null
@@ -87,7 +111,8 @@ class GameLogic
 			case GameState.CONNECT:
 				instance.RenderWord("Connecting");	break;
 			case GameState.MENU:
-				instance.renderMenu(this.menuSelect);	break ;
+				this.SendMenuToGraphics();	break ;
+				// instance.renderMenu(this.menuSelect);	break ;
 			// case GameState.MATCH:
 			// 	this.keyPressMatch(key, event);	break ;
 			case GameState.LOADING:
@@ -97,6 +122,20 @@ class GameLogic
 			default:
 				console.error(`Error: Undefined game state ${this.gameState}`);	break ;
 		}
+	}
+
+	private ConnectToGame(): void
+	{
+		let data: string[] = [];
+		let node: GameMenu | null = this.menuActive;
+		while (node && node.up)
+			node = node.up;
+		while (node !== null)
+		{
+			data.push(node.flag);
+			node = node.down;
+		}
+		GameSocket.getInstance()?.emit("PlayGame", JSON.stringify(data));
 	}
 
 	private connectToGame(mode: string, type: string): void
@@ -152,10 +191,106 @@ public SetGameStateTo(state: GameState)
 
 \* ************************************************************************** */
 
-	public getMenuList(): string[]
+	public setMenu(msg: any)
 	{
-		return (Object.values(MenuList));
+		if (!msg.rows)
+			return ;
+		let pos: GameMenu | null;
+		let columnTop: GameMenu | null;
+		msg.rows.forEach((row: any, index: number) =>
+		{
+			if (index === 0)
+			{
+				this.menuList = new GameMenu(row.name, row.flag);
+				this.menuActive = this.menuList;
+				columnTop = this.menuList;
+			}
+			else if (columnTop)
+				columnTop = this.SetMenuCreateRight(columnTop, row.name, row.flag);
+			row.options.forEach((optionGroup: any) =>
+			{
+				pos = columnTop;
+				while (pos && pos.down !== null)
+					pos = pos.down;
+			  
+				optionGroup.forEach((option: any, index: number) => 
+				{
+					if (pos && index === 0)
+						pos = this.SetMenuCreateDown(pos, option.name, option.flag)
+					else if (pos)
+						pos = this.SetMenuCreateRight(pos, option.name, option.flag);
+				});
+			});
+			if (pos)
+			{
+				while (pos.left)
+					pos = pos.left;
+				this.SetMenuCreateDown(pos, "Start", "START");
+			}
+		});
+		// pos = this.menuActive;
+		// while (pos && pos.down)
+		// 	pos = pos.down;
+		// if (pos)
+		// 	this.menuStart = this.SetMenuCreateDown(pos, "Start", "START");
 	}
+
+	private SetMenuCreateDown(node: GameMenu, name: string, flag: string): GameMenu
+	{
+		console.log(`Down[${node.name}]: ${name}`);
+		node.down = new GameMenu(name, flag);
+		node.down.up = node;
+		return (node.down);
+	}
+
+	private SetMenuCreateRight(node: GameMenu, name: string, flag: string): GameMenu
+	{
+		console.log(`Right[${node.name}]: ${name}`);
+		node.right = new GameMenu(name, flag);
+		node.right.left = node;
+		return (node.right);
+	}
+
+	public SendMenuToGraphics(): void
+	{
+		let menuList: string[] = [];
+		let select = 0;
+
+		let node: GameMenu | null = this.menuActive;
+		while (node && node.up)
+			node = node.up;
+		for (let i: number = 0; node !== null; ++i , node = node.down)
+		{
+			let nodeString = node.name;
+			if (node.left || node.right)
+				nodeString = `< ${nodeString} >`;
+			menuList.push(nodeString);
+			if (node === this.menuActive)
+				select = i;
+		}
+		GameGraphics.getInstance()?.renderMenu2(menuList, select);
+	}
+
+	public getMenuStruct(): string[]
+	{
+		let menu: string[] = [];
+
+		let node: GameMenu | null = this.menuList;
+		while (node !== null)
+		{
+			let nodeString: string = node.name;
+			if (node.left || node.right)
+				nodeString = `< ${nodeString} >`;
+			menu.push(nodeString);
+			node = node.down;
+		}
+		return (menu);
+	}
+
+	// public getMenuList(): string[]
+	// {
+	// 	return (Object.values(MenuList));
+	// }
 
 	private keyPressMenu(key: any, event: any): void
 	{
@@ -167,32 +302,21 @@ public SetGameStateTo(state: GameState)
 				this.keyPressMenuEnter();	break ;
 			case Button.ESCAPE:
 				this.keyPressMenuEscape();	break;
+			case Button.ARROWLEFT:
 			case Button.ARROWUP:
+			case Button.ARROWRIGHT:
 			case Button.ARROWDOWN:
-				this.keyPressMenuArrow(key - 39);	break;
+				this.keyPressMoveMenu(key);	break;
 			default:
 				break ;
 		}
-		GameGraphics.getInstance()?.renderMenu(this.menuSelect);
+		this.SendMenuToGraphics();
 	}
 
 	private keyPressMenuEnter(): void
 	{
-		switch (MenuList[menuKeys[this.menuSelect]])
-		{
-			case MenuList.SOLO:
-				this.connectToGame("solo", "pong");	break ;
-			case MenuList.LOCAL:
-				this.connectToGame("local", "pong");	break ;
-			case MenuList.MATCH:
-				this.connectToGame("match", "pong");	break ;
-			case MenuList.INFINITE:
-				this.gameState = GameState.LOADING;	break ;
-			case MenuList.EXIT:
-				break;
-			default:
-				console.error(`Error unknown menu item ${this.menuSelect}`);	break ;
-		}
+		if (this.menuActive?.flag === "START")
+			this.ConnectToGame();
 	}
 
 	private keyPressMenuEscape(): void
@@ -200,10 +324,52 @@ public SetGameStateTo(state: GameState)
 		console.error(`Undefined keyPressMenuEscape`);
 	}
 
-	private keyPressMenuArrow(move: number): void
+	private keyPressMoveMenu(move: number): void
 	{
-		let length: number = Object.keys(MenuList).length;
-		this.menuSelect = (this.menuSelect + move + length) % length;
+		switch (move)
+		{
+			case Button.ARROWUP:
+				if (this.menuActive?.up)
+					this.menuActive = this.menuActive.up;
+				break ;
+			case Button.ARROWDOWN:
+				if (this.menuActive?.down)
+					this.menuActive = this.menuActive.down;
+				break ;
+			case Button.ARROWRIGHT:
+				if (this.menuActive?.right)
+				{
+					if (this.menuActive.up)
+					{
+						this.menuActive.up.down = this.menuActive.right;
+						this.menuActive.right.up = this.menuActive.up;
+						if (this.menuActive.down)
+						{
+							this.menuActive.down.up = this.menuActive.right;
+							this.menuActive.right.down = this.menuActive.down;
+						}
+					}
+					this.menuActive = this.menuActive.right;
+				}
+				break ;
+			case Button.ARROWLEFT:
+				if (this.menuActive?.left)
+				{
+					if (this.menuActive.up)
+					{
+						this.menuActive.up.down = this.menuActive.left;
+						this.menuActive.left.up = this.menuActive.up;
+						if (this.menuActive.down)
+						{
+							this.menuActive.down.up = this.menuActive.left;
+							this.menuActive.left.down = this.menuActive.down;
+						}
+					}
+					this.menuActive = this.menuActive.left;
+				}
+				break ;
+			default: break ;
+		}
 	}
 
 /* ************************************************************************** *\
