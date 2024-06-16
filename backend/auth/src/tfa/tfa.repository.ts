@@ -13,9 +13,7 @@ export class TfaRepository extends Repository<Tfa> {
     );
   }
   async addTwoFactorAuthentication(createTfaDto: CreateTFADto): Promise<Tfa> {
-    let tfa = await this.findOne({
-      where: { user_id: createTfaDto.user_id },
-    });
+    let tfa = await this.findOne({ user_id: createTfaDto.user_id });
     if (tfa) {
       tfa.is_enabled = true;
       tfa.secret = createTfaDto.secret;
