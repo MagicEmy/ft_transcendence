@@ -130,15 +130,15 @@ export class GamePong
 		const P1 = this.handlerImageGetPlayer(this.player1);
 		const P2 = this.handlerImageGetPlayer(this.player2);
 		const Ball = this.handlerImageGetBall();
-		if (player.client === this.player1.client)
-			imageData = { Player1: P1, Player2: P2, Ball: Ball};
-		else
-		{
-			imageData = { Player1: P2, Player2: P1, Ball: Ball};
-			this.handerImageMirrorXAxis(imageData);
-		}
-		if (player.client.emit)
-			player.client.emit(SockEventNames.PONGIMG, JSON.stringify(imageData));
+		// if (player.client === this.player1.client)
+		// 	imageData = { Player1: P1, Player2: P2, Ball: Ball};
+		// else
+		// {
+		// 	imageData = { Player1: P2, Player2: P1, Ball: Ball};
+		// 	this.handerImageMirrorXAxis(imageData);
+		// }
+		// if (player.client.emit)
+		// 	player.client.emit(SockEventNames.PONGIMG, JSON.stringify(imageData));
 	}
 
 	private handlerImageGetPlayer(player: Player): ISockPongImagePlayer
@@ -297,11 +297,11 @@ export class GamePong
 			case GameState.WAITING:
 				this.waitForPlayers();
 				break ;
-				case GameState.START:
-					this.updatePaddles();
-					this.pressSpaceToStart();
-					this.startGame();
-					break ;
+			case GameState.START:
+				this.updatePaddles();
+				this.pressSpaceToStart();
+				this.startGame();
+				break ;
 			case GameState.NEWBALL:
 				this.updatePaddles();
 				this.addBall();

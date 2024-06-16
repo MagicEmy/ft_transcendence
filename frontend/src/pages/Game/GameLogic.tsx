@@ -117,8 +117,9 @@ class GameLogic
 			// 	this.keyPressMatch(key, event);	break ;
 			case GameState.LOADING:
 				instance.RenderWord("Loading");	break ;
-			// case GameState.PLAYING:
-			// 	this.keyPressPlaying(key, event);	break ;
+			case GameState.PLAYING:
+				// this.keyPressPlaying(key, event);
+				break ;
 			default:
 				console.error(`Error: Undefined game state ${this.gameState}`);	break ;
 		}

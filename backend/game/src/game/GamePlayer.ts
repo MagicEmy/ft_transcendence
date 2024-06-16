@@ -11,15 +11,30 @@ export class GamePlayer
 	public status: string;
 	public button: {[key: number]: boolean};
 
-	constructor(client: any, id: string)
+	constructor(client: any, id: string | null)
+	{
+		if (typeof(id) === "string")
+			this.constructPlayer(client, id);
+		else
+			this.ConstructBot();
+	}
+
+	private constructPlayer(client: any, id: string)
 	{
 		console.log("Creating player");
 		this.client = client;
 		this.id = id;
 		this.button = {};
-
+	
 		client.on("PlayGame", (message: string) => { this.handlerPlayGame(message); });
 		client.on(SockEventNames.BUTTON, (data: string) => { this.handlerButtonEvent(data); });
+	}
+
+	private ConstructBot(): void
+	{
+		this.client = null;
+		this.id = "Bot";
+		this.button = {};
 	}
 
 	private handlerPlayGame(message: string)
