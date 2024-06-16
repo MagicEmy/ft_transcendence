@@ -16,5 +16,3 @@ export const TFA_ENABLE = 'http://localhost:3003/TwoFactorAuth/enable'; //VERIFY
 export const TFA_DISABLE = 'http://localhost:3003/TwoFactorAuth/disable';
 export const TFA_STATUS = 'http://localhost:3003/TwoFactorAuth/isEnabled?id='; //check if tfa is enabled
 
-
-

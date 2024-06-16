@@ -30,7 +30,7 @@ export const Profile = () => {
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe);
   const [ isFriend, setIsFriend] = useState<boolean>(false);
   const [error, setError] = useState<ErrorDetails | undefined>();
-  const [ friends, setFriends] = useState<Friends[]>([]);
+  const [ , setFriends] = useState<Friends[]>([]);
 
 
   useEffect(() => {
