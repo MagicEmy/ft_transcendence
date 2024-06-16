@@ -16,8 +16,8 @@ export class TwoFactorAuthService {
 
   async generateTwoFactorAuthenticationSecret(userId: string) {
     const secret = authenticator.generateSecret();
-    const otpAuthUrl = authenticator.keyuri(userId, 'OUR_APP_NAME', secret);
-    this.addTwoFactorAuthentication(userId, secret);
+    const otpAuthUrl = authenticator.keyuri(userId, 'CTRL-ALT-DEFEAT', secret);
+    await this.addTwoFactorAuthentication(userId, secret);
 
     return otpAuthUrl;
   }
