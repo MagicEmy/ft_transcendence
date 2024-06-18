@@ -67,7 +67,7 @@ class GameSocket
 
 		this.socket.on("GameImage", (message: any) =>
 		{
-			console.warn("Should: render image");
+			GameGraphics.getInstance()?.RenderCanvas(JSON.parse(message));
 		});
 
 		// this.socket.onAny((event: any, ...args: any[]) =>
@@ -75,7 +75,7 @@ class GameSocket
 		// 	console.error(`Error: unhandled event "${event}"`, ...args);
 		// });
 
-		this.gameInterval = setInterval(() => { this.socket?.emit("GameImage"); }, 320);
+		this.gameInterval = setInterval(() => { this.socket?.emit("GameImage"); }, 32);
 		  
 	}
 
@@ -120,7 +120,7 @@ class GameSocket
 
 	public emit(event: string, data?: any): void
 	{
-		console.warn(`emitting to ${event}/${data}`);
+		// console.warn(`emitting to ${event}/${data}`);
 		if (this.socket)
 			this.socket.emit(event, data);
 		else

@@ -53,6 +53,8 @@ export interface ISockButton
 
 export interface ISockPongImage
 {
+	Game:		string,
+	Theme:		string,
 	Player1:	ISockPongImagePlayer,
 	Player2:	ISockPongImagePlayer,
 	Ball:		ISockPongImageBall | null,

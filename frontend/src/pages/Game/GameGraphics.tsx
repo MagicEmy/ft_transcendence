@@ -145,17 +145,19 @@ class GameGraphics
 	{
 		this.clearContext(this.BackElement, this.BackContext);
 
-		switch (this.game) {
+		switch (this.game)
+		{
 			case Game.Pong:
 				this.renderBackgroundPong(); break;
 			default:
-				console.error(`Error: Undefined game ${this.theme}`); break;
+				console.error(`Error: Undefined game ${this.game}`); break;
 		}
 	}
 
 	private renderBackgroundPong(): void
 	{
-		switch (this.theme) {
+		switch (this.theme)
+		{
 			case GamePongTheme.Retro:
 				this.renderBackgroundPongRetro(); break;
 			default:
@@ -183,29 +185,107 @@ class GameGraphics
 	
 	\* ************************************************************************** */
 
-	public renderCanvas(): void
+	public RenderCanvas(msg: any): void
 	{
-		switch (this.game) {
-			case Game.Pong:
-				this.renderCanvasPong(); break;
+		this.clearContext(this.CnvsElement, this.CnvsContext);
+		switch (msg.Game)
+		{
+			case "PONG":
+				this.RenderCanvasPong(msg); break;
 			default:
-				console.error(`Error: Undefined game ${this.theme}`); break;
+				console.error(`Error: Undefined game ${msg.Game}`); break;
 		}
 	}
 
-	private renderCanvasPong(): void
+	private RenderCanvasPong(msg: any): void
 	{
-		switch (this.theme) {
-			case GamePongTheme.Retro:
-				this.renderCanvasPongRetro(); break;
+		switch (msg.Theme)
+		{
+			case "retro":
+				this.RenderCanvasPongRetro(msg); break;
+			case "modern":
+				this.RenderCanvasPongModern(msg);	break;
 			default:
-				console.error(`Error: Undefined Pong theme ${this.theme}`); break;
+				console.error(`Error: Undefined Pong themes ${msg.Theme}`); break;
 		}
 	}
 
-	private renderCanvasPongRetro(): void
+	private RenderCanvasPongRetro(msg: any): void
 	{
+		this.AddPaddleRetro(msg.Player1);
+		this.AddPaddleRetro(msg.Player2);
+		this.AddBallRetro(msg.Ball);
+	}
 
+	private AddPaddleRetro(player: any)
+	{
+		this.CnvsContext.fillStyle = GameStyle.Retro.PADDLE;
+
+		player.posX = (player.posX - (player.width / 2)) * this.CnvsElement.width;
+		player.posY = (player.posY - (player.height / 2)) * this.CnvsElement.height;
+
+		this.CnvsContext.fillRect(player.posX, player.posY, player.width * this.CnvsElement.width, player.height * this.CnvsElement.height);
+	}
+
+	private AddBallRetro(ball: any)
+	{
+		if (ball === null)
+			return ;
+
+		ball.posX *= this.CnvsElement.width;
+		ball.posY *= this.CnvsElement.height;
+		ball.size *= this.CnvsElement.width;
+
+		this.CnvsContext.fillStyle = "white";
+		this.CnvsContext.beginPath();
+		this.CnvsContext.arc(ball.posX, ball.posY, ball.size, 0, 2 * Math.PI);
+		this.CnvsContext.fill();
+	}
+
+	private RenderCanvasPongModern(msg: any): void
+	{
+		this.RenderPongModernBackDrop();
+		this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Player2.posX, msg.Player2.posY, msg.Player2.height / 2), "red");
+		if (msg.Ball !== null && msg.Ball.posX > 0.5)
+			this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.size * 2), "yellow");
+		this.RenderPongModernNet(this.RenderPongModernCalculateEntity(0.5, 0.1, 1));
+		if (msg.Ball !== null && msg?.Ball.posX <= 0.5)
+			this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.size * 2), "yellow");
+		this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Player1.posX, msg.Player1.posY, msg.Player1.height / 2), "red");
+	}
+
+	private RenderPongModernBackDrop()
+	{
+		this.CnvsContext.fillStyle = "blue";
+		this.CnvsContext.fillRect(0, 0, this.CnvsElement.width, this.CnvsElement.height * 0.34);
+		this.CnvsContext.fillStyle = "green";
+		this.CnvsContext.fillRect(0, this.CnvsElement.height * 0.33, this.CnvsElement.width, this.CnvsElement.height * 0.67);
+	}
+
+	private RenderPongModernNet(net: {posX: number, posY: number, size: number}): void
+	{
+		this.CnvsContext.fillStyle = "black";
+		this.CnvsContext.fillRect(net.posX, net.posY, net.size, this.CnvsElement.height * 0.10);
+	}
+
+	private RenderPongModernEntity(enitity: {posX: number, posY: number, size: number}, color: string)
+	{
+		this.CnvsContext.fillStyle = color;
+		this.CnvsContext.beginPath();
+		this.CnvsContext.arc(enitity.posX, enitity.posY, enitity.size, 0, Math.PI * 2);
+		this.CnvsContext.fill();
+	}
+
+	private RenderPongModernCalculateEntity(sourceX: number, sourceY: number, sourceSize: number)
+	{
+		let scale: number = Math.pow((1 - sourceX), 2);
+		// let size: number = scale * sourceSize * this.CnvsElement.width;
+
+		let size: number = sourceSize * this.CnvsElement.width * (1 - sourceX * 0.8);
+		let posX: number = sourceY * this.CnvsElement.width;
+		let posY: number = (-0.61269 * sourceX + 0.95634) * this.CnvsElement.height;
+
+		return ({posX, posY, size});
 	}
 
 	/* ************************************************************************** *\

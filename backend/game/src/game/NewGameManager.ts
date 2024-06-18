@@ -27,7 +27,7 @@ class GameMenu
 		this.left = null;
 		this.right = null;
 	}
-
+	
 	public ToJson()
 	{
 		const nodes: any[] = [];
@@ -156,7 +156,7 @@ Socket.io
 		else
 			console.error("Error: Client no longer connected:", client.id);
 	}
-	
+
 	public handleDisconnect(client: any)
 	{
 		console.log("Client disconnected:", client.id);
