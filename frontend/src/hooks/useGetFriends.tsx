@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Friends } from "../types/shared";
 import { loadFriends } from "../utils/friendsUtils";
 

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BASE_URL } from '../utils/constants';
+import { useState, useEffect } from 'react';
+import { STATUS } from '../utils/constants';
 import { UserStatus } from '../types/shared';
 
 export const useGetUserStatus = (userId: string) => {
@@ -10,7 +10,7 @@ export const useGetUserStatus = (userId: string) => {
   useEffect(() => {
     const fetchUserStatus = async () => {
       setIsLoading(true);
-      const response = await fetch(`${BASE_URL}/status/${userId}`, {
+      const response = await fetch(`${STATUS}/${userId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

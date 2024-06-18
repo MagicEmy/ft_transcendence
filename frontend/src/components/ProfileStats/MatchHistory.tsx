@@ -14,7 +14,8 @@ export const MatchHistory = ({ userId }: { userId: string }) => {
       {games.length > 0 ? (
         <ul>
           {games.map((game) => (
-            <li>
+            <li key={game.gameId}> 
+              <div className="gameHistory"></div>
               <div className="gameHistory">
                 <span className="player-info">
                   <span className="player-name">{game.player1Name}</span>

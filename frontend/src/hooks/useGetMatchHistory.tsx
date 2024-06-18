@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { loadGames, loadProfileAvatar } from '../utils/profileUtils';
+import { useState, useEffect } from 'react';
+import { loadGames} from '../utils/profileUtils';
 import { Games } from '../types/shared';
 
 export const useGetMatchHistory = (userId: string) => {

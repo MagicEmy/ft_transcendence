@@ -11,6 +11,7 @@ import Error from './pages/Error/Error';
 import ErrorBoundary from './pages/Error/ErrorBoundary';
 import PrivateRoute from './components/PrivateRoute';
 import { UserProvider } from './context/UserContext';
+// import { SocketProvider } from './context/SocketContext';
 
 const publicRoutes: RouteObject[] = [
   {
@@ -18,7 +19,7 @@ const publicRoutes: RouteObject[] = [
     element: <Login />,
   },
   {
-    path: '/twofa',
+    path: '/tfa',
     element: <TwoFA />,
   },
   {
@@ -72,7 +73,9 @@ const router = createBrowserRouter([
       <UserProvider>
         <ErrorBoundary>
           <PrivateRoute>
-            <Layout />
+            {/* <SocketProvider> */}
+              <Layout />
+            {/* </SocketProvider> */}
           </PrivateRoute>
         </ErrorBoundary>
       </UserProvider>

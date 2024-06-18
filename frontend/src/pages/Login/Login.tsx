@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+// import React, { useEffect, useState } from 'react';
 import logo from '../../assets/control-alt-delete-keys.png';
 import { LOGIN_AUTH0 } from '../../utils/constants';
 import './Login.css';
 
 const Login = () => {
-  const [showError, setShowError] = useState(false)
-	const [errorName, setErrorName] = useState('')
+  // const [showError, setShowError] = useState(false)
+	// const [errorName, setErrorName] = useState('')
 
 //   useEffect(() => {
 //     const urlParams = new URLSearchParams(window.location.search);

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { UserProfile } from '../types/shared';
-import { BASE_URL } from '../utils/constants';
+import { USER } from '../utils/constants';
 
 export const useGetProfile = (userId: string) => {
   const [profile, setProfile] = useState<UserProfile>();
@@ -10,7 +10,7 @@ export const useGetProfile = (userId: string) => {
   useEffect(() => {
     const fetchDbProfile = async () => {
       setIsLoading(true);
-      const response = await fetch(`${BASE_URL}/profile/${userId}`, {
+      const response = await fetch(`${USER}/${userId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

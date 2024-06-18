@@ -182,10 +182,11 @@
 .friends .button {
     background-color: #130682;
     color: #ffffff;
-    padding:0.3em 2.5em;
+    padding: 0.3em 2.5em;
     border-radius: 30px;
     text-decoration: none;
     transition: background-color 0.3s ease, color 0.3s ease;
+
   }
 
 .friends .button:hover,
@@ -196,6 +197,7 @@
     border-radius: 30px;
     border-color: #9592f8;
   }
+
 
 .friends .statsFriends {
     display: inline-block;
@@ -219,8 +221,12 @@
     text-align:center;
     transition: all 0.2s;
     }
-    .button:hover{
+  .button:hover{
      border-color: #3d37e5;
+     color: #ffffff;
+     padding:0.3em 2.5em;
+     border-radius: 30px;
+     border-color: #9592f8;
     }
     @media all and (max-width:30em){
      .button{

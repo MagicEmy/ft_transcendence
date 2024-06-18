@@ -96,6 +96,16 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   console.log("userIdContext: ", userIdContext);
   console.log("userIdStorage: ", userIdStorage);
 
+  useEffect(() => {
+    if (userIdContext && userIdStorage && userIdContext !== userIdStorage) {
+      setUserIdStorage(userIdContext);
+    }
+  }
+  , [userIdContext, userIdStorage, setUserIdStorage]);
+
+  console.log("userIdContext2: ", userIdContext);
+  console.log("userIdStorage2: ", userIdStorage);
+
   return (
     <UserContext.Provider
       value={{

@@ -65,6 +65,7 @@ export interface UserProfile {
   }
 
   export interface Games {
+	gameId: number;
 	player1Id: string;
 	player1Name?: string;
 	player1Score: number;
