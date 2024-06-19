@@ -1,6 +1,6 @@
 import { ChangeName } from "../../components/ChangeName";
 import { ChangeAvatar } from "../../components/ChangeAvatar";
-import { TwoFaEnable } from "../../components/TwoFaEnable";
+import { TwoFaEnable } from "../../components/Tfa/TwoFaQrEnable";
 import "./Settings.css";
 
 const Settings = () => {

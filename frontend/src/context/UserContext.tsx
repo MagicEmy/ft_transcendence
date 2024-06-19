@@ -14,8 +14,6 @@ const defaultState: IUserContext = {
   setAvatarContext: () => {},
   friendsContext: [],
   setFriendsContext: () => {},
-  tfaEnabled: false,
-  setTfaEnabled: () => {},
   isLoading: false,
 };
 
@@ -33,7 +31,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const [avatarContext, setAvatarContext] = useState<string | null>(null);
   const [friendsContext, setFriendsContext] = useState<Friends[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [tfaEnabled, setTfaEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -117,8 +114,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         setAvatarContext,
         friendsContext,
         setFriendsContext,
-        tfaEnabled,
-        setTfaEnabled,
         isLoading,
       }}
     >

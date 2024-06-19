@@ -1,22 +1,37 @@
-import { useContext, createContext } from "react";
-import { io } from "socket.io-client";
-import { SOCKET_URL } from '../utils/constants';
-import UserContex, { IUserContext } from './UserContext';
+import { createContext, useContext } from "react";
+import useStorage from "../hooks/useStorage";
+import { connectSocket, disconnectSocket } from '../utils/socketManager';
 
-export const SocketContext = createContext(  io(SOCKET_URL) );
+export interface ISocketContext {
+	socketLogin: () => void;
+	socketLogout: () => void;
+}
+export const SocketContext = createContext<ISocketContext | undefined >(undefined);
 
 export const SocketProvider = ({ children }: {children: any}) => {
-	const { userIdContext } = useContext<IUserContext>(UserContex);
+	const [userIdStorage] = useStorage<string>('userId', '');
 
-	const socket = io(SOCKET_URL, {
-		query: { userIdContext },
-	});
+	const socketLogout = () => {
+		disconnectSocket();
+	  };
+	
+	const socketLogin = () => {
+		connectSocket();
+	  };
+	
 
 	return (
-		<SocketContext.Provider value={socket}>
+		<SocketContext.Provider value={{socketLogin, socketLogout}}>
 	 	 {children}
 		</SocketContext.Provider>
   );
 }
 
+export const useSocketContext = () => {
+	const context = useContext(SocketContext);
+	if (context === undefined) {
+	  throw new Error('useSocketContext must be used within a SocketProvider');
+	}
+	return context;
+  };
 
