@@ -29,15 +29,8 @@ export const Profile = () => {
   const { friends: loggedUserFriends } = useGetFriends(userIdContext);
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe);
   const [ isFriend, setIsFriend] = useState<boolean>(false);
-  const [error, setError] = useState<ErrorDetails | undefined>();
+  const [error, setError] = useState<string>('');
   const [ , setFriends] = useState<Friends[]>([]);
-
-
-  useEffect(() => {
-    if (apiError) {
-      setError(apiError);
-    }
-  }, [apiError]);
 
 
   useEffect(() => {
@@ -103,11 +96,10 @@ export const Profile = () => {
           <MatchHistory userId={userIdOrMe} />
         </div>
         {error && (
-          <div className="text-dark">
-            <p>{apiError?.statusCode}</p>
-            <p>{apiError?.message}</p>
-          </div>
-        )}
+				<div className="error-bar">
+					<p className="errortext">{error}</p>
+				</div>
+			)}
       </div>
     </div>
   );

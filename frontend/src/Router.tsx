@@ -11,7 +11,7 @@ import Error from './pages/Error/Error';
 import ErrorBoundary from './pages/Error/ErrorBoundary';
 import PrivateRoute from './components/PrivateRoute';
 import { UserProvider } from './context/UserContext';
-// import { SocketProvider } from './context/SocketContext';
+import { SocketProvider } from './context/SocketContext';
 
 const publicRoutes: RouteObject[] = [
   {
@@ -73,9 +73,9 @@ const router = createBrowserRouter([
       <UserProvider>
         <ErrorBoundary>
           <PrivateRoute>
-            {/* <SocketProvider> */}
+            <SocketProvider>
               <Layout />
-            {/* </SocketProvider> */}
+            </SocketProvider>
           </PrivateRoute>
         </ErrorBoundary>
       </UserProvider>
