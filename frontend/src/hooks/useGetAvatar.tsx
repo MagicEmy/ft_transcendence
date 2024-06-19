@@ -1,82 +1,59 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { loadProfileAvatar } from '../utils/profileUtils';
-
-interface ErrorDetails {
-  message: string;
-  statusCode?: number;
-}
+import UserContext, { IUserContext } from '../context/UserContext';
 
 export const useGetAvatar = (userId: string) => {
+  const { avatarContext, setAvatarContext } = useContext<IUserContext>(UserContext);
   const [isLoading, setIsLoading] = useState(false);
   const [avatar, setAvatar] = useState<string | undefined>();
-  const [error, setError] = useState<ErrorDetails | undefined>();
+  const [error, setError] = useState<string>('');
+  const prevUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const getAvatar = async () => {
-      setIsLoading(true);
-      loadProfileAvatar(userId)
-        .then((imageUrl) => {
-          setIsLoading(false);
-          if (!imageUrl) {
-            setError({ message: 'Error fetching the image url' });
-            return;
-          }
-          setAvatar(imageUrl);
-        })
-        .catch((err) => {
-          setIsLoading(false);
+    let active = true; // Flag to manage the effect lifecycle
 
-          if (err.response) {
-            // The request was made and the server responded with a status code that falls out of the range of 2xx
-            setError({
-              message: `Server Error: ${err.response.data.message}`,
-              statusCode: err.response.status,
-            });
-          } else if (err.request) {
-            // The request was made but no response was received
-            setError({
-              message: 'Network Error: No response received from the server',
-            });
-          } else {
-            // Something happened in setting up the request that triggered an Error
-            setError({
-              message: `Client Error: ${err.message}`,
-            });
-          }
-        });
+    const cleanupPreviousAvatar = () => {
+      if (avatarContext) {
+        console.log('Cleaning up previous avatar:', avatarContext);
+        URL.revokeObjectURL(avatarContext);
+      }
     };
 
-    getAvatar();
+    const fetchAvatar = async () => {
+      if (userId && active) {
+        try {
+          setIsLoading(true);
+          console.log('Fetching avatar for user:', userId);
+          const url = await loadProfileAvatar(userId);
+
+          if (url && active) {
+            console.log('Fetched avatar URL:', url);
+            cleanupPreviousAvatar();
+            setAvatarContext(url);
+            setAvatar(url);
+          } else {
+            throw new Error('Failed to load image.');
+          }
+        } catch (error) {
+          console.error("Error updating user data:", error);
+          if (active) setError(`Error loading avatar: ${error}`);
+        } finally {
+          if (active) setIsLoading(false);
+        }
+      }
+    };
+
+    if (prevUserIdRef.current !== userId) {
+      fetchAvatar();
+    }
+
+    prevUserIdRef.current = userId;
+
+    return () => {
+      active = false;
+      cleanupPreviousAvatar();
+    };
   }, [userId]);
 
   return { avatar, isLoading, error };
 };
-
-
-
-
-// import { useState, useEffect } from 'react';
-// import { loadProfileAvatar } from '../utils/profileUtils';
-
-// export const useGetAvatar = (userId: string) => {
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [avatar, setAvatar] = useState<string>();
-//   const [error, setError] = useState<string>();
-
-//   useEffect(() => {
-//     const getAvatar = async () => {
-//       setIsLoading(true);
-//       const imageUrl = await loadProfileAvatar(userId);
-//       setIsLoading(false);
-//       if (!imageUrl) {
-//         setError(`Error fetching the image url`);
-//         return;
-//       }
-//       setAvatar(imageUrl);
-//     };
-
-//     getAvatar();
-//   }, [userId]);
-
-//   return { avatar, isLoading, error };
-// }

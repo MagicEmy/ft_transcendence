@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useState, useEffect, ReactNode } from 'react';
 import useStorage from '../hooks/useStorage';
 import { loadProfileAvatar } from '../utils/profileUtils';
 import { Friends } from "../types/shared";
@@ -63,7 +63,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
 
   useEffect(() => {
-    let active = true; // Flag to manage the effect lifecycle
+    let active = true;
 
     const cleanupPreviousAvatar = () => {
       if (avatarContext) {

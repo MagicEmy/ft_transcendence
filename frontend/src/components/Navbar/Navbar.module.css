@@ -12,7 +12,7 @@ body {
   background: radial-gradient(circle, #7199f7 0%, #0a04ad 100%);
   height: auto;
   flex-wrap: wrap;
-  border: solid 2px #FCC30A;
+  /* border: solid 2px #FCC30A; */
 }
 
 

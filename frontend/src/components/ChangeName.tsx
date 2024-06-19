@@ -7,7 +7,6 @@ import UserContext, { IUserContext } from '../context/UserContext';
 export const ChangeName = () => {
 	const { userIdContext, userNameContext, setUserNameContext } = useContext<IUserContext>(UserContext);
 	const [ , setUserNameStorage, ] = useStorage<string>('userName', '');
-
 	const [newUserName, setNewUserName] = useState<string>('');
 	const [feedback, setFeedback] = useState<string>('');
 

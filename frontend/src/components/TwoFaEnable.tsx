@@ -71,7 +71,6 @@ export const TwoFaEnable = () => {
 				});
 				if (response.ok) {
 					console.log('2FA enabled successfully');
-					// setTfaEnabled(true);
 					setFeedback("Two Factor Authentication enabled successfully.");
 					setTimeout(() => {
 						setFeedback('');
@@ -84,7 +83,7 @@ export const TwoFaEnable = () => {
 						setError('');
 					}, 5000);
 					setShowError(true);
-					// throw new Error(errorData.message || 'Invalid authentication code');
+					throw new Error(errorData.message || 'Invalid authentication code');
 				}
 			} catch (error) {
 				console.error('Error enabling 2FA:', error);
@@ -96,13 +95,14 @@ export const TwoFaEnable = () => {
 			}
 		}
 	};
+
 	useEffect(() => {
 		if (showError) {
 			const timer = setTimeout(() => {
 				setShowError(false);
 			}, 5000);
 
-			return () => clearTimeout(timer); 
+			return () => clearTimeout(timer);
 		}
 	}, [showError]);
 
@@ -149,7 +149,7 @@ export const TwoFaEnable = () => {
 				)}
 			</div>
 			{showError && (
-				<div className="error2fa">
+				<div className="error-bar">
 					<p className="errortext">{error}</p>
 				</div>
 			)}
