@@ -21,6 +21,9 @@ export class Tfa {
   @Column()
   is_enabled: boolean;
 
+  @Column({ nullable: true })
+  qr_code: string;
+
   @OneToOne(() => User, (user) => user.user_id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;

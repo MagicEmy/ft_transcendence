@@ -2,7 +2,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateTFADto } from '../user/dto/create-tfa-dto';
 import { Repository } from 'typeorm';
 import { Tfa } from './tfa.entity';
-import { NotFoundException } from '@nestjs/common';
+import {
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { UserIdQrCodeDto } from './dto/user-id-qr-code-dto';
 
 export class TfaRepository extends Repository<Tfa> {
   constructor(@InjectRepository(Tfa) private tfaRepository: Repository<Tfa>) {
@@ -19,7 +23,6 @@ export class TfaRepository extends Repository<Tfa> {
       tfa.secret = createTfaDto.secret;
     } else {
       tfa = this.create(createTfaDto);
-      return tfa;
     }
     this.save(tfa);
     return tfa;
@@ -30,15 +33,16 @@ export class TfaRepository extends Repository<Tfa> {
     return tfa.secret;
   }
 
-  async enableTwoFactorAuthentication(user_id: string): Promise<Tfa> {
-    const tfa = await this.findOneBy({ user_id: user_id } );
-    tfa.is_enabled = true;
-    this.save(tfa);
-    return tfa;
-  }
+  // CURRENTLY NOT BEING USED
+  //   async enableTwoFactorAuthentication(user_id: string): Promise<Tfa> {
+  //     const tfa = await this.findOneBy({ user_id: user_id });
+  //     tfa.is_enabled = true;
+  //     this.save(tfa);
+  //     return tfa;
+  //   }
 
   async disableTwoFactorAuthentication(user_id: string): Promise<Tfa> {
-    const tfa = await this.findOneBy({user_id: user_id });
+    const tfa = await this.findOneBy({ user_id: user_id });
     tfa.is_enabled = false;
     this.save(tfa);
     return tfa;
@@ -65,5 +69,30 @@ export class TfaRepository extends Repository<Tfa> {
       console.log('TFA repository caught', error);
       throw error;
     }
+  }
+
+  async addQrCode(userIdQrCodeDto: UserIdQrCodeDto): Promise<string> {
+    const { userId, qrCode } = userIdQrCodeDto;
+    const tfaRecord = await this.findOneBy({ user_id: userId });
+    if (!tfaRecord) {
+      throw new NotFoundException(`No tfa record found for user ${userId}`);
+    }
+    tfaRecord.qr_code = qrCode;
+    try {
+      this.save(tfaRecord);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error when trying to save the tfa QR code for user ${userId}`,
+      );
+    }
+    return userId;
+  }
+
+  async getQrCode(userId: string): Promise<string | null> {
+    const tfaRecord = await this.findOneBy({ user_id: userId });
+    if (tfaRecord) {
+      return tfaRecord.qr_code;
+    }
+    return null;
   }
 }

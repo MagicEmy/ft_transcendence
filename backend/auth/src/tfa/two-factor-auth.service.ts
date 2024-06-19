@@ -7,6 +7,7 @@ import { Tfa } from './tfa.entity';
 import { CreareTFADto } from './dto/create-tfa-dto';
 import { TwoFactorAuthDto } from './dto/two-factor-auth-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
+import { UserIdQrCodeDto } from './dto/user-id-qr-code-dto';
 
 @Injectable()
 export class TwoFactorAuthService {
@@ -53,7 +54,7 @@ export class TwoFactorAuthService {
     const tfaDto: CreareTFADto = {
       user_id: userId,
       secret,
-      is_enabled: false,
+      is_enabled: true,
     };
     return await this.tfaRepository.addTwoFactorAuthentication(tfaDto);
   }
@@ -61,9 +62,10 @@ export class TwoFactorAuthService {
     return await this.tfaRepository.isTwoFactorAuthenticationEnabled(userId);
   }
 
-  async enableTwoFactorAuthentication(userId: string): Promise<Tfa> {
-    return await this.tfaRepository.enableTwoFactorAuthentication(userId);
-  }
+  // CURRENTLY NOT BEING USED
+  //   async enableTwoFactorAuthentication(userId: string): Promise<Tfa> {
+  //     return await this.tfaRepository.enableTwoFactorAuthentication(userId);
+  //   }
 
   private async getTwoFactorAuthenticationSecret(
     userId: string,
@@ -73,5 +75,13 @@ export class TwoFactorAuthService {
 
   async createTfaRecord(userId: string): Promise<Tfa> {
     return this.tfaRepository.createTfaRecord(userId);
+  }
+
+  async getQrCode(userId: string): Promise<string | null> {
+    return this.tfaRepository.getQrCode(userId);
+  }
+
+  async saveQrCode(userIdQrCodeDto: UserIdQrCodeDto): Promise<string | null> {
+    return this.tfaRepository.addQrCode(userIdQrCodeDto);
   }
 }

@@ -16,12 +16,27 @@ export class TwoFactorAuthController {
 
   @Post('create')
   async register(@Body() userIdNameDto: UserIdNameDto) {
-    const otpAuthUrl =
-      await this.authenticationService.generateTwoFactorAuthenticationSecret(
-        userIdNameDto,
-      );
+    let qrCode: string = await this.authenticationService.getQrCode(
+      userIdNameDto.userId,
+    );
+    if (!qrCode) {
+      const otpAuthUrl =
+        await this.authenticationService.generateTwoFactorAuthenticationSecret(
+          userIdNameDto,
+        );
 
-    return await this.authenticationService.generateQrCodeDataURL(otpAuthUrl);
+      qrCode =
+        await this.authenticationService.generateQrCodeDataURL(otpAuthUrl);
+      try {
+        this.authenticationService.saveQrCode({
+          userId: userIdNameDto.userId,
+          qrCode,
+        });
+      } catch (error) {
+        // no need to do anything if saving in DB didn't work
+      }
+    }
+    return qrCode;
   }
 
   @Post('enable')
