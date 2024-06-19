@@ -1,20 +1,34 @@
-import { Injectable, Req } from '@nestjs/common';
+import { Injectable, Logger, Req } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
-import { TwoFactorAuthDto } from 'src/tfa/dto/two-factor-auth-dto';
 import { TwoFactorAuthService } from 'src/tfa/two-factor-auth.service';
+import { AuthService } from '../auth.service';
+import { extractUserIdFromCookies } from './get-user-id.decorator';
 
 @Injectable()
 export class TfaStrategy extends PassportStrategy(Strategy, 'tfa') {
-  constructor(private readonly tfaService: TwoFactorAuthService) {
+  private readonly logger: Logger = new Logger('TfaStrategy');
+  constructor(
+    private readonly tfaService: TwoFactorAuthService,
+    private readonly authService: AuthService,
+  ) {
     super();
   }
   async validate(@Req() req) {
-    const tfaDto: TwoFactorAuthDto = req.body;
-    if (await this.tfaService.isTwoFactorAuthenticationCodeValid(tfaDto)) {
-      return tfaDto.userId;
-    } else {
-      return null;
+    try {
+      const userId = extractUserIdFromCookies(req.get('cookie'), 'userId');
+      const code: string = req.body.code;
+      if (
+        await this.tfaService.isTwoFactorAuthenticationCodeValid({
+          userId,
+          code,
+        })
+      ) {
+        return userId;
+      }
+    } catch (error) {
+      this.logger.error(error);
     }
+    return null;
   }
 }

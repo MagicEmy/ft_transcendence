@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { FourtyTwoAuthGuard } from './utils/fourty-two-auth-guard';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
@@ -20,7 +12,7 @@ import { CookieAndCookieNameDto } from './dto/cookie-and-cookie-name-dto';
 import { UserIdNameLoginDto } from 'src/user/dto/user-id-name-login-dto';
 import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
 import { TfaAuthGuard } from './utils/tfa-auth-guard';
-import { TwoFactorAuthDto } from 'src/tfa/dto/two-factor-auth-dto';
+import { GetUserId } from './utils/get-user-id.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -36,9 +28,15 @@ export class AuthController {
   @UseGuards(FourtyTwoAuthGuard)
   @Get('42/redirect')
   async handleRedirect(@Req() req, @Res() resp: Response): Promise<void> {
+    resp.cookie('userId', req.user.user_id, {
+      httpOnly: true,
+      secure: true,
+    });
     if (await this.authService.isTfaEnabled(req.user.user_id)) {
+      // redirect for TFA
       return resp.redirect(302, this.configService.get('2FA_URL'));
     } else {
+      // set jwt tokens in cookies and redirect to dashboard
       resp = this.authService.addCookiesToResponse(resp, req.user);
       return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
     }
@@ -46,10 +44,15 @@ export class AuthController {
 
   @UseGuards(TfaAuthGuard)
   @Post('tfa/authenticate')
-  handleTfa(@Res() resp: Response, @Body() tfaDto: TwoFactorAuthDto) {
-    const user = this.authService.getUser(tfaDto.userId);
+  async handleTfa(
+    @Res() resp: Response,
+    @GetUserId() userId: string,
+    // @Body('code') _code: string,
+  ): Promise<Response> {
+    const user = await this.authService.getUser(userId);
+    // set jwt tokens in cookies and redirect to dashboard
     resp = this.authService.addCookiesToResponse(resp, user);
-    return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
+    return resp.status(200).send();
   }
 
   // Jwt-token-related methods
