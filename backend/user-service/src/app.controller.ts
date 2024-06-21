@@ -1,17 +1,23 @@
 import { Controller } from '@nestjs/common';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
-import { KafkaTopic, PlayerInfo } from './user/enum/kafka.enum';
+import {
+  GameStatus,
+  KafkaTopic,
+  PlayerInfo,
+  UserStatusEnum,
+} from './user/enum/kafka.enum';
 import { UserService } from './user/user.service';
 import { Observable, of } from 'rxjs';
 import { UserStatus } from './user/user-status.entity';
 import { UserIdNameDto } from './user/dto/user-id-name-dto';
 import { UserIdNameLoginDto } from './user/dto/user-id-name-login-dto';
 import { UserIdNameStatusDto } from './user/dto/user-id-name-status-dto';
-import { IPlayerInfo } from './user/interface/kafka.interface';
+import { IGameStatus, IPlayerInfo } from './user/interface/kafka.interface';
 import { AvatarDto } from './avatar/avatar-dto';
 import { FriendshipDto } from './friend/dto/friendship-dto';
 import { FriendService } from './friend/friend.service';
 import { User } from './user/user.entity';
+import { StatusChangeDto } from './user/dto/status-change-dto';
 
 @Controller()
 export class AppController {
@@ -30,23 +36,46 @@ export class AppController {
   @MessagePattern(PlayerInfo.TOPIC) //CHECKED
   async handlePlayerInfoRequest(data: any): Promise<Observable<IPlayerInfo>> {
     try {
+      console.log('in userService handlePlayerInfoRequest(), data is', data);
+
       const player = {
         playerID: data.playerID,
         playerName: await this.userService.getUserName(data.playerID),
       };
+      // change status to 'gaming'
+      this.userService.changeUserStatus({
+        userId: data.playerId,
+        oldStatus: UserStatusEnum.ONLINE,
+        newStatus: UserStatusEnum.GAME,
+      });
       return of(player);
     } catch (error) {
       throw error;
     }
   }
 
-  @EventPattern(KafkaTopic.STATUS_CHANGE) // CHECKED
-  updateUserStatus(data): void {
-    // more logic needs to come here!
+  @EventPattern(GameStatus.TOPIC) // CHECKED
+  handleGameEnd(data: IGameStatus): void {
+    console.log('in userService handleGameEnd(), data is', data);
     this.userService.changeUserStatus({
-      userId: data.userId,
-      status: data.newStatus,
+      userId: data.player1ID,
+      oldStatus: UserStatusEnum.GAME,
+      newStatus: UserStatusEnum.ONLINE,
     });
+    if (data.player2ID) {
+      this.userService.changeUserStatus({
+        userId: data.player2ID,
+        oldStatus: UserStatusEnum.GAME,
+        newStatus: UserStatusEnum.ONLINE,
+      });
+    }
+  }
+
+  @EventPattern(KafkaTopic.STATUS_CHANGE) // CHECKED
+  updateUserStatus(data: StatusChangeDto): void {
+    // more logic needs to come here!
+    console.log('in userService updateUserStatus(), data is', data);
+    this.userService.changeUserStatus(data);
   }
 
   // Gateway-related methods

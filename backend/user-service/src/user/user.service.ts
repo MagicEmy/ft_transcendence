@@ -16,6 +16,7 @@ import { KafkaTopic, UserStatusEnum } from './enum/kafka.enum';
 import { ClientKafka, RpcException } from '@nestjs/microservices';
 import { AvatarRepository } from '../avatar/avatar.repository';
 import { AvatarDto } from '../avatar/avatar-dto';
+import { StatusChangeDto } from './dto/status-change-dto';
 
 @Injectable()
 export class UserService {
@@ -95,8 +96,10 @@ export class UserService {
     });
   }
 
-  async changeUserStatus(userStatusDto: UserStatusDto): Promise<UserStatus> {
-    return this.userStatusRepository.changeUserStatus(userStatusDto);
+  async changeUserStatus(
+    statusChangeDto: StatusChangeDto,
+  ): Promise<UserStatus> {
+    return this.userStatusRepository.changeUserStatus(statusChangeDto);
   }
 
   async getUserStatus(userId: string): Promise<UserStatus> {

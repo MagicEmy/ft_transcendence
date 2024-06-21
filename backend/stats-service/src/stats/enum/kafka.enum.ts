@@ -6,12 +6,6 @@ export enum UserStatusEnum {
   OFFLINE = 'offline',
 }
 
-// IN CHAT:
-// export enum UserStatusEnum {
-//   CHAT_ONLINE = 'chat_online',
-//   CHAT_OFFLINE = 'chat_offline',
-// }
-
 export enum KafkaTopic {
   NEW_USER = 'new_user',
   USERNAME_CHANGE = 'username_change',
