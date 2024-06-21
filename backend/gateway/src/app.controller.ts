@@ -102,7 +102,7 @@ export class AppController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getUserInfo(@Req() req): Observable<UserIdNameDto> {
-    return this.authService.getJwtTokenPayload(req.headers.cookie);
+    return this.authService.getUserIdName(req.headers.cookie);
   }
 
   // PROFILE

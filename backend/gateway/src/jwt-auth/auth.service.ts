@@ -88,7 +88,7 @@ export class AuthService {
     this.authService.emit(pattern, payload);
   }
 
-  getJwtTokenPayload(cookies: string): Observable<any> {
+  getUserIdName(cookies: string): Observable<any> {
     return this.extractTokenFromCookies({
       cookie: cookies,
       cookieName: this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),

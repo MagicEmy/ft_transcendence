@@ -26,7 +26,7 @@ export const TwoFA = () => {
 				'content-type': "application/json"
 			},
 			body: JSON.stringify({
-				userId: userIdStorage,
+				// userId: userIdStorage, // DM: THIS CAN BE DELETED, IT IS EMPTY ANYWAY
 				code: tfaCode,
 			})
 		});
