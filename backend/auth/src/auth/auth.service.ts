@@ -189,7 +189,7 @@ export class AuthService {
     return tokenValue;
   }
 
-  addCookiesToResponse(resp: Response, user): Response {
+  addCookiesToResponse(resp: Response, user: User): Response {
     const tokens = this.login(user);
     // setting the jwt tokens in cookies
     const accessCookie = this.getCookieWithTokens({

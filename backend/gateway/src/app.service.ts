@@ -163,12 +163,6 @@ export class AppService {
       );
   }
 
-  //   updateStatus(userStatusDto: UserStatusDto): void {
-  //     const pattern = KafkaTopic.STATUS_CHANGE;
-  //     const payload = userStatusDto;
-  //     this.userService.emit(pattern, payload);
-  //   }
-
   getAllUserIds(): Observable<string[]> {
     const pattern = 'getAllUserIds';
     const payload = {};

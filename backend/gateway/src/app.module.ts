@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { AuthService } from './jwt-auth/auth.service';
 import { JwtStrategy } from './jwt-auth/jwt-strategy';
+import { SocketModule } from './socket/socket.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { JwtStrategy } from './jwt-auth/jwt-strategy';
     PassportModule.register({ session: false }),
     JwtModule.register({}),
     ConfigModule.forRoot(),
+    SocketModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthService, JwtStrategy],

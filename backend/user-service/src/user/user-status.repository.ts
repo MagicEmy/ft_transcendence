@@ -8,6 +8,8 @@ import { UserStatus } from './user-status.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserStatusDto } from './dto/user-status-dto';
 import { RpcException } from '@nestjs/microservices';
+import { StatusChangeDto } from './dto/status-change-dto';
+import { UserStatusEnum } from './enum/kafka.enum';
 
 @Injectable()
 export class UserStatusRepository extends Repository<UserStatus> {
@@ -37,15 +39,29 @@ export class UserStatusRepository extends Repository<UserStatus> {
     return status;
   }
 
-  async changeUserStatus(userStatusDto: UserStatusDto): Promise<UserStatus> {
-    const { userId, status } = userStatusDto;
+  async changeUserStatus(
+    statusChangeDto: StatusChangeDto,
+  ): Promise<UserStatus> {
+    const { userId, oldStatus, newStatus } = statusChangeDto;
     const statusEntry = await this.findOneBy({ user_id: userId });
     if (statusEntry) {
-      statusEntry.status = status;
+      if (
+        statusEntry.status === UserStatusEnum.OFFLINE &&
+        (oldStatus === UserStatusEnum.CHAT_ONLINE ||
+          oldStatus === UserStatusEnum.GAME)
+      ) {
+        return statusEntry;
+      }
+      statusEntry.status = newStatus;
     } else {
-      throw new RpcException(
-        new NotFoundException(`User with ID "${userId}" not found`),
-      );
+      // create status
+      try {
+        this.createStatusEntry({ userId, status: newStatus });
+      } catch (error) {
+        throw new RpcException(
+          new NotFoundException(`User with ID "${userId}" not found`),
+        );
+      }
     }
     try {
       return this.save(statusEntry);
