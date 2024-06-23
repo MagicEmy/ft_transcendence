@@ -1,7 +1,7 @@
 
-import "./App.css";
-import ChatPage from "./ChatPage";
-import React, { useState, FC } from "react";
+import "./Chat.css";
+import Chat from "./ChatPage";
+import React, { useState, FC } from "react"
 import { ChatContext, socket } from "../../context/ChatContext";
 import { ChatContextType, RoomDto, ChatUserDto, RoomShowDto, RoomUserDto,UserDto, MessageRoomDto } from "../../types/chat.dto";
 
