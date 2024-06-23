@@ -1,5 +1,5 @@
 
-import "./App.css";
+import "./Chat.css";
 import Chat from "./ChatPage";
 import React, { useState, FC } from "react"
 import { ChatContext, socket } from "../../context/ChatContext";
