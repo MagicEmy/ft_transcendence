@@ -63,9 +63,7 @@ export class UserService {
 
   async setUserName(userIdNameDto: UserIdNameDto): Promise<User> {
     try {
-      const found = await this.getUserById(userIdNameDto.userId);
-      found.user_name = userIdNameDto.userName;
-      this.userRepository.save(found);
+      const found = await this.userRepository.setUserName(userIdNameDto);
       this.userNameCache.setUserName(userIdNameDto);
       this.usernameClient.emit(KafkaTopic.USERNAME_CHANGE, userIdNameDto);
       return found;

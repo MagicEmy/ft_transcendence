@@ -1,10 +1,12 @@
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
+import { UserIdNameDto } from './dto/user-id-name-dto';
 
 export class UserRepository extends Repository<User> {
+  private logger: Logger = new Logger(UserRepository.name);
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {
@@ -36,6 +38,32 @@ export class UserRepository extends Repository<User> {
       );
     } else {
       return fromDB.userName;
+    }
+  }
+
+  async setUserName(userIdNameDto: UserIdNameDto): Promise<User> {
+    console.log('in repo');
+
+    const found = await this.findOneBy({ user_id: userIdNameDto.userId });
+    if (!found) {
+      this.logger.error(`User with ID "${userIdNameDto.userId}" not found`);
+      throw new RpcException(
+        new NotFoundException(
+          `User with ID "${userIdNameDto.userId}" not found`,
+        ),
+      );
+    }
+    found.user_name = userIdNameDto.userName;
+    try {
+      console.log('in repo in try block');
+      await this.userRepository.save(found);
+      return found;
+    } catch (error) {
+      this.logger.error(
+        `Failed to set userName of user ${userIdNameDto.userId} to ${userIdNameDto.userName}`,
+      );
+      console.log(error)
+      throw new RpcException(new BadRequestException());
     }
   }
 
