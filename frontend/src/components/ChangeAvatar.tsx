@@ -3,16 +3,15 @@ import { AVATAR } from '../utils/constants';
 import UserContext, { IUserContext } from '../context/UserContext';
 import { useGetAvatar } from "../hooks/useGetAvatar";
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { Avatar } from './Avatar';
 
 export const ChangeAvatar = () => {
 	const { userIdContext, avatarContext, setAvatarContext } = useContext<IUserContext>(UserContext);
-	// const { avatar: avatarUrl } = useGetAvatar(userIdContext);
 
 	const [file, setFile] = useState<File | null>(null);
 	// const [fileName, setFileName] = useState<string>("");
 	const [feedback, setFeedback] = useState<string>("");
 	const [avatarLoading, setAvatarLoading] = useState<boolean>(false);
-
 	const handleAvatarSubmit = async (event: FormEvent) => {
 		event.preventDefault();
 		setFeedback("");
@@ -48,6 +47,7 @@ export const ChangeAvatar = () => {
 				const localUrl = URL.createObjectURL(file);
 				console.log("avatar change response.ok ");
 				setAvatarContext(localUrl);
+				//setAvatarContext(localUrl);
 				setFeedback("Avatar updated successfully.");
 			} else {
 				setFeedback("Failed to update avatar. Please check the server response.");
@@ -71,25 +71,21 @@ export const ChangeAvatar = () => {
 	return (
 		<>
 			<div className="item">
-				{avatarContext ? (
-					<img className="avatar" src={avatarContext} alt="User Avatar" />
-				) : (
-					<p>Loading avatar...</p>
-				)}
+				<Avatar />
 				<div className="text">Change Profile Picture:</div>
 				<form onSubmit={handleAvatarSubmit}>
-							<input
-								type="file"
-								onChange={(e: ChangeEvent<HTMLInputElement>) =>
-									setFile(e.target.files ? e.target.files[0] : null)
-								}
-								disabled={avatarLoading}
-							/>
-							<br />
-							<button type="submit" className="settings-button" disabled={avatarLoading}>
-								Upload Picture
-							</button>
-						</form>
+					<input
+						type="file"
+						onChange={(e: ChangeEvent<HTMLInputElement>) =>
+							setFile(e.target.files ? e.target.files[0] : null)
+						}
+						disabled={avatarLoading}
+					/>
+					<br />
+					<button type="submit" className="settings-button" disabled={avatarLoading}>
+						Upload Picture
+					</button>
+				</form>
 			</div>
 			{feedback && (
 				<div className="text-dark">

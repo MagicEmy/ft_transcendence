@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink } from "react-router-dom";
 import { loadProfileAvatar } from '../../utils/profileUtils';
 import { LeaderboardStats } from './types';
+import { useGetAvatarUrl } from '../../hooks/useGetAvatarUrl';
 import classes from "./Leaderboard.css";
 
 interface LeaderboardProfilesProps {
@@ -9,56 +10,50 @@ interface LeaderboardProfilesProps {
 }
 
 const LeaderboardProfiles = ({ leaderboard }: LeaderboardProfilesProps) => {
+
+  if(!leaderboard || !Array.isArray(leaderboard)) return <p>No leaderboard data available.</p>
+
   return (
     <div id="leadProfile">
-      {leaderboard && Array.isArray(leaderboard) ? <Item leaderboard={leaderboard} /> : <p>No leaderboard data available.</p>}
+      {leaderboard.map(item => <Item user={item} key={item.userId} />)}
     </div>
   );
 };
 
 interface ItemProps {
-  leaderboard: LeaderboardStats[];
+  user: LeaderboardStats;
 }
 
-const Item = ({ leaderboard }: ItemProps) => {
-  const [avatars, setAvatars] = useState<{ [key: string]: string }>({});
+const Item = ({ user }: ItemProps) => {
+  const { avatar, isLoading } = useGetAvatarUrl(user.userId);
 
-  useEffect(() => {
-    leaderboard.forEach(async (user) => {
-      const avatarUrl = await loadProfileAvatar(user.userId);
-      setAvatars(prev => ({ ...prev, [user.userId]: avatarUrl || ''}));
-    });
-  }, [leaderboard]);
-
+  if (isLoading) return <>loading profile</>;
   return (
-    <>
-      {leaderboard?.map((value, index) => (
-        <div className="flex" key={index}>
-          <div className="item">
-            <img src={avatars[value.userId] || 'https://loremflickr.com/200/200/dog'} alt="" />
-            <div className="info">
-              <NavLink
-                to={`/profile/${value.userId}`} className={({ isActive }) =>
-                  isActive ? classes.active : undefined
-                } >
-                <h3 className='text'>{value.userName}</h3>
-              </NavLink>
-              <div className="info">
-              <span className="total-points">Total points:<span className="points">{value.pointsTotal}</span></span>
-              </div>
-              <div className="stats">
-                <span className="stat"><strong>{value.wins}</strong>Wins</span>
-                <span className="stat"><strong>{value.draws}</strong>Draws</span>
-                <span className="stat"><strong>{value.losses}</strong>Losses</span>
-              </div>
-            </div>
+    <div className="flex" >
+      <div className="item">
+        <img src={avatar || 'https://loremflickr.com/200/200/dog'} alt="" />
+        <div className="info">
+          <NavLink
+            to={`/profile/${user.userId}`} className={({ isActive }) =>
+              isActive ? classes.active : undefined
+            } >
+            <h3 className='text'>{user.userName}</h3>
+          </NavLink>
+          <div className="info">
+            <span className="total-points">Total points:<span className="points">{user.pointsTotal}</span></span>
           </div>
-          <span className="rank">
-            <span>{value.rank}</span>
-          </span>
+          <div className="stats">
+            <span className="stat"><strong>{user.wins}</strong>Wins</span>
+            <span className="stat"><strong>{user.draws}</strong>Draws</span>
+            <span className="stat"><strong>{user.losses}</strong>Losses</span>
+          </div>
         </div>
-      ))}
-    </>
+      </div>
+      <span className="rank">
+        <span>{user.rank}</span>
+      </span>
+    </div>
+
   );
 };
 

@@ -29,3 +29,6 @@
     "src/**/*"
   ]
 }
+
+//  "ignore": ["src/pages/Chat/**/*.tsx", "src/pages/Chat/**/*.ts"]
+

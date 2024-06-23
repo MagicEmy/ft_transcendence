@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import useStorage from '../hooks/useStorage';
 import { LOGOUT } from '../utils/constants';
-import { useSocketContext } from '../context/SocketContext';
 
 interface LogoutButtonProps {
   className?: string;
@@ -9,7 +8,6 @@ interface LogoutButtonProps {
 const LogoutButton = ({ className }: LogoutButtonProps) => {
   const [, , removeUserIdStorage] = useStorage('userId', '');
   const [ , , removeUserNameStorage] = useStorage<string>('userName', '');
-  const { socketLogout } = useSocketContext();
   const navigate = useNavigate();
 
   async function userLogout() {
@@ -25,7 +23,6 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
         console.log('User logged out');
         removeUserIdStorage();
         removeUserNameStorage();
-		socketLogout();
         navigate('/');
       } else {
         throw new Error('Failed to log out');
@@ -34,7 +31,6 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
       console.log('Error logging out:', error);
       removeUserIdStorage();
       removeUserNameStorage();
-	  socketLogout();
       navigate('/');
     }
   }

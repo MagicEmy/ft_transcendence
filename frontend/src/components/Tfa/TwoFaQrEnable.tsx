@@ -15,12 +15,6 @@ export const TwoFaEnable = () => {
 	const [feedback, setFeedback] = useState<string>('');
     const { tfaStatus, refetch: refetchTfaStatus } = useGetTfaStatus(userIdStorage);
 
-	useEffect(() => {
-		refetchTfaStatus();
-		if (tfaStatus !== null) {
-		  setTfaEnable(tfaStatus);
-		}
-	  }, [tfaStatus]);
 
 	const handleClick2FA = async () => {
 		if (userIdStorage) {
@@ -80,6 +74,7 @@ export const TwoFaEnable = () => {
 			} catch (error) {
 				setError(`Failed to enable Two Factor Authentication.${error}`);
 			} finally {
+				refetchTfaStatus();
 				setAuthCode('');
 				setQrCodeUrl('');
 				setTimeout(() => {
@@ -120,6 +115,7 @@ export const TwoFaEnable = () => {
 				console.error('Error generating 2FA QR Code:', error);
 				return (false);
 			} finally {
+				refetchTfaStatus();
 				setTimeout(() => {
 					setError('');
 					setFeedback('');
@@ -127,7 +123,7 @@ export const TwoFaEnable = () => {
 			}
 		}
 	};
-
+	console.log(tfaEnable, tfaStatus)
 	return (
 		<div className="settings-container">
 			<div className="item">

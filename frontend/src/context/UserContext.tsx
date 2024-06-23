@@ -7,13 +7,13 @@ import { IUserContext } from '../context/userContext.types';
 
 const defaultState: IUserContext = {
   userIdContext: '',
-  setUserIdContext: () => {},
+  setUserIdContext: () => { },
   userNameContext: '',
-  setUserNameContext: () => {},
+  setUserNameContext: () => { },
   avatarContext: null,
-  setAvatarContext: () => {},
+  setAvatarContext: () => { },
   friendsContext: [],
-  setFriendsContext: () => {},
+  setFriendsContext: () => { },
   isLoading: false,
 };
 
@@ -25,8 +25,8 @@ interface UserProviderProps {
 
 export const UserProvider = ({ children }: UserProviderProps) => {
   const [userIdContext, setUserIdContext] = useState<string>('');
-  const [userIdStorage, setUserIdStorage, ] = useStorage<string>('userId', '');
-  const [, setUserNameStorage, ] = useStorage<string>('userName', '');
+  const [userIdStorage, setUserIdStorage,] = useStorage<string>('userId', '');
+  const [, setUserNameStorage,] = useStorage<string>('userName', '');
   const [userNameContext, setUserNameContext] = useState<string>('');
   const [avatarContext, setAvatarContext] = useState<string | null>(null);
   const [friendsContext, setFriendsContext] = useState<Friends[]>([]);
@@ -54,28 +54,18 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         setIsLoading(false);
       }
     };
-        if (!userIdContext) fetchUser();
+    if (!userIdContext) fetchUser();
 
-      }, []);
+  }, []);
 
 
   useEffect(() => {
-    let active = true;
-
-    const cleanupPreviousAvatar = () => {
-      if (avatarContext) {
-        URL.revokeObjectURL(avatarContext);
-      }
-    };
 
     const fetchAvatar = async () => {
       if (userIdContext) {
         try {
           const url = await loadProfileAvatar(userIdContext);
-          if (active) {
-            cleanupPreviousAvatar();
-            setAvatarContext(url || null);
-          }
+          setAvatarContext(url || null);
         } catch (error) {
           console.error('Error loading avatar:', error);
         }
@@ -84,10 +74,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
     fetchAvatar();
 
-    return () => {
-      cleanupPreviousAvatar();
-      active = false;
-    };
   }, [userIdContext]);
 
   console.log("userIdContext: ", userIdContext);
@@ -98,7 +84,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       setUserIdStorage(userIdContext);
     }
   }
-  , [userIdContext, userIdStorage, setUserIdStorage]);
+    , [userIdContext, userIdStorage, setUserIdStorage]);
 
   console.log("userIdContext2: ", userIdContext);
   console.log("userIdStorage2: ", userIdStorage);

@@ -52,10 +52,17 @@ export const loadGames = async (userId: string): Promise<Games[]> => {
 	  if (!response.ok) {
 		throw new Error(`Error: ${response.status}`);
 	  }
-
 	  const blob = await response.blob();
-	  const imageUrl = URL.createObjectURL(blob);
-	  return imageUrl;
+		const stringImageUrl = await new Promise((resolve, reject) => {
+			let fr = new FileReader();
+			fr.onload = () => {
+				resolve(fr.result )
+			};
+			fr.onerror = reject;
+			fr.readAsDataURL(blob);
+		});
+
+	  return stringImageUrl as string;
 	} catch (error) {
 	  console.error('Failed to fetch avatar:', error);
 	  return '';
