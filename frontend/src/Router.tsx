@@ -12,7 +12,7 @@ import ErrorBoundary from "./pages/Error/ErrorBoundary";
 import PrivateRoute from "./components/PrivateRoute";
 import { UserProvider } from "./context/UserContext";
 import { SocketProvider } from "./context/SocketContext";
-import Chat from "./pages/chat/ChatPage";
+import Chat from "./pages/Chat/Chat";
 
 const publicRoutes: RouteObject[] = [
   {
