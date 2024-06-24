@@ -4,7 +4,7 @@ import Sidebar from "../../components/Chat/Sidebar";
 import MessageForm from "../../components/Chat/MessageForm";
 import CreateChatRoom from "../../components/Chat/CreateChatRoom";
 
-function Chat() {
+function ChatPage() {
   return (
     <Container>
       <Row>
@@ -20,4 +20,4 @@ function Chat() {
   );
 }
 
-export default Chat;
+export default ChatPage;

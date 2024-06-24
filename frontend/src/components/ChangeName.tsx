@@ -16,15 +16,23 @@ export const ChangeName = () => {
 		return isValidLength && isAlphanumeric;
 	};
 
+	const clearFeedback = () => {
+        setTimeout(() => {
+            setFeedback('');
+        }, 5000);
+    };
 	const handleUserNameSubmit = async () => {
-		if (newUserName && newUserName) {
+		if (newUserName !== ''){
 			if (!validateUserName(newUserName)) {
 				setFeedback("Username must be between 2 and 15 characters and only contain alphanumeric characters.");
+				clearFeedback();
 				return;
 			} else if (newUserName === userNameContext) {
 				setFeedback("New username cannot be the same as the current username.");
+				clearFeedback();
 				return;
 			}
+
 			try {
 				const response = await fetch(CHANGE_NAME, {
 					method: 'PATCH',
@@ -50,9 +58,7 @@ export const ChangeName = () => {
 				console.error("Error updating user data:", error);
 				setFeedback("Failed to update username.");
 			} finally {
-				setTimeout(() => {
-					setFeedback('');
-				}, 5000);
+				clearFeedback();
 			}
 		}
 	};

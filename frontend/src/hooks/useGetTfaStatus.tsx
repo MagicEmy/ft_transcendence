@@ -14,7 +14,6 @@ export const useGetTfaStatus = (userId: string) => {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log(data)
         setTfaStatus(data);
       } else {
         setTfaStatus(null);

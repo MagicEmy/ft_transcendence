@@ -1,10 +1,10 @@
 
-import Chat from "./ChatPage";
-import React, { useState, FC } from "react"
+import { useState } from "react"
 import { ChatContext, socket } from "../../context/ChatContext";
 import { ChatContextType, RoomDto, ChatUserDto, RoomShowDto, RoomUserDto,UserDto, MessageRoomDto } from "../../types/chat.dto";
+import ChatPage from  "./ChatPage";
 
-const App: FC = () => {
+const Chat = () => {
   const [rooms, setRooms] = useState<RoomShowDto[]>([]);
   const [myRooms, setMyRooms] = useState<RoomShowDto[]>([]);
   const [currentRoom, setCurrentRoom] = useState<RoomDto | null>(null);
@@ -33,7 +33,7 @@ const App: FC = () => {
         setMyRooms,
       } as ChatContextType}
     >
-      <Chat />
+      <ChatPage />
     </ChatContext.Provider>
   );
 }

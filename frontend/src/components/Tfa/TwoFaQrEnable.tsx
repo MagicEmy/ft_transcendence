@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState } from 'react';
 import useStorage from '../../hooks/useStorage';
 import { TFA_QR, TFA_ENABLE, TFA_DISABLE } from '../../utils/constants';
 import { useGetTfaStatus } from '../../hooks/useGetTfaStatus';
@@ -15,6 +15,12 @@ export const TwoFaEnable = () => {
 	const [feedback, setFeedback] = useState<string>('');
     const { tfaStatus, refetch: refetchTfaStatus } = useGetTfaStatus(userIdStorage);
 
+	const clearFeedbackError = () => {
+        setTimeout(() => {
+            setFeedback('');
+			setError('');
+        }, 5000);
+    };
 
 	const handleClick2FA = async () => {
 		if (userIdStorage) {
@@ -40,10 +46,7 @@ export const TwoFaEnable = () => {
 				setError('Error generating 2FA QR Code:' + error);
 				return (false);
 			} finally {
-				setTimeout(() => {
-					setError('');
-					setFeedback('');
-				}, 5000);
+				clearFeedbackError();
 			}
 		}
 	};
@@ -77,16 +80,11 @@ export const TwoFaEnable = () => {
 				refetchTfaStatus();
 				setAuthCode('');
 				setQrCodeUrl('');
-				setTimeout(() => {
-					setError('');
-					setFeedback('');
-				}, 5000);
+				clearFeedbackError();
 			}
 		} else {
 			setError('Invalid authentication code');
-			setTimeout(() => {
-				setError('');
-			}, 5000);
+			clearFeedbackError();
 		}
 	};
 
@@ -103,7 +101,7 @@ export const TwoFaEnable = () => {
 						userId: userIdStorage,
 					})
 				});
-				console.log('response', response);
+				console.log('response Disable', response);
 				if (!response.ok) {
 					setError(response.statusText)
 					return (false);
@@ -116,14 +114,11 @@ export const TwoFaEnable = () => {
 				return (false);
 			} finally {
 				refetchTfaStatus();
-				setTimeout(() => {
-					setError('');
-					setFeedback('');
-				}, 5000);
+				clearFeedbackError();
 			}
 		}
 	};
-	console.log(tfaEnable, tfaStatus)
+	console.log('tfaEnable', tfaEnable, 'tfaStatus', tfaStatus)
 	return (
 		<div className="settings-container">
 			<div className="item">
