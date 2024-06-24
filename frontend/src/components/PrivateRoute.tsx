@@ -1,5 +1,4 @@
-import React, { ReactNode, useContext } from 'react';
-// import UserContext, { IUserContext } from '../context/UserContext';
+import React, { ReactNode } from 'react';
 import { useIsLoggedIn } from '../hooks/useIsLoggedIn';
 import PageContent from './PageContent';
 import classes from './PageContent.module.css';
@@ -8,12 +7,10 @@ import { useNavigate } from "react-router-dom";
 
 
 const PrivateRoute = ({ children }: { children: ReactNode }) => {
-  // const { userIdContext } = useContext<IUserContext>(UserContext);
 
   const navigate = useNavigate();
   const { isLoggedin } = useIsLoggedIn();
 
-  // if (isLoggedin === false || (!userIdContext && !isLoggedin)) {
   if (isLoggedin === false ) {
     console.log('PrivateRoute: No user logged in');
     const title = 'Error';

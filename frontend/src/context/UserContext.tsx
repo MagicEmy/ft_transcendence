@@ -60,11 +60,17 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
 
   useEffect(() => {
+    if (userIdContext && userIdStorage && userIdContext !== userIdStorage) {
+      setUserIdStorage(userIdContext);
+    }
+  }, [userIdContext, userIdStorage, setUserIdStorage]);
+
+  useEffect(() => {
 
     const fetchAvatar = async () => {
-      if (userIdContext) {
+      if (userIdStorage) {
         try {
-          const url = await loadProfileAvatar(userIdContext);
+          const url = await loadProfileAvatar(userIdStorage);
           setAvatarContext(url || null);
         } catch (error) {
           console.error('Error loading avatar:', error);
@@ -74,20 +80,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
     fetchAvatar();
 
-  }, [userIdContext]);
+  }, [userIdStorage]);
 
   console.log("userIdContext: ", userIdContext);
   console.log("userIdStorage: ", userIdStorage);
-
-  useEffect(() => {
-    if (userIdContext && userIdStorage && userIdContext !== userIdStorage) {
-      setUserIdStorage(userIdContext);
-    }
-  }
-    , [userIdContext, userIdStorage, setUserIdStorage]);
-
-  console.log("userIdContext2: ", userIdContext);
-  console.log("userIdStorage2: ", userIdStorage);
 
   return (
     <UserContext.Provider

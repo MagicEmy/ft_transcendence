@@ -2,20 +2,14 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { addFriend, deleteFriend } from "../../utils/friendsUtils";
 import { Friends, } from "../../types/shared";
-import { useGetFriends, useGetProfile, useGetUserStatus, useGetAvatar } from "../../hooks";
+import { useGetFriends, useGetProfile, useGetUserStatus, useGetAvatarUrl } from "../../hooks";
 import { MatchHistory } from "../../components/ProfileStats/MatchHistory";
 import { FriendsList } from "../../components/FriendsList";
 import { UserStats } from "../../components/ProfileStats/ProfileStats";
 import { AddFriendButton } from "../../components/AddFriendButton";
-// import useStorage from "../../hooks/useStorage";
-// import  ApiErrorPage  from "../../pages/Error/ApiErrorPage";
 import UserContext, { IUserContext } from '../../context/UserContext';
+// import useStorage from "../../hooks/useStorage";
 import "./Profile.css";
-
-interface ErrorDetails {
-  message: string;
-  statusCode?: number;
-}
 
 export const Profile = () => {
 
@@ -25,7 +19,7 @@ export const Profile = () => {
 
   const { profile } = useGetProfile(userIdOrMe);
   const { userStatus } = useGetUserStatus(userIdOrMe);
-  const { avatar: avatarUrl, error: apiError } = useGetAvatar(userIdOrMe);
+  const { avatar: avatarUrl } = useGetAvatarUrl(userIdOrMe);
   const { friends: loggedUserFriends } = useGetFriends(userIdContext);
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe);
   const [ isFriend, setIsFriend] = useState<boolean>(false);

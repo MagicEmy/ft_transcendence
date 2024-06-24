@@ -1,15 +1,17 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classes from './Navbar.module.css';
 import LogoutButton from '../LogoutButton';
 import UserContext, { IUserContext } from '../../context/UserContext';
-import { loadProfileAvatar } from '../../utils/profileUtils';
 import { NavigationButton } from './NavigationButton';
+import { useGetAvatarUrl } from '../../hooks/useGetAvatarUrl';
 import { Avatar } from '../Avatar'
 
 export const Navbar = () => {
   const { userIdContext, userNameContext, setAvatarContext } = useContext<IUserContext>(UserContext);
+
   const navigate = useNavigate();
+
 
   return (
     <header className={classes.header}>

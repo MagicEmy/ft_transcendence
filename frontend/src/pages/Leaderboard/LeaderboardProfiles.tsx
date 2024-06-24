@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
 import { NavLink } from "react-router-dom";
-import { loadProfileAvatar } from '../../utils/profileUtils';
 import { LeaderboardStats } from './types';
 import { useGetAvatarUrl } from '../../hooks/useGetAvatarUrl';
 import classes from "./Leaderboard.css";

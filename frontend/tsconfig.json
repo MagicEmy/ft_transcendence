@@ -27,7 +27,8 @@
   },
   "include": [
     "src/**/*"
-  ]
+  ],
+   "ignore": ["src/pages/Chat/**/*.tsx", "src/pages/Chat/*.ts", "src/pages/chat/*.ts", "src/pages/chat/*.tsx"],
 }
 
 //  "ignore": ["src/pages/Chat/**/*.tsx", "src/pages/Chat/**/*.ts"]

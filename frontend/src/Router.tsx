@@ -12,7 +12,7 @@ import ErrorBoundary from "./pages/Error/ErrorBoundary";
 import PrivateRoute from "./components/PrivateRoute";
 import { UserProvider } from "./context/UserContext";
 import { SocketProvider } from "./context/SocketContext";
-import Chat from "./pages/chat/ChatPage";
+// import Chat from "./pages/chat/ChatPage";
 
 const publicRoutes: RouteObject[] = [
   {
@@ -60,10 +60,10 @@ const privateRoutes: RouteObject[] = [
     path: "game",
     element: <Game />,
   },
-  {
-    path: "chat",
-    element: <Chat />,
-  },
+  // {
+  //   path: "chat",
+  //   element: <Chat />,
+  // },
   {
     path: "*",
     element: <Error />,

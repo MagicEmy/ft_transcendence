@@ -10,8 +10,21 @@ export const ChangeName = () => {
 	const [newUserName, setNewUserName] = useState<string>('');
 	const [feedback, setFeedback] = useState<string>('');
 
+	const validateUserName = (userName:string ) => {
+		const isValidLength = userName.length >= 2 && userName.length <= 15;
+		const isAlphanumeric = /^[a-z0-9]+$/i.test(userName);
+		return isValidLength && isAlphanumeric;
+	};
+
 	const handleUserNameSubmit = async () => {
-		if (newUserName && newUserName !== userNameContext) {
+		if (newUserName && newUserName) {
+			if (!validateUserName(newUserName)) {
+				setFeedback("Username must be between 2 and 15 characters and only contain alphanumeric characters.");
+				return;
+			} else if (newUserName === userNameContext) {
+				setFeedback("New username cannot be the same as the current username.");
+				return;
+			}
 			try {
 				const response = await fetch(CHANGE_NAME, {
 					method: 'PATCH',
@@ -30,11 +43,16 @@ export const ChangeName = () => {
 					setUserNameStorage(newUserName);
 					setFeedback("Username updated successfully.");
 				} else {
+					setFeedback("Error updating username." + response.statusText);
 					throw new Error('Failed to update username.');
 				}
 			} catch (error) {
 				console.error("Error updating user data:", error);
 				setFeedback("Failed to update username.");
+			} finally {
+				setTimeout(() => {
+					setFeedback('');
+				}, 5000);
 			}
 		}
 	};

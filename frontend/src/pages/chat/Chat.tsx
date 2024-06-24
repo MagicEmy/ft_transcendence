@@ -1,5 +1,4 @@
 
-import "./App.css";
 import Chat from "./ChatPage";
 import React, { useState, FC } from "react"
 import { ChatContext, socket } from "../../context/ChatContext";
@@ -8,7 +7,7 @@ import { ChatContextType, RoomDto, ChatUserDto, RoomShowDto, RoomUserDto,UserDto
 const App: FC = () => {
   const [rooms, setRooms] = useState<RoomShowDto[]>([]);
   const [myRooms, setMyRooms] = useState<RoomShowDto[]>([]);
-  const [currentRoom, setCurrentRoom] = useState<RoomDto | null>(null); 
+  const [currentRoom, setCurrentRoom] = useState<RoomDto | null>(null);
   const [members, setMembers] = useState<ChatUserDto[]>([]);
   const [roomMembers, setRoomMembers] = useState<RoomUserDto | {}>({});
   const [messages, setMessages] = useState<MessageRoomDto[]>([]);

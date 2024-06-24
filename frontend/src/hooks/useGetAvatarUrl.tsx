@@ -1,6 +1,5 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { loadProfileAvatar } from '../utils/profileUtils';
-import UserContext, { IUserContext } from '../context/UserContext';
 
 export const useGetAvatarUrl = (userId: string) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -8,7 +7,6 @@ export const useGetAvatarUrl = (userId: string) => {
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    console.log("useGetAvatar userId: ", userId);
     let active = true; // Flag to manage the effect lifecycle
 
     const fetchAvatar = async () => {

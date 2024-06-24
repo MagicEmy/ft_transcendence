@@ -272,9 +272,9 @@
     box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
     padding: 10px;
     margin-left: 70px;
-
-
+    margin-bottom: 10px;
   }
+  
   .title {
     color: #0a04ad;
     font-size: 2em;
