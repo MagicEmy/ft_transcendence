@@ -51,12 +51,13 @@ export const ChangeName = () => {
 					setUserNameStorage(newUserName);
 					setFeedback("Username updated successfully.");
 				} else {
-					setFeedback("Error updating username." + response.statusText);
-					throw new Error('Failed to update username.');
+					const message = await response.json();
+					setFeedback("Error updating username.");
+					throw new Error(message.message);
 				}
 			} catch (error) {
 				console.error("Error updating user data:", error);
-				setFeedback("Failed to update username.");
+				setFeedback(error + "");
 			} finally {
 				clearFeedback();
 			}
