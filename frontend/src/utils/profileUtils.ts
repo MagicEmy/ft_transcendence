@@ -82,3 +82,32 @@ export const loadGames = async (userId: string): Promise<Games[]> => {
 	const newNameProfile = await response.json();
 	return newNameProfile;
   };
+
+
+  export const uploadProfileAvatar = async (userId: string, formData: FormData): Promise<string> => {
+	try {
+	  const response = await fetch(`${AVATAR}/${userId}`, {
+		method: 'PATCH',
+		body: formData,
+		credentials: 'include'
+	  });
+
+	  if (!response.ok) {
+		throw new Error(`Error: ${response.status}`);
+	  }
+	  const blob = await response.blob();
+		const stringImageUrl = await new Promise((resolve, reject) => {
+			let fr = new FileReader();
+			fr.onload = () => {
+				resolve(fr.result )
+			};
+			fr.onerror = reject;
+			fr.readAsDataURL(blob);
+		});
+
+	  return stringImageUrl as string;
+	} catch (error) {
+	  console.error('Failed to fetch avatar:', error);
+	  return '';
+	}
+  };

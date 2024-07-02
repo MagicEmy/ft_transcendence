@@ -44,23 +44,23 @@ export const ChangeAvatar = () => {
 				setFeedback("Failed to update avatar. Please check the server response.");
 				throw new Error(`Error: ${response.status}`);
 			}
-			const blob = await response.blob();
-			const stringImageUrl = await new Promise((resolve, reject) => {
-				let fr = new FileReader();
-				fr.onload = () => {
-					resolve(fr.result)
-				};
-				fr.onerror = reject;
-				fr.readAsDataURL(blob);
-			});
-			setAvatarContext(stringImageUrl as string);
-			setFeedback("Avatar updated successfully.");
-			// if (response.ok) {
-			// 	const localUrl = URL.createObjectURL(file);
-			// 	console.log("avatar change response.ok ");
-			// 	setAvatarContext(localUrl);
-			// 	setFeedback("Avatar updated successfully.");
-			// }
+			// const blob = await response.blob();
+			// const stringImageUrl = await new Promise((resolve, reject) => {
+			// 	let fr = new FileReader();
+			// 	fr.onload = () => {
+			// 		resolve(fr.result)
+			// 	};
+			// 	fr.onerror = reject;
+			// 	fr.readAsDataURL(blob);
+			// });
+			// setAvatarContext(stringImageUrl as string);
+			// setFeedback("Avatar updated successfully.");
+			if (response.ok) {
+				const localUrl = URL.createObjectURL(file);
+				console.log("avatar change response.ok ");
+				setAvatarContext(localUrl);
+				setFeedback("Avatar updated successfully.");
+			}
 		} catch (error) {
 			console.error("Error updating avatar:", error);
 			setFeedback(`Error updating avatar: ${error}`);
