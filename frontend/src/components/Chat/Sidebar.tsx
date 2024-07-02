@@ -8,10 +8,13 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 import { Link } from "react-router-dom";
 import "./ListGroup.css";
 import { UserDto, DoWithUserDto, JoinRoomDto, RoomDto, LeaveRoomDto, toDoUserRoomDto, RoomShowDto, UserShowDto, RoomUserDto, ChatUserDto, UpdateRoomDto, GameDto, ChatContextType, Notification } from "../../types/chat.dto";
+import useStorage from "./../../hooks/useStorage";
 
 
 function Sidebar() {
-  const user: UserDto = { userId: "abc", userName: "abc" };
+  const [userIdStorage] = useStorage<string>('userId', '');
+  const [userNameStorage] = useStorage<string>('userName', '');
+  const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
   const {
     socket,
     setMembers,

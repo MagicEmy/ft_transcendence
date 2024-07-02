@@ -4,9 +4,12 @@ import { ChatContext } from "../../context/ChatContext";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import { ChatContextType, UserDto } from "../../types/chat.dto";
+import useStorage from "./../../hooks/useStorage";
 
 function CreateChatRoom() {
-  const user: UserDto = { userId: "abc", userName: "abc" };
+  const [userIdStorage] = useStorage<string>('userId', '');
+  const [userNameStorage] = useStorage<string>('userName', '');
+  const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
   const context = useContext(ChatContext);
   const [roomName, setRoomName] = useState("");
   const [chatType, setChatType] = useState("Public");

@@ -3,8 +3,12 @@ import { Button, Col, Form, Row } from "react-bootstrap";
 import { ChatContext } from "../../context/ChatContext";
 import "./MessageForm.css";
 import { MessageRoomDto, UserDto } from "../../types/chat.dto";
+import useStorage from "./../../hooks/useStorage";
+
 
 function MessageForm() {
+  const [userIdStorage] = useStorage<string>('userId', '');
+  const [userNameStorage] = useStorage<string>('userName', '');
   const context = useContext(ChatContext);
   const [message, setMessage] = useState("");
   const messageEndRef = useRef<HTMLDivElement>(null);
@@ -22,7 +26,7 @@ function MessageForm() {
     messages,
     directMsg,
   } = context;
-  const user: UserDto = { userId: "abc", userName: "abc" };
+  const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
 
   function scrollToBottom() {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });

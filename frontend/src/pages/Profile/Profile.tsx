@@ -15,7 +15,7 @@ export const Profile = () => {
 
   const { userId } = useParams<{ userId?: string }>();
   const { userIdContext } = useContext<IUserContext>(UserContext);
-  const userIdOrMe = userId || userIdContext;
+  const [userIdOrMe, setUserIdOrMe] = useState(userId || userIdContext);
 
   const { profile } = useGetProfile(userIdOrMe);
   const { userStatus } = useGetUserStatus(userIdOrMe);
@@ -24,8 +24,17 @@ export const Profile = () => {
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe);
   const [ isFriend, setIsFriend] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  
   const [ , setFriends] = useState<Friends[]>([]);
 
+  const userStatusIndicator = userStatus?.status;
+
+  console.log('loggedUserFriends', loggedUserFriends);
+  console.log('userProfileFriends', userProfileFriends);
+
+  useEffect(() => {
+    setUserIdOrMe(userId || userIdContext);
+  }, [userId, userIdContext]);
 
   useEffect(() => {
     if (userId && loggedUserFriends) {
@@ -56,13 +65,13 @@ export const Profile = () => {
     }
   };
 
+
   useEffect(() => {
     if (userId && loggedUserFriends) {
       setIsFriend(loggedUserFriends.some(friend => friend.userId === userId));
     }
   }, [loggedUserFriends, userId]);
 
-  const userStatusIndicator = userStatus?.status;
 
   return (
     <div className="main">
