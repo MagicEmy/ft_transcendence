@@ -20,11 +20,11 @@ export const Profile = () => {
   const { profile } = useGetProfile(userIdOrMe);
   const { userStatus } = useGetUserStatus(userIdOrMe);
   const { avatar: avatarUrl } = useGetAvatarUrl(userIdOrMe);
-  const { friends: loggedUserFriends } = useGetFriends(userIdContext);
-  const { friends: userProfileFriends } = useGetFriends(userIdOrMe);
+  const { friends: loggedUserFriends } = useGetFriends(userIdContext, userIdOrMe);
+  const { friends: userProfileFriends } = useGetFriends(userIdOrMe, userIdOrMe);
   const [ isFriend, setIsFriend] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
-  
+
   const [ , setFriends] = useState<Friends[]>([]);
 
   const userStatusIndicator = userStatus?.status;

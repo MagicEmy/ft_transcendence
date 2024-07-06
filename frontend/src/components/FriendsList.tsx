@@ -9,7 +9,7 @@ interface FriendsListProps {
 }
 
 export const FriendsList = ({ userId }: FriendsListProps) => {
-  const { friends, loading } = useGetFriends(userId);
+  const { friends, loading } = useGetFriends(userId, "");
   const navigate = useNavigate();
   return <div className="item">
     {loading ? (

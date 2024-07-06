@@ -37,16 +37,14 @@ const privateRoutes: RouteObject[] = [
   {
     path: "profile",
     element: <Profile />,
-    children: [
-      {
-        path: ":userId",
-        element: <Profile />,
-      },
-      {
-        path: "*",
-        element: <Error />,
-      },
-    ],
+  },
+  {
+    path: "profile/:userId",
+    element: <Profile />,
+  },
+  {
+    path: "profile/:userId/*",
+    element: <Error />,
   },
   {
     path: "leaderboard",

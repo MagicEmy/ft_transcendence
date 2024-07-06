@@ -3,7 +3,7 @@ import { Friends } from "../types/shared";
 import { loadFriends } from "../utils/friendsUtils";
 
 
-export const useGetFriends = (userId?: string) => {
+export const useGetFriends = (userId: string, userIdorMe: string,) => {
   const [friends, setFriends] = useState<Array<Friends> | null>();
   const [loading, setLoading] = useState(false);
 
@@ -15,7 +15,7 @@ export const useGetFriends = (userId?: string) => {
       listFriends && setFriends(listFriends);
     }
     userId && getFriends(userId);
-  }, [userId]);
+  }, [userId, userIdorMe]);
 
   return {
     friends,
