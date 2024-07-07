@@ -25,6 +25,7 @@ export const FriendsList = ({ userId }: FriendsListProps) => {
 
                   <button onClick={() => {
                     navigate(`/profile/${friend.userId}`, { replace: true })
+                    window.scrollTo(0, 0);
                   }} className='button'>
                     {friend.userName}
                   </button>
