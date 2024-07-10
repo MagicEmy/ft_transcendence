@@ -5,6 +5,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import { ChatContextType, UserDto } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function CreateChatRoom() {
   const [userIdStorage] = useStorage<string>('userId', '');

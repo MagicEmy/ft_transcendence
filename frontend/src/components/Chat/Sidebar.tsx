@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import "./ListGroup.css";
 import { UserDto, DoWithUserDto, JoinRoomDto, RoomDto, LeaveRoomDto, toDoUserRoomDto, RoomShowDto, UserShowDto, RoomUserDto, ChatUserDto, UpdateRoomDto, GameDto, ChatContextType, Notification } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
-
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function Sidebar() {
   const [userIdStorage] = useStorage<string>('userId', '');
@@ -411,7 +411,6 @@ function Sidebar() {
     return (
       <Dropdown>
         <Dropdown.Toggle variant="Secondary" id="dropdown-basic">
-          ...
         </Dropdown.Toggle>
         <Dropdown.Menu className="min-width-0">
           <Dropdown.Item
@@ -433,7 +432,6 @@ function Sidebar() {
             {room.password ? "Remove Password" : "Add Password"}
           </Dropdown.Item>
           {change_password}
-          {/* rest of your JSX */}
         </Dropdown.Menu>
       </Dropdown>
     );
@@ -686,7 +684,7 @@ function Sidebar() {
                   {member.userName}
                   <img
                     alt='user-avatar'
-                    src={`/user/${member.userId}/avatar`}
+                    src={`http://localhost:3001/avatar/${member.userId}`}
                     className="member-status-img"
                   />
                   {member.userId === user.userId && " (You)"}
@@ -740,7 +738,7 @@ function Sidebar() {
               <Col xs={2} className="member-status">
                 <img
                   alt="user-avatar"
-                  src={`/user/${member.userId}/avatar`}
+                  src={`http://localhost:3001/avatar/${member.userId}`}
                   className="member-status-img"
                 />
                 {member.online === true ? (
