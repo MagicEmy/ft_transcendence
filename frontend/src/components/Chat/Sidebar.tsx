@@ -503,22 +503,15 @@ function Sidebar() {
       setGameInvite(payload);
     }
   });
-  const addCount = (room: string) => {
-    const not = notifications;
-    let notificationAdd = not.find(notification => notification.roomName === room);
-    if (notificationAdd) {
-      notificationAdd.count = notificationAdd.count + 1;
-    } else {
-      not.push({ roomName: room, count: 1 });
-    }
-    return not;
-  };
 
   socket.off("notifications").on("notifications", (room: string) => {
     console.log("Notification received for room:", room);
     setNotifications((notifications) => {
       console.log("Current notifications:", notifications);
       // Check if notification for the room already exists
+      if (room === currentRoom?.roomName) {
+        return;
+      }
       const existingNotificationIndex = notifications.findIndex(n => n.roomName === room);
       if (existingNotificationIndex !== -1) {
         // If exists, create a new array with updated count for that notification

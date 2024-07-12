@@ -59,7 +59,7 @@ services:
       profile_db:
         condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
 
   user_service:
     container_name: user_service
@@ -82,7 +82,7 @@ services:
       profile_db:
         condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
   
 
   stats_service:
@@ -106,7 +106,7 @@ services:
       profile_db:
         condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
 
   chat:
     container_name: chat
@@ -129,7 +129,7 @@ services:
       chat_db:
         condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
 
 
   auth_service:
@@ -153,7 +153,7 @@ services:
       profile_db:
         condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
 
   game:
     container_name: game
@@ -171,7 +171,8 @@ services:
     networks:
       - backend
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
 
 # databases
   profile_db:
@@ -230,7 +231,8 @@ services:
     environment:
       KAFKA_BROKERCONNECT: "kafka:29092"
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
 
   kafka:
     image: obsidiandynamics/kafka
@@ -254,7 +256,13 @@ services:
       ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
       KAFKA_LOG4J_OPTS: "-Dlog4j.configuration=file:/opt/kafka/config/log4j.properties"
- 
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
 networks:
   backend:
     name: backend
