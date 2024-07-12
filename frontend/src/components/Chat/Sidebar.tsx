@@ -458,7 +458,7 @@ function Sidebar() {
       });
       return (
         <>
-          <Dropdown.Item href={"/profile?" + user.userId}>
+          <Dropdown.Item href={"/profile"}>
             View Profile
           </Dropdown.Item>
           <Dropdown.Item
@@ -474,7 +474,7 @@ function Sidebar() {
     } else {
       return (
 
-        <Dropdown.Item href={"/profile?" + user.userId}>
+        <Dropdown.Item href={"/profile"}>
           View Profile
         </Dropdown.Item>
       );
