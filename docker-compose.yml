@@ -245,6 +245,7 @@ services:
       - "9092:9092"
     volumes:
       - ./log4j.properties:/opt/kafka/config/log4j.properties
+      - ./kafka-health-check.sh:/kafka-health-check.sh
     environment:
       KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
       KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
@@ -257,7 +258,7 @@ services:
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
       KAFKA_LOG4J_OPTS: "-Dlog4j.configuration=file:/opt/kafka/config/log4j.properties"
     healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      test: ["CMD", "/bin/sh", "/kafka-health-check.sh"]
       interval: 30s
       timeout: 10s
       retries: 5

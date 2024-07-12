@@ -31,7 +31,14 @@ function CreateChatRoom() {
       exclusive: chatType === "Exclusive",
       password: password,
     });
-
+    socket.off("create_room_response").on("create_room_response", (message: string) => {
+      if (message !== "Success") {
+        alert(message);
+      }
+      else {
+        alert("Room Created Successfully: " + roomName);
+      }
+    });
     // Clear state
     setChatType("Public");
     setRoomName("");

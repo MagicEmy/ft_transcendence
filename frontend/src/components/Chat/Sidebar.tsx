@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Button, Col, ListGroup, Row } from "react-bootstrap";
+import { Button, Col, ListGroup, Row, OverlayTrigger, Tooltip } from "react-bootstrap";
 import Dropdown from "react-bootstrap/Dropdown";
 import { ChatContext } from "../../context/ChatContext";
 import "./Sidebar.css";
@@ -40,6 +40,11 @@ function Sidebar() {
   const [usersToggle, setUsersToggle] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
+  const renderTooltip = (message: string) => (
+    <Tooltip id={`tooltip-${message}`}>
+      {message}
+    </Tooltip>
+  );
 
   function handleAddUser(event: React.FormEvent) {
     event.preventDefault();
@@ -80,9 +85,12 @@ function Sidebar() {
     socket.emit("join_room", roomToJoin);
     socket.off("join_chat_response").on("join_chat_response", (message: string) => {
       if (message === "Success") {
+        setNotifications(notifications.filter(notification => notification.roomName === currentRoom?.roomName));
         setMessages([]);
         setCurrentRoom(room);
-        alert("Welcome");
+        setNotifications(notifications.filter(notification => notification.roomName === room.roomName));
+
+        alert("Welcome in " + room.roomName);
       } else {
         return alert(message);
       }
@@ -198,6 +206,9 @@ function Sidebar() {
       if (message !== "Success") {
         alert(message);
       }
+      else {
+        alert("User Kicked:" + member.userName);
+      }
     });
   }
 
@@ -267,7 +278,7 @@ function Sidebar() {
       if (message !== "Success") {
         alert(message);
       } else {
-        alert("Game Invite Sent");
+        alert("Game Invite Sent to " + member.userName);
       }
     });
   }
@@ -287,7 +298,7 @@ function Sidebar() {
         if (message !== "Success") {
           alert(message);
         } else {
-          alert("Game Invite Accepted");
+          alert("Game Invite from" + gameInvite.user.userName + " Accepted");
         }
       });
     }
@@ -509,9 +520,6 @@ function Sidebar() {
     setNotifications((notifications) => {
       console.log("Current notifications:", notifications);
       // Check if notification for the room already exists
-      if (room === currentRoom?.roomName) {
-        return;
-      }
       const existingNotificationIndex = notifications.findIndex(n => n.roomName === room);
       if (existingNotificationIndex !== -1) {
         // If exists, create a new array with updated count for that notification
@@ -562,8 +570,20 @@ function Sidebar() {
               }}
             >
               {room.roomName} {currentRoom?.roomName !== room.roomName}
-              {room.exclusive && <IoDiamond />}
-              {room.password && <IoLockClosed />}
+              <span>
+                <OverlayTrigger
+                  placement="top"
+                  overlay={renderTooltip("Exclusive Room")}
+                >
+                  <span>{room.exclusive && <IoDiamond />}</span>
+                </OverlayTrigger>
+                <OverlayTrigger
+                  placement="top"
+                  overlay={renderTooltip("Password Protected")}
+                >
+                  <span>{room.password && <IoLockClosed />}</span>
+                </OverlayTrigger>
+              </span>
               {currentRoom?.roomName !== room.roomName && (<span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === room.roomName)?.count}</span>)}
 
             </ListGroup.Item>
@@ -594,8 +614,20 @@ function Sidebar() {
               }}
             >
               <p onClick={() => joinRoom(room)}>{room.roomName} </p>
-              {room.exclusive && <IoDiamond />}
-              {room.password && <IoLockClosed />}
+              <span>
+                <OverlayTrigger
+                  placement="top"
+                  overlay={renderTooltip("Exclusive Room")}
+                >
+                  <span>{room.exclusive && <IoDiamond />}</span>
+                </OverlayTrigger>
+                <OverlayTrigger
+                  placement="top"
+                  overlay={renderTooltip("Password Protected")}
+                >
+                  <span>{room.password && <IoLockClosed />}</span>
+                </OverlayTrigger>
+              </span>
               {currentRoom?.roomName !== room.roomName && (<span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === room.roomName)?.count}</span>)}
               {ownerDropDown(room)}
               {room.roomName !== "general" && (
@@ -683,12 +715,42 @@ function Sidebar() {
                   {member.userId === user.userId && " (You)"}
                 </Col>
                 <Col>
-                  {member.isOwner && <IoPizza />}
-                  {member.isAdmin && <IoWalk />}
-                  {member.isMuted && <IoVolumeMute />}
-                  {member.isBanned && <IoSad />}
-                  {member.online && <IoBeer />}
-                  {!member.online && <IoBicycle />}
+                <OverlayTrigger
+                    placement="top"
+                    overlay={renderTooltip("Room Owner")}
+                  >
+                    <span>{member.isOwner && <IoPizza />}</span>
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={renderTooltip("Admin")}
+                  >
+                    <span>{member.isAdmin && <IoWalk />}</span>
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={renderTooltip("Muted")}
+                  >
+                    <span>{member.isMuted && <IoVolumeMute />}</span>
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={renderTooltip("Banned")}
+                  >
+                    <span>{member.isBanned && <IoSad />}</span>
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={renderTooltip("Online")}
+                  >
+                    <span>{member.online && <IoBeer />}</span>
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={renderTooltip("Offline")}
+                  >
+                    <span>{!member.online && <IoBicycle />}</span>
+                  </OverlayTrigger>
                 </Col>
 
                 <Col xs={3}>

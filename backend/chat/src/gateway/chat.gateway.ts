@@ -103,14 +103,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (payload.roomName.indexOf('#') !== -1) {
       this.server
         .to(client.id)
-        .emit('create_chat_error', 'Room name cannot contain #');
+        .emit('create_room_response', 'Room name cannot contain #');
       return;
     }
     await this.userService.addUser(payload.user, client.id);
     const response : string = await this.roomService.addRoom(payload);
     if (response !== 'Success') {
-      this.server.to(client.id).emit('create_chat_error', response);
+      this.server.to(client.id).emit('create_room_response', response);
       this.logger.log(`${payload.user.userId} error ${response}`);
+      this.server
+      .to(client.id)
+      .emit('create_room_responser', response);
       return;
     }
     this.logger.log(`${payload.user.userId} created ${payload.roomName}`);
