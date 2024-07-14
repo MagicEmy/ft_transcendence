@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
@@ -13,6 +14,7 @@ import { UserStatusEnum } from './enum/kafka.enum';
 
 @Injectable()
 export class UserStatusRepository extends Repository<UserStatus> {
+  private logger: Logger = new Logger(UserStatusRepository.name);
   constructor(
     @InjectRepository(UserStatus)
     private userStatusRepository: Repository<UserStatus>,
@@ -33,6 +35,7 @@ export class UserStatusRepository extends Repository<UserStatus> {
     } catch (error) {
       if (error.code !== '23505') {
         // '23505' means duplicate entry
+        this.logger.error(`Error when saving status of user ${userStatusDto.userId}`, error);
         throw new RpcException(new InternalServerErrorException());
       }
     }
@@ -53,6 +56,12 @@ export class UserStatusRepository extends Repository<UserStatus> {
         return statusEntry;
       }
       statusEntry.status = newStatus;
+      try {
+        return this.save(statusEntry);
+      } catch (error) {
+        this.logger.error(`Error when saving changed status of user ${statusChangeDto.userId}`);
+        throw new RpcException(new InternalServerErrorException());
+      }
     } else {
       // create status
       try {
@@ -62,11 +71,6 @@ export class UserStatusRepository extends Repository<UserStatus> {
           new NotFoundException(`User with ID "${userId}" not found`),
         );
       }
-    }
-    try {
-      return this.save(statusEntry);
-    } catch (error) {
-      throw new RpcException(new InternalServerErrorException());
     }
   }
 }
