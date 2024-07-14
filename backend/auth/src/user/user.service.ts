@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user-dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AvatarRepository } from './avatar.repository';
 import { HttpService } from '@nestjs/axios';
-import { firstValueFrom, map } from 'rxjs';
+import { catchError, firstValueFrom, map, throwError } from 'rxjs';
 import { Token } from './token-entity';
 import { TokenRepository } from './token.repository';
 import { RefreshTokenDto } from './dto/refresh-token-dto';
@@ -13,6 +13,7 @@ import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class UserService {
+  private logger: Logger = new Logger(UserService.name);
   constructor(
     private readonly httpService: HttpService,
     @InjectRepository(UserRepository)
@@ -46,6 +47,7 @@ export class UserService {
       refresh_token: refreshToken,
     });
     if (!token) {
+      this.logger.log(`Refresh token does not exist in the database`);
       throw new RpcException(new NotFoundException(`Refresh token not found`));
     }
     return this.userRepository.findOneBy({ user_id: token.user_id });
@@ -66,6 +68,7 @@ export class UserService {
           responseType: 'arraybuffer',
         })
         .pipe(
+          catchError((error) => throwError(() => new NotFoundException())),
           map((value) => {
             return {
               mimeType: value.headers['content-type'],

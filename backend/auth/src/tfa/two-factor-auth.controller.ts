@@ -9,6 +9,7 @@ import {
 import { TwoFactorAuthService } from './two-factor-auth.service';
 import { TwoFactorAuthDto } from './dto/two-factor-auth-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
+import { Tfa } from './tfa.entity';
 
 @Controller('TwoFactorAuth')
 export class TwoFactorAuthController {
@@ -20,20 +21,23 @@ export class TwoFactorAuthController {
       userIdNameDto.userId,
     );
     if (!qrCode) {
-      const otpAuthUrl =
-        await this.authenticationService.generateTwoFactorAuthenticationSecret(
-          userIdNameDto,
-        );
-
-      qrCode =
-        await this.authenticationService.generateQrCodeDataURL(otpAuthUrl);
       try {
-        this.authenticationService.saveQrCode({
-          userId: userIdNameDto.userId,
-          qrCode,
-        });
+        const otpAuthUrl =
+          await this.authenticationService.generateTwoFactorAuthenticationSecret(
+            userIdNameDto,
+          );
+        qrCode =
+          await this.authenticationService.generateQrCodeDataURL(otpAuthUrl);
+        try {
+          this.authenticationService.saveQrCode({
+            userId: userIdNameDto.userId,
+            qrCode,
+          });
+        } catch (error) {
+          // no need to do anything if saving in DB didn't work
+        }
       } catch (error) {
-        // no need to do anything if saving in DB didn't work
+        throw error;
       }
     }
     return qrCode;
@@ -48,11 +52,11 @@ export class TwoFactorAuthController {
         twoFactorAuthDto,
       );
     if (!isCodeValid) {
-      await this.authenticationService.disableTwoFactorAuthentication(
-        twoFactorAuthDto.userId,
-      );
       throw new UnauthorizedException('Wrong authentication code');
     }
+    return this.authenticationService.enableTwoFactorAuthentication(
+      twoFactorAuthDto.userId,
+    );
   }
 
   //   @Post('authenticate')
@@ -68,8 +72,10 @@ export class TwoFactorAuthController {
   //   }
 
   @Post('disable')
-  async disableTwoFactorAuthentication(@Body('userId') userId: string) {
-    await this.authenticationService.disableTwoFactorAuthentication(userId);
+  async disableTwoFactorAuthentication(
+    @Body('userId') userId: string,
+  ): Promise<Tfa> {
+    return this.authenticationService.disableTwoFactorAuthentication(userId);
   }
 
   @Get('isEnabled')

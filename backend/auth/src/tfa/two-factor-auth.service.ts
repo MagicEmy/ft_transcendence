@@ -16,16 +16,21 @@ export class TwoFactorAuthService {
     private readonly tfaRepository: TfaRepository,
   ) {}
 
-  async generateTwoFactorAuthenticationSecret(userIdNameDto: UserIdNameDto) {
+  async generateTwoFactorAuthenticationSecret(
+    userIdNameDto: UserIdNameDto,
+  ): Promise<string> {
     const secret = authenticator.generateSecret();
     const otpAuthUrl = authenticator.keyuri(
       userIdNameDto.userName,
       'CTRL-ALT-DEFEAT',
       secret,
     );
-    await this.addTwoFactorAuthentication(userIdNameDto.userId, secret);
-
-    return otpAuthUrl;
+    try {
+      await this.addTwoFactorSecret(userIdNameDto.userId, secret);
+      return otpAuthUrl;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async generateQrCodeDataURL(otpAuthUrl: string) {
@@ -43,29 +48,29 @@ export class TwoFactorAuthService {
     });
   }
 
-  async disableTwoFactorAuthentication(userId: string) {
-    await this.tfaRepository.disableTwoFactorAuthentication(userId);
+  async disableTwoFactorAuthentication(userId: string): Promise<Tfa> {
+    return await this.tfaRepository.disableTwoFactorAuthentication(userId);
   }
 
-  private async addTwoFactorAuthentication(
+  private async addTwoFactorSecret(
     userId: string,
     secret: string,
   ): Promise<Tfa> {
     const tfaDto: CreareTFADto = {
       user_id: userId,
       secret,
-      is_enabled: true,
+      is_enabled: false,
     };
     return await this.tfaRepository.addTwoFactorAuthentication(tfaDto);
   }
+
   async isTwoFactorAuthenticationEnabled(userId: string): Promise<boolean> {
     return await this.tfaRepository.isTwoFactorAuthenticationEnabled(userId);
   }
 
-  // CURRENTLY NOT BEING USED
-  //   async enableTwoFactorAuthentication(userId: string): Promise<Tfa> {
-  //     return await this.tfaRepository.enableTwoFactorAuthentication(userId);
-  //   }
+  async enableTwoFactorAuthentication(userId: string): Promise<Tfa> {
+    return await this.tfaRepository.enableTwoFactorAuthentication(userId);
+  }
 
   private async getTwoFactorAuthenticationSecret(
     userId: string,

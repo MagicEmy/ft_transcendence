@@ -1,10 +1,11 @@
-import { ExecutionContext, Injectable } from '@nestjs/common';
+import { ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { FoundException } from './found-exception';
 
 @Injectable()
 export class TfaAuthGuard extends AuthGuard('tfa') {
+  private logger: Logger = new Logger(TfaAuthGuard.name);
   constructor(private readonly configService: ConfigService) {
     super();
   }
@@ -20,6 +21,7 @@ export class TfaAuthGuard extends AuthGuard('tfa') {
         return true;
       }
     } catch (error) {
+      this.logger.error(`Unknown error occurred`);
       return false;
     }
   }
