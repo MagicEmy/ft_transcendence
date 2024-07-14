@@ -7,10 +7,22 @@ import { GamePong } from "./NewGamePong";
 
 export class MatchMaker implements IGame
 {
+	private static instance: MatchMaker | undefined;
+
 	private static gameFlag: string = "MATCH";
 	private static matchQueue: PlayerRanked[] = [];
 	private static matchInterval: any;
 	private static timeInterval: number = 1000;
+
+	private constructor()
+	{}
+
+	public static GetInstance()
+	{
+		if (MatchMaker.instance === undefined)
+			MatchMaker.instance = new MatchMaker();
+		return (MatchMaker.instance);
+	}
 
 	public AddPlayer(player: GamePlayer): boolean
 	{
@@ -19,17 +31,17 @@ export class MatchMaker implements IGame
 		if (MatchMaker.matchQueue.findIndex(playerQueue => playerQueue.id === id) === -1)
 		{
 			let newPlayer: PlayerRanked = {
-				client: player.getClient(),
+				player: player,
 				id:		id,
 				rank:	rank,
 				time:	0,
 			};
 			MatchMaker.matchQueue.push(newPlayer);
-			MatchMaker.matchQueue.push({client: undefined, id: id, rank: 23, time: 0});
+			MatchMaker.matchQueue.push({player: undefined, id: id, rank: 5, time: 0});
 			MatchMaker.matchQueue.sort((a, b) => a.rank - b.rank);
 		}
 		else
-			console.error(`Error: Player [${player.getId()}] is already in MatchMaker.`)
+			console.error(`Error: Player [${player.getId()}] is already in MatchMaker.`);
 
 		if (MatchMaker.matchQueue.length > 0 &&
 			(!MatchMaker.matchInterval || MatchMaker.matchInterval._idleTimeout === -1))
@@ -84,12 +96,12 @@ export class MatchMaker implements IGame
 			{
 				const player1: PlayerRanked = MatchMaker.matchQueue[i];
 				const player2: PlayerRanked = MatchMaker.matchQueue[i + 1];
-				GameManager.getInstance().CreateGame(new GamePlayer(player1.client, player1.id), 
+				const game: IGame = GameManager.getInstance().CreateGame(player1.player, 
 													GamePong.GetFlag(), 
 													["PongGameMatch", "retro"],
 													[player1.id, player2.id]);
-				MatchMaker.RemovePlayer(player1.id);
-				MatchMaker.RemovePlayer(player2.id);
+				MatchMaker.AddPlayerToGameAndRemoveFromList(game, player1.player);
+				MatchMaker.AddPlayerToGameAndRemoveFromList(game, player2.player);
 				break ;
 			}
 		}
@@ -99,6 +111,13 @@ export class MatchMaker implements IGame
 			player.time += MatchMaker.timeInterval / 1000;
 			MatchMaker.UpdateClient(player);
 		});
+	}
+
+	private static AddPlayerToGameAndRemoveFromList(game: IGame, player: GamePlayer): void
+	{
+		if (!game.AddPlayer(player))
+			console.error(`Error adding ${player.getId()} to game.`);
+		MatchMaker.RemovePlayer(player.getId());
 	}
 
 	private static UpdateClient(player: PlayerRanked)
@@ -111,8 +130,8 @@ export class MatchMaker implements IGame
 
 		console.error(`sending ${JSON.stringify(data)} to PongMatch`);
 
-		if (player?.client?.emit)
-			player.client.emit("PongMatch", JSON.stringify(data));
+		if (player.player?.client?.emit)
+			player.player?.client.emit("PongMatch", JSON.stringify(data));
 	}
 
 	public static GetFlag(): string { return (MatchMaker.gameFlag); }
