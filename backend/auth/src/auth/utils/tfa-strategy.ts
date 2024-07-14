@@ -7,7 +7,7 @@ import { extractUserIdFromCookies } from './get-user-id.decorator';
 
 @Injectable()
 export class TfaStrategy extends PassportStrategy(Strategy, 'tfa') {
-  private readonly logger: Logger = new Logger('TfaStrategy');
+  private readonly logger: Logger = new Logger(TfaStrategy.name);
   constructor(
     private readonly tfaService: TwoFactorAuthService,
     private readonly authService: AuthService,

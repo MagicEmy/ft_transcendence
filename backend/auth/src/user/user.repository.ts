@@ -3,9 +3,10 @@ import { User } from './user.entity';
 import { v4 as uuid } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user-dto';
-import { InternalServerErrorException } from '@nestjs/common';
+import { InternalServerErrorException, Logger } from '@nestjs/common';
 
 export class UserRepository extends Repository<User> {
+  private logger: Logger = new Logger(UserRepository.name);
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {
@@ -30,7 +31,12 @@ export class UserRepository extends Repository<User> {
     } catch (error) {
       if (error.code !== '23505') {
         // '23505' means duplicate entry
-        throw new InternalServerErrorException();
+        this.logger.error(
+          `Error saving user ${user.intra_login} in the database`,
+        );
+        throw new InternalServerErrorException(
+          `Error saving user ${user.intra_login} in the database`,
+        );
       }
     }
     return user;
@@ -43,7 +49,10 @@ export class UserRepository extends Repository<User> {
         .where('user_id = :user_id', { user_id: userId })
         .execute();
     } catch (error) {
-      throw new InternalServerErrorException();
+      this.logger.error(`Error deleting user ${userId} from database`);
+      throw new InternalServerErrorException(
+        `Error deleting user ${userId} from database`,
+      );
     }
   }
 }

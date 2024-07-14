@@ -1,8 +1,8 @@
-import React from 'react';
 import PageContent from '../components/PageContent';
 import smash from "../assets/SmashN.png";
 
 export const Dashboard = () => {
+
 
   return (
     <>

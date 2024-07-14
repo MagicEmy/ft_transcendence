@@ -189,7 +189,7 @@
     border-radius: 30px;
     text-decoration: none;
     transition: background-color 0.3s ease, color 0.3s ease;
-
+	  cursor: pointer;
   }
 
 .friends .button:hover,
@@ -223,7 +223,9 @@
     text-shadow: 0 0.04em 0.04em rgba(0,0,0,0.35);
     text-align:center;
     transition: all 0.2s;
+	  cursor: pointer;
     }
+
   .button:hover{
      border-color: #3d37e5;
      color: #ffffff;
@@ -270,9 +272,10 @@
     box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
     padding: 10px;
     margin-left: 70px;
-
-
+    margin-bottom: 10px;
   }
+
+
   .title {
     color: #0a04ad;
     font-size: 2em;

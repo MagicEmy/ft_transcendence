@@ -35,7 +35,12 @@ export class TokenRepository extends Repository<Token> {
       return this.createRefreshToken(refreshTokenDto);
     } else {
       token.refresh_token = refreshToken;
-      return this.save(token);
+      try {
+        return this.save(token);
+      } catch (error) {
+        // No action needed, token won't be saved in database
+        // user will log in again once access token expiresÍ
+      }
     }
   }
 }

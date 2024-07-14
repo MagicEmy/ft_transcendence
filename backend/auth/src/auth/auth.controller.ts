@@ -47,7 +47,6 @@ export class AuthController {
   async handleTfa(
     @Res() resp: Response,
     @GetUserId() userId: string,
-    // @Body('code') _code: string,
   ): Promise<Response> {
     const user = await this.authService.getUser(userId);
     // set jwt tokens in cookies and redirect to dashboard

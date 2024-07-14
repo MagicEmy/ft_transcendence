@@ -1,18 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user-dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AvatarRepository } from './avatar.repository';
 import { HttpService } from '@nestjs/axios';
-import { firstValueFrom, map } from 'rxjs';
+import { catchError, firstValueFrom, map, throwError } from 'rxjs';
 import { Token } from './token-entity';
 import { TokenRepository } from './token.repository';
 import { RefreshTokenDto } from './dto/refresh-token-dto';
 import { RpcException } from '@nestjs/microservices';
+import { readFile } from 'fs';
+import { lookup } from 'mime-types';
+import { AvatarDto } from './dto/avatar-dto';
 
 @Injectable()
 export class UserService {
+  private logger: Logger = new Logger(UserService.name);
   constructor(
     private readonly httpService: HttpService,
     @InjectRepository(UserRepository)
@@ -46,6 +50,7 @@ export class UserService {
       refresh_token: refreshToken,
     });
     if (!token) {
+      this.logger.log(`Refresh token does not exist in the database`);
       throw new RpcException(new NotFoundException(`Refresh token not found`));
     }
     return this.userRepository.findOneBy({ user_id: token.user_id });
@@ -66,6 +71,7 @@ export class UserService {
           responseType: 'arraybuffer',
         })
         .pipe(
+          catchError((error) => throwError(() => new NotFoundException())),
           map((value) => {
             return {
               mimeType: value.headers['content-type'],
@@ -76,13 +82,47 @@ export class UserService {
     );
   }
 
-  async createAvatarRecord(userId: string, avatarUrl: string): Promise<string> {
-    const response = await this.getAvatarFrom42Api(avatarUrl);
-    return this.avatarRepository.createAvatarRecord({
-      userId,
-      mimeType: response.mimeType,
-      avatar: response.image,
+  async getDefaultAvatar(userId: string): Promise<AvatarDto> {
+    const path = 'src/user/images/defaultAvatar.png';
+    return new Promise((resolve, reject) => {
+      readFile(path, (err, data) => {
+        if (err) {
+          return reject(err);
+        }
+        const mimeType: string = lookup(path) || 'application/octet-stream';
+        resolve({
+          userId,
+          avatar: data,
+          mimeType,
+        });
+      });
     });
+  }
+
+  async createAvatarRecord(userId: string, avatarUrl: string): Promise<string> {
+    try {
+      const response = await this.getAvatarFrom42Api(avatarUrl);
+      return this.avatarRepository.createAvatarRecord({
+        userId,
+        mimeType: response.mimeType,
+        avatar: response.image,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Avatar of user ${userId} not found, saving the default avatar`,
+      );
+      // save a default avatar
+      try {
+        return this.avatarRepository.createAvatarRecord(
+          await this.getDefaultAvatar(userId),
+        );
+      } catch (error) {
+        this.logger.error(
+          `Error creating avatar record for user ${userId}`,
+          error,
+        );
+      }
+    }
   }
 
   //   Token

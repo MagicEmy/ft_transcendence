@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import useStorage from '../hooks/useStorage';
 import { LOGOUT } from '../utils/constants';
 
-
 interface LogoutButtonProps {
   className?: string;
 }

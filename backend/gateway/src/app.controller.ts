@@ -2,8 +2,11 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   ParseIntPipe,
   ParseUUIDPipe,
   Patch,
@@ -259,7 +262,15 @@ export class AppController {
   changeAvatar(
     @Param('id', ParseUUIDPipe) userId: string,
     @Body() data: UploadFileDto,
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 500000 }), // 500 kB
+          new FileTypeValidator({ fileType: /(jpg|jpeg|png)$/ }),
+        ],
+      }),
+    )
+    image: Express.Multer.File,
   ): Observable<string> {
     return this.appService.setAvatar({
       userId: userId,

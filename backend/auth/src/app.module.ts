@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configValidationSchema } from './config.schema';
@@ -53,8 +51,8 @@ import { TwoFactorAuthService } from './tfa/two-factor-auth.service';
       },
     ]),
   ],
-  controllers: [AppController, UserController, TwoFactorAuthController],
-  providers: [AppService, UserService, TwoFactorAuthService],
+  controllers: [UserController, TwoFactorAuthController],
+  providers: [UserService, TwoFactorAuthService],
   exports: [HttpModule],
 })
 export class AppModule {}

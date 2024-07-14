@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -24,6 +25,7 @@ import { KafkaTopic } from 'src/enum/kafka.enum';
 
 @Injectable()
 export class AuthService {
+  private logger: Logger = new Logger(AuthService.name);
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
@@ -53,10 +55,23 @@ export class AuthService {
           intraLogin: intraLogin,
           userName: intraLogin,
         });
-
-        await this.userService.createAvatarRecord(user.user_id, avatarUrl);
-        await this.tfaService.createTfaRecord(user.user_id);
       } catch (error) {
+        this.logger.error(`Error creating user ${intraLogin}`, error);
+        return null;
+      }
+      try {
+        await this.tfaService.createTfaRecord(user.user_id);
+        await this.userService.createAvatarRecord(user.user_id, avatarUrl);
+      } catch (error) {
+        this.logger.error(
+          `Error creating Tfa or avatar record for user ${intraLogin}`,
+          error,
+        );
+        try {
+          this.userService.deleteUser(user.user_id); // this one also throws an error
+        } catch (e) {
+          this.logger.error(`Error deleting user ${intraLogin}`, e);
+        }
         return null;
       }
 
@@ -72,7 +87,7 @@ export class AuthService {
           await new Promise((sleep) => setTimeout(sleep, 200));
           this.userService.deleteUser(user.user_id);
         } catch (error) {
-          console.log('error when deleting user:', error);
+          this.logger.error(`Error deleting user ${intraLogin}`, error);
           return null;
         }
       }
@@ -84,9 +99,13 @@ export class AuthService {
     const result = this.authClient
       .send(KafkaTopic.NEW_USER, userIdNameLoginDto)
       .pipe(
-        catchError((error) =>
-          throwError(() => new InternalServerErrorException()),
-        ),
+        catchError((error) => {
+          this.logger.error(
+            `Error communicating creation of user ${userIdNameLoginDto.intraLogin}`,
+            error,
+          );
+          return throwError(() => new InternalServerErrorException());
+        }),
       );
     return lastValueFrom(result);
   }
@@ -161,6 +180,9 @@ export class AuthService {
     try {
       const user = await this.userService.getUserByRefreshToken(refreshToken);
       if (!user) {
+        this.logger.error(
+          `User corresponding to the token ${refreshToken} not found`,
+        );
         throw new RpcException(new NotFoundException(`User not found`));
       }
       return {

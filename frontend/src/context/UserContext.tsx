@@ -7,15 +7,13 @@ import { IUserContext } from '../context/userContext.types';
 
 const defaultState: IUserContext = {
   userIdContext: '',
-  setUserIdContext: () => {},
+  setUserIdContext: () => { },
   userNameContext: '',
-  setUserNameContext: () => {},
+  setUserNameContext: () => { },
   avatarContext: null,
-  setAvatarContext: () => {},
+  setAvatarContext: () => { },
   friendsContext: [],
-  setFriendsContext: () => {},
-  tfaEnabled: false,
-  setTfaEnabled: () => {},
+  setFriendsContext: () => { },
   isLoading: false,
 };
 
@@ -27,13 +25,12 @@ interface UserProviderProps {
 
 export const UserProvider = ({ children }: UserProviderProps) => {
   const [userIdContext, setUserIdContext] = useState<string>('');
-  const [userIdStorage, setUserIdStorage, ] = useStorage<string>('userId', '');
-  const [, setUserNameStorage, ] = useStorage<string>('userName', '');
+  const [userIdStorage, setUserIdStorage,] = useStorage<string>('userId', '');
+  const [, setUserNameStorage,] = useStorage<string>('userName', '');
   const [userNameContext, setUserNameContext] = useState<string>('');
   const [avatarContext, setAvatarContext] = useState<string | null>(null);
   const [friendsContext, setFriendsContext] = useState<Friends[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [tfaEnabled, setTfaEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -57,28 +54,24 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         setIsLoading(false);
       }
     };
-        if (!userIdContext) fetchUser();
+    if (!userIdContext) fetchUser();
 
-      }, []);
+  }, []);
 
 
   useEffect(() => {
-    let active = true;
+    if (userIdContext && userIdStorage && userIdContext !== userIdStorage) {
+      setUserIdStorage(userIdContext);
+    }
+  }, [userIdContext, userIdStorage, setUserIdStorage]);
 
-    const cleanupPreviousAvatar = () => {
-      if (avatarContext) {
-        URL.revokeObjectURL(avatarContext);
-      }
-    };
+  useEffect(() => {
 
     const fetchAvatar = async () => {
-      if (userIdContext) {
+      if (userIdStorage) {
         try {
-          const url = await loadProfileAvatar(userIdContext);
-          if (active) {
-            cleanupPreviousAvatar();
-            setAvatarContext(url || null);
-          }
+          const url = await loadProfileAvatar(userIdStorage);
+          setAvatarContext(url || null);
         } catch (error) {
           console.error('Error loading avatar:', error);
         }
@@ -87,24 +80,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
     fetchAvatar();
 
-    return () => {
-      cleanupPreviousAvatar();
-      active = false;
-    };
-  }, [userIdContext]);
+  }, [userIdStorage]);
 
   console.log("userIdContext: ", userIdContext);
   console.log("userIdStorage: ", userIdStorage);
-
-  useEffect(() => {
-    if (userIdContext && userIdStorage && userIdContext !== userIdStorage) {
-      setUserIdStorage(userIdContext);
-    }
-  }
-  , [userIdContext, userIdStorage, setUserIdStorage]);
-
-  console.log("userIdContext2: ", userIdContext);
-  console.log("userIdStorage2: ", userIdStorage);
 
   return (
     <UserContext.Provider
@@ -117,8 +96,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         setAvatarContext,
         friendsContext,
         setFriendsContext,
-        tfaEnabled,
-        setTfaEnabled,
         isLoading,
       }}
     >
