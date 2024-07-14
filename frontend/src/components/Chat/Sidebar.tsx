@@ -709,7 +709,7 @@ function Sidebar() {
                   {member.userName}
                   <img
                     alt='user-avatar'
-                    src={`http://localhost:3001/avatar/${member.userId}`}
+                    src={`http://${host}:3001/avatar/${member.userId}`}
                     className="member-status-img"
                   />
                   {member.userId === user.userId && " (You)"}
@@ -793,7 +793,7 @@ function Sidebar() {
               <Col xs={2} className="member-status">
                 <img
                   alt="user-avatar"
-                  src={`http://localhost:3001/avatar/${member.userId}`}
+                  src={`http://${host}:3001/avatar/${member.userId}`}
                   className="member-status-img"
                 />
                 {member.online === true ? (

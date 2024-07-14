@@ -29,6 +29,7 @@ function MessageForm() {
   } = context;
   const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
 
+  const host : string = process.env.REACH_APP_HOST;
   function scrollToBottom() {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }
@@ -83,7 +84,7 @@ function MessageForm() {
               Your conversation with {directMsg.userName}{" "}
               <img
                 alt="profile-pic"
-                src={`http://localhost:3001/avatar/${directMsg.userId}`}
+                src={`http://${host}:3001/avatar/${directMsg.userId}`}
                 className="conversation-profile-pic"
               />
             </div>
@@ -127,7 +128,7 @@ function MessageForm() {
                     <div className="d-flex align-items-center mb-3">
                       <img
                         alt="profile-pic"
-                        src={sender.userId ? `http://localhost:3001/avatar/${sender.userId}` : ""}
+                        src={sender.userId ? `http://${host}:3001/avatar/${sender.userId}` : ""}
                         style={{
                           width: 35,
                           height: 35,
