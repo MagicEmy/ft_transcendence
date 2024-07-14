@@ -21,7 +21,7 @@ export class GamePlayer
 
 	private constructPlayer(client: any, id: string)
 	{
-		console.log("Creating player");
+		// console.log("Creating player");
 		this.client = client;
 		this.id = id;
 		this.button = {};

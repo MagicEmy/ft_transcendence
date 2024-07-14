@@ -17,7 +17,7 @@ class GameMenu
 	public left:	GameMenu | null;
 	public right:	GameMenu | null;
 
-	public constructor(name: string, flag: string)
+	private constructor(name: string, flag: string)
 	{
 		this.name = name;
 		this.flag = flag;
