@@ -64,7 +64,7 @@
 }
 
 .avatar {
-width: 100px;
+  width: 100px;
   height: 100px;
   object-fit: cover;
   border-radius: 50%;
@@ -93,6 +93,7 @@ input[type="text"] {
 .Change2FA {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 }
 
 .Info2fa {

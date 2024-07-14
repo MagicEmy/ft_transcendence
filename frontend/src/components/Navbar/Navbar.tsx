@@ -1,51 +1,23 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classes from './Navbar.module.css';
 import LogoutButton from '../LogoutButton';
 import UserContext, { IUserContext } from '../../context/UserContext';
-import { loadProfileAvatar } from '../../utils/profileUtils';
 import { NavigationButton } from './NavigationButton';
+import { useGetAvatarUrl } from '../../hooks/useGetAvatarUrl';
+import { Avatar } from '../Avatar'
 
 export const Navbar = () => {
-  const { userIdContext, userNameContext, avatarContext, setAvatarContext } = useContext<IUserContext>(UserContext);
+  const { userIdContext, userNameContext, setAvatarContext } = useContext<IUserContext>(UserContext);
+
   const navigate = useNavigate();
 
-  useEffect(() => {
-    let active = true; // Flag to manage the effect lifecycle
-
-    const cleanupPreviousAvatar = () => {
-      if (avatarContext) {
-        URL.revokeObjectURL(avatarContext);
-      }
-    };
-
-    const fetchAvatar = async () => {
-      if (userIdContext) {
-        try {
-          const url = await loadProfileAvatar(userIdContext);
-          if (active) {
-            cleanupPreviousAvatar();
-            setAvatarContext(url || null);
-          }
-        } catch (error) {
-          console.error('Error loading avatar:', error);
-        }
-      }
-    };
-
-    fetchAvatar();
-
-    return () => {
-      cleanupPreviousAvatar();
-      active = false;
-    };
-  }, []);
 
   return (
     <header className={classes.header}>
       <div className={classes.avatar}>
         <div className={classes.avatarImage} onClick={() => navigate('/profile')}>
-          {avatarContext ? <img className={classes.avatarImage} src={avatarContext} alt="User Avatar" /> : <p>Loading...</p>}
+          <Avatar  />
         </div>
         <span className={classes.name}>{userNameContext}</span>
       </div>

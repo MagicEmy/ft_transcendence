@@ -1,15 +1,12 @@
-import { useContext } from 'react';
+import { ChangeEvent, FormEvent, useState, useContext } from 'react';
 import { AVATAR } from '../utils/constants';
 import UserContext, { IUserContext } from '../context/UserContext';
-import { useGetAvatar } from "../hooks/useGetAvatar";
-import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { Avatar } from './Avatar';
 
 export const ChangeAvatar = () => {
-	const { userIdContext, avatarContext, setAvatarContext } = useContext<IUserContext>(UserContext);
-	// const { avatar: avatarUrl } = useGetAvatar(userIdContext);
+	const { userIdContext, setAvatarContext } = useContext<IUserContext>(UserContext);
 
 	const [file, setFile] = useState<File | null>(null);
-	// const [fileName, setFileName] = useState<string>("");
 	const [feedback, setFeedback] = useState<string>("");
 	const [avatarLoading, setAvatarLoading] = useState<boolean>(false);
 
@@ -43,14 +40,26 @@ export const ChangeAvatar = () => {
 				body: formData,
 				credentials: 'include'
 			});
-
+			if (!response.ok) {
+				setFeedback("Failed to update avatar. Please check the server response.");
+				throw new Error(`Error: ${response.status}`);
+			}
+			// const blob = await response.blob();
+			// const stringImageUrl = await new Promise((resolve, reject) => {
+			// 	let fr = new FileReader();
+			// 	fr.onload = () => {
+			// 		resolve(fr.result)
+			// 	};
+			// 	fr.onerror = reject;
+			// 	fr.readAsDataURL(blob);
+			// });
+			// setAvatarContext(stringImageUrl as string);
+			// setFeedback("Avatar updated successfully.");
 			if (response.ok) {
 				const localUrl = URL.createObjectURL(file);
 				console.log("avatar change response.ok ");
 				setAvatarContext(localUrl);
 				setFeedback("Avatar updated successfully.");
-			} else {
-				setFeedback("Failed to update avatar. Please check the server response.");
 			}
 		} catch (error) {
 			console.error("Error updating avatar:", error);
@@ -60,36 +69,24 @@ export const ChangeAvatar = () => {
 		}
 	};
 
-	useEffect(() => {
-		return () => {
-			if (avatarContext) {
-				URL.revokeObjectURL(avatarContext);
-			}
-		};
-	}, [avatarContext]);
-
 	return (
 		<>
 			<div className="item">
-				{avatarContext ? (
-					<img className="avatar" src={avatarContext} alt="User Avatar" />
-				) : (
-					<p>Loading avatar...</p>
-				)}
+				<Avatar />
 				<div className="text">Change Profile Picture:</div>
 				<form onSubmit={handleAvatarSubmit}>
-							<input
-								type="file"
-								onChange={(e: ChangeEvent<HTMLInputElement>) =>
-									setFile(e.target.files ? e.target.files[0] : null)
-								}
-								disabled={avatarLoading}
-							/>
-							<br />
-							<button type="submit" className="settings-button" disabled={avatarLoading}>
-								Upload Picture
-							</button>
-						</form>
+					<input
+						type="file"
+						onChange={(e: ChangeEvent<HTMLInputElement>) =>
+							setFile(e.target.files ? e.target.files[0] : null)
+						}
+						disabled={avatarLoading}
+					/>
+					<br />
+					<button type="submit" className="settings-button" disabled={avatarLoading}>
+						Upload Picture
+					</button>
+				</form>
 			</div>
 			{feedback && (
 				<div className="text-dark">
