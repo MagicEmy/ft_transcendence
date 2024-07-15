@@ -252,6 +252,8 @@ class GameGraphics
 		if (msg.Ball !== null && msg?.Ball.posX <= 0.5)
 			this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.size * 2), "yellow");
 		this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Player1.posX, msg.Player1.posY, msg.Player1.height / 2), "red");
+		if (msg.Ball !== null)
+			this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Ball.posZ, 0.1, msg.Ball.size * 2), "orange");
 	}
 
 	private RenderPongModernBackDrop()

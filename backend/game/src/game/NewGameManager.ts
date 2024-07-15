@@ -3,7 +3,7 @@ import { Consumer, Kafka, Producer, logLevel } from 'kafkajs';
 
 import { IGame } from "./IGame"
 import { GamePlayer } from './GamePlayer';
-import { SockEventNames } from './GamePong.communication';
+import { NewGame, PlayerInfo, IPlayerInfo, SockEventNames, INewGame, GameTypes, MatchTypes } from './GamePong.communication';
 import { GamePong } from './NewGamePong';
 import { MatchMaker } from './NewGameMatchMaker';
 
@@ -83,6 +83,13 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		{
 			console.log("Connected to Kafka");
 			this.kafkaReady = true;
+			// let game: INewGame = {
+			// 	gameType: GameTypes.PONG,
+			// 	matchType: MatchTypes.PAIR,
+			// 	player1ID: "lorem",
+			// 	player2ID: "ipsum",
+			// };
+			// this.kafkaEmit(NewGame.TOPIC, JSON.stringify(game));
 		});
 		GameManager.instance = this;
 	}
@@ -117,7 +124,7 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		{
 			eachMessage: async({topic, partition, message}) =>
 			{
-				this.kafkaListen();
+				this.kafkaListen(topic, partition, message);
 			}
 		}
 		)
@@ -125,10 +132,49 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 
 	private async kafKaSubscribe(): Promise<void>
 	{
+		await this.consumer.subscribe({ topic: NewGame.TOPIC });
+		await this.consumer.subscribe({ topic: PlayerInfo.REPLY });
 	}
 
-	private kafkaListen(): void
+	private kafkaListen(topic: any, partition: any, message: any): void
 	{
+		console.log(`received ${topic}/${message.value}`);
+		switch (topic)
+		{
+			case NewGame.TOPIC:
+				const newGame: INewGame = JSON.parse(message.value);
+				this.CreateGame(undefined, newGame.gameType, [newGame.matchType], [newGame.player1ID, newGame.player2ID]);
+				break ;
+			case PlayerInfo.REPLY:
+				this.SetPlayerInfo(JSON.parse(message.value));
+				break ;
+			default:
+				console.error(`Error: Unhandled Kafka topic '${topic}'`);
+				break ;
+		}
+	}
+
+	public kafkaEmit(topic: string, message: string | null)
+	{
+		this.producer.send(
+		{
+			topic:		topic,
+			messages:	[{ value: message }],
+		});
+	}
+
+	private SetPlayerInfo(info: IPlayerInfo): void
+	{
+		this.players.forEach(player =>
+		{
+			if (player.getId() === info.playerID)
+			{
+				if (info.playerName)
+					player.name = info.playerName;
+				if (info.playerRank)
+					player.rank = info.playerRank;
+			}
+		});
 	}
 
 /* ************************************************************************** *\
@@ -224,7 +270,7 @@ Socket.io
 					gameInstance = new GamePong(data, players);
 					break ;
 				case MatchMaker.GetFlag():
-					gameInstance = new MatchMaker();
+					gameInstance = MatchMaker.GetInstance();
 					break ;
 				default:
 					console.error(`Error: Unknown target flag: ${game}`);
