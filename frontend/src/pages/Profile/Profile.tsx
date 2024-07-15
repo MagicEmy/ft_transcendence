@@ -29,8 +29,6 @@ export const Profile = () => {
 
   const userStatusIndicator = userStatus?.status;
 
-  console.log('loggedUserFriends', loggedUserFriends);
-  console.log('userProfileFriends', userProfileFriends);
 
   useEffect(() => {
     setUserIdOrMe(userId || userIdContext);

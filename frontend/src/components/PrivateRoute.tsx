@@ -4,26 +4,41 @@ import PageContent from './PageContent';
 import classes from './PageContent.module.css';
 import { useNavigate } from "react-router-dom";
 
-
-
 const PrivateRoute = ({ children }: { children: ReactNode }) => {
-
   const navigate = useNavigate();
-  const { isLoggedin } = useIsLoggedIn();
+  const { isLoggedin, loading, error } = useIsLoggedIn();
 
-  if (isLoggedin === false ) {
-    console.log('PrivateRoute: No user logged in');
-    const title = 'Error';
-    const message = 'You must be logged in to view this page';
+  if (loading) {
+    return <div>Loading...</div>; // Puoi sostituirlo con un indicatore di caricamento più sofisticato
+  }
+
+  if (error) {
+    console.error('PrivateRoute error:', error);
     return (
-      <>
-        <PageContent title={title}>
-          <p className='errror'> {message}</p>
-          <button className={classes.backButton} onClick={() => {
-           navigate('/')
-          }}>Back to login</button>
-        </PageContent>
-      </>
+      <PageContent title="Error">
+        <p className='error'>Error: {error}</p>
+        <button
+          className={classes.backButton}
+          onClick={() => navigate('/')}
+        >
+          Back to login
+        </button>
+      </PageContent>
+    );
+  }
+
+  if (!isLoggedin) {
+    console.log('PrivateRoute: No user logged in');
+    return (
+      <PageContent title="Error">
+        <p className='error'>You must be logged in to view this page</p>
+        <button
+          className={classes.backButton}
+          onClick={() => navigate('/')}
+        >
+          Back to login
+        </button>
+      </PageContent>
     );
   }
 

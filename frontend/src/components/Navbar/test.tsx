@@ -4,7 +4,7 @@ import classes from './Navbar.module.css';
 import LogoutButton from '../LogoutButton';
 import UserContext, { IUserContext } from '../../context/UserContext';
 import { NavigationButton } from './NavigationButton';
-import { Avatar } from '../Avatar'
+import { Avatar } from '../Avatar';
 
 export const Navbar = () => {
   const { userNameContext } = useContext<IUserContext>(UserContext);
@@ -14,7 +14,7 @@ export const Navbar = () => {
     <header className={classes.header}>
       <div className={classes.avatar}>
         <div className={classes.avatarImage} onClick={() => navigate('/profile')}>
-          <Avatar  />
+          <Avatar />
         </div>
         <span className={classes.name}>{userNameContext}</span>
       </div>
@@ -45,8 +45,6 @@ export const Navbar = () => {
       </div>
     </header>
   );
-}
+};
 
 export default Navbar;
-
-//window.location  in console!!

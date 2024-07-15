@@ -118,7 +118,7 @@ export const TwoFaEnable = () => {
 			}
 		}
 	};
-	console.log('tfaEnable', tfaEnable, 'tfaStatus', tfaStatus)
+
 	return (
 		<div className="settings-container">
 			<div className="item">

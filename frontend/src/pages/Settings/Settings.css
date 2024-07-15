@@ -1,7 +1,5 @@
 .main {
 	height: 100vh;
-	overflow-y: auto;
-	scroll-behavior: smooth;
 	  margin-bottom: 20em;
 	padding: 50px;
   }
@@ -11,7 +9,6 @@
 	border-radius: 30px;
     margin-top: 3em;
 	padding: 30px;
-	overflow-y: auto;
 	margin-bottom: 20em;
 	background-color: #dee5f4;
 	box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
