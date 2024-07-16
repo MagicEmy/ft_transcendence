@@ -6,6 +6,7 @@ import { MessageRoomDto, UserDto } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { IoBowlingBallOutline } from "react-icons/io5";
+import { host } from '../../utils/ApiRoutes';
 
 function MessageForm() {
   const [userIdStorage] = useStorage<string>('userId', '');
@@ -29,7 +30,6 @@ function MessageForm() {
   } = context;
   const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
 
-  const HOST = process.env.REACT_APP_HOST;
   function scrollToBottom() {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }
@@ -84,7 +84,7 @@ function MessageForm() {
               Your conversation with {directMsg.userName}{" "}
               <img
                 alt="profile-pic"
-                src={`http://${HOST}:3001/avatar/${directMsg.userId}`}
+                src={`http://${host}:3001/avatar/${directMsg.userId}`}
                 className="conversation-profile-pic"
               />
             </div>
@@ -128,7 +128,7 @@ function MessageForm() {
                     <div className="d-flex align-items-center mb-3">
                       <img
                         alt="profile-pic"
-                        src={sender.userId ? `http://${HOST}:3001/avatar/${sender.userId}` : ""}
+                        src={sender.userId ? `http://${host}:3001/avatar/${sender.userId}` : ""}
                         style={{
                           width: 35,
                           height: 35,

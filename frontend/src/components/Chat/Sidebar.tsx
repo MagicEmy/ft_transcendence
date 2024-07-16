@@ -10,7 +10,7 @@ import "./ListGroup.css";
 import { UserDto, DoWithUserDto, JoinRoomDto, RoomDto, LeaveRoomDto, toDoUserRoomDto, RoomShowDto, UserShowDto, RoomUserDto, ChatUserDto, UpdateRoomDto, GameDto, ChatContextType, Notification } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
 import 'bootstrap/dist/css/bootstrap.min.css';
-const HOST = process.env.REACT_APP_HOST;
+import { host } from '../../utils/ApiRoutes';
 
 
 function Sidebar() {
@@ -711,7 +711,7 @@ function Sidebar() {
                   {member.userName}
                   <img
                     alt='user-avatar'
-                    src={`http://${HOST}:3001/avatar/${member.userId}`}
+                    src={`http://${host}:3001/avatar/${member.userId}`}
                     className="member-status-img"
                   />
                   {member.userId === user.userId && " (You)"}
@@ -795,7 +795,7 @@ function Sidebar() {
               <Col xs={2} className="member-status">
                 <img
                   alt="user-avatar"
-                  src={`http://${HOST}:3001/avatar/${member.userId}`}
+                  src={`http://${host}:3001/avatar/${member.userId}`}
                   className="member-status-img"
                 />
                 {member.online === true ? (

@@ -1,9 +1,12 @@
-const HOST = process.env.REACT_APP_HOST || 'localhost';
-const GATEWAY_URL = `https://${HOST}:${process.env.REACT_APP_GATEWAY_PORT}`;
-const AUTH_URL = `https://${HOST}:${process.env.REACT_APP_AUTH_PORT}`;
+const host = process.env.REACT_APP_HOST || 'localhost';
+const gatewayPort = process.env.REACT_APP_GATEWAY_PORT || '3001';
+const authPort = process.env.REACT_APP_AUTH_PORT || '3003';
+
+const gatewayUrl = `https://${host}:${gatewayPort}`;
+const authUrl = `https://${host}:${authPort}`;
 
 export {
-  HOST,
-  GATEWAY_URL,
-  AUTH_URL
+  host,
+  gatewayUrl,
+  authUrl
 };
