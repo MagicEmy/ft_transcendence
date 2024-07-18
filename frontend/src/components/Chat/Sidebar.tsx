@@ -549,11 +549,11 @@ function Sidebar() {
     <>
       <h4 className="mt-5">Public Rooms
         {roomsToggle ? (
-          <Button onClick={() => setRoomsToggle(!roomsToggle)}>
+          <Button className="ms-3" onClick={() => setRoomsToggle(!roomsToggle)}>
             <IoEyeOutline />
           </Button>
         ) : (
-          <Button onClick={() => setRoomsToggle(!roomsToggle)}>
+          <Button className="ms-3" onClick={() => setRoomsToggle(!roomsToggle)}>
             <IoEyeOffOutline />
           </Button>
         )}
@@ -594,11 +594,11 @@ function Sidebar() {
       )}
       <h4 className="mt-5">My Rooms
         {myroomsToggle ? (
-          <Button onClick={() => setMyRoomsToggle(!myroomsToggle)}>
+          <Button className="ms-3" onClick={() => setMyRoomsToggle(!myroomsToggle)}>
             <IoEyeOutline />
           </Button>
         ) : (
-          <Button onClick={() => setMyRoomsToggle(!myroomsToggle)}>
+          <Button className="ms-3" onClick={() => setMyRoomsToggle(!myroomsToggle)}>
             <IoEyeOffOutline />
           </Button>
         )}
@@ -644,11 +644,11 @@ function Sidebar() {
       <h4 className="mt-5">
         Room Users{" "}
         {roomUsersToggle ? (
-          <Button onClick={() => setRoomUsersToggle(!roomUsersToggle)}>
+          <Button className="ms-3" onClick={() => setRoomUsersToggle(!roomUsersToggle)}>
             <IoEyeOutline />
           </Button>
         ) : (
-          <Button onClick={() => setRoomUsersToggle(!roomUsersToggle)}>
+          <Button className="ms-3" onClick={() => setRoomUsersToggle(!roomUsersToggle)}>
             <IoEyeOffOutline />
           </Button>
         )}
@@ -775,11 +775,11 @@ function Sidebar() {
         })}
       <h4 className="mt-5">Users
         {usersToggle ? (
-          <Button onClick={() => setUsersToggle(!usersToggle)}>
+          <Button className="ms-3" onClick={() => setUsersToggle(!usersToggle)}>
             <IoEyeOutline />
           </Button>
         ) : (
-          <Button onClick={() => setUsersToggle(!usersToggle)}>
+          <Button className="ms-3"onClick={() => setUsersToggle(!usersToggle)}>
             <IoEyeOffOutline />
           </Button>
         )}
