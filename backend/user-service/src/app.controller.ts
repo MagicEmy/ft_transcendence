@@ -36,8 +36,6 @@ export class AppController {
   @MessagePattern(PlayerInfo.TOPIC) //CHECKED
   async handlePlayerInfoRequest(data: any): Promise<Observable<IPlayerInfo>> {
     try {
-      console.log('in userService handlePlayerInfoRequest(), data is', data);
-
       const player = {
         playerID: data.playerID,
         playerName: await this.userService.getUserName(data.playerID),
@@ -56,7 +54,6 @@ export class AppController {
 
   @EventPattern(GameStatus.TOPIC) // CHECKED
   handleGameEnd(data: IGameStatus): void {
-    console.log('in userService handleGameEnd(), data is', data);
     this.userService.changeUserStatus({
       userId: data.player1ID,
       oldStatus: UserStatusEnum.GAME,
@@ -74,7 +71,6 @@ export class AppController {
   @EventPattern(KafkaTopic.STATUS_CHANGE) // CHECKED
   updateUserStatus(data: StatusChangeDto): void {
     // more logic needs to come here!
-    console.log('in userService updateUserStatus(), data is', data);
     this.userService.changeUserStatus(data);
   }
 
@@ -149,8 +145,7 @@ export class AppController {
         avatar: Buffer.from(avatarDto.avatar),
       });
     } catch (error) {
-      console.log('Error when uploading avatar:', error);
-      return of('Error');
+      throw error;
     }
     return of('OK');
   }

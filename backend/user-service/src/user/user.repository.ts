@@ -57,11 +57,11 @@ export class UserRepository extends Repository<User> {
       const found = await this.findOneBy({ user_id: userIdNameDto.userId });
       if (!found) {
         this.logger.error(
-          `Unable to set userName of user ${userIdNameDto.userId}`,
+          `Unable to set userName of user ${userIdNameDto.userId}; user not found`,
         );
         throw new RpcException(
           new NotFoundException(
-            `User with ID "${userIdNameDto.userId}" not found`,
+            `Unable to set userName of user ${userIdNameDto.userId}; user not found`,
           ),
         );
       }
@@ -81,9 +81,14 @@ export class UserRepository extends Repository<User> {
             ),
           );
         } else {
-          this.logger.error(`An unknown error occurred`);
+          this.logger.error(
+            `Error setting userName of user ${userIdNameDto.userId}: `,
+            error,
+          );
           throw new RpcException(
-            new InternalServerErrorException(`An unknown error occurred`),
+            new InternalServerErrorException(
+              `Error setting userName of user ${userIdNameDto.userId}`,
+            ),
           );
         }
       }

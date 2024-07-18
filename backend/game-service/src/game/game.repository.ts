@@ -4,9 +4,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IGameStatus } from './interface/kafka.interface';
 import { GamesAgainstUserIdDto } from './dto/games-against-userid-dto';
 import { RpcException } from '@nestjs/microservices';
-import { InternalServerErrorException } from '@nestjs/common';
+import { InternalServerErrorException, Logger } from '@nestjs/common';
 
 export class GameRepository extends Repository<Game> {
+  private logger: Logger = new Logger();
   constructor(
     @InjectRepository(Game)
     private gameRepository: Repository<Game>,
@@ -30,7 +31,15 @@ export class GameRepository extends Repository<Game> {
     try {
       await this.save(game);
     } catch (error) {
-      throw new RpcException(new InternalServerErrorException());
+      this.logger.error(
+        `Error when saving the game between user ${gameStatus.player1ID} and ${gameStatus.player2ID}`,
+        error,
+      );
+      throw new RpcException(
+        new InternalServerErrorException(
+          error.driverError + '; ' + error.detail,	// to be tested
+        ),
+      );
     }
     return game;
   }

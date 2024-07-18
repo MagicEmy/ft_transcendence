@@ -4,9 +4,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { Opponent } from './enum/opponent.enum';
 import { RpcException } from '@nestjs/microservices';
-import { InternalServerErrorException } from '@nestjs/common';
+import { InternalServerErrorException, Logger } from '@nestjs/common';
 
 export class StatsRepository extends Repository<Stats> {
+  private logger: Logger = new Logger(StatsRepository.name);
   constructor(
     @InjectRepository(Stats) private statsRepository: Repository<Stats>,
   ) {
@@ -17,32 +18,26 @@ export class StatsRepository extends Repository<Stats> {
     );
   }
 
-  async createStatsRowHuman(userId: string): Promise<Stats> {
-    // adding one line for games against another human
-    const statsHuman = this.create({
+  async createStatsRow(userId: string, opponent: Opponent): Promise<Stats> {
+    const statsRow = this.create({
       user_id: userId,
-      opponent: Opponent.HUMAN,
+      opponent,
     });
     try {
-      return this.save(statsHuman);
+      return this.save(statsRow);
     } catch (error) {
       if (error.code !== '23505') {
         // '23505' means duplicate entry
-        throw new RpcException(new InternalServerErrorException());
+        this.logger.error(
+          `Error when saving Stats row of user ${userId} against ${opponent}: `,
+          error,
+        );
+        throw new RpcException(
+          new InternalServerErrorException(
+            error.driverError + '; ' + error.detail,	// to be tested
+          ),
+        );
       }
-    }
-  }
-
-  async createStatsRowBot(userId: string): Promise<Stats> {
-    // adding one line for games against the bot
-    const statsBot = this.create({
-      user_id: userId,
-      opponent: Opponent.BOT,
-    });
-    try {
-      return this.save(statsBot);
-    } catch (error) {
-      throw new RpcException(new InternalServerErrorException());
     }
   }
 

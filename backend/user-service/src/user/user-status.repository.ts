@@ -35,8 +35,15 @@ export class UserStatusRepository extends Repository<UserStatus> {
     } catch (error) {
       if (error.code !== '23505') {
         // '23505' means duplicate entry
-        this.logger.error(`Error when saving status of user ${userStatusDto.userId}`, error);
-        throw new RpcException(new InternalServerErrorException());
+        this.logger.error(
+          `Error when adding status of user ${userStatusDto.userId}`,
+          error,
+        );
+        throw new RpcException(
+          new InternalServerErrorException(
+            error.driverError + '; ' + error.detail, // to be tested
+          ),
+        );
       }
     }
     return status;
@@ -59,8 +66,14 @@ export class UserStatusRepository extends Repository<UserStatus> {
       try {
         return this.save(statusEntry);
       } catch (error) {
-        this.logger.error(`Error when saving changed status of user ${statusChangeDto.userId}`);
-        throw new RpcException(new InternalServerErrorException());
+        this.logger.error(
+          `Error when saving changed status of user ${statusChangeDto.userId}`,
+        );
+        throw new RpcException(
+          new InternalServerErrorException(
+            error.driverError + '; ' + error.detail,	// to be tested
+          ),
+        );
       }
     } else {
       // create status

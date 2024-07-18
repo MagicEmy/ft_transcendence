@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -25,6 +26,7 @@ import { PositionTotalPointsDto } from './dto/position-total-points-dto';
 
 @Injectable()
 export class StatsService {
+  private logger: Logger = new Logger(StatsService.name);
   constructor(
     @InjectRepository(StatsRepository)
     private readonly statsRepository: StatsRepository,
@@ -34,8 +36,8 @@ export class StatsService {
 
   async createStatsRowNewUser(userId: string): Promise<string> {
     try {
-      await this.statsRepository.createStatsRowHuman(userId);
-      await this.statsRepository.createStatsRowBot(userId);
+      await this.statsRepository.createStatsRow(userId, Opponent.HUMAN);
+      await this.statsRepository.createStatsRow(userId, Opponent.BOT);
     } catch (error) {
       throw error;
     }
@@ -89,11 +91,14 @@ export class StatsService {
       opponent: updateStatsDto.opponent,
     });
     if (!statsRow) {
-      // stats row for some reason missing, add new one before proceeding
+      // if stats row is missing for some reason, add new one before proceeding
       try {
         await this.createStatsRowNewUser(updateStatsDto.playerId);
         return this.updateStatsOfPlayer(updateStatsDto);
       } catch (error) {
+        this.logger.error(
+          `Error when adding missing stats row for user ${updateStatsDto.playerId}`,
+        );
         throw new RpcException(
           new InternalServerErrorException(
             `Error when adding missing stats row for user ${updateStatsDto.playerId}`,
@@ -126,7 +131,14 @@ export class StatsService {
     try {
       await this.statsRepository.save(statsRow);
     } catch (error) {
-      throw new RpcException(new InternalServerErrorException());
+      this.logger.error(
+        `Error when updating stats row for user ${updateStatsDto.playerId}`,
+      );
+      throw new RpcException(
+        new InternalServerErrorException(
+          `Error when updating stats row for user ${updateStatsDto.playerId}`,
+        ),
+      );
     }
   }
 
@@ -185,12 +197,20 @@ export class StatsService {
         await this.createStatsRowNewUser(userIdOpponentDto.userId);
         statsRow = await this.getStatsRowByIdAndOpponent(userIdOpponentDto);
         if (!statsRow) {
-          throw new NotFoundException();
+          this.logger.error(
+            `Stats row of user ${userIdOpponentDto.userId} and ${userIdOpponentDto.opponent} not found, even after being added`,
+          );
+          throw new NotFoundException(
+            `Stats row of user ${userIdOpponentDto.userId} and ${userIdOpponentDto.opponent} not found, even after being added`,
+          );
         }
       } catch (error) {
+        this.logger.error(
+          `Error when adding missing stats row for user ${userIdOpponentDto.userId} and ${userIdOpponentDto.opponent}`,
+        );
         throw new RpcException(
           new InternalServerErrorException(
-            `Error when adding missing stats row for user ${userIdOpponentDto.userId}`,
+            `Error when adding missing stats row for user ${userIdOpponentDto.userId} and ${userIdOpponentDto.opponent}`,
           ),
         );
       }
@@ -238,6 +258,9 @@ export class StatsService {
         await this.createStatsRowNewUser(userId);
         return this.getPositionAndTotalPoints(userId);
       } catch (error) {
+        this.logger.error(
+          `Error when adding missing stats row for user ${userId}`,
+        );
         throw new RpcException(
           new InternalServerErrorException(
             `Error when adding missing stats row for user ${userId}`,

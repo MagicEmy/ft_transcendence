@@ -1,8 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,7 +9,7 @@ import { UserStatus } from './user-status.entity';
 import { UserIdNameStatusDto } from './dto/user-id-name-status-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
 import { KafkaTopic, UserStatusEnum } from './enum/kafka.enum';
-import { ClientKafka, RpcException } from '@nestjs/microservices';
+import { ClientKafka } from '@nestjs/microservices';
 import { AvatarRepository } from '../avatar/avatar.repository';
 import { AvatarDto } from '../avatar/avatar-dto';
 import { StatusChangeDto } from './dto/status-change-dto';
@@ -108,11 +104,7 @@ export class UserService {
       try {
         status = await this.createUserStatus(userId);
       } catch (error) {
-        throw new RpcException(
-          new InternalServerErrorException(
-            `Error when adding status of user ${userId} to database`,
-          ),
-        );
+        throw error;
       }
     }
     return status;
