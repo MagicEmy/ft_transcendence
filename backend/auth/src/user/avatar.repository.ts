@@ -30,7 +30,6 @@ export class AvatarRepository extends Repository<Avatar> {
     try {
       await this.save(record);
     } catch (error) {
-		// here try to save a default avatar image
       this.logger.error(
         `Error saving avatar of user ${avatarDto.userId} in the database`,
       );

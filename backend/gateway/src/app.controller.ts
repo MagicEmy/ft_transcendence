@@ -126,26 +126,6 @@ export class AppController {
     );
   }
 
-  //   @Get('/mfo/:id')
-  //   getMostFrequentOpponent(
-  //     @Param('id') userId: string,
-  //   ): Observable<MostFrequentOpponentDto[]> {
-  //     return this.appService.getMostFrequentOpponent(userId);
-  //   }
-
-  // @Get('/gamesagainst')
-  // getGamesAgainst(
-  //   @Query('id', ParseUUIDPipe) userId: string,
-  //   @Query('opponent') opponent: Opponent,
-  // ) {
-  //   return this.appService.getGamesAgainst({ userId, opponent });
-  // }
-
-  //   @Get('userInfo')
-  //   getUserInfo(@Body('userId') userId: string): Observable<UserIdNameStatusDto> {
-  //     return this.appService.getUserIdNameStatus(userId);
-  //   }
-
   // LEADERBOARD
 
   @ApiTags('leaderboard')
@@ -192,14 +172,6 @@ export class AppController {
   ): Observable<string> {
     return this.appService.getUserStatus(userId);
   }
-
-  //   @Patch('status')
-  //   changeStatus(
-  //     @Body('id') userId: string,
-  //     @Body('status') status: UserStatusEnum,
-  //   ) {
-  //     this.appService.updateStatus({ userId, status });
-  //   }
 
   @ApiTags('user')
   @UseGuards(JwtAuthGuard)
@@ -321,17 +293,4 @@ export class AppController {
     );
   }
 
-  //   @Get('/playerinfo/:id')
-  //   handlePlayerInfoRequest(
-  //     @Param('id')
-  //     playerID: string,
-  //   ) {
-  //     return this.appService.statsService
-  //       .send('requestPlayerInfo', {
-  //         playerID,
-  //       })
-  //       .pipe(catchError((error) =>
-  // 		throwError(() => new RpcException(error.response)),
-  // 	  ),);
-  //   }
 }
