@@ -5,7 +5,7 @@ import { Disable2FA } from './Disable2FA';
 import { useGetTfaStatus } from '../../hooks/useGetTfaStatus';
 import useStorage from '../../hooks/useStorage';
 
-export const TwoFaEnable2 = () => {
+export const TwoFaEnable = () => {
   const [userIdStorage] = useStorage<string>('userId', '');
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [error, setError] = useState('');

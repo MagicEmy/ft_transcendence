@@ -38,7 +38,7 @@ export const Disable2FA = ({ setFeedback, setError, clearFeedbackError }) => {
   return (
     <button type="button" className="TwoFA" onClick={handleDisable2FA}>
       <i className="bi bi-qr-code-scan fs-1"></i>
-      <h4>Disable 2FA</h4>
+      <h6>Disable 2FA</h6>
     </button>
   );
 };

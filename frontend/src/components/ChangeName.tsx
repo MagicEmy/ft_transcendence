@@ -50,6 +50,7 @@ export const ChangeName = () => {
 					setUserNameContext(newUserName);
 					setUserNameStorage(newUserName);
 					setFeedback("Username updated successfully.");
+					setNewUserName('');
 				} else {
 					const message = await response.json();
 					setFeedback("Error updating username.");

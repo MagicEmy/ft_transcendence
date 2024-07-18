@@ -28,11 +28,11 @@
   .login-container::before {
 	 content: '';
 	 position: absolute;
-	 background-color: white; /* Color of the line */
-	 width: 100%; /* Line spans the entire width of the container */
-	 height: 10px; /* Matches the border size */
-	 top: 50%; /* Positions the line in the center vertically */
-	 transform: translateY(-50%); /* Centers it exactly at the midpoint */
+	 background-color: white;
+	 width: 100%;
+	 height: 10px;
+	 top: 50%;
+	 transform: translateY(-50%);
   }
 
   .login-container main {
@@ -141,7 +141,6 @@
 	  #000;
 	background-repeat: no-repeat;
 	animation: l3 2s infinite linear;
-	/* margin-top: 1rem ; */
 	margin-top: 2rem ;
 	margin-bottom: 2rem ;
 

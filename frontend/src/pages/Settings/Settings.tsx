@@ -1,6 +1,6 @@
 import { ChangeName } from "../../components/ChangeName";
 import { ChangeAvatar } from "../../components/ChangeAvatar";
-import { TwoFaEnable } from "../../components/Tfa/TwoFaQrEnable";
+import { TwoFaEnable } from "../../components/Tfa/TwoFaEnable";
 import "./Settings.css";
 
 const Settings = () => {
@@ -9,7 +9,6 @@ const Settings = () => {
 		<div className="main">
 			<h1 className="title">Settings</h1>
 			<div className="settings">
-				
 				<div className="flex">
 					<ChangeAvatar />
 					<ChangeName />

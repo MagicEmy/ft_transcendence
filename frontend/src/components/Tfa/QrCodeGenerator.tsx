@@ -38,7 +38,7 @@ export const QrCodeGenerator = ({ setQrCodeUrl, setError, clearFeedbackError }) 
   return (
     <button type="button" className="TwoFA" onClick={handleClick2FA}>
       <i className="bi bi-qr-code-scan fs-1"></i>
-      <h4>Generate QR Code</h4>
+      <h6>Generate QR Code</h6>
     </button>
   );
 };

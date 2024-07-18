@@ -48,17 +48,17 @@
 
 }
 .text{
-	color: #0d045a;
+	color: #0a04ad;
 	border: 2px solid #a09df0;
     box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
 	margin-top: 10px;
 	margin-bottom: 10px;
-	font-size: 1.1em;
+	/* font-size: 1.1em; */
 	padding: 10px;
 }
 
 .text-dark{
-	color: #0d045a;
+	color: #0a04ad;
 	margin-top: 10px;
 	margin-bottom: 10px;
 	border: 1px solid #a09df0;
@@ -91,7 +91,23 @@ input[type="text"] {
 	border: 1px solid #ccc;
 	border-radius: 5px;
 }
-
+.profile-picture-form {
+	margin-bottom: 20px;
+  }
+  
+  .upload-form {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+  }
+  
+  .file-input {
+	flex-grow: 1;
+  }
+  
+  .settings-button {
+	white-space: nowrap;
+  }
 .Change2FA {
 	display: flex;
 	flex-direction: row;
@@ -143,8 +159,8 @@ input[type="text"] {
 }
 
 .TwoFA {
-	width: 150px;
-	height: 55px;
+	width: 220px;
+	/* height: 55px; */
 	display: flex;
 	align-items: center;    
 	border: none;

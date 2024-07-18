@@ -9,11 +9,9 @@ body {
   gap: 2rem;
   align-items: center;
   justify-content: space-between;
-  /* background: linear-gradient(45deg, blue, #0d6efd); */
   background: linear-gradient(in oklab, blue, #0d6efd);
   height: auto;
   flex-wrap: wrap;
-  /* border: solid 2px #FCC30A; */
 }
 
 

@@ -16,7 +16,7 @@ export const useIsLoggedIn = () => {
         if (!response.ok) {
           setError(`Error: ${response.status}`);
           setIsLoggedin(false);
-          setLoading(false); // Update this line
+          setLoading(false);
           return;
         }
         const isJwtValid = await response.json();
@@ -26,7 +26,7 @@ export const useIsLoggedIn = () => {
         setError("Error fetching Jwt-check");
         setIsLoggedin(false);
       } finally {
-        setLoading(false); // Ensure loading is set to false in both success and error cases
+        setLoading(false); 
       }
     };
     fetchUser();
