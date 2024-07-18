@@ -203,6 +203,8 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
+    depends_on:
+      - profile_db
 
 # kafka
   kafdrop:
@@ -215,6 +217,7 @@ services:
       - backend
     environment:
       KAFKA_BROKERCONNECT: "kafka:29092"
+      JVM_OPTS: "-Dlogging.level.root=WARN -Dlogging.level.org.springframework=WARN -Dlogging.level.com.obsidiandynamics=WARN"
     depends_on:
       - kafka
 
@@ -237,6 +240,10 @@ services:
       KAFKA_RESTART_DELAY: "5"
       ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
+      KAFKA_OPTS: -Dlog4j.logger.kafka=WARN
+      # KAFKA_OPTS: -Dlog4j.configuration=file:/kafka/config/log4j.properties -Dlog4j.logger.kafka=WARN
+
+      # create config file in /kafka/config/log4j.properties
 
   # reverseproxy:
   #   container_name: reverseproxy

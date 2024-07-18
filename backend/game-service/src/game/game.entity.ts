@@ -1,12 +1,5 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { GameStatus } from './enum/kafka.enum';
-import { User } from './user.entity';
 
 @Entity({ name: 'games' })
 export class Game {
@@ -30,12 +23,4 @@ export class Game {
 
   @Column()
   status: GameStatus;
-
-  @ManyToOne(() => User, (user) => user.user_id, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'player1_id' })
-  player1: User;
-
-  @ManyToOne(() => User, (user) => user.user_id, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'player2_id' })
-  player2: User;
 }
