@@ -29,7 +29,7 @@ const Item = ({ user }: ItemProps) => {
   return (
     <div className="flex" >
       <div className="item">
-        <img src={avatar || 'https://loremflickr.com/200/200/dog'} alt="" />
+        <img src={avatar || 'https://loremflickr.com/200/200/dog'} alt="profile picture" />
         <div className="info">
           <NavLink
             to={`/profile/${user.userId}`} className={({ isActive }) =>

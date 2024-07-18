@@ -8,6 +8,7 @@ import { FriendsList } from "../../components/FriendsList";
 import { UserStats } from "../../components/ProfileStats/ProfileStats";
 import { AddFriendButton } from "../../components/AddFriendButton";
 import UserContext, { IUserContext } from '../../context/UserContext';
+import defaultAvatar from '../../assets/SmashN.png';
 // import useStorage from "../../hooks/useStorage";
 import "./Profile.css";
 
@@ -73,11 +74,13 @@ export const Profile = () => {
 
   return (
     <div className="main">
+		<h1 className="page-title">Profile</h1>
       <div className="profile">
         <div className="columnsWrapper">
           <div className="flex">
             <div className="item">
-              {avatarUrl ?  <img src={avatarUrl} alt="User avatar" /> : <p>Loading avatar...</p>}
+              {avatarUrl ?  <img src={avatarUrl} alt="User avatar" /> :<img src={defaultAvatar} alt="default avatar" />
+			}
               <h4 className='profile-text'>{profile?.userInfo?.userName}</h4>
               <div className="status">
                 <span className={`status-indicator ${userStatusIndicator}`}></span>

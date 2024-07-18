@@ -8,9 +8,9 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const { isLoggedin, loading, error } = useIsLoggedIn();
 
-  if (loading) {
-    return <div>Loading...</div>; // Puoi sostituirlo con un indicatore di caricamento più sofisticato
-  }
+//   if (loading) {
+//     return <div>Loading...</div>; 
+//   }
 
   if (error) {
     console.error('PrivateRoute error:', error);

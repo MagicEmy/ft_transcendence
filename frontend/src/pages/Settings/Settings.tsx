@@ -7,8 +7,9 @@ const Settings = () => {
 
 	return (
 		<div className="main">
+			<h1 className="title">Settings</h1>
 			<div className="settings">
-				<h1 className="title">Settings</h1>
+				
 				<div className="flex">
 					<ChangeAvatar />
 					<ChangeName />

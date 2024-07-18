@@ -1,6 +1,6 @@
 .main {
 	height: 100vh;
-	  margin-bottom: 20em;
+	margin-bottom: 20em;
 	padding: 50px;
   }
 
@@ -15,9 +15,13 @@
 }
 
 .title {
+    margin-bottom: 1em;
+	color: #0a04ad;
+	font-size: 2.5em;
 	display: flex;
-	justify-content: center;
-	color: #0d045a;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
 }
 .settings .flex{
 	gap: 1em;
@@ -32,6 +36,7 @@
     align-items: center;
 	gap: 2em;
     border: 2px solid #a09df0;
+	/* border: 2px solid #78aaf6; */
     box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
     padding: 10px;
 }
@@ -126,7 +131,7 @@ input[type="text"] {
 	border: none;
 	border-radius: 30px;
 	padding: 5px 20px;
-	background: linear-gradient(138deg, rgb(113, 153, 247) 36.7%, rgb(10, 4, 173) 84.4%);
+	background: linear-gradient(138deg, #3686fe 38%, blue 84.4%);
 	color: #fff;
 	cursor: pointer;
 	transition: transform 0.2s, box-shadow 0.2s;
@@ -141,11 +146,11 @@ input[type="text"] {
 	width: 150px;
 	height: 55px;
 	display: flex;
-	align-items: center;
+	align-items: center;    
 	border: none;
 	border-radius: 30px;
 	padding: 5px 20px;
-	background: linear-gradient(138deg, rgb(113, 153, 247) 36.7%, rgb(10, 4, 173) 84.4%);
+	background: linear-gradient(138deg, #3686fe 38%, blue 84.4%);
 	color: #fff;
 	cursor: pointer;
 	transition: transform 0.2s, box-shadow 0.2s;

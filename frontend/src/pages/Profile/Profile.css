@@ -19,7 +19,15 @@
     width: 8px;
     height: 100%;
   } 
-
+  .page-title {
+    margin-bottom: 1em;
+	color: #0a04ad;
+	font-size: 2.5em;
+	display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
 
 .profile .flex {
   width: 50%;
@@ -187,7 +195,7 @@
     font-family:'Roboto',sans-serif;
     font-weight:300;
     color:#FFFFFF;
-    text-shadow: 0 0.04em 0.04em rgba(0,0,0,0.35);
+    /* text-shadow: 0 0.04em 0.04em rgba(0,0,0,0.35); */
     text-align:center;
     transition: all 0.2s;
 	  cursor: pointer;
