@@ -7,8 +7,6 @@ import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { JwtPayloadDto } from './dto/jwt-payload-dto';
 import { Observable, of } from 'rxjs';
 import { TokensDto } from './dto/tokens-dto';
-import { CookieTokenDto } from './dto/cookie-token-dto';
-import { CookieAndCookieNameDto } from './dto/cookie-and-cookie-name-dto';
 import { UserIdNameLoginDto } from 'src/user/dto/user-id-name-login-dto';
 import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
 import { TfaAuthGuard } from './utils/tfa-auth-guard';
@@ -60,29 +58,6 @@ export class AuthController {
   getTokens(jwtPayloadDto: JwtPayloadDto): Observable<TokensDto> {
     try {
       const result = this.authService.generateJwtTokens(jwtPayloadDto);
-      return of(result);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @MessagePattern('getCookie')
-  getCookieWithTokens(cookieTokenDto: CookieTokenDto): Observable<string> {
-    try {
-      const result = this.authService.getCookieWithTokens(cookieTokenDto);
-      return of(result);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @MessagePattern('getTokenFromCookies')
-  extractTokenFromCookies(
-    cookieAndCookieName: CookieAndCookieNameDto,
-  ): Observable<string> {
-    try {
-      const result =
-        this.authService.extractTokenFromCookies(cookieAndCookieName);
       return of(result);
     } catch (error) {
       throw error;

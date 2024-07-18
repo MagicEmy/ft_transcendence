@@ -23,6 +23,7 @@ import {
 import { AppService } from './app.service';
 import {
   Observable,
+  catchError,
   concatMap,
   defaultIfEmpty,
   delay,
@@ -31,7 +32,7 @@ import {
   map,
   mergeMap,
   of,
-  switchMap,
+  throwError,
 } from 'rxjs';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { ProfileDto, UserIdNameStatusDto } from './dto/profile-dto';
@@ -48,6 +49,7 @@ import { UserIdNameDto } from './dto/user-id-name-dto';
 import { UploadFileDto } from './dto/upload-file-dto';
 import { Opponent } from './enum/opponent.enum';
 import { GameHistoryDto } from './dto/game-history-dto';
+import { extractTokenFromCookies } from './utils/cookie-utils';
 
 @UseFilters()
 @Controller()
@@ -61,37 +63,20 @@ export class AppController {
   // AUTH
 
   @ApiTags('logout')
-  @UseGuards(JwtAuthGuard)
   @Post('logout')
   logout(@Req() req, @Res() resp: Response): void {
-    this.authService
-      .extractTokenFromCookies({
-        cookie: req.get('cookie'),
-        cookieName: this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
-      })
-      .pipe(
-        switchMap((refreshToken: string) => {
-          this.authService.deleteRefreshTokenFromDB({
-            refreshToken: refreshToken,
-          });
-          return of(undefined);
-        }),
-      )
-      .subscribe({
-        next: () => {
-          resp.clearCookie(
-            this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
-          );
-          resp.clearCookie(
-            this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
-          );
-          return resp.sendStatus(200);
-        },
-        error: (err) => {
-          console.log('error when logging out:', err);
-          return resp.sendStatus(200);
-        },
+    const refreshToken = extractTokenFromCookies({
+      cookie: req.get('cookie'),
+      cookieName: this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
+    });
+    if (refreshToken) {
+      this.authService.deleteRefreshTokenFromDB({
+        refreshToken: refreshToken,
       });
+    }
+    resp.clearCookie(this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'));
+    resp.clearCookie(this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'));
+    resp.sendStatus(200);
   }
 
   @ApiTags('auth')
@@ -272,11 +257,16 @@ export class AppController {
     )
     image: Express.Multer.File,
   ): Observable<string> {
-    return this.appService.setAvatar({
-      userId: userId,
-      avatar: image.buffer,
-      mimeType: image.mimetype,
-    });
+    try {
+      const avatar = this.appService.setAvatar({
+        userId: userId,
+        avatar: image.buffer,
+        mimeType: image.mimetype,
+      });
+      return avatar;
+    } catch (error) {
+      throw error;
+    }
   }
 
   @ApiTags('avatar')
@@ -287,6 +277,7 @@ export class AppController {
     @Res({ passthrough: true }) res: Response,
   ): Observable<StreamableFile> {
     return this.appService.getAvatar(userId).pipe(
+      catchError((error) => throwError(() => error)),
       map((avatarDto: AvatarDto) => {
         res.set({
           'Content-Type': `${avatarDto.mimeType}`,
