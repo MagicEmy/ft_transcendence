@@ -8,7 +8,7 @@ import { FriendsList } from "../../components/FriendsList";
 import { UserStats } from "../../components/ProfileStats/ProfileStats";
 import { AddFriendButton } from "../../components/AddFriendButton";
 import UserContext, { IUserContext } from '../../context/UserContext';
-import defaultAvatar from '../../assets/SmashN.png';
+import defaultAvatar from '../../assets/defaultAvatar.png';
 // import useStorage from "../../hooks/useStorage";
 import "./Profile.css";
 
