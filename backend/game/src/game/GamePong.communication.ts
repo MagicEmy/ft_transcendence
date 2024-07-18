@@ -6,7 +6,7 @@
 
 export enum GameTypes
 {
-	PONG =	"pong",
+	PONG =	"PONG",
 };
 
 export enum MatchTypes
@@ -71,6 +71,7 @@ export interface ISockPongImageBall
 {
 	posX:	number,
 	posY:	number,
+	posZ:	number,
 	size:	number,
 }
 
@@ -94,7 +95,7 @@ export interface ISockRemoveMatch
 
 /* ************************************************************************** *\
 
-	Kafka - Game/Chat
+	Kafka
 
 \* ************************************************************************** */
 
@@ -136,6 +137,8 @@ export enum PlayerInfo
 {
 	TOPIC =	"requestPlayerInfo",
 	REPLY =	"sendPlayerInfo",
+	// REPLYNAME = "sendPlayerInfoName",
+	// REPLYRANK = "sendPlayerInfoRank",
 };
 
 export interface IPlayerInfo

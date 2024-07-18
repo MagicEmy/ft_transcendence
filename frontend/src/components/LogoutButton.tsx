@@ -5,9 +5,10 @@ import { LOGOUT } from '../utils/constants';
 interface LogoutButtonProps {
   className?: string;
 }
+
 const LogoutButton = ({ className }: LogoutButtonProps) => {
   const [, , removeUserIdStorage] = useStorage('userId', '');
-  const [ , , removeUserNameStorage] = useStorage<string>('userName', '');
+  const [, , removeUserNameStorage] = useStorage<string>('userName', '');
   const navigate = useNavigate();
 
   async function userLogout() {
@@ -23,7 +24,7 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
         console.log('User logged out');
         removeUserIdStorage();
         removeUserNameStorage();
-        navigate('/');
+        navigate('/', { replace: true });
       } else {
         throw new Error('Failed to log out');
       }
@@ -31,7 +32,7 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
       console.log('Error logging out:', error);
       removeUserIdStorage();
       removeUserNameStorage();
-      navigate('/');
+      navigate('/', { replace: true });
     }
   }
 

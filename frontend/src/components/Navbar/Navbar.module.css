@@ -9,7 +9,8 @@ body {
   gap: 2rem;
   align-items: center;
   justify-content: space-between;
-  background: radial-gradient(circle, #7199f7 0%, #0a04ad 100%);
+  /* background: linear-gradient(45deg, blue, #0d6efd); */
+  background: linear-gradient(in oklab, blue, #0d6efd);
   height: auto;
   flex-wrap: wrap;
   /* border: solid 2px #FCC30A; */
@@ -26,14 +27,16 @@ body {
   height: 60px;
   object-fit: cover;
   border-radius: 50%;
+  margin-left: 1rem;
   margin-right: 1rem;
   cursor: pointer;
+  box-shadow: 8px 5px 5px #0d045a;
+
 }
 
 .name {
   position: relative;
-  color:  #FCC30A;
-  /* margin-left: 1rem; */
+  color:  orange;
   text-shadow: 1px 1px 3px black;
 }
 
@@ -41,7 +44,7 @@ ul {
   list-style: none;
   margin: 0;
   padding: 0;
-  margin-right: 80px;
+  margin-right: 50px;
 }
 
 .list {
@@ -50,49 +53,49 @@ ul {
 }
 
 .list button {
-  background-color: #FCC30A;
+  margin-top: 15px;
+  width: 125px;
+  background-color:orange;
   border: none;
   border-radius: 30px;
-  box-shadow: 1px 2px 5px 3px #bb7d02;
-  font-family: 'Roboto', sans-serif;
-  text-decoration: none;
   color: #0a04ad;
   padding: 10px;
   margin-right: 50px;
-  font-size: 16px;
   cursor: pointer;
-  text-shadow: 1px 1px 1px white;
 }
 
 .list button:hover,
 .list button.active {
-  background-color: #e49b07;
-  color: white;
-  box-shadow: 1px 2px 5px 3px #FCC30A;
-  text-shadow: 1px 1px 1px #0a0afc;
+  background-color: #FCC30A;
+  color: #0d6efd;
+  box-shadow: rgba(246, 156, 82, 0.2) 0 3px 15px inset, rgba(202, 89, 3, 0.91) 0 3px 5px, rgba(202, 89, 3, .91) 0 10px 13px;
   border-radius: 30px;
   padding: 10px;
   margin-right: 50px;
   cursor: pointer;
+  transform: scale(1.05);
 }
 
 .logoutButton{
-  padding: 10px 20px;
-  background-color: #FCC30A;
+	width: 125px;
+  padding: 10px;
+  background-color: orange;
   border: none;
   color: #0a04ad;
   border-radius: 30px;
-  box-shadow: 1px 2px 5px 3px #bb7d02;
   font-family: 'Roboto', sans-serif;
   font-size: 16px;
   cursor: pointer;
+  margin-top: -10px;
+  margin-left: -30px;
+  margin-right: 50px;
+
 }
 
 .logoutButton:hover {
-  background-color: #e49b07;
-  color: white;
-  box-shadow: 1px 2px 5px 3px #FCC30A;
-  text-shadow: 1px 1px 1px #0a0afc;
-
+  background-color: #FCC30A;
+  color: #0d6efd;
+  box-shadow: rgba(246, 156, 82, 0.2) 0 3px 15px inset, rgba(202, 89, 3, 0.91) 0 3px 5px, rgba(202, 89, 3, .91) 0 10px 13px;
+  transform: scale(1.05);
 }
 

@@ -84,7 +84,7 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 						break ;
 					// case PlayerInfo.TOPIC://fake API
 					// 	let msg = JSON.parse(message.value.toString());
-					// 	let data: IPlayerInfo;
+					// 	let data: IPlayerInv2/clusters.phpfo;
 
 					// 	data.playerID = msg.playerID;
 					// 	data.playerName = msg.playerID;
@@ -305,14 +305,14 @@ runthis(client: any, message: string)
 	{
 		if (this.matchQueue.findIndex(player => player.id === id) === -1)
 		{
-			let player: PlayerRanked = {
-				client:	client,
-				id:		id,
-				rank:	0,
-				time:	0,
-			};
-			this.matchQueue.push(player);
-			this.matchupdateClient(player);
+			// let player: PlayerRanked = {
+			// 	client:	client,
+			// 	id:		id,
+			// 	rank:	0,
+			// 	time:	0,
+			// };
+			// this.matchQueue.push(player);
+			// this.matchupdateClient(player);
 		}
 
 		const data: IPlayerInfo = {playerID: id,};
@@ -344,8 +344,8 @@ runthis(client: any, message: string)
 			{
 				let gameID = new GamePong(this.matchQueue[i].id, this.matchQueue[i + 1].id, this.producer);
 				this.games.push(gameID);
-				gameID.connectPlayer(this.matchQueue[i].id, this.matchQueue[i].client);
-				gameID.connectPlayer(this.matchQueue[i + 1].id, this.matchQueue[i + 1].client);
+				// gameID.connectPlayer(this.matchQueue[i].id, this.matchQueue[i].client);
+				// gameID.connectPlayer(this.matchQueue[i + 1].id, this.matchQueue[i + 1].client);
 				this.rmPlayerFromMatchMaking(gameID.player1.id);
 				this.rmPlayerFromMatchMaking(gameID.player2.id);
 				break ;
@@ -365,7 +365,7 @@ runthis(client: any, message: string)
 			rank:	player.rank,
 			time:	player.time,
 		};
-		player.client.emit("PongMatch", JSON.stringify(data));
+		// player.client.emit("PongMatch", JSON.stringify(data));
 	}
 
 	private	rmPlayerFromMatchMaking(id: string)

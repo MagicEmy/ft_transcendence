@@ -27,26 +27,26 @@ export class UserService {
   }
 
   async setUserName(userNameDto: UserIdNameDto): Promise<void> {
-    const found = await this.getUserById(userNameDto.userId);
+    const found : User | undefined = await this.getUserById(userNameDto.userId);
     if (found instanceof User) {
       found.userName = userNameDto.userName;
       await this.userRepository.save(found);
     }
   }
 
-  async getUserBySocketId(socketId: string): Promise<User | 'Not Existing'> {
-    const user = await this.userRepository.getUserBySocketId(socketId);
+  async getUserBySocketId(socketId: string): Promise<User | undefined> {
+    const user : User | undefined  = await this.userRepository.getUserBySocketId(socketId);
     if (!user) {
-      return 'Not Existing';
+      return undefined;
     }
     return user;
   }
 
-  async getUserById(userId: string): Promise<User | 'Not Existing'> {
+  async getUserById(userId: string): Promise<User | undefined> {
     // validate userId
-    const found = await this.userRepository.getUserById(userId);
+    const found : User | undefined = await this.userRepository.getUserById(userId);
     if (!found) {
-      return 'Not Existing';
+      return undefined;
     } else {
       return found;
     }
@@ -72,7 +72,7 @@ export class UserService {
 
   async setUsername(userId: string, userName: string): Promise<User> {
     // validate userId to be uuid
-    const user = await this.userRepository.setUsername(userId, userName);
+    const user : User = await this.userRepository.setUsername(userId, userName);
     console.log(`User name of user ${userId} set to ${userName}`);
     return user;
   }

@@ -6,11 +6,16 @@ interface NavigationButtonProps {
   to: string;
   className?: string;
 }
+
 export const NavigationButton = ({ children, to, className }: NavigationButtonProps) => {
   const navigate = useNavigate();
   const onClick = () => {
-    navigate(to, { replace: true })
+    navigate(to);
   };
-  return <button onClick={onClick} className={className}>{children}</button>;
-};
 
+  return (  
+    <button onClick={onClick} className={className}>
+      {children}
+    </button>
+  );
+};

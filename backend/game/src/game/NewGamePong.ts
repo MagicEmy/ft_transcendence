@@ -25,11 +25,14 @@ interface Ball
 {
 	posX:	number;
 	posY:	number;
+	posZ:	number;
 	rad:	number;
 	speed:	number;
 	maxSpeed:	number;
 	angle:	number;
-	lastEvent:	number;
+	// lastEvent:	number;
+	lastHit:	Paddle | null;
+	lastPaddle:	Paddle | null;
 }
 
 const FLAGS =
@@ -39,17 +42,17 @@ const FLAGS =
 	SOLO:
 	{
 		NAME: "Solo",
-		FLAG: "PongGameSolo"
+		FLAG: "solo"
 	},
 	LOCAL:
 	{
 		NAME: "Local",
-		FLAG: "PongGameLocal"
+		FLAG: "local"
 	},
 	MATCH:
 	{
 		NAME: "Match",
-		FLAG: "PongGameMatch"
+		FLAG: "pair"
 	}
 } as const;
 
@@ -119,9 +122,9 @@ export class GamePong implements IGame
 	{
 		console.log("Adding player to pong");
 		let playerPos: Player;
-		if (playerToAdd.getId() === this.player1.id)
+		if (playerToAdd?.getId() === this.player1.id)
 			playerPos = this.player1;
-		else if (playerToAdd.getId() === this.player2.id)
+		else if (playerToAdd?.getId() === this.player2.id)
 			playerPos = this.player2;
 		if (playerPos === undefined)
 			return (false);
@@ -129,13 +132,14 @@ export class GamePong implements IGame
 		this.AddListerners(playerPos, playerToAdd.getClient());
 		playerPos.status = PlayerStatus.WAITING;
 		this.sendHUD();
+//TODOKAFKA: add kafka to inform player is playing
 		return (true);
 	}
 
 	public PlayerIsInGame(player: GamePlayer): boolean
 	{
-		return (this.player1.player.getId() == player.getId() ||
-				this.player2.player.getId() == player.getId());
+		return (this.player1.player?.getId() == player.getId() ||
+				this.player2.player?.getId() == player.getId());
 	}
 
 	public clearGame(): void
@@ -211,6 +215,7 @@ export class GamePong implements IGame
 			return({
 				posX: this.ball.posX,
 				posY: this.ball.posY,
+				posZ: this.ball.posZ,
 				size: this.ball.rad * 2,
 			});
 		return (null);
@@ -449,12 +454,10 @@ export class GamePong implements IGame
 
 	private UpdatePaddles(): void
 	{
-		this.BotKeyPress();
-
 		switch (this.mode)
 		{
 			case FLAGS.SOLO.FLAG:
-				this.BotKeyPress();
+				this.BotKeyPress(this.player2);
 				this.UpdatePaddle(this.player1.paddle, this.player1.player.button, this.player1.player.button);
 				this.UpdatePaddle(this.player2.paddle, null, this.player2.player.button);
 				break ;
@@ -469,14 +472,25 @@ export class GamePong implements IGame
 		}
 	}
 
-	private BotKeyPress(): void
+	private BotKeyPress(bot: Player): void
 	{
 		if (this.mode !== FLAGS.SOLO.FLAG)
 			return;
 
-		let posY = this.ball !== null ? this.ball.posY : 0.5;
-		this.player2.player.button[Button.ARROWUP] = posY < this.player2.paddle.posY;
-		this.player2.player.button[Button.ARROWDOWN] = posY > this.player2.paddle.posY;
+		let posY: number = 0.5;
+		if (this.ball)
+		{
+			let paddleDistance: number = this.player2.paddle.posX - this.player1.paddle.posX;
+			let ratio: number = Math.abs(this.ball.posX - bot.paddle.posX);
+			if (this.ball?.lastPaddle === bot.paddle)
+				ratio = ratio;
+			else
+				ratio = (paddleDistance - ratio) + paddleDistance;
+			ratio = ratio / (paddleDistance * 2);
+			posY = this.ball.posY * ratio + 0.5 * (1 - ratio);
+		}
+		bot.player.button[Button.ARROWUP] = posY < bot.paddle.posY;
+		bot.player.button[Button.ARROWDOWN] = posY > bot.paddle.posY;
 	}
 
 	private UpdatePaddle(paddle: Paddle, wasd: { [key: number]: boolean } | null, arrows: { [key: number]: boolean } | null)
@@ -523,14 +537,18 @@ export class GamePong implements IGame
 		{
 			posX:	0.5,
 			posY:	0.5,
+			posZ:	1,
 			rad:	0.0025,
 			speed:	0.002,
 			maxSpeed:	0.010,
 			angle:	0.5 * Math.PI,
-			lastEvent:	0,
+			// lastEvent:	0,
+			lastHit:	null,
+			lastPaddle:	null,
 		};
 
 		this.ball.angle = Math.random() + 0.25;
+		this.ball.angle = 0.5;//REMOVE
 		if (this.ball.angle >= 0.75)
 			this.ball.angle += 0.5;
 		this.ball.angle *= Math.PI;
@@ -538,29 +556,83 @@ export class GamePong implements IGame
 
 	private UpdateBall(): void
 	{
-		const steps: number = this.player1.paddle.width / 10;
-
-		++this.ball.lastEvent;
-		for (let speed: number = this.ball.speed; speed > 0; speed -= steps)
+		let move: number = this.ball.speed;
+		const stepSize: number = this.player1.paddle.width / 10;
+		while (move > 0)
 		{
-			this.UpdateBallPosition(steps);
-			this.CheckEventBorder();
-			if (this.ball.posX <= 0.5)
-				this.CheckEventPaddle(this.player1.paddle);
+			if (move < stepSize)
+				move -= this.UpdateBallPosition(move);
 			else
+				move -= this.UpdateBallPosition(stepSize);
+			this.CheckEventBorder();
+			if (this.ball.posX < 0.5 && 
+				this.ball.lastHit !== this.player1.paddle)
+				this.CheckEventPaddle(this.player1.paddle);
+			if (this.ball.posX > 0.5 &&
+				this.ball.lastHit !== this.player2.paddle)
 				this.CheckEventPaddle(this.player2.paddle);
 		}
+		this.UpdateBallHeightZ();
 	}
 
-	private UpdateBallPosition(move: number): void
+	private UpdateBallPosition(remaining: number): number
 	{
-		const	circle: number = Math.PI * 2;
+		this.FixBallRadial();
+		let move: number = this.CalculateNearestEvent(remaining);
+		if (move === remaining)
+			move -= this.ball.rad;
+		if (move <= 0)
+			move = this.player1.paddle.width / 10;
+		this.ball.posX += Math.sin(this.ball.angle) * move;
+		this.ball.posY -= Math.cos(this.ball.angle) * move;
+		return (move);
+	}
+	
+	private FixBallRadial(): void
+	{
+		const circle: number = Math.PI * 2;
+
 		if (this.ball.angle < 0)
 			this.ball.angle += circle;
 		if (this.ball.angle > circle)
 			this.ball.angle -= circle;
-		this.ball.posX += Math.sin(this.ball.angle) * move;
-		this.ball.posY -= Math.cos(this.ball.angle) * move;
+	}
+
+	private CalculateNearestEvent(remaining: number): number
+	{
+		let move: number = remaining;
+
+		//upper right border
+		if (this.ball.angle > 0 && this.ball.angle < Math.PI * 0.5)
+			move = (1 - this.ball.posY) / Math.sin(this.ball.angle);
+		//upper left border
+		else if (this.ball.angle > Math.PI * 1.5 && this.ball.angle < Math.PI * 2)
+			move = (1 - this.ball.posY) / Math.sin(Math.PI * 2 - this.ball.angle);
+		//lower right border
+		else if (this.ball.angle > Math.PI * 0.5 && this.ball.angle < Math.PI)
+			move = this.ball.posY / Math.sin(Math.PI - this.ball.angle);
+		//lower left border
+		else if (this.ball.angle > Math.PI && this.ball.angle < Math.PI * 1.5)
+			move = this.ball.posY / Math.sin(this.ball.angle - Math.PI);
+		if (move < remaining)
+			remaining = move;
+
+		let posX: number;
+		let posY: number;
+		//left paddle
+		posX = this.GetRelevantPaddleBorder(this.ball.posX, this.player1.paddle.posX, this.player1.paddle.width / 2);
+		posY = this.GetRelevantPaddleBorder(this.ball.posY, this.player1.paddle.posY, this.player1.paddle.width / 2);
+		move = Math.sqrt(Math.pow(this.ball.posX - posX, 2) + Math.pow(this.ball.posY - posY, 2));
+		if (move > 0 && move < remaining)
+			remaining = move;
+		//right paddle
+		posX = this.GetRelevantPaddleBorder(this.ball.posX, this.player2.paddle.posX, this.player2.paddle.width / 2);
+		posY = this.GetRelevantPaddleBorder(this.ball.posY, this.player2.paddle.posY, this.player2.paddle.width / 2);
+		move = Math.sqrt(Math.pow(this.ball.posX - posX, 2) + Math.pow(this.ball.posY - posY, 2));
+		if (move > 0 && move < remaining)
+			remaining = move;
+
+		return (remaining);
 	}
 
 	private AdjustBallAngle(direction: string)
@@ -582,6 +654,19 @@ export class GamePong implements IGame
 		}
 	}
 
+	private UpdateBallHeightZ()
+	{
+		const diff: number = Math.abs(this.player2.paddle.posX - this.player1.paddle.posX);
+		let distance: number;
+		if (this.ball.lastPaddle)
+			distance = Math.abs(this.ball.lastPaddle.posX - this.ball.posX);
+		else
+			distance = Math.abs(0.5 - this.ball.posX) + diff / 2;
+		distance /= diff;
+		//height = -8/3x^2 + 2/3x + 1
+		this.ball.posZ = Math.abs(-8/3 * Math.pow(distance, 2) + 2/3 * distance + 1);
+	}
+
 /* ************************************************************************** *\
 
 	Events
@@ -595,6 +680,7 @@ export class GamePong implements IGame
 		{
 			this.ball.speed = this.ball.speed * 0.975 + this.ball.maxSpeed * 0.025;
 			this.AdjustBallAngle("horizontal");
+			this.ball.lastHit = null;
 		}
 	}
 
@@ -607,19 +693,17 @@ export class GamePong implements IGame
 		{
 			if (checkX != this.ball.posX)
 			{
-				if (this.ball.lastEvent > 10)
-				{
 					this.AdjustBallAngle("vertical");
 					this.ball.angle += Math.atan((checkY - paddle.posY) /
 												(checkX - paddle.posX)) / 3;
 					this.ball.speed = this.ball.speed * 0.90 + this.ball.maxSpeed * 0.10;
-					this.ball.lastEvent = 0;
-				}
 			}
 			else
 			{
 				this.AdjustBallAngle("horizontal");
 			}
+			this.ball.lastHit = paddle;
+			this.ball.lastPaddle = paddle;
 		}
 	}
 

@@ -1,4 +1,3 @@
-version: "3"
 services:
 
   frontend:
@@ -59,6 +58,8 @@ services:
     depends_on:
       profile_db:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   user_service:
     container_name: user_service
@@ -80,6 +81,9 @@ services:
     depends_on:
       profile_db:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
+  
 
   stats_service:
     container_name: stats_service
@@ -101,6 +105,8 @@ services:
     depends_on:
       profile_db:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   chat:
     container_name: chat
@@ -120,7 +126,11 @@ services:
     networks:
       - backend
     depends_on:
-      - chat_db
+      chat_db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
 
   auth_service:
     container_name: auth_service
@@ -140,8 +150,10 @@ services:
     ports:
       - "3003:3000" # only for testing purposes
     depends_on:
-      - profile_db
-      - kafka
+      profile_db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   game:
     container_name: game
@@ -158,6 +170,9 @@ services:
     restart: unless-stopped
     networks:
       - backend
+    depends_on:
+      kafka:
+        condition: service_healthy
 
 # databases
   profile_db:
@@ -216,7 +231,8 @@ services:
     environment:
       KAFKA_BROKERCONNECT: "kafka:29092"
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
 
   kafka:
     image: obsidiandynamics/kafka
@@ -227,6 +243,9 @@ services:
     ports:
       - "2181:2181"
       - "9092:9092"
+    volumes:
+      - ./log4j.properties:/opt/kafka/config/log4j.properties
+      - ./kafka-health-check.sh:/kafka-health-check.sh
     environment:
       KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
       KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
@@ -237,19 +256,13 @@ services:
       KAFKA_RESTART_DELAY: "5"
       ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
-
-  # reverseproxy:
-  #   container_name: reverseproxy
-  #   build:
-  #     context: ./nginx
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "80:80"
-  #   networks:
-  #     - backend
-  #   depends_on:
-  #    - gateway
-
+      KAFKA_LOG4J_OPTS: "-Dlog4j.configuration=file:/opt/kafka/config/log4j.properties"
+    healthcheck:
+      test: ["CMD", "/bin/sh", "/kafka-health-check.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 networks:
   backend:
@@ -259,5 +272,3 @@ networks:
 volumes:
   profile_db_volume:
   chat_db_volume:
-
-
