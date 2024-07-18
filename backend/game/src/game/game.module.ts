@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { GameController } from './game.controller';
-import { GameService } from './game.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
@@ -21,7 +19,5 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       },
     ]),
   ],
-  controllers: [GameController],
-  providers: [GameService],
 })
 export class GameModule {}
