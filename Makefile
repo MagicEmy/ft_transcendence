@@ -1,7 +1,7 @@
 all: up
 
 build start up stop kill down:
-	docker-compose $@
+	docker compose $@
 
 # up:
 # 	docker-compose up

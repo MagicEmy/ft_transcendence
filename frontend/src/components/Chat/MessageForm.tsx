@@ -4,7 +4,9 @@ import { ChatContext } from "../../context/ChatContext";
 import "./MessageForm.css";
 import { MessageRoomDto, UserDto } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
-
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { IoBowlingBallOutline } from "react-icons/io5";
+import { host } from '../../utils/ApiRoutes';
 
 function MessageForm() {
   const [userIdStorage] = useStorage<string>('userId', '');
@@ -82,7 +84,7 @@ function MessageForm() {
               Your conversation with {directMsg.userName}{" "}
               <img
                 alt="profile-pic"
-                src={`/user/${directMsg.userId}/avatar`}
+                src={`http://${host}:3001/avatar/${directMsg.userId}`}
                 className="conversation-profile-pic"
               />
             </div>
@@ -126,7 +128,7 @@ function MessageForm() {
                     <div className="d-flex align-items-center mb-3">
                       <img
                         alt="profile-pic"
-                        src={sender.userId ? `/user/${sender.userId}/avatar` : ""}
+                        src={sender.userId ? `http://${host}:3001/avatar/${sender.userId}` : ""}
                         style={{
                           width: 35,
                           height: 35,
@@ -151,7 +153,7 @@ function MessageForm() {
         <div ref={messageEndRef} />
       </div>
       <Form onSubmit={handleSubmit}>
-        <Row>
+        <Row style={{ alignItems: 'center' }}>
           <Col md={11}>
             <Form.Group>
               <Form.Control
@@ -167,10 +169,10 @@ function MessageForm() {
             <Button
               variant="primary"
               type="submit"
-              style={{ width: "100%", backgroundColor: "orange" }}
+              style={{ width: "100%", backgroundColor: "orange"}}
               disabled={!user}
             >
-              <i className="fas fa-paper-plane"></i>
+              <IoBowlingBallOutline size={15} />
             </Button>
           </Col>
         </Row>

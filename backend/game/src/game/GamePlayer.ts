@@ -1,4 +1,4 @@
-import { SockEventNames } from "./GamePong.communication";
+import { IPlayerInfo, PlayerInfo, SockEventNames } from "./GamePong.communication";
 import { IGame } from "./IGame";
 import { GameManager } from "./NewGameManager";
 
@@ -21,13 +21,17 @@ export class GamePlayer
 
 	private constructPlayer(client: any, id: string)
 	{
-		console.log("Creating player");
+		// console.log("Creating player");
 		this.client = client;
 		this.id = id;
 		this.button = {};
 	
 		client.on("PlayGame", (message: string) => { this.handlerPlayGame(message); });
 		client.on(SockEventNames.BUTTON, (data: string) => { this.handlerButtonEvent(data); });
+		const player: IPlayerInfo = {
+			playerID:	id,
+		}
+		GameManager.getInstance().kafkaEmit(PlayerInfo.TOPIC, JSON.stringify(player));
 	}
 
 	private ConstructBot(): void
@@ -35,6 +39,13 @@ export class GamePlayer
 		this.client = null;
 		this.id = "Bot";
 		this.button = {};
+		this.name = "Ponginator"
+		// const bot: IPlayerInfo = {
+		// 	playerID:	"Bot",
+		// 	playerName:	"Bot",
+		// 	// playerRank:	0,
+		// }
+		// GameManager.getInstance().kafkaEmit(PlayerInfo.REPLY, JSON.stringify(bot));
 	}
 
 	private handlerPlayGame(message: string)

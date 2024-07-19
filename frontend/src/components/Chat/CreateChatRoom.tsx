@@ -5,6 +5,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import { ChatContextType, UserDto } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function CreateChatRoom() {
   const [userIdStorage] = useStorage<string>('userId', '');
@@ -30,7 +31,14 @@ function CreateChatRoom() {
       exclusive: chatType === "Exclusive",
       password: password,
     });
-
+    socket.off("create_room_response").on("create_room_response", (message: string) => {
+      if (message !== "Success") {
+        alert(message);
+      }
+      else {
+        alert("Room Created Successfully: " + roomName);
+      }
+    });
     // Clear state
     setChatType("Public");
     setRoomName("");

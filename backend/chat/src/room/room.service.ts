@@ -47,10 +47,10 @@ export class RoomService {
     exclusive,
     password,
   }: CreateRoomDto): Promise<string> {
-    const hostUser = await this.userService.getUserById(host.userId);
-    if (hostUser === 'Not Existing') return 'Not Existing User';
+    const hostUser : User | undefined = await this.userService.getUserById(host.userId);
+    if (!hostUser) return 'Not Existing User';
 
-    const room = await this.getRoomIndexByName(roomName);
+    const room : number = await this.getRoomIndexByName(roomName);
     if (room === -1) {
       this.rooms.push({
         roomName: roomName,
@@ -72,11 +72,11 @@ export class RoomService {
     userCreator,
     userReceiver,
   }: DoWithUserDto): Promise<string> {
-    const userStart = await this.userService.getUserById(userCreator.userId);
-    const userReceive = await this.userService.getUserById(userReceiver.userId);
-    if (userStart === 'Not Existing' || userReceive === 'Not Existing')
+    const userStart : User | undefined = await this.userService.getUserById(userCreator.userId);
+    const userReceive : User | undefined = await this.userService.getUserById(userReceiver.userId);
+    if (!userStart || !userReceive)
       return 'Not Existing User';
-    const blocked = await this.userService.checkBlockedUser(userCreator, userReceiver.userId);
+    const blocked : string = await this.userService.checkBlockedUser(userCreator, userReceiver.userId);
     if (blocked !== 'Not Blocked') {
       return blocked;
     }
@@ -84,7 +84,7 @@ export class RoomService {
     if (userStart.userId > userReceiver.userId)
       chatId = "#" + userCreator.userId + UserAndRoom;
     else chatId = "#" + userReceiver.userId + userCreator.userId;
-    const room = await this.getRoomIndexByName(chatId);
+    const room : number = await this.getRoomIndexByName(chatId);
     if (room === -1) {
       this.rooms.push({
         roomName: chatId,
@@ -162,7 +162,7 @@ export class RoomService {
 
 
   async getRoomIndexByName(roomName: Room['roomName']): Promise<number> {
-    const roomIndex = this.rooms.findIndex(
+    const roomIndex : number  = this.rooms.findIndex(
       (room) => room.roomName === roomName,
     );
     return roomIndex;
@@ -175,9 +175,9 @@ export class RoomService {
     newPassword,
     updateExclusive
   }: UpdateRoomDto): Promise<string> {
-    const hostUser = await this.userService.getUserById(user.userId);
-    if (hostUser === 'Not Existing') return 'Not Existing User';
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const hostUser: User | undefined = await this.userService.getUserById(user.userId);
+    if (!hostUser) return 'Not Existing User';
+    const roomIndex : number = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) return 'Not Existing Room';
     if (! await this.isOwner(roomIndex, hostUser.userId)) return 'Not Authorized User';
     if (updatePassword) {
@@ -191,7 +191,7 @@ export class RoomService {
     return 'Success';
 }
   async removeRoom(roomName: Room['roomName']): Promise<string> {
-    const room = await this.getRoomIndexByName(roomName);
+    const room : number = await this.getRoomIndexByName(roomName);
     if (room === -1) {
       return 'Not Existing Room';
     }
@@ -203,24 +203,24 @@ export class RoomService {
 
   //  method that menage messages
 
-  async broadcastMessage(payload: MessageDto): Promise<Message[] | string> {
-    const roomIndex = await this.getRoomIndexByName(payload.roomName);
+  async broadcastMessage(payload: MessageDto): Promise<MessageRoomDto[] | string> {
+    const roomIndex : number = await this.getRoomIndexByName(payload.roomName);
     if (roomIndex === -1) {
       this.logger.log(`${payload.roomName} does not exist`);
       return 'Not Existing Room';
     }
-    const user = await this.userService.getUserById(payload.user.userId);
-    if (user === 'Not Existing') return 'Not Existing User';
+    const user : User | undefined = await this.userService.getUserById(payload.user.userId);
+    if (!user) return 'Not Existing User';
     if (!(await this.isUser(roomIndex, user.userId))) {
       this.logger.log(`${user.userId} is not a user of the chat`);
       return 'You Are Not A Room Member';
     }
-    const isMuted = await this.isMuted(roomIndex, user);
+    const isMuted : boolean = await this.isMuted(roomIndex, user);
     if (isMuted) {
       this.logger.log(`${user.userId} is muted`);
       return 'You Are Muted';
     }
-    const isBanned = await this.isBanned(roomIndex, user.userId)
+    const isBanned : boolean = await this.isBanned(roomIndex, user.userId)
     if (isBanned) {
       this.logger.log(`${user.userId} is banned`);
       return 'You Are Banned';
@@ -232,7 +232,7 @@ export class RoomService {
     roomIndex: number,
     user: User,
     messageDto: MessageDto,
-  ): Promise<Message[]> {
+  ): Promise<MessageRoomDto[]> {
     const message: Message = {
       user,
       message: messageDto.message,
@@ -241,22 +241,34 @@ export class RoomService {
     };
     this.logger.log(message);
     this.rooms[roomIndex].messages.push(message);
-    const numberOfMessage = this.rooms[roomIndex].messages.length;
+    const numberOfMessage : number = this.rooms[roomIndex].messages.length;
     if (numberOfMessage > 30)
       this.rooms[roomIndex].messages.splice(0, numberOfMessage - 30);
-    return [message];
+    const newUser: MessageUserDto = {
+      userId: user.userId,
+      userName: user.userName,
+      blockedBy: await this.userService.getAllBlockingUsersByBlockedUserId(user.userId),
+      blockedUsers: await this.userService.getAllBlockedUsersByBlockingUserId(user.userId),
+    };
+    const messageRoom: MessageRoomDto = {
+      user: newUser,
+      roomName: message.roomName,
+      message: message.message,
+      timesent: message.timesent,
+    };
+    return [messageRoom];
   }
 
   async getAllMessages(
     user: UserDto['userId'],
     roomName: string,
   ): Promise<MessageRoomDto[]> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const roomIndex : number = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
       throw 'Not Existing Room';
     }
-    const newUser = await this.userService.getUserById(user);
-    if (newUser === 'Not Existing') {
+    const newUser : User | undefined = await this.userService.getUserById(user);
+    if (newUser === undefined) {
       throw 'Not Existing User';
     }
     if (!(await this.isUser(roomIndex, newUser.userId))) {
@@ -287,9 +299,9 @@ export class RoomService {
     roomIndex: number,
     userId: UserDto['userId'],
   ): Promise<boolean> {
-    const bannedList = this.rooms[roomIndex].banned;
+    const bannedList : User[] = this.rooms[roomIndex].banned;
     if (bannedList.length === 0) return false;
-    const banned = bannedList.find((ban) => ban.userId === userId);
+    const banned : User | undefined = bannedList.find((ban) => ban.userId === userId);
     console.log(banned);
     if (banned === undefined) return false;
     return true;
@@ -299,14 +311,14 @@ export class RoomService {
     roomIndex: number,
     userId: UserDto['userId'],
   ): Promise<boolean> {
-    const adminList = this.rooms[roomIndex].admins;
+    const adminList : User[]= this.rooms[roomIndex].admins;
     if (adminList.length === 0) return false;
-    const admin = adminList.find((admin) => admin.userId === userId);
+    const admin : User | undefined = adminList.find((admin) => admin.userId === userId);
     if (admin !== undefined) return true;
     return false;
   }
   async cronUnmute(roomIndex: number): Promise<void> {
-    const mutedList = this.rooms[roomIndex].muteds;
+    const mutedList : MutedDto[]= this.rooms[roomIndex].muteds;
     if (mutedList.length === 0) return;
     const now = Date.now();
     this.rooms[roomIndex].muteds = mutedList.filter(
@@ -315,10 +327,10 @@ export class RoomService {
   }
 
   async isMuted(roomIndex: number, user: User): Promise<boolean> {
-    const mutedList = this.rooms[roomIndex].muteds;
+    const mutedList : MutedDto[] = this.rooms[roomIndex].muteds;
     if (mutedList.length === 0) return false;
     await this.cronUnmute(roomIndex);
-    const muted = mutedList.find((muted) => muted.userId === user.userId);
+    const muted : MutedDto | undefined = mutedList.find((muted) => muted.userId === user.userId);
     if (muted !== undefined) {
       return true;
     }
@@ -326,7 +338,7 @@ export class RoomService {
   }
 
   async isUser(roomIndex: number, userId: UserDto['userId']): Promise<boolean> {
-    const userList = this.rooms[roomIndex].users;
+    const userList : User[] = this.rooms[roomIndex].users;
     let isMember: boolean = false;
     userList.forEach((user) => {
       if (user.userId === userId) isMember = true;
@@ -348,11 +360,11 @@ export class RoomService {
     userId: UserDto['userId'],
     password: string,
   ): Promise<string> {
-    const newUser = await this.userService.getUserById(userId);
-    if (newUser === 'Not Existing') {
+    const newUser:  User | undefined={} = await this.userService.getUserById(userId);
+    if (!newUser) {
       throw 'Not Existing User';
     }
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const roomIndex : number = await this.getRoomIndexByName(roomName);
     if (roomIndex !== -1) {
       if (this.rooms[roomIndex].direct) {
         return 'You Are Not Authorized';
@@ -379,13 +391,13 @@ export class RoomService {
   }
 
   async addUserToRoom(user: UserDto['userId'], roomName: Room['roomName'], userToAdd: string): Promise<string> {
-    const newUser = await this.userService.getUserById(user);
-    const toAddser = await this.userService.getUserById(userToAdd);
+    const newUser: User | undefined = await this.userService.getUserById(user);
+    const toAddser : User | undefined = await this.userService.getUserById(userToAdd);
 
-    if (newUser === 'Not Existing' || toAddser === 'Not Existing')  {
+    if (!newUser || !toAddser)  {
       throw 'Not Existing User';
     }
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const roomIndex :number  = await this.getRoomIndexByName(roomName);
     if (roomIndex !== -1) {
       if (this.rooms[roomIndex].direct || this.rooms[roomIndex].roomName === 'general') {
         return 'You Are Not Authorized';
@@ -408,13 +420,13 @@ export class RoomService {
     user: UserDto['userId'],
     toBan: UserDto['userId'],
   ): Promise<string> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const roomIndex : number = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
       throw 'Not Existing Room';
     }
     if (this.rooms[roomIndex].direct || this.rooms[roomIndex].roomName === 'general') return 'Not Authorized User';
-    const banUser = await this.userService.getUserById(toBan);
-    if (banUser === 'Not Existing') return 'Not Existing user';
+    const banUser : User | undefined = await this.userService.getUserById(toBan);
+    if (!banUser) return 'Not Existing user';
     if (await this.isAdmin(roomIndex, user)) {
       if (await this.isBanned(roomIndex, banUser.userId))
         return 'Already Banned User';
@@ -430,13 +442,13 @@ export class RoomService {
     user: UserDto['userId'],
     toExclusive: UserDto['userId'],
   ): Promise<string> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const roomIndex : number = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
       throw 'Not Existing Room';
     }
     if (this.rooms[roomIndex].direct || this.rooms[roomIndex].roomName == 'general') throw 'Not Authorized User';
-    const exclusiveUser = await this.userService.getUserById(toExclusive);
-    if (exclusiveUser === 'Not Existing') throw 'Not Existing User';
+    const exclusiveUser : User | undefined = await this.userService.getUserById(toExclusive);
+    if (!exclusiveUser) throw 'Not Existing User';
     if (await this.isAdmin(roomIndex, user)) {
       if (await this.isBanned(roomIndex, exclusiveUser.userId))
         return 'Banned User';
@@ -457,8 +469,8 @@ export class RoomService {
       return 'Not Existing Room';
     }
     if (this.rooms[roomIndex].direct || this.rooms[roomIndex].roomName === 'general') throw 'Not Authorized User';
-    const adminUser = await this.userService.getUserById(toAdmin);
-    if (adminUser === 'Not Existing') return 'Not Existing User';
+    const adminUser : User | undefined = await this.userService.getUserById(toAdmin);
+    if (!adminUser) return 'Not Existing User';
     if (await this.isAdmin(roomIndex, user)) {
       if (await this.isBanned(roomIndex, adminUser.userId))
         return 'Banned User';
@@ -475,13 +487,13 @@ export class RoomService {
     toMute: UserDto['userId'],
     timer: number,
   ): Promise<string> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const roomIndex : number = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
       throw 'Not Existin Room';
     }
     if (this.rooms[roomIndex].direct || this.rooms[roomIndex].roomName === 'general') throw 'Not Authorized User';
-    const muteUser = await this.userService.getUserById(toMute);
-    if (muteUser === 'Not Existing') throw 'Not Existing User';
+    const muteUser : User | undefined = await this.userService.getUserById(toMute);
+    if (!muteUser) throw 'Not Existing User';
     if (await this.isAdmin(roomIndex, user) && !await this.isAdmin(roomIndex, toMute)) {
       if (await this.isMuted(roomIndex, muteUser)) return 'Already Muted User';
       const timeEnd = Date.now() / 1000 + timer;
@@ -497,13 +509,13 @@ export class RoomService {
     user: UserDto['userId'],
     toUnban: UserDto['userId'],
   ): Promise<string> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const roomIndex : number = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
       throw 'Not Existing Room';
     }
     if (this.rooms[roomIndex].direct) throw 'Not Authorized User';
-    const toUnbanUser = await this.userService.getUserById(toUnban);
-    if (toUnbanUser === 'Not Existing') throw 'Not Existing User';
+    const toUnbanUser : User | undefined = await this.userService.getUserById(toUnban);
+    if (!toUnbanUser) throw 'Not Existing User';
     if (await this.isAdmin(roomIndex, user)) {
       if ((await this.isBanned(roomIndex, toUnbanUser.userId)) != true)
         return 'Not Banned User';
@@ -520,13 +532,13 @@ export class RoomService {
     user: UserDto['userId'],
     toUnmute: UserDto['userId'],
   ): Promise<string> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const roomIndex: number = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
       throw 'Not Existing Room';
     }
     if (this.rooms[roomIndex].direct || this.rooms[roomIndex].roomName === 'general') throw 'Not Authorized User';
-    const toUnmuteUser = await this.userService.getUserById(toUnmute);
-    if (toUnmuteUser === 'Not Existing') throw 'Not Existing User';
+    const toUnmuteUser: User | undefined = await this.userService.getUserById(toUnmute);
+    if (!toUnmuteUser) throw 'Not Existing User';
     if (await this.isAdmin(roomIndex, user)) {
       if ((await this.isMuted(roomIndex, toUnmuteUser)) !== true)
         return 'Not Muted User';
@@ -543,13 +555,13 @@ export class RoomService {
     user: UserDto['userId'],
     toUnadmin: UserDto['userId'],
   ): Promise<string> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const roomIndex : number = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
       throw 'Not Existing Room';
     }
     if (this.rooms[roomIndex].direct || this.rooms[roomIndex].roomName === 'general') throw 'Not Authorized User';
-    const toUnadminUser = await this.userService.getUserById(toUnadmin);
-    if (toUnadminUser === 'Not Existing') throw 'Not Existing User';
+    const toUnadminUser : User | undefined = await this.userService.getUserById(toUnadmin);
+    if (!toUnadminUser) throw 'Not Existing User';
     if (await this.isAdmin(roomIndex, user) && !await this.isOwner(roomIndex, toUnadmin)){
       if ((await this.isAdmin(roomIndex, toUnadminUser.userId)) !== true)
         return 'User Not An Admin';
@@ -565,7 +577,7 @@ export class RoomService {
     roomName: Room['roomName'],
     userId: User['userId'],
   ): Promise<void> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const roomIndex : number  = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) throw 'Not Existing Room';
     if (this.rooms[roomIndex].direct) throw 'Not Authorized User';
 
@@ -603,13 +615,13 @@ export class RoomService {
     user: UserDto['userId'],
     toKick: UserDto['userId'],
   ): Promise<string> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
+    const roomIndex : number = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
       throw 'Not Existing Room';
     }
     if (this.rooms[roomIndex].direct || this.rooms[roomIndex].roomName === 'general') throw 'Not Authorized User';
-    const tokick = await this.userService.getUserById(toKick);
-    if (tokick === 'Not Existing') throw 'Not Existing User';
+    const tokick : User | undefined  = await this.userService.getUserById(toKick);
+    if (!tokick) throw 'Not Existing User';
     if (await this.isBanned(roomIndex, tokick.userId)) return 'User Is Banned';
     if (await this.isAdmin(roomIndex, user) && !(await this.isOwner(roomIndex, toKick))) {
       await this.removeUserFromRoom(tokick.userId, roomName);
@@ -619,8 +631,8 @@ export class RoomService {
 
   async getUserInRoom(
     roomName: Room['roomName'],
-  ): Promise<RoomUserDto | 'Not In The Room'> {
-    const roomIndex = await this.getRoomIndexByName(roomName);
+  ): Promise<RoomUserDto> {
+    const roomIndex : number = await this.getRoomIndexByName(roomName);
     let roomUsersList: RoomUserDto = {
       roomName: roomName,
       users: [],
@@ -648,8 +660,8 @@ export class RoomService {
   }
 
   async getRoomByUserSocketId(socketId: User['socketId']): Promise<Room[]> {
-    const filteredRooms = this.rooms.filter((room) => {
-      const found = room.users.find((user) => user.socketId === socketId);
+    const filteredRooms : Room[] = this.rooms.filter((room) => {
+      const found : User = room.users.find((user) => user.socketId === socketId);
       if (found) {
         return found;
       }
@@ -659,7 +671,7 @@ export class RoomService {
 
   // //automatically reconnect to old chat
   async getRoomWithUserByUserID(userId: UserDto['userId']): Promise<string[]> {
-    const roomList = this.rooms;
+    const roomList : Room[] = this.rooms;
     const userRooms: string[] = [];
     roomList.forEach((element) => {
       if (element.users.length !== 0)

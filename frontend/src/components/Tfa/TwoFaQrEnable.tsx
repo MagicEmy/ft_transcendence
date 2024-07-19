@@ -118,7 +118,7 @@ export const TwoFaEnable = () => {
 			}
 		}
 	};
-	console.log('tfaEnable', tfaEnable, 'tfaStatus', tfaStatus)
+
 	return (
 		<div className="settings-container">
 			<div className="item">
@@ -132,7 +132,7 @@ export const TwoFaEnable = () => {
 						onClick={tfaStatus ? handleDisable2FA : handleClick2FA}
 					>
 						<i className="bi bi-qr-code-scan fs-1"></i>
-						<h4>{tfaStatus ? "Disable" : "Enable"} 2FA</h4>
+						<h6>{tfaStatus ? "Disable" : "Enable"} 2FA</h6>
 					</button>
 					{qrCodeUrl && (
 						<div className="qr-container">

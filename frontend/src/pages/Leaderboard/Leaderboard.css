@@ -1,40 +1,10 @@
 
-html, body {
-    box-sizing: border-box;
-    overflow-y: auto;
-    scroll-behavior: smooth;
-}
-
-html::-webkit-scrollbar {
-    width: 8px;
-    height: 100%;
-  }
-
-/* .main::-webkit-scrollbar-thumb, */
-html::-webkit-scrollbar-thumb {
-    background-color: #0a04ad;
-    border-radius: 30px;
-  }
-
-/* .main::-webkit-scrollbar-track, */
-html::-webkit-scrollbar-track {
-    background: #dee5f4;
-    border-radius: 30px;
-  }
-
-/* .main, */
-html {
-    scrollbar-width: thin;
-    scrollbar-color: #FCC30A #0a04ad;
-  }
 #main {
 	display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     height: auto;
-    overflow-y: auto;
-    scroll-behavior: smooth;
 }
 
 
@@ -55,7 +25,6 @@ html {
 	border-radius: 30px;
     margin-top: 3em;
 	padding: 100px;
-	overflow-y: auto;
 	margin-bottom: 20em;
 	background-color: #dee5f4;
     box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);

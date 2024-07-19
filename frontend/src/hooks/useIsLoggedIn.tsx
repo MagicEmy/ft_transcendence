@@ -4,6 +4,7 @@ import { JWT_CHECK } from '../utils/constants';
 export const useIsLoggedIn = () => {
   const [isLoggedin, setIsLoggedin] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -15,6 +16,7 @@ export const useIsLoggedIn = () => {
         if (!response.ok) {
           setError(`Error: ${response.status}`);
           setIsLoggedin(false);
+          setLoading(false); // Update this line
           return;
         }
         const isJwtValid = await response.json();
@@ -23,43 +25,12 @@ export const useIsLoggedIn = () => {
         console.error("Error fetching Jwt-check: ", error);
         setError("Error fetching Jwt-check");
         setIsLoggedin(false);
+      } finally {
+        setLoading(false); // Ensure loading is set to false in both success and error cases
       }
     };
     fetchUser();
   }, []);
 
-  return { isLoggedin, error };
+  return { isLoggedin, loading, error };
 };
-
-// import { useState, useEffect } from 'react';
-// import { USER } from '../utils/constants';
-
-// export const useIsLoggedIn = () => {
-//   const [isLoggedin, setIsLoggedin] = useState<boolean>();
-//   const [, setError] = useState<string>();
-
-//   useEffect(() => {
-//     const fetchUser = async () => {
-//       try {
-//         const response = await fetch(USER, {
-//           method: "GET",
-//           credentials: "include",
-//         });
-//         if (!response.ok) {
-// 			setError(`Error: ${response.status}`);
-// 			return;
-// 		  }
-//         const profile = await response.json();
-//         if (profile.userId) setIsLoggedin(true);
-//       } catch (error) {
-//         console.error("Error fetching user data: error caught: ", error);
-//       }
-//     };
-// 	fetchUser();
-//   }, []);
-
-//   return { isLoggedin };
-
-// };
-
-

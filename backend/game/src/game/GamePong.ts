@@ -163,6 +163,7 @@ export class GamePong
 			{
 				posX:	this.ball.posX,
 				posY:	this.ball.posY,
+				posZ:	0,
 				size:	this.ball.rad * 2,
 			};
 			return (Bally);
