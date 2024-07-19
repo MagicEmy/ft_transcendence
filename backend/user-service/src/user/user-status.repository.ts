@@ -25,6 +25,7 @@ export class UserStatusRepository extends Repository<UserStatus> {
       userStatusRepository.queryRunner,
     );
   }
+
   async createStatusEntry(userStatusDto: UserStatusDto): Promise<UserStatus> {
     const status: UserStatus = this.create({
       user_id: userStatusDto.userId,
@@ -33,17 +34,16 @@ export class UserStatusRepository extends Repository<UserStatus> {
     try {
       await this.save(status);
     } catch (error) {
-      if (error.code !== '23505') {
+      if (error.code === '23503') {
+        // '23503' means query error (constraint violation)
+        this.logger.debug(`Query error`, error);
+      } else if (error.code !== '23505') {
         // '23505' means duplicate entry
         this.logger.error(
           `Error when adding status of user ${userStatusDto.userId}`,
           error,
         );
-        throw new RpcException(
-          new InternalServerErrorException(
-            error.driverError + '; ' + error.detail, // to be tested
-          ),
-        );
+        throw new RpcException(new InternalServerErrorException());
       }
     }
     return status;
@@ -53,7 +53,7 @@ export class UserStatusRepository extends Repository<UserStatus> {
     statusChangeDto: StatusChangeDto,
   ): Promise<UserStatus> {
     const { userId, oldStatus, newStatus } = statusChangeDto;
-    const statusEntry = await this.findOneBy({ user_id: userId });
+    let statusEntry = await this.findOneBy({ user_id: userId });
     if (statusEntry) {
       if (
         statusEntry.status === UserStatusEnum.OFFLINE &&
@@ -64,22 +64,29 @@ export class UserStatusRepository extends Repository<UserStatus> {
       }
       statusEntry.status = newStatus;
       try {
-        return this.save(statusEntry);
+        this.save(statusEntry);
+        return statusEntry;
       } catch (error) {
         this.logger.error(
           `Error when saving changed status of user ${statusChangeDto.userId}`,
         );
         throw new RpcException(
           new InternalServerErrorException(
-            error.driverError + '; ' + error.detail,	// to be tested
+            error.driverError + '; ' + error.detail, // to be tested
           ),
         );
       }
     } else {
       // create status
       try {
-        this.createStatusEntry({ userId, status: newStatus });
+        statusEntry = await this.createStatusEntry({
+          userId,
+          status: newStatus,
+        });
+        return statusEntry;
       } catch (error) {
+        // handle constraint error if user does not exist and foreign key constraint is violated
+        this.logger.error(`[changeUserStatus] caught error: `, error);
         throw new RpcException(
           new NotFoundException(`User with ID "${userId}" not found`),
         );
