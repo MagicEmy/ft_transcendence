@@ -16,7 +16,6 @@ import { TokensDto } from './dto/tokens-dto';
 import { Token } from 'src/user/token-entity';
 import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
 import { CookieTokenDto } from './dto/cookie-token-dto';
-import { CookieAndCookieNameDto } from './dto/cookie-and-cookie-name-dto';
 import { UserIdNameLoginDto } from 'src/user/dto/user-id-name-login-dto';
 import { TwoFactorAuthService } from 'src/tfa/two-factor-auth.service';
 import { Response } from 'express';
@@ -68,7 +67,7 @@ export class AuthService {
           error,
         );
         try {
-          this.userService.deleteUser(user.user_id); // this one also throws an error
+          this.userService.deleteUser(user.user_id);
         } catch (e) {
           this.logger.error(`Error deleting user ${intraLogin}`, e);
         }
@@ -193,22 +192,6 @@ export class AuthService {
     } catch (error) {
       throw error;
     }
-  }
-
-  extractTokenFromCookies(cookieAndCookieName: CookieAndCookieNameDto): string {
-    let tokenValue = '';
-    if (cookieAndCookieName.cookie) {
-      cookieAndCookieName.cookie
-        .toString()
-        .split(';')
-        .forEach((cookie) => {
-          const [name, value] = cookie.trim().split('=');
-          if (name === cookieAndCookieName.cookieName) {
-            tokenValue = value;
-          }
-        });
-    }
-    return tokenValue;
   }
 
   addCookiesToResponse(resp: Response, user: User): Response {

@@ -13,6 +13,7 @@ import { RpcException } from '@nestjs/microservices';
 import { readFile } from 'fs';
 import { lookup } from 'mime-types';
 import { AvatarDto } from './dto/avatar-dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
@@ -25,6 +26,7 @@ export class UserService {
     private avatarRepository: AvatarRepository,
     @InjectRepository(TokenRepository)
     private tokenRepository: TokenRepository,
+    private readonly configService: ConfigService,
   ) {}
 
   // User
@@ -51,7 +53,9 @@ export class UserService {
     });
     if (!token) {
       this.logger.log(`Refresh token does not exist in the database`);
-      throw new RpcException(new NotFoundException(`Refresh token not found`));
+      throw new RpcException(
+        new NotFoundException(`Refresh token does not exist in the database`),
+      );
     }
     return this.userRepository.findOneBy({ user_id: token.user_id });
   }
@@ -83,7 +87,7 @@ export class UserService {
   }
 
   async getDefaultAvatar(userId: string): Promise<AvatarDto> {
-    const path = 'src/user/images/defaultAvatar.png';
+    const path = this.configService.get('DEFAULT_AVATAR_PATH');
     return new Promise((resolve, reject) => {
       readFile(path, (err, data) => {
         if (err) {

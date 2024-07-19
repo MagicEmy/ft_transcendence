@@ -1,6 +1,7 @@
 import {
   ExecutionContext,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -14,11 +15,14 @@ import {
   lastValueFrom,
   map,
   switchMap,
+  tap,
   throwError,
 } from 'rxjs';
+import { getCookieWithTokens, extractTokenFromCookies } from '../utils/cookie-utils';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
+  private logger: Logger = new Logger(JwtAuthGuard.name);
   constructor(
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
@@ -34,44 +38,38 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     } catch (error) {
       if (error instanceof TokenExpiredError) {
         // verify whether the refresh token exists in the database
-        let refreshToken: string;
-        const userDB = await lastValueFrom(
-          this.authService
-            .extractTokenFromCookies({
-              cookie: req.get('cookie'),
-              cookieName: this.configService.get(
-                'JWT_REFRESH_TOKEN_COOKIE_NAME',
-              ),
-            })
-            .pipe(
-              switchMap((token) => {
-                refreshToken = token;
-                return this.authService
-                  .getUserByRefreshToken(token)
-                  .pipe(
-                    catchError((error) =>
-                      throwError(() => new UnauthorizedException()),
-                    ),
-                  );
-              }),
-            ),
-        );
+        const refreshToken: string = extractTokenFromCookies({
+			cookie: req.get('cookie'),
+			cookieName: this.configService.get(
+			  'JWT_REFRESH_TOKEN_COOKIE_NAME',
+			),
+		  });
+		const userDB = await lastValueFrom(this.authService
+		.getUserByRefreshToken(refreshToken)
+		.pipe(
+			catchError((err) => {
+				this.logger.error(`User not recognized`);
+				return throwError(() => new UnauthorizedException(`User not recognized`));
+			}
+			),
+		));
         if (!userDB || !refreshToken) {
           // token is missing, invalid, expired, has been destroyed or does not exist in the DB
-          throw new UnauthorizedException();
+          this.logger.error(`Refresh token not recognized`);
+          throw new UnauthorizedException(`Refresh token not recognized`);
         } else {
           try {
             this.authService.validateRefreshToken(
               refreshToken,
               this.configService.get('JWT_REFRESH_SECRET'),
             );
-          } catch (error) {
-            console.log('caught', error);
-            throw new UnauthorizedException();
+          } catch (err) {
+            this.logger.error(`Invalid refresh token`, err);
+            throw new UnauthorizedException(`Invalid refresh token`);
           }
           await new Promise((sleep) => setTimeout(sleep, 150));
           // generate new set of tokens and put them in the response
-          const result = this.authService
+          const result = await lastValueFrom(this.authService
             .generateJwtTokens({
               sub: userDB.userId,
               userName: userDB.userName,
@@ -81,7 +79,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
               switchMap((tokens) => {
                 // put the newly generated tokens in the Request cookies
                 req.headers.cookie = `${this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME')}=${tokens.jwtAccessToken}; ${this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME')}=${tokens.jwtRefreshToken}`;
-                const accessCookie = this.authService.getCookieWithTokens({
+                // create new cookies to be put in the Response
+                const accessCookie = getCookieWithTokens({
                   cookieName: this.configService.get(
                     'JWT_ACCESS_TOKEN_COOKIE_NAME',
                   ),
@@ -90,8 +89,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
                     'JWT_ACCESS_EXPIRATION_TIME',
                   ),
                 });
-                //   create new cookies to be put in the Response
-                const refreshCookie = this.authService.getCookieWithTokens({
+                const refreshCookie = getCookieWithTokens({
                   cookieName: this.configService.get(
                     'JWT_REFRESH_TOKEN_COOKIE_NAME',
                   ),
@@ -107,11 +105,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
                 resp.setHeader('Set-Cookie', [accessCookie, refreshCookie]);
                 return true;
               }),
-            );
-          return lastValueFrom(result);
+            ));
+          return result;
         }
       } else {
-        throw new UnauthorizedException();
+        this.logger.error(`Authorization error:`, error);
+        throw new UnauthorizedException(`Authorization error:`);
       }
     }
     return true;

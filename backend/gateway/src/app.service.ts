@@ -1,4 +1,4 @@
-import { Inject, Injectable, UseFilters } from '@nestjs/common';
+import { Inject, Injectable, Logger, UseFilters } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {
   Observable,
@@ -33,6 +33,7 @@ import { Opponent } from './enum/opponent.enum';
 
 @Injectable()
 export class AppService {
+	private logger: Logger = new Logger(AppService.name);
   constructor(
     @Inject('GameService') private readonly gameService: ClientProxy,
     @Inject('UserService') private readonly userService: ClientProxy,
@@ -44,16 +45,13 @@ export class AppService {
   getGamesAgainst(userIdOpponentDto: UserIdOpponentDto) {
     const pattern = 'getGamesAgainst';
     const payload: UserIdOpponentDto = userIdOpponentDto;
-    return this.statsService
-      .send<GameStatsDto>(pattern, payload)
-      .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+    return this.statsService.send<GameStatsDto>(pattern, payload).pipe(
+      catchError((error) =>
+        throwError(
+          () => new RpcException(error.response || error || 'An unknown error occurred'),
         ),
-      );
+      ),
+    );
   }
 
   getUserIdNameStatus(userId: string): Observable<UserIdNameStatusDto> {
@@ -62,11 +60,13 @@ export class AppService {
     return this.userService
       .send<UserIdNameStatusDto>(pattern, payload)
       .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+        catchError((error) => {
+			this.logger.error('Caught: ', error, typeof(error));
+			return throwError(
+				() =>
+					new RpcException(error.response || error || 'An unknown error occurred'),
+			);
+		}
         ),
       );
   }
@@ -104,11 +104,13 @@ export class AppService {
     return this.statsService
       .send<PositionTotalPointsDto>(pattern, payload)
       .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+        catchError((error) => {
+			this.logger.error('Caught: ', error, typeof(error));
+			return throwError(
+				() =>
+					new RpcException(error.response || error || 'An unknown error occurred'),
+			);
+		}
         ),
       );
   }
@@ -124,11 +126,13 @@ export class AppService {
     return this.userService
       .send<string>(pattern, payload)
       .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+        catchError((error) => {
+			this.logger.error('Caught: ', error, typeof(error));
+			return throwError(
+				() =>
+					new RpcException(error.response || error || 'An unknown error occurred'),
+			);
+		}
         ),
       );
   }
@@ -139,11 +143,13 @@ export class AppService {
     return this.userService
       .send(pattern, payload)
       .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+        catchError((error) => {
+			this.logger.error('Caught: ', error, typeof(error));
+			return throwError(
+				() =>
+					new RpcException(error.response || error || 'An unknown error occurred'),
+			);
+		}
         ),
       );
   }
@@ -154,11 +160,13 @@ export class AppService {
     return this.userService
       .send<string>(pattern, payload)
       .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+        catchError((error) => {
+			this.logger.error('Caught: ', error, typeof(error));
+			return throwError(
+				() =>
+					new RpcException(error.response || error || 'An unknown error occurred'),
+			);
+		}
         ),
       );
   }
@@ -169,11 +177,13 @@ export class AppService {
     return this.userService
       .send<string[]>(pattern, payload)
       .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+        catchError((error) => {
+			this.logger.error('Caught: ', error, typeof(error));
+			return throwError(
+				() =>
+					new RpcException(error.response || error || 'An unknown error occurred'),
+			);
+		}
         ),
       );
   }
@@ -184,11 +194,13 @@ export class AppService {
     return this.userService
       .send<number>(pattern, payload)
       .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+        catchError((error) => {
+			this.logger.error('Caught: ', error, typeof(error));
+			return throwError(
+				() =>
+					new RpcException(error.response || error || 'An unknown error occurred'),
+			);
+		}
         ),
       );
   }
@@ -201,7 +213,7 @@ export class AppService {
     return this.gameService.send<GameHistoryDto[]>(pattern, payload).pipe(
       catchError((error) =>
         throwError(
-          () => new RpcException(error.response || 'An unknown error occurred'),
+          () => new RpcException(error.response || error || 'An unknown error occurred'),
         ),
       ),
       mergeMap((games: GameHistoryDto[]) => {
@@ -266,11 +278,13 @@ export class AppService {
     return this.userService
       .send<string>(pattern, payload)
       .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+        catchError((error) => {
+			this.logger.error('Caught: ', error, typeof(error));
+			return throwError(
+				() =>
+					new RpcException(error.response || error || 'An unknown error occurred'),
+			);
+		}
         ),
       );
   }
@@ -281,11 +295,13 @@ export class AppService {
     return this.userService
       .send<string>(pattern, payload)
       .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+        catchError((error) => {
+			this.logger.error('Caught: ', error, typeof(error));
+			return throwError(
+				() =>
+					new RpcException(error.response || error || 'An unknown error occurred'),
+			);
+		}
         ),
       );
   }
@@ -311,11 +327,13 @@ export class AppService {
     return this.userService
       .send<string[]>(pattern, payload)
       .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+        catchError((error) => {
+			this.logger.error('Caught: ', error, typeof(error));
+			return throwError(
+				() =>
+					new RpcException(error.response || error || 'An unknown error occurred'),
+			);
+		}
         ),
       );
   }
@@ -328,11 +346,13 @@ export class AppService {
     return this.userService
       .send<string>(pattern, payload)
       .pipe(
-        catchError((error) =>
-          throwError(
-            () =>
-              new RpcException(error.response || 'An unknown error occurred'),
-          ),
+        catchError((error) => {
+			this.logger.error('Caught: ', error, typeof(error));
+			return throwError(
+				() =>
+					new RpcException(error.response || error || 'An unknown error occurred'),
+			);
+		}
         ),
       );
   }
@@ -343,7 +363,7 @@ export class AppService {
     return this.userService.send(pattern, payload).pipe(
       catchError((error) =>
         throwError(
-          () => new RpcException(error.response || 'An unknown error occurred'),
+          () => new RpcException(error.response || error || 'An unknown error occurred'),
         ),
       ),
       map((response) => {

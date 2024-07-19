@@ -218,6 +218,8 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
+    depends_on:
+      - profile_db
 
 # kafka
   kafdrop:
@@ -230,6 +232,7 @@ services:
       - backend
     environment:
       KAFKA_BROKERCONNECT: "kafka:29092"
+      JVM_OPTS: "-Dlogging.level.root=WARN -Dlogging.level.org.springframework=WARN -Dlogging.level.com.obsidiandynamics=WARN"
     depends_on:
       kafka:
         condition: service_healthy

@@ -6,9 +6,11 @@ import { RpcException } from '@nestjs/microservices';
 import {
   BadRequestException,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 
 export class FriendshipRepository extends Repository<Friendship> {
+  private logger: Logger = new Logger(FriendshipRepository.name);
   constructor(
     @InjectRepository(Friendship)
     private friendshipRepository: Repository<Friendship>,
@@ -30,11 +32,19 @@ export class FriendshipRepository extends Repository<Friendship> {
     } catch (error) {
       if (error.code === '23503') {
         // '23503' means query error (constraint violation)
+        this.logger.error(
+          `Query error concerning friendship between users ${friendshipDto.userId} and ${friendshipDto.friendId}\n`,
+          error,
+        );
         throw new RpcException(
-          new BadRequestException(error.driverError + '; ' + error.detail),
+          new BadRequestException(error.driverError + '; ' + error.detail), // possibly use this everywhere?
         );
       } else if (error.code !== '23505') {
         // '23505' means duplicate entry
+        this.logger.error(
+          `Error saving friendship between users ${friendshipDto.userId} and ${friendshipDto.friendId}\n`,
+          error,
+        );
         throw new RpcException(
           new InternalServerErrorException(
             error.driverError + '; ' + error.detail,
@@ -65,7 +75,15 @@ export class FriendshipRepository extends Repository<Friendship> {
         .andWhere('user_id = :user_id', { user_id: friendshipDto.userId })
         .execute();
     } catch (error) {
-      throw new RpcException(new InternalServerErrorException());
+      this.logger.error(
+        `Error removing friendship between users ${friendshipDto.userId} and ${friendshipDto.friendId}\n`,
+        error,
+      );
+      throw new RpcException(
+        new InternalServerErrorException(
+          `Error removing friendship between users ${friendshipDto.userId} and ${friendshipDto.friendId}`,
+        ),
+      );
     }
     return friendshipDto;
   }

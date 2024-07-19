@@ -25,7 +25,6 @@ export class StatusGateway implements OnGatewayConnection, OnGatewayDisconnect {
         ? socket.handshake.query.userIdContext
         : socket.handshake.query.userIdContext[0];
     if (!userId) {
-      this.logger.warn(`Socket ${socket.id} came without a userId`);
       socket.disconnect();
       return;
     }
