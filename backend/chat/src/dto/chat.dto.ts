@@ -1,8 +1,8 @@
-import { IsNotEmpty, IsString, IsBoolean, IsInt } from 'class-validator';
+import { IsNotEmpty, IsString, IsBoolean, IsInt, IsUUID } from 'class-validator';
 
 export class UserDto {
   @IsNotEmpty()
-  @IsString()
+  @IsUUID(4)
   userId: string;
   @IsNotEmpty()
   @IsString()
@@ -66,7 +66,7 @@ export class ToDoUserRoomDto {
   @IsNotEmpty()
   user: UserDto;
   @IsNotEmpty()
-  @IsString()
+  @IsUUID(4)
   toDoUser: string;
   @IsInt()
   @IsNotEmpty()
