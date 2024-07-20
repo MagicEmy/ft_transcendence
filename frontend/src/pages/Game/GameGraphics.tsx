@@ -210,6 +210,8 @@ class GameGraphics
 		}
 	}
 
+//retro
+
 	private RenderCanvasPongRetro(msg: any): void
 	{
 		this.AddPaddleRetro(msg.Player1);
@@ -242,52 +244,115 @@ class GameGraphics
 		this.CnvsContext.fill();
 	}
 
+//modern
+
 	private RenderCanvasPongModern(msg: any): void
 	{
 		this.RenderPongModernBackDrop();
-		this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Player2.posX, msg.Player2.posY, msg.Player2.height / 2), "red");
-		if (msg.Ball !== null && msg.Ball.posX > 0.5)
-			this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.size * 2), "yellow");
-		this.RenderPongModernNet(this.RenderPongModernCalculateEntity(0.5, 0.1, 1));
-		if (msg.Ball !== null && msg?.Ball.posX <= 0.5)
-			this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.size * 2), "yellow");
-		this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Player1.posX, msg.Player1.posY, msg.Player1.height / 2), "red");
+		this.RenderPongModernEntity(msg.Player2.posX, msg.Player2.posY, 1, msg.Player2.height / 2, "red");
 		if (msg.Ball !== null)
-			this.RenderPongModernEntity(this.RenderPongModernCalculateEntity(msg.Ball.posZ, 0.1, msg.Ball.size * 2), "orange");
+		{
+			this.RenderPongModernEntity(msg.Ball.posX, msg.Ball.posY, 0, msg.Ball.size * 2, "black");
+			if (msg.Ball.posX > 0.5)
+				this.RenderPongModernEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.posZ, msg.Ball.size * 2, "yellow");
+		}
+		this.RenderPongModernNet(0.5, "grey");
+		if (msg.Ball !== null && msg?.Ball.posX <= 0.5)
+			this.RenderPongModernEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.posZ, msg.Ball.size * 2, "yellow");
+		this.RenderPongModernEntity(msg.Player1.posX, msg.Player1.posY, 1 - msg.Player1.height, msg.Player1.height / 2, "red");
 	}
 
 	private RenderPongModernBackDrop()
 	{
-		this.CnvsContext.fillStyle = "blue";
-		this.CnvsContext.fillRect(0, 0, this.CnvsElement.width, this.CnvsElement.height * 0.34);
+		let posXY: {posX: number, posY: number};
+
+		// Background
+		this.fillContext(this.CnvsElement, this.CnvsContext, "black");
+
+		// Table outline
+		this.CnvsContext.fillStyle = "white";
+		this.CnvsContext.beginPath();
+		posXY = this.GetXY(1, 1, 0);
+		this.CnvsContext.moveTo(posXY.posX, posXY.posY);
+		posXY = this.GetXY(1, 0, 0);
+		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
+		posXY = this.GetXY(0, 0, 0);
+		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
+		posXY = this.GetXY(0, 1, 0);
+		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
+		posXY = this.GetXY(1, 1, 0);
+		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
+		this.CnvsContext.fill();
+		this.CnvsContext.closePath();
+
+		// Table Color
 		this.CnvsContext.fillStyle = "green";
-		this.CnvsContext.fillRect(0, this.CnvsElement.height * 0.33, this.CnvsElement.width, this.CnvsElement.height * 0.67);
+		this.CnvsContext.beginPath();
+		posXY = this.GetXY(22/23, 22/23, 0);
+		this.CnvsContext.moveTo(posXY.posX, posXY.posY);
+		posXY = this.GetXY(22/23, 1/23, 0);
+		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
+		posXY = this.GetXY(1/23, 1/23, 0);
+		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
+		posXY = this.GetXY(1/23, 22/23, 0);
+		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
+		this.CnvsContext.fill();
+		this.CnvsContext.closePath();
 	}
-
-	private RenderPongModernNet(net: {posX: number, posY: number, size: number}): void
+	
+	private RenderPongModernNet(height: number, color: string)
 	{
-		this.CnvsContext.fillStyle = "black";
-		this.CnvsContext.fillRect(net.posX, net.posY, net.size, this.CnvsElement.height * 0.10);
-	}
+		let posXY: {posX: number, posY: number};
 
-	private RenderPongModernEntity(enitity: {posX: number, posY: number, size: number}, color: string)
-	{
 		this.CnvsContext.fillStyle = color;
 		this.CnvsContext.beginPath();
-		this.CnvsContext.arc(enitity.posX, enitity.posY, enitity.size, 0, Math.PI * 2);
+		posXY = this.GetXY(height, 0, 0.5);
+		this.CnvsContext.moveTo(posXY.posX, posXY.posY);
+		posXY = this.GetXY(height, 1, 0.5);
+		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
+		posXY = this.GetXY(height, 1, 0);
+		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
+		posXY = this.GetXY(height, 0, 0);
+		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
+		this.CnvsContext.fill();
+		this.CnvsContext.closePath();
+	}
+
+	private RenderPongModernEntity(posX: number, posY: number, posZ: number, size: number, color: string)
+	{
+		let posXYsize: {posX: number, posY: number, size?: number};
+
+		posXYsize = this.GetXY(posX, posY, posZ, size);
+
+		this.CnvsContext.fillStyle = color;
+		this.CnvsContext.beginPath();
+		this.CnvsContext.arc(posXYsize.posX, posXYsize.posY, posXYsize.size, 0, Math.PI * 2);
 		this.CnvsContext.fill();
 	}
 
-	private RenderPongModernCalculateEntity(sourceX: number, sourceY: number, sourceSize: number)
+	private GetXY(posX: number, posY: number, posZ: number, size?: number): {posX: number, posY: number, size?: number}
 	{
-		let scale: number = Math.pow((1 - sourceX), 2);
-		// let size: number = scale * sourceSize * this.CnvsElement.width;
+		const angle: {hor: number, verUp: number, verDown: number} = {hor: 0.4 * Math.PI, verUp: 0.25 * Math.PI, verDown: 0.35 * Math.PI};
+		const cam: {posX: number, posY: number} = {posX: -1, posY: 3};
 
-		let size: number = sourceSize * this.CnvsElement.width * (1 - sourceX * 0.8);
-		let posX: number = sourceY * this.CnvsElement.width;
-		let posY: number = (-0.61269 * sourceX + 0.95634) * this.CnvsElement.height;
+		const fieldWidth: number = 2 * (posX - cam.posX) * Math.tan(angle.hor / 2);
+		const fieldHeightUp: number = (posX - cam.posX) * Math.tan(angle.verUp);
+		const fieldHeightDown: number = (posX - cam.posX) * Math.tan(angle.verDown);
 
-		return ({posX, posY, size});
+		let frameX: number = ((fieldWidth - 1) / 2 + (posY)) / fieldWidth;
+		let frameY: number;
+		if (posZ > cam.posY)
+			frameY = posZ;
+		else
+			frameY = fieldHeightUp + (cam.posY - posZ) / fieldHeightDown;
+		frameY /= (fieldHeightUp + fieldHeightDown);
+
+		if (!size)
+			size = 0;
+
+		return {posX: frameX * this.CnvsElement.width, 
+			posY: frameY * this.CnvsElement.height,
+			size: size / fieldWidth * this.CnvsElement.width};
 	}
 
 	/* ************************************************************************** *\
