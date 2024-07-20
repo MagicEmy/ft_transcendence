@@ -1,9 +1,8 @@
 export enum UserStatusEnum {
-  CHAT_ONLINE = 'chatting',
-  CHAT_OFFLINE = 'chat_offline',
-  ONLINE = 'online',
+  CHAT = 'chatting',
   GAME = 'playing',
   OFFLINE = 'offline',
+  ONLINE = 'online',
 }
 
 export enum KafkaTopic {

@@ -26,10 +26,6 @@ export class AuthController {
   @UseGuards(FourtyTwoAuthGuard)
   @Get('42/redirect')
   async handleRedirect(@Req() req, @Res() resp: Response): Promise<void> {
-    resp.cookie('userId', req.user.user_id, {
-      httpOnly: true,
-      secure: true,
-    });
     if (await this.authService.isTfaEnabled(req.user.user_id)) {
       // redirect for TFA
       return resp.redirect(302, this.configService.get('2FA_URL'));

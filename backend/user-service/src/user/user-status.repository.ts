@@ -10,7 +10,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserStatusDto } from './dto/user-status-dto';
 import { RpcException } from '@nestjs/microservices';
 import { StatusChangeDto } from './dto/status-change-dto';
-import { UserStatusEnum } from './enum/kafka.enum';
 
 @Injectable()
 export class UserStatusRepository extends Repository<UserStatus> {
@@ -52,19 +51,13 @@ export class UserStatusRepository extends Repository<UserStatus> {
   async changeUserStatus(
     statusChangeDto: StatusChangeDto,
   ): Promise<UserStatus> {
-    const { userId, oldStatus, newStatus } = statusChangeDto;
+    const { userId, newStatus } = statusChangeDto;
     let statusEntry = await this.findOneBy({ user_id: userId });
     if (statusEntry) {
-      if (
-        statusEntry.status === UserStatusEnum.OFFLINE &&
-        (oldStatus === UserStatusEnum.CHAT_ONLINE ||
-          oldStatus === UserStatusEnum.GAME)
-      ) {
-        return statusEntry;
-      }
       statusEntry.status = newStatus;
       try {
         this.save(statusEntry);
+        this.logger.log(`Status of user ${userId} changed to ${newStatus}`);
         return statusEntry;
       } catch (error) {
         this.logger.error(
@@ -83,6 +76,7 @@ export class UserStatusRepository extends Repository<UserStatus> {
           userId,
           status: newStatus,
         });
+        this.logger.log(`Status of user ${userId} added as ${newStatus}`);
         return statusEntry;
       } catch (error) {
         // handle constraint error if user does not exist and foreign key constraint is violated

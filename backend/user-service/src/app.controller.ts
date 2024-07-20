@@ -1,18 +1,13 @@
 import { Controller } from '@nestjs/common';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
-import {
-  GameStatus,
-  KafkaTopic,
-  PlayerInfo,
-  UserStatusEnum,
-} from './user/enum/kafka.enum';
+import { KafkaTopic, PlayerInfo, UserStatusEnum } from './user/enum/kafka.enum';
 import { UserService } from './user/user.service';
 import { Observable, of } from 'rxjs';
 import { UserStatus } from './user/user-status.entity';
 import { UserIdNameDto } from './user/dto/user-id-name-dto';
 import { UserIdNameLoginDto } from './user/dto/user-id-name-login-dto';
 import { UserIdNameStatusDto } from './user/dto/user-id-name-status-dto';
-import { IGameStatus, IPlayerInfo } from './user/interface/kafka.interface';
+import { IPlayerInfo } from './user/interface/kafka.interface';
 import { AvatarDto } from './avatar/avatar-dto';
 import { FriendshipDto } from './friend/dto/friendship-dto';
 import { FriendService } from './friend/friend.service';
@@ -42,8 +37,7 @@ export class AppController {
       };
       // change status to 'gaming'
       this.userService.changeUserStatus({
-        userId: data.playerId,
-        oldStatus: UserStatusEnum.ONLINE,
+        userId: data.playerID,
         newStatus: UserStatusEnum.GAME,
       });
       return of(player);
@@ -52,25 +46,22 @@ export class AppController {
     }
   }
 
-  @EventPattern(GameStatus.TOPIC) // CHECKED
-  handleGameEnd(data: IGameStatus): void {
-    this.userService.changeUserStatus({
-      userId: data.player1ID,
-      oldStatus: UserStatusEnum.GAME,
-      newStatus: UserStatusEnum.ONLINE,
-    });
-    if (data.player2ID) {
-      this.userService.changeUserStatus({
-        userId: data.player2ID,
-        oldStatus: UserStatusEnum.GAME,
-        newStatus: UserStatusEnum.ONLINE,
-      });
-    }
-  }
+  //   @EventPattern(GameStatus.TOPIC) // CHECKED
+  //   handleGameEnd(data: IGameStatus): void {
+  //     this.userService.changeUserStatus({
+  //       userId: data.player1ID,
+  //       newStatus: UserStatusEnum.ONLINE,
+  //     });
+  //     if (data.player2ID) {
+  //       this.userService.changeUserStatus({
+  //         userId: data.player2ID,
+  //         newStatus: UserStatusEnum.ONLINE,
+  //       });
+  //     }
+  //   }
 
   @EventPattern(KafkaTopic.STATUS_CHANGE) // CHECKED
   updateUserStatus(data: StatusChangeDto): void {
-    // more logic needs to come here!
     this.userService.changeUserStatus(data);
   }
 

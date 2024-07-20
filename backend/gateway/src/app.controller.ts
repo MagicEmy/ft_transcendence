@@ -50,6 +50,7 @@ import { UploadFileDto } from './dto/upload-file-dto';
 import { Opponent } from './enum/opponent.enum';
 import { GameHistoryDto } from './dto/game-history-dto';
 import { extractTokenFromCookies } from './utils/cookie-utils';
+import { GetUserId } from './utils/get-user-id.decorator';
 
 @UseFilters()
 @Controller()
@@ -59,6 +60,7 @@ export class AppController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
+// DASHBOARD & SETTINGS - add something for status - TBD
 
   // AUTH
 
@@ -76,6 +78,7 @@ export class AppController {
     }
     resp.clearCookie(this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'));
     resp.clearCookie(this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'));
+    resp.clearCookie('userId');
     resp.sendStatus(200);
   }
 
@@ -98,9 +101,15 @@ export class AppController {
   @ApiTags('profile')
   @UseGuards(JwtAuthGuard)
   @Get('/profile/:id')
-  getProfile(
+  async getProfile(
     @Param('id', ParseUUIDPipe) userId: string,
-  ): Observable<ProfileDto> {
+  ): Promise<Observable<ProfileDto>> {
+	try {
+		await this.appService.checkAndUpdateStatus(userId);
+	} catch (error) {
+		// under construction: handle error
+		console.log(`status check threw error: `, error);
+	}
     return forkJoin({
       userInfo: this.appService.getUserIdNameStatus(userId),
       leaderboard: this.appService.getLeaderboardPositionAndTotalPoints(userId),
@@ -131,8 +140,14 @@ export class AppController {
   @ApiTags('leaderboard')
   @UseGuards(JwtAuthGuard)
   @Get('/leaderboard')
-  getLeaderboard(): Observable<LeaderboardStatsDto[]> {
-    return this.appService.getLeaderboard();
+  async getLeaderboard(@GetUserId() userId: string): Promise<Observable<LeaderboardStatsDto[]>> {
+    try {
+		await this.appService.checkAndUpdateStatus(userId);
+	} catch (error) {
+		// under construction: handle error
+		console.log(`status check threw error: `, error);
+	}
+	return this.appService.getLeaderboard();
   }
 
   // GAME
