@@ -9,10 +9,10 @@ export class KafkaProducerService {
     @Inject('CHAT_SERVICE') private readonly kafkaProducerService: ClientKafka,
   ) {}
   announceStartOfPairGame(newGame: INewGame) {
-    this.kafkaProducerService.send(KafkaTopic.NEW_GAME, newGame);
+    this.kafkaProducerService.emit(KafkaTopic.NEW_GAME, newGame);
   }
 
   announceChangeOfStatus(statusChangeDto: StatusChangeDto) {
-    this.kafkaProducerService.send(KafkaTopic.STATUS_CHANGE, statusChangeDto);
+    this.kafkaProducerService.emit(KafkaTopic.STATUS_CHANGE, statusChangeDto);
   }
 }

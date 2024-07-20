@@ -61,9 +61,8 @@ export class UserRepository extends Repository<User> {
     userId: string,
     socketId: string,
     status: boolean,
-  ): Promise<StatusChangeDto> {
+  ): Promise<void> {
     const user = await this.getUserById(userId);
-    const oldStatus = user.online;
     user.socketId = socketId;
     user.online = status;
     try {
@@ -71,15 +70,6 @@ export class UserRepository extends Repository<User> {
       console.log(
         `SocketId of user ${user.userName} set to ${user.socketId} and online is ${status}.`,
       );
-      return {
-        userId: user.userId,
-        oldStatus: oldStatus
-          ? UserStatusEnum.CHAT_ONLINE
-          : UserStatusEnum.CHAT_OFFLINE,
-        newStatus: user.online
-          ? UserStatusEnum.CHAT_ONLINE
-          : UserStatusEnum.CHAT_OFFLINE,
-      };
     } catch (error) {
       console.log('ERROR in setUserSocketStatus()');
       console.log(error);

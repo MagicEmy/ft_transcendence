@@ -2,7 +2,6 @@ import { UserStatusEnum } from '../kafka.enum';
 
 export class StatusChangeDto {
   userId: string;
-  oldStatus: UserStatusEnum;
   newStatus: UserStatusEnum;
 }
 

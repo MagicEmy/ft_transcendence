@@ -28,9 +28,8 @@ import { RoomService } from 'src/room/room.service';
 import { User } from 'src/entities/user.entity';
 import { ValidationPipe, UsePipes } from '@nestjs/common';
 import { KafkaProducerService } from 'src/kafka/kafka-producer.service';
-import { GameTypes, MatchTypes } from 'src/kafka/kafka.enum';
+import { GameTypes, MatchTypes, UserStatusEnum } from 'src/kafka/kafka.enum';
 import { Room } from 'src/entities/room.entity';
-import { StatusChangeDto } from 'src/kafka/dto/kafka-dto';
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -196,6 +195,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(client.id).emit('chat', messages);
 
     this.logger.log(`${payload.user.userId} joined ${payload.roomName}`);
+    // DM: if payload.roomName === 'general' ==> status needs to change to 'chatting'
+    if (payload.roomName === 'general') {
+      this.kafkaProducerService.announceChangeOfStatus({
+        userId: payload.user.userId,
+        newStatus: UserStatusEnum.CHAT,
+      });
+    }
+
     const myRoomlist: RoomShowDto[] = await this.roomService.getMyRooms(
       payload.user.userId,
     );
@@ -720,12 +727,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     user.game = '';
     await this.disconnetOldSocket(user, socket.id);
-    const statusChange : StatusChangeDto = await this.userService.setUserSocketStatus(
-      user,
-      '',
-      false,
-    );
-    this.kafkaProducerService.announceChangeOfStatus(statusChange);
+    await this.userService.setUserSocketStatus(user, '', false);
     const users: ChatUserDto[] = await this.userService.getAllUsers();
     this.server.to('chat_users').emit('chat_users', users);
     const rooms : Room[] = await this.roomService.getRooms();

@@ -4,7 +4,7 @@ import { UserDto, ChatUserDto, BlockedUserDto } from 'src/dto/chat.dto';
 import { User } from 'src/entities/user.entity';
 import { UserRepository } from './user.repository';
 import { BlockedUserRepository } from './blocked-user.repository';
-import { StatusChangeDto, UserIdNameDto } from 'src/kafka/dto/kafka-dto';
+import { UserIdNameDto } from 'src/kafka/dto/kafka-dto';
 
 @Injectable()
 export class UserService {
@@ -81,7 +81,7 @@ export class UserService {
     user: UserDto,
     socketId: string,
     status: boolean,
-  ): Promise<StatusChangeDto> {
+  ): Promise<void> {
     return this.userRepository.setUserSocketStatus(
       user.userId,
       socketId,
