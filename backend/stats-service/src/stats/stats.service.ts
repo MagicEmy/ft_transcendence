@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -18,11 +19,12 @@ import {
 } from '../constants';
 import { GameStatsDto, TotalTimePlayedDto } from './dto/game-stats-dto';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
-import { IGameStatus } from './interface/kafka.interface';
+import { IGameStatus, IPlayerInfo } from './interface/kafka.interface';
 import { GameResult } from './enum/game-result.enum';
 import { UserIdOpponentDto } from './dto/games-against-dto';
-import { RpcException } from '@nestjs/microservices';
+import { ClientKafka, RpcException } from '@nestjs/microservices';
 import { PositionTotalPointsDto } from './dto/position-total-points-dto';
+import { PlayerInfo } from './enum/kafka.enum';
 
 @Injectable()
 export class StatsService {
@@ -30,6 +32,7 @@ export class StatsService {
   constructor(
     @InjectRepository(StatsRepository)
     private readonly statsRepository: StatsRepository,
+    @Inject('RANK_SERVICE') private rankClient: ClientKafka,
   ) {}
 
   //   Kafka-related methods
@@ -162,6 +165,10 @@ export class StatsService {
       miliseconds = miliseconds % MILISECONDS_IN_A_DAY;
     }
     return { days, miliseconds };
+  }
+
+  announcePlayerRank(playerInfo: IPlayerInfo) {
+    this.rankClient.emit(PlayerInfo.REPLY, playerInfo);
   }
 
   // Gateway-related methods

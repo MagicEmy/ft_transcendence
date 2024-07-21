@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { StatsService } from './stats/stats.service';
 import { GameStatus, KafkaTopic, PlayerInfo } from './stats/enum/kafka.enum';
-import { IGameStatus, IPlayerInfo } from './stats/interface/kafka.interface';
+import { IGameStatus } from './stats/interface/kafka.interface';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { UserIdNameLoginDto } from './stats/dto/user-id-name-login-dto';
 import { UserIdOpponentDto } from './stats/dto/games-against-dto';
@@ -31,12 +31,12 @@ export class AppController {
     }
   }
 
-  @MessagePattern(PlayerInfo.TOPIC) //CHECKED
-  async handlePlayerInfoRequest(data: any): Promise<Observable<IPlayerInfo>> {
+  @EventPattern(PlayerInfo.TOPIC) //CHECKED
+  async handlePlayerInfoRequest(data: any): Promise<void> {
     try {
       const positionAndPoints =
         await this.statsService.getPositionAndTotalPoints(data.playerID);
-      return of({
+      this.statsService.announcePlayerRank({
         playerID: data.playerID,
         playerRank: positionAndPoints.position,
       });
