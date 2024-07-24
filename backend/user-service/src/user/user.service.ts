@@ -8,11 +8,12 @@ import { UserStatusRepository } from './user-status.repository';
 import { UserStatus } from './user-status.entity';
 import { UserIdNameStatusDto } from './dto/user-id-name-status-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
-import { KafkaTopic, UserStatusEnum } from './enum/kafka.enum';
+import { KafkaTopic, PlayerInfo, UserStatusEnum } from './enum/kafka.enum';
 import { ClientKafka } from '@nestjs/microservices';
 import { AvatarRepository } from '../avatar/avatar.repository';
 import { AvatarDto } from '../avatar/avatar-dto';
 import { StatusChangeDto } from './dto/status-change-dto';
+import { IPlayerInfo } from './interface/kafka.interface';
 
 @Injectable()
 export class UserService {
@@ -79,6 +80,10 @@ export class UserService {
       }
     }
     return userName;
+  }
+
+  announcePlayerName(playerInfo: IPlayerInfo) {
+    this.usernameClient.emit(PlayerInfo.REPLY, playerInfo);
   }
 
   //   STATUS

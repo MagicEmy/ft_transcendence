@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configValidationSchema } from './config.schema';
 import { Stats } from './stats/stats.entity';
 import { User } from './stats/user.entity';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -29,6 +30,21 @@ import { User } from './stats/user.entity';
       }),
     }),
     TypeOrmModule.forFeature([Stats, User]),
+    ClientsModule.register([
+      {
+        name: 'RANK_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'rank-client',
+            brokers: ['kafka:29092'],
+          },
+          consumer: {
+            groupId: 'game-consumer',
+          },
+        },
+      },
+    ]),
   ],
   controllers: [AppController],
   providers: [StatsService, StatsRepository],

@@ -28,10 +28,10 @@ export class AppController {
     this.userService.createUserStatus(data.userId);
   }
 
-  @MessagePattern(PlayerInfo.TOPIC) //CHECKED
-  async handlePlayerInfoRequest(data: any): Promise<Observable<IPlayerInfo>> {
+  @EventPattern(PlayerInfo.TOPIC) //CHECKED
+  async handlePlayerInfoRequest(data: any): Promise<void> {
     try {
-      const player = {
+      const player: IPlayerInfo = {
         playerID: data.playerID,
         playerName: await this.userService.getUserName(data.playerID),
       };
@@ -40,7 +40,7 @@ export class AppController {
         userId: data.playerID,
         newStatus: UserStatusEnum.GAME,
       });
-      return of(player);
+      this.userService.announcePlayerName(player);
     } catch (error) {
       throw error;
     }
