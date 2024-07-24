@@ -153,7 +153,7 @@ export class AuthService {
   }
 
   getCookieWithTokens(cookieTokenDto: CookieTokenDto): string {
-    const cookie = `${cookieTokenDto.cookieName}=${cookieTokenDto.token}; Path=/; HttpOnly; Secure=true; Max-Age=${cookieTokenDto.expirationTime}`;
+    const cookie = `${cookieTokenDto.cookieName}=${cookieTokenDto.token}; Path=/; HttpOnly; Max-Age=${cookieTokenDto.expirationTime}`;
     return cookie;
   }
 
@@ -207,7 +207,7 @@ export class AuthService {
       token: tokens.jwtRefreshToken,
       expirationTime: this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
     });
-    const userIdCookie = `userId=${user.user_id}; Path=/; HttpOnly; Secure=true`;
+    const userIdCookie = `userId=${user.user_id}; Path=/; HttpOnly`;
     resp.setHeader('Set-Cookie', [accessCookie, refreshCookie, userIdCookie]);
     return resp;
   }

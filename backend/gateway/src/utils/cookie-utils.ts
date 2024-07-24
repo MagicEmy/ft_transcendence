@@ -21,6 +21,6 @@ export function extractTokenFromCookies(
 }
 
 export function getCookieWithTokens(cookieTokenDto: CookieTokenDto): Observable<string> {
-  const cookie = `${cookieTokenDto.cookieName}=${cookieTokenDto.token}; Path=/; HttpOnly; Secure=true; Max-Age=${cookieTokenDto.expirationTime}`;
-  return of(cookie);
-}
+    const cookie = `${cookieTokenDto.cookieName}=${cookieTokenDto.token}; Path=/; HttpOnly; Max-Age=${cookieTokenDto.expirationTime}`;
+    return of(cookie);
+  }
