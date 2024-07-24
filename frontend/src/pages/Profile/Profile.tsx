@@ -25,11 +25,11 @@ export const Profile = () => {
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe, userIdOrMe);
   const [ isFriend, setIsFriend] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [currentStatus, setCurrentStatus] = useState<string>('');
 
   const [ , setFriends] = useState<Friends[]>([]);
 
-  const userStatusIndicator = userStatus?.status;
-
+  const userStatusIndicator = currentStatus;
 
   useEffect(() => {
     setUserIdOrMe(userId || userIdContext);
@@ -71,6 +71,11 @@ export const Profile = () => {
     }
   }, [loggedUserFriends, userId]);
 
+  useEffect(() => {
+    if (userStatus?.status) {
+      setCurrentStatus(userStatus.status);
+    }
+  }, [userStatus]);
 
   return (
     <div className="main">
