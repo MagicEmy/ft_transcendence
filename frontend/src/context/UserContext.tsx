@@ -71,7 +71,9 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       if (userIdStorage) {
         try {
           const url = await loadProfileAvatar(userIdStorage);
-          setAvatarContext(url || null);
+		  if (url) {
+            setAvatarContext(url);
+          }
         } catch (error) {
           console.error('Error loading avatar:', error);
         }

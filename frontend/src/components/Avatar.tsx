@@ -6,9 +6,7 @@ import defaultAvatar from '../assets/defaultAvatar.png';
 
 export const Avatar = () => {
   const { avatarContext } = useContext<IUserContext>(UserContext);
-	if (!avatarContext) {
-		return  <img src={defaultAvatar} className={classes.avatarImage} alt="default avatar" />;
-	}
-	return <img src={avatarContext} className={classes.avatarImage} alt="User avatar" />;
-}
-
+  const avatarImage = avatarContext ? avatarContext : defaultAvatar;
+  
+  return <img src={avatarImage} className={classes.avatarImage} alt="User avatar" />;
+};
