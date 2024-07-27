@@ -2,6 +2,7 @@ import { GamePlayer } from "./GamePlayer";
 import { IGame } from "./IGame";
 import { PlayerInfo, IPlayerInfo, SockEventNames, ISockPongImage, ISockPongImagePlayer, ISockPongImageBall, ISockPongHudPlayer, GameTypes, IGameStatus, MatchTypes, GameStatus } from './GamePong.communication';
 import { Button, GameState, PlayerStatus } from "./GamePong.enums";
+import { GameManager } from "./NewGameManager";
 
 interface Player
 {
@@ -233,18 +234,9 @@ export class GamePong implements IGame
 	{
 		const P1: ISockPongHudPlayer = this.GetHUDDataPlayer(this.player1);
 		const P2: ISockPongHudPlayer = this.GetHUDDataPlayer(this.player2);
-		if (this.player1.player?.getClient() && 
-			this.player1.player.getClient().emit)
-		{
-			const HUD = {game: "pong", P1: P1, P2: P2};
-			this.player1.player.getClient().emit("GameHUD", JSON.stringify(HUD));
-		}
-		if (this.player2.player?.getClient() && 
-			this.player2.player.getClient().emit)
-		{
-			const HUD = {game: "pong", P1: P2, P2: P1};
-			this.player2.player.getClient().emit("GameHUD", JSON.stringify(HUD));
-		}
+
+		this.SendToPlayer(this.player1, "GameHud", JSON.stringify({game: "pong", P1: P1, P2: P2}));
+		this.SendToPlayer(this.player2, "GameHud", JSON.stringify({game: "pong", P1: P2, P2: P1}));
 	}
 
 	private GetHUDDataPlayer(player: Player): ISockPongHudPlayer
@@ -259,11 +251,41 @@ export class GamePong implements IGame
 		});
 	}
 
-	private SendGameOver(): void
+	// private SendGameState(state :GameState): void
+	// {
+	// 	const data = 
+	// 	{
+	// 		GameState:	state,
+	// 		Player1:	this.player1.id,
+	// 		Player1Score:	this.player1.score,
+	// 		Player2:	this.player2.id,
+	// 		Player2Score:	this.player2.score,
+	// 		message:	"",
+	// 	};
+
+	// 	switch (state)
+	// 	{
+	// 		case GameState.GAMEOVER:
+	// 			data.message = this.player1.score > this.player2.score ? "You won" : "You lost";
+	// 			this.SendToPlayer(this.player1, "GameState", JSON.stringify(data));
+	// 			data.message = this.player2.score > this.player1.score ? "You won" : "You lost";
+	// 			this.SendToPlayer(this.player2, "GameState", JSON.stringify(data));
+	// 			break ;
+	// 		default:
+	// 			const message: string = JSON.stringify(data);
+	// 			this.SendToPlayer(this.player1, "GameState", message);
+	// 			this.SendToPlayer(this.player2, "GameState", message);
+	// 			break ;
+	// 	}
+	// }
+
+	private SendToPlayer(player: Player, flag: string, msg: string)
 	{
+		const client: any = player.player?.getClient();
 
+		if (client != null && client.emit)
+			client.emit(flag, msg);
 	}
-
 /* ************************************************************************** *\
 
 	Menu
@@ -424,12 +446,21 @@ export class GamePong implements IGame
 
 	private GameLoopGameOver(): void
 	{
+		console.log(`Game over for ${this.player1.id} / ${this.player2.id}}`);
+
 		clearInterval(this.interval);
 		const data: IGameStatus = this.GenerateEndData(GameStatus.COMPLETED);
-		// this.SendGameOverToKafka(data);
-		// this.EmitToPlayers(data);
-		// this.TellManagerToCleanUp();
-		console.log("GameOver mode");
+		const message: string = JSON.stringify(data);
+
+		//send to Kafka
+		GameManager.getInstance().kafkaEmit(GameStatus.COMPLETED, message);
+
+		//send to players
+		this.SendToPlayer(this.player1, GameStatus.COMPLETED, message);
+		this.SendToPlayer(this.player2, GameStatus.COMPLETED, message);
+
+		//delete game
+		GameManager.getInstance().removeGame(this);
 	}
 
 	private GenerateEndData(status: GameStatus): IGameStatus
@@ -445,6 +476,12 @@ export class GamePong implements IGame
 			player2Score:	this.player2.score,
 		});
 	}
+
+	// private SendGameOverToKafka(topic: GameStatus, data: IGameStatus)
+	// {
+		
+	// 	GameManager.getInstance().kafkaEmit(topic, JSON.stringify(data));
+	// }
 
 /* ************************************************************************** *\
 
