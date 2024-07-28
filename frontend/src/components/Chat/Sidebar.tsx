@@ -460,7 +460,7 @@ function Sidebar() {
       });
       return (
         <>
-          <Dropdown.Item href={"/profile"}>
+          <Dropdown.Item href={`/profile/${member.userId}`}>
             View Profile
           </Dropdown.Item>
           <Dropdown.Item
@@ -837,9 +837,14 @@ function Sidebar() {
       )}
       {Object.keys(gameInvite).length !== 0 && "type" in gameInvite &&
         gameInvite.type === "invitation" && (
+          <>
           <Button variant="success" onClick={acceptGameInvite}>
             Accept
           </Button>
+            <Button variant="danger" onClick={declineGameInvite}>
+            Decline
+          </Button>
+          </>
         )}
       {Object.keys(gameInvite).length !== 0 && "type" in gameInvite && gameInvite.type === "host" && (
         <Button variant="danger" onClick={declineGameInvite}>

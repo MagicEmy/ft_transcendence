@@ -82,7 +82,7 @@ export class RoomService {
     }
     let chatId = '';
     if (userStart.userId > userReceiver.userId)
-      chatId = "#" + userCreator.userId + UserAndRoom;
+      chatId = "#" + userCreator.userId + userReceiver.userId;
     else chatId = "#" + userReceiver.userId + userCreator.userId;
     const room : number = await this.getRoomIndexByName(chatId);
     if (room === -1) {
