@@ -89,6 +89,7 @@ export interface ISockPongHudPlayer
 
 export interface ISockRemoveMatch
 {
+	queue:	string,
 	rank:	number,
 	time:	number,
 }

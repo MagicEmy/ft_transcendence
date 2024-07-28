@@ -362,6 +362,7 @@ runthis(client: any, message: string)
 	{
 		const data: ISockRemoveMatch = 
 		{
+			queue:	"",
 			rank:	player.rank,
 			time:	player.time,
 		};

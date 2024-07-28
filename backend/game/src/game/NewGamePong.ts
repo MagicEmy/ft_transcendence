@@ -3,6 +3,7 @@ import { IGame } from "./IGame";
 import { PlayerInfo, IPlayerInfo, SockEventNames, ISockPongImage, ISockPongImagePlayer, ISockPongImageBall, ISockPongHudPlayer, GameTypes, IGameStatus, MatchTypes, GameStatus } from './GamePong.communication';
 import { Button, GameState, PlayerStatus } from "./GamePong.enums";
 import { GameManager } from "./NewGameManager";
+import { Socket } from 'socket.io';
 
 interface Player
 {
@@ -68,6 +69,8 @@ export class GamePong implements IGame
 	private ball: Ball | null;
 	private interval: any;
 
+	private id: string = Math.random().toString(36).substr(2, 9);
+
 	private timerGame: number = Date.now();
 	private timerEvent: number = Date.now();
 
@@ -79,7 +82,8 @@ export class GamePong implements IGame
 		let player1: string;
 		let player2: string | null = null;
 
-		// console.log(`Creating new pong game ${data}/${players}`);
+
+		console.log(`validating game mode [${this.mode}]`);
 		player1 = players[0];
 		switch (this.mode)
 		{
@@ -99,8 +103,11 @@ export class GamePong implements IGame
 			default:
 				throw (`Unknown game mode ${this.mode}`);
 		}
+		console.log(`constructing player 1 [${player1}]`);
 		this.player1 = this.ConstructPlayer(player1, 1/23);
+		console.log(`constructing player 2 [${player2}]`);
 		this.player2 = this.ConstructPlayer(player2, 22/23);
+		console.log(`preparing game`);
 		this.ball = null;
 		this.gameState = GameState.WAITING;
 		this.timerGame = Date.now();
@@ -149,7 +156,11 @@ export class GamePong implements IGame
 
 	public clearGame(): void
 	{
-		
+		console.log(`removing ${this.id}`);
+		if (this.player1.player.getClient())
+			this.RemoveListeners(this.player1.player.getClient());
+		if (this.player2.player.getClient())
+			this.RemoveListeners(this.player2.player.getClient());
 	}
 
 /* ************************************************************************** *\
@@ -158,19 +169,37 @@ export class GamePong implements IGame
 
 \* ************************************************************************** */
 
-	private AddListerners(player: Player, client: any): void
+	private AddListerners(player: Player, client: Socket): void
 	{
-		client.on("disconnect", () => { this.handlerDisconnect(client); });
+		console.log(`Add clientId: ${client.id}`);
+		// client.on("disconnect", () => { this.handlerDisconnect(client); });
+		console.log(`1 ${client.listeners("GameImage")}`);
 		client.on("GameImage", () => { this.handlerImage(client) });
+		console.log(`2 ${client.listeners("GameImage")}`);
+	}
+
+	private RemoveListeners(client: Socket): void
+	{
+		console.log(`rmv clientId: ${client.id}`);
+		// client.off("disconnect", this.handlerDisconnect);
+		console.log(`3 ${client.listeners("GameImage")}`);
+		client.off("GameImage", () => { this.handlerImage(client) });
+		client.leave("GameImage");
+		client.removeListener("GameImage", this.handlerImage);
+		client.removeAllListeners("GameImage");
+
+		console.log(`4 ${client.listeners("GameImage")}`);
 	}
 
 	private handlerDisconnect(client: any)
 	{
 		console.log("GamePong: disconnect", client.id);
+		this.RemoveListeners(client);
 	}
 
 	private handlerImage(client: any): void
 	{
+		// console.log(`image ID ${this.id}`);
 		this.sendImage(client);
 	}
 

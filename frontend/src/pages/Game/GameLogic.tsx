@@ -95,10 +95,7 @@ class GameLogic
 				this.keyPressPlaying(key, event);	break ;
 			case GameState.GAMEOVER:
 				if (event === "keyup")
-				{
-					GameSocket.getInstance()?.emit("RequestMenu");
-					this.gameState = GameState.MENU;
-				}
+					this.ReturnToMenu();
 				break ;
 			default:
 				console.error(`Error: Undefined game state ${this.gameState}`);	break ;
@@ -121,8 +118,9 @@ class GameLogic
 			case GameState.MENU:
 				this.SendMenuToGraphics();	break ;
 				// instance.renderMenu(this.menuSelect);	break ;
-			// case GameState.MATCH:
+			case GameState.MATCH:
 			// 	this.keyPressMatch(key, event);	break ;
+				break ;
 			case GameState.LOADING:
 				instance.RenderWord("Loading");	break ;
 			case GameState.PLAYING:
@@ -187,6 +185,8 @@ public SetGameStateTo(state: GameState)
 	{
 		case GameState.MENU:
 			this.gameState = GameState.MENU;	break;
+		case GameState.MATCH:
+			this.gameState = GameState.MATCH;	break;
 		case GameState.PLAYING:
 			this.gameState = GameState.PLAYING;	break;
 		case GameState.GAMEOVER:
@@ -385,6 +385,12 @@ public SetGameStateTo(state: GameState)
 		}
 	}
 
+	private ReturnToMenu(): void
+	{
+		GameSocket.getInstance()?.emit("RequestMenu");
+		this.gameState = GameState.MENU;
+	}
+
 /* ************************************************************************** *\
 
 	Match
@@ -406,7 +412,13 @@ public SetGameStateTo(state: GameState)
 
 	private keyPressMatchEscape(): void
 	{
-		console.error(`Undefined keyPressMatchEscape`);
+		const instance: GameSocket = GameSocket.getInstance();
+		const data = {playerID:	GameSocket.GetID(),};
+
+		GameSocket.getInstance()?.emit("LeaveMatchMaker", JSON.stringify(data));
+		// this.ReturnToMenu();
+		// console.error(`inform backend off leaving!`)
+		// console.error(`Undefined keyPressMatchEscape`);
 	}
 
 /* ************************************************************************** *\

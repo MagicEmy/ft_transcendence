@@ -65,6 +65,15 @@ class GameSocket
 			instance?.SetGameStateTo(1);
 		});
 
+		this.socket.on("Matchmaker", (message: any) =>
+		{
+			GameLogic.getInstance()?.SetGameStateTo(2);
+			GameGraphics.getInstance()?.RenderMatchMaker(message);
+			// const instance: GameLogic | null = GameLogic.getInstance();
+			// instance?.setMenu(JSON.parse(message));
+			// instance?.SetGameStateTo(1);
+		});
+
 		this.socket.on("GameImage", (message: any) =>
 		{
 			// console.error(`GameImage ${message}`);
