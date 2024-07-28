@@ -162,6 +162,7 @@ export interface IGameStatus
 	gameType:	GameTypes,//GameTypes.PONG
 	matchType:	MatchTypes,
 	status:		GameStatus,
+	duration:		number,//miliseconds
 	player1ID:		string,
 	player1Score:	number,
 	player2ID:		string | null,

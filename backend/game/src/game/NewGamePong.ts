@@ -66,8 +66,10 @@ export class GamePong implements IGame
 	private player1: Player;
 	private player2: Player;
 	private ball: Ball | null;
-	private timer: number;
 	private interval: any;
+
+	private timerGame: number = Date.now();
+	private timerEvent: number = Date.now();
 
 	constructor(data: string[], players: string[])
 	{
@@ -77,6 +79,7 @@ export class GamePong implements IGame
 		let player1: string;
 		let player2: string | null = null;
 
+		// console.log(`Creating new pong game ${data}/${players}`);
 		player1 = players[0];
 		switch (this.mode)
 		{
@@ -100,7 +103,8 @@ export class GamePong implements IGame
 		this.player2 = this.ConstructPlayer(player2, 22/23);
 		this.ball = null;
 		this.gameState = GameState.WAITING;
-		this.timer = Date.now();
+		this.timerGame = Date.now();
+		this.timerEvent = Date.now();
 		this.interval = setInterval(this.GameLoop.bind(this), 16);
 	}
 
@@ -235,8 +239,9 @@ export class GamePong implements IGame
 		const P1: ISockPongHudPlayer = this.GetHUDDataPlayer(this.player1);
 		const P2: ISockPongHudPlayer = this.GetHUDDataPlayer(this.player2);
 
-		this.SendToPlayer(this.player1, "GameHud", JSON.stringify({game: "pong", P1: P1, P2: P2}));
-		this.SendToPlayer(this.player2, "GameHud", JSON.stringify({game: "pong", P1: P2, P2: P1}));
+		// console.log("Seinding hud");
+		this.SendToPlayer(this.player1, "GameHUD", JSON.stringify({game: "pong", P1: P1, P2: P2}));
+		this.SendToPlayer(this.player2, "GameHUD", JSON.stringify({game: "pong", P1: P2, P2: P1}));
 	}
 
 	private GetHUDDataPlayer(player: Player): ISockPongHudPlayer
@@ -358,6 +363,8 @@ export class GamePong implements IGame
 			this.player2.status = PlayerStatus.NOTREADY;
 			this.gameState = GameState.START;
 		}
+		else if (this.timerEvent + 60000 < Date.now()) // 60 seconds
+			this.EndGame(GameStatus.NOCONNECT);
 	}
 
 /* ************************************************************************** *\
@@ -397,6 +404,7 @@ export class GamePong implements IGame
 			this.player1.status = PlayerStatus.PLAYING;
 			this.player2.status = PlayerStatus.PLAYING;
 			this.gameState = GameState.NEWBALL;
+			this.timerGame = Date.now();
 			this.sendHUD();
 		}
 	}
@@ -446,36 +454,37 @@ export class GamePong implements IGame
 
 	private GameLoopGameOver(): void
 	{
-		console.log(`Game over for ${this.player1.id} / ${this.player2.id}}`);
+		this.EndGame(GameStatus.COMPLETED);
+		// console.log(`Game over for ${this.player1.id} / ${this.player2.id}}`);
 
-		clearInterval(this.interval);
-		const data: IGameStatus = this.GenerateEndData(GameStatus.COMPLETED);
-		const message: string = JSON.stringify(data);
+		// clearInterval(this.interval);
+		// const data: IGameStatus = this.GenerateEndData(GameStatus.COMPLETED);
+		// const message: string = JSON.stringify(data);
 
-		//send to Kafka
-		GameManager.getInstance().kafkaEmit(GameStatus.COMPLETED, message);
+		// //send to Kafka
+		// GameManager.getInstance().kafkaEmit(GameStatus.COMPLETED, message);
 
-		//send to players
-		this.SendToPlayer(this.player1, GameStatus.COMPLETED, message);
-		this.SendToPlayer(this.player2, GameStatus.COMPLETED, message);
+		// //send to players
+		// this.SendToPlayer(this.player1, GameStatus.COMPLETED, message);
+		// this.SendToPlayer(this.player2, GameStatus.COMPLETED, message);
 
-		//delete game
-		GameManager.getInstance().removeGame(this);
+		// //delete game
+		// GameManager.getInstance().removeGame(this);
 	}
 
-	private GenerateEndData(status: GameStatus): IGameStatus
-	{
-		console.error("Matchtypes hardcoded");
-		return ({
-			gameType:	GameTypes.PONG,
-			matchType:	MatchTypes.LOCAL,
-			status:		status,
-			player1ID:	this.player1.id,
-			player1Score:	this.player1.score,
-			player2ID:	this.player2.id,
-			player2Score:	this.player2.score,
-		});
-	}
+	// private GenerateEndData(status: GameStatus): IGameStatus
+	// {
+	// 	console.error("Matchtypes hardcoded");
+	// 	return ({
+	// 		gameType:	GameTypes.PONG,
+	// 		matchType:	MatchTypes.LOCAL,
+	// 		status:		status,
+	// 		player1ID:	this.player1.id,
+	// 		player1Score:	this.player1.score,
+	// 		player2ID:	this.player2.id,
+	// 		player2Score:	this.player2.score,
+	// 	});
+	// }
 
 	// private SendGameOverToKafka(topic: GameStatus, data: IGameStatus)
 	// {
@@ -635,6 +644,7 @@ export class GamePong implements IGame
 			this.ball.angle -= circle;
 	}
 
+
 	private CalculateNearestEvent(remaining: number): number
 	{
 		let move: number = remaining;
@@ -766,12 +776,53 @@ export class GamePong implements IGame
 	private EventPlayerScored(player: Player): void
 	{
 		++player.score;
-		if (player.score >= 11)
+		if (player.score >= 1)//11!
 			this.gameState = GameState.GAMEOVER;
 		else
 			this.gameState = GameState.NEWBALL;
 		this.ball = null;
 		this.sendHUD();
+	}
+
+/* ************************************************************************** *\
+
+	Events
+
+\* ************************************************************************** */
+
+	private EndGame(status: GameStatus): void
+	{
+		console.log(`Game over for ${this.player1.id} / ${this.player2.id} / ${status}}`);
+
+		clearInterval(this.interval);
+		const data: IGameStatus = this.GenerateEndData(status);
+		const message: string = JSON.stringify(data);
+
+
+		//send to Kafka
+		GameManager.getInstance().kafkaEmit(GameStatus.TOPIC, message);
+
+		//send to players
+		this.SendToPlayer(this.player1, GameStatus.TOPIC, message);
+		this.SendToPlayer(this.player2, GameStatus.TOPIC, message);
+
+		//delete game
+		GameManager.getInstance().removeGame(this);
+	}
+
+	private GenerateEndData(status: GameStatus): IGameStatus
+	{
+		console.error("Matchtypes hardcoded");
+		return ({
+			gameType:	GameTypes.PONG,
+			matchType:	MatchTypes.LOCAL,
+			status:		status,
+			duration:	Date.now() - this.timerGame,
+			player1ID:	this.player1.id,
+			player1Score:	this.player1.score,
+			player2ID:	this.player2.id,
+			player2Score:	this.player2.score,
+		});
 	}
 
 }

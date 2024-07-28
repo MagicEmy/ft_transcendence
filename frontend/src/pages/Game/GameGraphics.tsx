@@ -2,6 +2,7 @@ import React, { useEffect, useContext } from 'react';
 import UserContext from '../../context/UserContext';
 import GameLogic from './GameLogic';
 import GameStyle from './GameStyle';
+import GameSocket from './GameSocket';
 
 enum Game
 {
@@ -363,7 +364,7 @@ class GameGraphics
 
 	public renderHUD(message: string): void
 	{
-		console.log("Rendering HUD");
+		console.log(`Rendering HUD ${message}`);
 		const msg: any = JSON.parse(message);
 		switch (msg.game)
 		{
@@ -464,15 +465,17 @@ class GameGraphics
 	
 	\* ************************************************************************** */
 
-	public renderMenu(selectMenu: number): void
-	{
-		this.fillContext(this.HUDElement, this.HUDContext, GameStyle.Menu.BODY);
-		this.RenderHead("Pong");
-		this.renderMenuList(selectMenu);
-	}
-
+	// public renderMenu(selectMenu: number): void
+	// {
+	// 	this.fillContext(this.HUDElement, this.HUDContext, GameStyle.Menu.BODY);
+	// 	this.RenderHead("Pong");
+	// 	this.renderMenuList(selectMenu);
+	// }
+	
 	public renderMenu2(menuList: string[], selectMenu: number): void
 	{
+		this.clearContext(this.MenuElement, this.MenuContext);
+		this.clearContext(this.HUDElement, this.HUDContext);
 		this.fillContext(this.HUDElement, this.HUDContext, GameStyle.Menu.BODY);
 		this.RenderHead("Menu");
 		this.renderMenuList2(menuList, selectMenu);
@@ -506,41 +509,88 @@ class GameGraphics
 		}
 	}
 
-	private renderMenuList(selectMenu: number): void
-	{
-		const menuList: string[] | undefined = GameLogic.getInstance()?.getMenuStruct();
-		if (menuList === undefined)
-		{
-			console.error("Couldn't find list for menu");
-			return ;
-		}
+	// private renderMenuList(selectMenu: number): void
+	// {
+	// 	const menuList: string[] | undefined = GameLogic.getInstance()?.getMenuStruct();
+	// 	if (menuList === undefined)
+	// 	{
+	// 		console.error("Couldn't find list for menu");
+	// 		return ;
+	// 	}
 
-		let size = this.HUDElement.height * 0.77 / menuList.length;
-		for (let i = 0; i < menuList.length; ++i)
-		{
-			let temp = this.getFontSize(this.HUDContext, menuList[i], 
-										this.HUDElement.height * 0.77 / (menuList.length + 2),
-										this.HUDElement.width * 0.75,
-										GameStyle.Menu.FONT);
-			if (temp < size)
-				size = temp;
-		}
-		this.HUDContext.font = size + "px " + GameStyle.Menu.FONT;
-		const sizeH = this.HUDContext.measureText("M").actualBoundingBoxAscent;
-		this.HUDContext.font = size * 0.75 + "px " + GameStyle.Menu.FONT;
+	// 	let size = this.HUDElement.height * 0.77 / menuList.length;
+	// 	for (let i = 0; i < menuList.length; ++i)
+	// 	{
+	// 		let temp = this.getFontSize(this.HUDContext, menuList[i], 
+	// 									this.HUDElement.height * 0.77 / (menuList.length + 2),
+	// 									this.HUDElement.width * 0.75,
+	// 									GameStyle.Menu.FONT);
+	// 		if (temp < size)
+	// 			size = temp;
+	// 	}
+	// 	this.HUDContext.font = size + "px " + GameStyle.Menu.FONT;
+	// 	const sizeH = this.HUDContext.measureText("M").actualBoundingBoxAscent;
+	// 	this.HUDContext.font = size * 0.75 + "px " + GameStyle.Menu.FONT;
 
-		for (let i: number = 0; i < menuList.length; ++i)
-		{
-			if (i === selectMenu)
-				this.HUDContext.fillStyle = GameStyle.Menu.FONTFOCUS;
-			else
-				this.HUDContext.fillStyle = GameStyle.Menu.FONTDEFAULT;
-			const posX = this.HUDElement.width * 0.5 - this.HUDContext.measureText(menuList[i]).width / 2;
-			const posY = this.HUDElement.height * 0.23 + sizeH * (i + 2);
-			this.HUDContext.fillText(menuList[i], posX, posY);
-		}
-	}
+	// 	for (let i: number = 0; i < menuList.length; ++i)
+	// 	{
+	// 		if (i === selectMenu)
+	// 			this.HUDContext.fillStyle = GameStyle.Menu.FONTFOCUS;
+	// 		else
+	// 			this.HUDContext.fillStyle = GameStyle.Menu.FONTDEFAULT;
+	// 		const posX = this.HUDElement.width * 0.5 - this.HUDContext.measureText(menuList[i]).width / 2;
+	// 		const posY = this.HUDElement.height * 0.23 + sizeH * (i + 2);
+	// 		this.HUDContext.fillText(menuList[i], posX, posY);
+	// 	}
+	// }
 	
+	/* ************************************************************************** *\
+	
+		Game Over
+	
+	\* ************************************************************************** */
+	
+	public RenderGameOver(message: string): void
+	{
+		this.clearContext(this.MenuElement, this.MenuContext);
+		this.clearContext(this.HUDElement, this.HUDContext);
+		this.fillContext(this.HUDElement, this.HUDContext, "black");
+
+		this.RenderHead("Game Over");
+		this.RenderEndGameInfo(message);
+	}
+
+	private RenderEndGameInfo(message: string): void
+	{
+		const msg: any = JSON.parse(message);
+		let printMsg: string;
+		let won: boolean;
+
+		if (msg.player1Score > msg.player2Score)
+			won = true;
+		else if (msg.player1Score < msg.player2Score)
+			won = false;
+
+		if (msg.Player2ID === GameSocket.GetID() && won !== undefined)
+			won = !won;
+
+		if (won === true)
+		{
+			this.MenuContext.fillStyle = "green";
+			printMsg = "You won!";
+		}
+		else if (won === false)
+		{
+			this.MenuContext.fillStyle = "red";
+			printMsg = "You lost!";
+		}
+		this.MenuContext.font = 42 * 0.75 + "px " + GameStyle.Menu.FONT;
+		this.MenuContext.fillText(printMsg, this.MenuElement.width / 4, this.MenuElement.height / 3, this.MenuElement.width / 2);
+		this.MenuContext.fillStyle = "grey";
+		this.MenuContext.fillText(`${msg.player1Score}:${msg.player2Score}`, this.MenuElement.width / 4, this.MenuElement.height * 0.4, this.MenuElement.width / 2);
+		this.MenuContext.fillText("Press 'any' key to continue", this.MenuElement.width / 4, this.MenuElement.height * 0.9, this.MenuElement.width / 2);
+	}
+
 	/* ************************************************************************** *\
 	
 		Util

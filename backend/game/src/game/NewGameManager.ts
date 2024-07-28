@@ -220,6 +220,12 @@ Socket.io
 		this.EmitMenu(client);
 	}
 
+	@SubscribeMessage("RequestMenu")
+	handelerRequestMenu(client: any): void
+	{
+		this.EmitMenu(client);
+	}
+
 	// @SubscribeMessage("PlayGame")
 	// handlerPlayGame(client: any, message: string): void
 	// {
@@ -261,13 +267,16 @@ Socket.io
 
 	public CreateGame(player: GamePlayer, game: string, data: string[], players: string[]): IGame | null
 	{
+		console.log(`Trying to create ${game}`);
 		let gameInstance: IGame;
 		try
 		{
 			switch (game)
 			{
 				case GamePong.GetFlag():
+					console.log(`gameinstance before ${game}`);
 					gameInstance = new GamePong(data, players);
+					console.log(`gameinstance after ${game}`);
 					break ;
 				case MatchMaker.GetFlag():
 					gameInstance = MatchMaker.GetInstance();
@@ -277,6 +286,7 @@ Socket.io
 					return (null);
 			}
 			this.games.push(gameInstance);
+			console.log(`Creating Game ${gameInstance} for ${game}`);
 			return (gameInstance);
 		}
 		catch (error)

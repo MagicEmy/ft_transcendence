@@ -31,6 +31,7 @@ enum GameState
 	MATCH,
 	LOADING,
 	PLAYING,
+	GAMEOVER,
 }
 
 // const MenuList =
@@ -92,6 +93,13 @@ class GameLogic
 				this.keyPressLoading(key, event);	break ;
 			case GameState.PLAYING:
 				this.keyPressPlaying(key, event);	break ;
+			case GameState.GAMEOVER:
+				if (event === "keyup")
+				{
+					GameSocket.getInstance()?.emit("RequestMenu");
+					this.gameState = GameState.MENU;
+				}
+				break ;
 			default:
 				console.error(`Error: Undefined game state ${this.gameState}`);	break ;
 		}
@@ -119,6 +127,8 @@ class GameLogic
 				instance.RenderWord("Loading");	break ;
 			case GameState.PLAYING:
 				// this.keyPressPlaying(key, event);
+				break ;
+			case GameState.GAMEOVER:
 				break ;
 			default:
 				console.error(`Error: Undefined game state ${this.gameState}`);	break ;
@@ -179,6 +189,8 @@ public SetGameStateTo(state: GameState)
 			this.gameState = GameState.MENU;	break;
 		case GameState.PLAYING:
 			this.gameState = GameState.PLAYING;	break;
+		case GameState.GAMEOVER:
+			this.gameState = GameState.GAMEOVER;	break;
 		default:
 			console.warn(`Trying to set GameState to protected ${state}`);
 			break ;
@@ -238,7 +250,7 @@ public SetGameStateTo(state: GameState)
 
 	private SetMenuCreateDown(node: GameMenu, name: string, flag: string): GameMenu
 	{
-		console.log(`Down[${node.name}]: ${name}`);
+		// console.log(`Down[${node.name}]: ${name}`);
 		node.down = new GameMenu(name, flag);
 		node.down.up = node;
 		return (node.down);
@@ -246,7 +258,7 @@ public SetGameStateTo(state: GameState)
 
 	private SetMenuCreateRight(node: GameMenu, name: string, flag: string): GameMenu
 	{
-		console.log(`Right[${node.name}]: ${name}`);
+		// console.log(`Right[${node.name}]: ${name}`);
 		node.right = new GameMenu(name, flag);
 		node.right.left = node;
 		return (node.right);
