@@ -234,9 +234,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.userCreator.userId,
       response,
     );
+    const userInvited : User | undefined = await this.userService.getUserById(payload.userReceiver.userId);
     console.log(messages);
-    this.server.to(client.id).emit('chat', messages);
     this.server.in(client.id).socketsJoin(response);
+    this.server.in(userInvited.socketId).socketsJoin(response);
+    this.server.to(client.id).emit('chat', messages);
     const userList : RoomUserDto = await this.roomService.getUserInRoom(response);
     this.server.to(response).emit('room_users', userList);
     this.logger.log(`${payload.userCreator.userId} joined ${response}`);
@@ -244,6 +246,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.userCreator.userId,
     );
     this.server.to(client.id).emit('my_rooms', myRoomlist);
+    this.server.to(userInvited.socketId).emit('my_rooms', myRoomlist);
   }
 
   @UsePipes(new ValidationPipe())
@@ -365,8 +368,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
       return;
     }
-    userReceiver.game = user.userId;
-    user.game = userReceiver.userId;
+    userReceiver.game = await this.userService.setGame(
+      userReceiver.userId,
+      user.userId,
+    );
+    user.game = await this.userService.setGame(
+      user.userId,
+      userReceiver.userId,
+    );
 
     this.server.to(client.id).emit('invite_game_response', 'Success');
     const invitation = {

@@ -29,7 +29,7 @@ export const ChangeAvatar = () => {
 			return;
 		}
 
-		const maxSize = 500 * 1024; // 500KB
+		const maxSize = 500000; // 500KB
 		if (file.size > maxSize) {
 			setFeedback("The file size must be less than 500KB.");
 			return;

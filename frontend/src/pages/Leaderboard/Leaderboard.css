@@ -27,7 +27,7 @@
 	padding: 100px;
 	margin-bottom: 20em;
 	background-color: #dee5f4;
-    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
 
 }
 
@@ -54,7 +54,7 @@
     align-items: center;
 	gap: 3em;
     border: 2px solid #a09df0;
-    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
     padding: 5px;
 }
 
@@ -71,13 +71,13 @@
 }
 
 #leadProfile .text {
-    color: rgba(0, 0, 255, 0.363);
+    color: rgb(0, 0, 255);
     margin-top: 10px;
     margin-bottom: 10px;
     font-size: 1.3em;
     /* text-shadow: #0d045a; */
     /* border: 2px solid #a09df0; */
-    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
+    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
 	background-color: #c3d8f7;
   }
 
