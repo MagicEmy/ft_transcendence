@@ -138,4 +138,8 @@ export class UserService {
     }
     return 'Not Blocked';
   }
+
+  async setGame(userId: string, game: string): Promise<string> {
+    return this.userRepository.setGame(userId, game);
+  }
 }

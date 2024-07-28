@@ -365,8 +365,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
       return;
     }
-    userReceiver.game = user.userId;
-    user.game = userReceiver.userId;
+    userReceiver.game = await this.userService.setGame(
+      userReceiver.userId,
+      user.userId,
+    );
+    user.game = await this.userService.setGame(
+      user.userId,
+      userReceiver.userId,
+    );
 
     this.server.to(client.id).emit('invite_game_response', 'Success');
     const invitation = {

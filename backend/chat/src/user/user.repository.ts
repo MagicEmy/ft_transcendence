@@ -83,4 +83,13 @@ export class UserRepository extends Repository<User> {
     console.log(`User name of user ${user.userId} set to ${user.userName}.`);
     return user;
   }
+
+  async setGame(userId: string, game: string): Promise<string> {
+    const user = await this.getUserById(userId);
+    if (user) {
+      user.game = game;
+      return game;
+    }
+    return '';
+  }
 }
