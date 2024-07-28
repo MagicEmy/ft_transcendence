@@ -237,6 +237,7 @@ export class GamePong
 			gameType:	GameTypes.PONG,
 			matchType:	this.MatchType,
 			status:		status,
+			duration:	0,
 			player1ID:		this.player1.id,
 			player1Score:	this.player1.score,
 			player2ID:		this.player2.id,

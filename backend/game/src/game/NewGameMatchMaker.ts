@@ -37,9 +37,11 @@ export class MatchMaker implements IGame
 				time:	0,
 			};
 			MatchMaker.matchQueue.push(newPlayer);
-			MatchMaker.matchQueue.push({player: undefined, id: id, rank: 5, time: 0});
+			// MatchMaker.matchQueue.push({player: undefined, id: id, rank: 5, time: 0});
 			MatchMaker.matchQueue.sort((a, b) => a.rank - b.rank);
+			MatchMaker.printMatchList();
 		}
+
 		else
 			console.error(`Error: Player [${player.getId()}] is already in MatchMaker.`);
 
@@ -89,17 +91,21 @@ export class MatchMaker implements IGame
 
 	private static matchLoop()
 	{
+		console.log("checking for match general");
 		for (let i: number = 0; i < MatchMaker.matchQueue.length - 1; ++i)
 		{
+			console.log(`checking ${MatchMaker.matchQueue[i].player}/${MatchMaker.matchQueue[i + 1].player}`);
 			if (Math.abs(MatchMaker.matchQueue[i].rank - MatchMaker.matchQueue[i + 1].rank) <=
 				MatchMaker.matchQueue[i].time + MatchMaker.matchQueue[i + 1].time)
 			{
+				console.log("Found a match");
 				const player1: PlayerRanked = MatchMaker.matchQueue[i];
 				const player2: PlayerRanked = MatchMaker.matchQueue[i + 1];
 				const game: IGame = GameManager.getInstance().CreateGame(player1.player, 
 													GamePong.GetFlag(), 
 													["PongGameMatch", "retro"],
 													[player1.id, player2.id]);
+				console.log(`match received game ${game}`);
 				MatchMaker.AddPlayerToGameAndRemoveFromList(game, player1.player);
 				MatchMaker.AddPlayerToGameAndRemoveFromList(game, player2.player);
 				break ;
@@ -115,8 +121,16 @@ export class MatchMaker implements IGame
 
 	private static AddPlayerToGameAndRemoveFromList(game: IGame, player: GamePlayer): void
 	{
-		if (!game.AddPlayer(player))
-			console.error(`Error adding ${player.getId()} to game.`);
+		try
+		{
+			console.log(`game ${game}`);
+			if (!game.AddPlayer(player))
+				console.error(`Error adding ${player.getId()} to game.`);
+		}
+		catch (error)
+		{
+			console.error(`Exception adding ${player.getId()} to game.`);
+		}
 		MatchMaker.RemovePlayer(player.getId());
 	}
 

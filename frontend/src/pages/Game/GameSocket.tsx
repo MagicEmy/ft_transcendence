@@ -12,7 +12,7 @@ class GameSocket
 	private static UserPack: { playerID: string, playerName: string };
 	private static userContext: any | null = null;
 
-	private host: string = "localhost";
+	private host: string = process.env.REACT_APP_HOST;
 	private port: number = 3006;
 	private socket: Socket | null = null;
 
@@ -26,7 +26,6 @@ class GameSocket
 		this.socket.on("connect", () =>
 		{
 			console.log("Socket.IO connection established");
-
 		});
 
 		this.socket.on("ServerReady"/* SockEventNames.SERVERREADY */, (message: any) =>
@@ -55,6 +54,7 @@ class GameSocket
 
 		this.socket.on("GameHUD", (message: any) =>
 		{
+			// console.log(`received HUD ${message}`);
 			GameGraphics.getInstance()?.renderHUD(message);
 		});
 
@@ -67,7 +67,14 @@ class GameSocket
 
 		this.socket.on("GameImage", (message: any) =>
 		{
+			// console.error(`GameImage ${message}`);
 			GameGraphics.getInstance()?.RenderCanvas(JSON.parse(message));
+		});
+
+		this.socket.on("game_end", (message: any) =>
+		{
+			GameLogic.getInstance()?.SetGameStateTo(5);//GAMEOVER
+			GameGraphics.getInstance()?.RenderGameOver(message);
 		});
 
 		// this.socket.onAny((event: any, ...args: any[]) =>
@@ -125,6 +132,11 @@ class GameSocket
 			this.socket.emit(event, data);
 		else
 			console.error("Tried to emit to non-existing socket.");
+	}
+
+	public static GetID(): string
+	{
+		return (GameSocket.UserPack.playerID);
 	}
 
 	// public emitUserPack(userID: any)

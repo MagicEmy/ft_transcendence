@@ -31,6 +31,7 @@ export class GamePlayer
 		const player: IPlayerInfo = {
 			playerID:	id,
 		}
+		client.on("disconnect", () => { this.handlerDisconnect() ;});
 		GameManager.getInstance().kafkaEmit(PlayerInfo.TOPIC, JSON.stringify(player));
 	}
 
@@ -70,6 +71,11 @@ export class GamePlayer
 	{
 		const key: any = JSON.parse(data);
 		this.button[key.code] = (key.event === "keydown");
+	}
+
+	private handlerDisconnect(): void
+	{
+		// GameManager.getInstance()?.FindExistingGame(this)?.PlayerDisconnect(this);
 	}
 
 	public getClient(): any {return this.client}
