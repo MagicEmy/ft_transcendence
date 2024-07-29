@@ -734,9 +734,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (user === undefined) return;
     if (user.game !== '') {
       const userReceiver : User | undefined = await this.userService.getUserById(user.game);
-      if (userReceiver !== undefined)  userReceiver.game = '';
+      if (userReceiver !== undefined) {
+        await this.userService.setGame(userReceiver.userId, '');
+      }
     }
-    user.game = '';
+    await this.userService.setGame(user.userId, '');
     await this.disconnetOldSocket(user, socket.id);
     await this.userService.setUserSocketStatus(user, '', false);
     const users: ChatUserDto[] = await this.userService.getAllUsers();
