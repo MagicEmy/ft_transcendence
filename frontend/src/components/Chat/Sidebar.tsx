@@ -807,7 +807,6 @@ function Sidebar() {
               <Col xs={5} onClick={() => joinDirectRoom(member)}>
                 {member.userName}
                 {member.userId === user?.userId && " (You)"}
-                {member.online === false && " (Offline)"}
                 <span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === chatId(member.userId))?.count}</span>
               </Col>
               <Col xs={4}>
