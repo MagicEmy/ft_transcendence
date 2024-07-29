@@ -112,7 +112,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.logger.log(`${payload.user.userId} error ${response}`);
       this.server
       .to(client.id)
-      .emit('create_room_responser', response);
+      .emit('create_room_response', response);
       return;
     }
     this.logger.log(`${payload.user.userId} created ${payload.roomName}`);
