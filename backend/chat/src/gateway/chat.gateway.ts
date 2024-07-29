@@ -368,11 +368,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
       return;
     }
-    userReceiver.game = await this.userService.setGame(
+    await this.userService.setGame(
       userReceiver.userId,
       user.userId,
     );
-    user.game = await this.userService.setGame(
+    await this.userService.setGame(
       user.userId,
       userReceiver.userId,
     );
@@ -406,20 +406,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.userReceiver.userId,
     );
     const user : User | undefined = await this.userService.getUserById(payload.userCreator.userId);
-    if (user === undefined) {
+    if (user === undefined || userReceiver === undefined) {
       this.server
         .to(client.id)
         .emit('accept_game_response', 'The user dont exist');
       return;
     }
-    if (user.game !== payload.userReceiver.userId) {
+    if (user.game !== userReceiver.userId) {
       this.server
         .to(client.id)
         .emit('accept_game_response', 'You are not invited to this game');
       return;
     }
-    if (userReceiver === undefined || userReceiver.socketId === '') {
-      user.game = '';
+    if (userReceiver.socketId === '') {
+      this.userService.setGame(user.userId, '');
       this.server
         .to(client.id)
         .emit('accept_game_response', 'The user that invited you is not Onine');
@@ -446,6 +446,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     };
     this.server.to(userReceiver.socketId).emit('game', accept);
     this.server.to(client.id).emit('accept_game_response', 'Success');
+    await this.userService.setGame(userReceiver.userId, '');
+    await this.userService.setGame(user.userId, '');
   }
 
   @UsePipes(new ValidationPipe())
@@ -461,7 +463,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.userReceiver.userId,
     );
     const user : User | undefined = await this.userService.getUserById(payload.userCreator.userId);
-    if (user === undefined) {
+    if (user === undefined ) {
       this.server
         .to(client.id)
         .emit('decline_game_response', 'The user dont exist');
@@ -474,14 +476,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     if (userReceiver === undefined) {
-      user.game = '';
+      await this.userService.setGame(user.userId, '');
       this.server
         .to(client.id)
         .emit('decline_game_response', 'The user dont exist');
       return;
     }
-    userReceiver.game = '';
-    user.game = '';
+    await this.userService.setGame(userReceiver.userId, '');
+    await this.userService.setGame(user.userId, '');
     const decline = {
       type: 'decline the game',
     };
