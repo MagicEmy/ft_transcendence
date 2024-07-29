@@ -530,6 +530,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`${user.userName} joined the chat`);
     //guard for avoid user using more than one socket
     await this.userService.addUser(user, client.id);
+    await this.userService.setUserSocketStatus(user, client.id, true);
     const users : ChatUserDto[] = await this.userService.getAllUsers();
     this.server.emit('chat_users', users);
   }
