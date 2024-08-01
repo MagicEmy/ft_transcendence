@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import useStorage from "../../hooks/useStorage";
+import { useNewUserStatus } from '../../hooks';
 
 import GameSocket from './GameSocket';
 import GameEventListener from './GameEventListener';
@@ -15,6 +16,7 @@ const Game: React.FC = () => {
 	const events = useRef<GameEventListener | null>(null);
 	const [userIdStorage, , ] = useStorage<string>('userId', '');
   	const [userNameStorage, , ] = useStorage<string>('userName', '');
+	useNewUserStatus('playing');
 
 	useEffect(() => {
 		if (socket.current === null)

@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import LeaderboardProfiles from './LeaderboardProfiles';
+import { useNewUserStatus } from '../../hooks';
+
 import { LeaderboardStats } from './types';
 import { LEADERBOARD } from '../../utils/constants';
 import "./Leaderboard.css";
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardStats[]>([]);
+  useNewUserStatus('online');
 
   useEffect(() => {
     const fetchDbBoard = async () => {

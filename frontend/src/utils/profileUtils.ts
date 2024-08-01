@@ -1,4 +1,3 @@
-import { UserStatus } from '../types/shared';
 import { Games } from '../types/shared';
 import { USER, GAMES, STATUS, AVATAR } from './constants';
 
