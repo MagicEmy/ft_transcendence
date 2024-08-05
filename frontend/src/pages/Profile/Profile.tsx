@@ -1,35 +1,45 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { addFriend, deleteFriend } from "../../utils/friendsUtils";
-import { Friends, } from "../../types/shared";
-import { useGetFriends, useGetProfile, useGetUserStatus, useGetAvatarUrl } from "../../hooks";
+import { Friends } from "../../types/shared";
+import {
+  useGetFriends,
+  useGetProfile,
+  useGetUserStatus,
+  useGetAvatarUrl,
+  useNewUserStatus,
+} from "../../hooks";
 import { MatchHistory } from "../../components/ProfileStats/MatchHistory";
 import { FriendsList } from "../../components/FriendsList";
 import { UserStats } from "../../components/ProfileStats/ProfileStats";
 import { AddFriendButton } from "../../components/AddFriendButton";
-import UserContext, { IUserContext } from '../../context/UserContext';
-import defaultAvatar from '../../assets/defaultAvatar.png';
+import UserContext, { IUserContext } from "../../context/UserContext";
+import defaultAvatar from "../../assets/defaultAvatar.png";
 // import useStorage from "../../hooks/useStorage";
 import "./Profile.css";
 
 export const Profile = () => {
-
   const { userId } = useParams<{ userId?: string }>();
-  const { userIdContext } = useContext<IUserContext>(UserContext);
+  const { userIdContext, userNameContext } = useContext<IUserContext>(UserContext);
   const [userIdOrMe, setUserIdOrMe] = useState(userId || userIdContext);
 
   const { profile } = useGetProfile(userIdOrMe);
   const { userStatus } = useGetUserStatus(userIdOrMe);
   const { avatar: avatarUrl } = useGetAvatarUrl(userIdOrMe);
-  const { friends: loggedUserFriends } = useGetFriends(userIdContext, userIdOrMe);
+  const { friends: loggedUserFriends } = useGetFriends(
+    userIdContext,
+    userIdOrMe
+  );
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe, userIdOrMe);
-  const [ isFriend, setIsFriend] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
-  const [currentStatus, setCurrentStatus] = useState<string>('');
+  const [isFriend, setIsFriend] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [currentStatus, setCurrentStatus] = useState<string>("");
 
-  const [ , setFriends] = useState<Friends[]>([]);
-
+  const [, setFriends] = useState<Friends[]>([]);
+  useNewUserStatus("online");
   const userStatusIndicator = currentStatus;
+  
+  const profileName = profile?.userInfo?.userName || "";
 
   useEffect(() => {
     setUserIdOrMe(userId || userIdContext);
@@ -37,37 +47,40 @@ export const Profile = () => {
 
   useEffect(() => {
     if (userId && loggedUserFriends) {
-      setIsFriend(loggedUserFriends.some(friend => friend.userId === userId));
+      setIsFriend(loggedUserFriends.some((friend) => friend.userId === userId));
     }
   }, [loggedUserFriends, userId]);
 
   useEffect(() => {
-    userProfileFriends && setFriends(userProfileFriends)
+    userProfileFriends && setFriends(userProfileFriends);
   }, [userProfileFriends]);
 
   const handleFriendClick = async () => {
-
     if (isFriend) {
       const deleted = await deleteFriend(userIdContext, userId!);
       if (deleted !== null && loggedUserFriends) {
-        const newFriends = loggedUserFriends.filter(friend => friend.userId !== userId);
+        const newFriends = loggedUserFriends.filter(
+          (friend) => friend.userId !== userId
+        );
         setFriends(newFriends);
         setIsFriend(false);
       }
     } else {
       const added = await addFriend(userIdContext, userId!);
       if (added !== null && loggedUserFriends) {
-        const newFriends = [...loggedUserFriends, { userId: userId!, userName: '', status: '' }];
+        const newFriends = [
+          ...loggedUserFriends,
+          { userId: userId!, userName: "", status: "" },
+        ];
         setFriends(newFriends);
         setIsFriend(true);
       }
     }
   };
 
-
   useEffect(() => {
     if (userId && loggedUserFriends) {
-      setIsFriend(loggedUserFriends.some(friend => friend.userId === userId));
+      setIsFriend(loggedUserFriends.some((friend) => friend.userId === userId));
     }
   }, [loggedUserFriends, userId]);
 
@@ -79,21 +92,27 @@ export const Profile = () => {
 
   return (
     <div className="main">
-		<h1 className="page-title">Profile</h1>
+      <h1 className="page-title">Profile</h1>
       <div className="profile">
         <div className="columnsWrapper">
           <div className="flex">
             <div className="item">
-              {avatarUrl ?  <img src={avatarUrl} alt="User avatar" /> :<img src={defaultAvatar} alt="default avatar" />
-			}
-              <h4 className='profile-text'>{profile?.userInfo?.userName}</h4>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="User avatar" />
+              ) : (
+                <img src={defaultAvatar} alt="default avatar" />
+              )}
+              {/* <h4 className="profile-text">{profile?.userInfo?.userName}</h4> */}
+              <h4 className="profile-text">{profileName}</h4>
               <div className="status">
-                <span className={`status-indicator ${userStatusIndicator}`}></span>
+                <span
+                  className={`status-indicator ${userStatusIndicator}`}
+                ></span>
                 <span>{userStatusIndicator}</span>
               </div>
               {userId && userId !== userIdContext && (
-                <AddFriendButton onClick={handleFriendClick} className="button" >
-                  {isFriend ? 'Delete Friend' : 'Add Friend'}
+                <AddFriendButton onClick={handleFriendClick} className="button">
+                  {isFriend ? "Delete Friend" : "Add Friend"}
                 </AddFriendButton>
               )}
             </div>
@@ -105,13 +124,13 @@ export const Profile = () => {
           <MatchHistory userId={userIdOrMe} />
         </div>
         {error && (
-				<div className="error-bar">
-					<p className="errortext">{error}</p>
-				</div>
-			)}
+          <div className="error-bar">
+            <p className="errortext">{error}</p>
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default Profile;
