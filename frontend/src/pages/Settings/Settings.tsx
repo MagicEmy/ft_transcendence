@@ -1,11 +1,9 @@
 import { ChangeName } from "../../components/ChangeName";
 import { ChangeAvatar } from "../../components/ChangeAvatar";
 import { TwoFaEnable } from "../../components/Tfa/TwoFaEnable";
-import { useNewUserStatus } from '../../hooks';
 import "./Settings.css";
 
 const Settings = () => {
-	useNewUserStatus('online');
 
 	return (
 		<div className="main">

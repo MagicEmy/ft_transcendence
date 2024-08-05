@@ -1,9 +1,20 @@
 import PageContent from '../components/PageContent';
-import { useNewUserStatus } from '../hooks';
+import { useEffect, useContext } from 'react';
 import smash from "../assets/SmashN.png";
+import { updateStatus } from '../utils/profileUtils';
+import UserContext, { IUserContext } from '../context/UserContext'
 
 export const Dashboard = () => {
-	useNewUserStatus('online');
+	// const { userIdContext } = useContext<IUserContext>(UserContext);
+
+	// const newStatus = 'online';
+
+	// useEffect(() => {
+	// 	const updateUserStatus = async (userIdContext: string, newStatus: string) => {
+	// 		updateStatus( userIdContext,  newStatus);
+	// 	}
+	// 	updateUserStatus(userIdContext, newStatus)
+	//   }, []); 
 
   return (
     <>

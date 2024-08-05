@@ -213,7 +213,6 @@
   }
 
   .userMatchHistory {
-	min-width: 400px;
     margin-top: 200px;
     display: flex;
     flex-direction: column;
@@ -226,8 +225,6 @@
 
   .gameHistory .player {
     display: flex;
-	align-items: center;
-	justify-content: center;
     border: 1px solid #f09dea;
     flex-direction: column;
     margin-right: 15px;
@@ -241,11 +238,12 @@
 
   .gameHistory {
     display: flex;
+    align-items: center;
     font-size: 16px;
     border: 2px solid #a09df0;
 	box-shadow: 12px 5px 2px 1px rgba(82, 82, 233, 0.2);
     padding: 10px;
-    /* margin-left: 70px; */
+    margin-left: 70px;
     margin-bottom: 10px;
   }
 

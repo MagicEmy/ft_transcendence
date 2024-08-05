@@ -3,7 +3,6 @@ import { useState } from "react"
 import { ChatContext, socket } from "../../context/ChatContext";
 import { ChatContextType, RoomDto, ChatUserDto, RoomShowDto, RoomUserDto,UserDto, MessageRoomDto } from "../../types/chat.dto";
 import ChatPage from  "./ChatPage";
-import { useNewUserStatus } from '../../hooks';
 
 const Chat = () => {
   const [rooms, setRooms] = useState<RoomShowDto[]>([]);
@@ -13,7 +12,6 @@ const Chat = () => {
   const [roomMembers, setRoomMembers] = useState<RoomUserDto | {}>({});
   const [messages, setMessages] = useState<MessageRoomDto[]>([]);
   const [directMsg, setDirectMsg] = useState<UserDto | null | {}>({});
-  useNewUserStatus('chatting');
 
   return (
     <ChatContext.Provider

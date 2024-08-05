@@ -1,3 +1,4 @@
+import React from 'react';
 import StatItem from './StatItem';
 
 interface TotalTimePlayed {
@@ -25,7 +26,7 @@ interface GamesAgainstBotStatsProps {
 	profile?: Profile | null;
 }
 
-const GamesAgainstPlayersStats = ({ profile }: GamesAgainstBotStatsProps) => {
+const gamesAgainstHumanStats = ({ profile }: GamesAgainstBotStatsProps) => {
 	if (!profile || !profile.gamesAgainstHuman) {
 		return <span className="stat">No games played yet</span>;
 	}
@@ -42,7 +43,7 @@ const GamesAgainstPlayersStats = ({ profile }: GamesAgainstBotStatsProps) => {
 			<StatItem label="Wins" value={wins} />
 			<StatItem label="Draws" value={draws} />
 			<StatItem label="Losses" value={losses} />
-			<h4 className='profile-text-dark'>Total time played against players</h4>
+			<h4 className='profile-text-dark'>Total time played against bot</h4>
 			<div className="item info">
 				<StatItem label="Weeks" value={weeks} />
 				<StatItem label="Days" value={days} />
@@ -54,4 +55,4 @@ const GamesAgainstPlayersStats = ({ profile }: GamesAgainstBotStatsProps) => {
 	);
 };
 
-export default GamesAgainstPlayersStats;
+export default gamesAgainstHumanStats;
