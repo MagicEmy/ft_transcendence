@@ -88,7 +88,13 @@ export class UserRepository extends Repository<User> {
     const user = await this.getUserById(userId);
     if (user) {
       user.game = game;
-      return game;
+      try {
+        this.save(user);
+        return game;
+      } catch (error) {
+        console.log('ERROR in setGame() saving to repo');
+        console.log(error);
+      }
     }
     return '';
   }
