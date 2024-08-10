@@ -1,3 +1,4 @@
+import { UserStatus } from '../types/shared';
 import { Games } from '../types/shared';
 import { USER, GAMES, STATUS, AVATAR } from './constants';
 
@@ -35,17 +36,10 @@ export const loadGames = async (userId: string): Promise<Games[]> => {
 	  if (!response.ok) {
 		throw new Error(`Error: ${response.status}`);
 	  }
-	  const blob = await response.blob();
-	  const stringImageUrl = await new Promise((resolve, reject) => {
-		  let fr = new FileReader();
-		  fr.onload = () => {
-			  resolve(fr.result )
-		  };
-		  fr.onerror = reject;
-		  fr.readAsDataURL(blob);
-	  	});
+	const base64String = await response.text();
+	const stringImageUrl = `data:image/png;base64,${base64String}`;
 
-		return stringImageUrl as string;
+    return stringImageUrl;
 
 	} catch (error) {
 	  console.error('Failed to fetch avatar:', error);

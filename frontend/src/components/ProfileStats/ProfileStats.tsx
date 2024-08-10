@@ -4,7 +4,6 @@ import { NavLink, useParams } from 'react-router-dom';
 import UserContext, { IUserContext } from '../../context/UserContext';
 
 import GamesAgainstBotStats from './GamesAgainstBot';
-import GamesAgainstPlayersStats from './GamesAgainstPlayers';
 
 export const UserStats = () => {
   const { userIdContext } = useContext<IUserContext>(UserContext);
@@ -25,7 +24,22 @@ export const UserStats = () => {
           </div>
         )) : <span className="stat">No games played yet</span>}
         <h4 className='profile-text-dark'>Games Against players</h4>
-		<GamesAgainstPlayersStats profile={profile} />
+        <div className="stat-column">
+          <span className="stat">Total played games <strong>{profile?.gamesAgainstHuman?.totalPlayedGames}</strong></span>
+          <span className="stat">High score <strong>{profile?.gamesAgainstHuman?.maxScore}</strong></span>
+        </div>
+        <span className="stat"><strong>{profile?.gamesAgainstHuman?.wins}</strong>Wins</span>
+        <span className="stat"><strong>{profile?.gamesAgainstHuman?.draws}</strong>Draws</span>
+        <span className="stat"><strong>{profile?.gamesAgainstHuman?.losses}</strong>Losses</span>
+
+        <h4 className='profile-text-dark'>Total time played against players</h4>
+        <div className="item info">
+          {profile && profile?.gamesAgainstHuman?.totalTimePlayed?.weeks > 0 ? <span className="stat"><strong>{profile?.gamesAgainstHuman?.totalTimePlayed?.weeks}</strong>Weeks</span> : null}
+          {profile && profile?.gamesAgainstHuman?.totalTimePlayed?.days > 0 ? <span className="stat"><strong>{profile?.gamesAgainstHuman?.totalTimePlayed?.days}</strong>Days</span> : null}
+          <span className="stat"><strong>{profile?.gamesAgainstHuman?.totalTimePlayed?.hours}</strong>Hours</span>
+          <span className="stat"><strong>{profile?.gamesAgainstHuman?.totalTimePlayed?.minutes}</strong>Minutes</span>
+          <span className="stat"><strong>{profile?.gamesAgainstHuman?.totalTimePlayed?.seconds}</strong>Seconds</span>
+        </div>
         <h4 className='profile-text-dark'>Games Against bot</h4>
         <GamesAgainstBotStats profile={profile} />
       </div>

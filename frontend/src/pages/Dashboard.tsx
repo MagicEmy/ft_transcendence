@@ -1,6 +1,8 @@
 import PageContent from "../components/PageContent";
-import { useNewUserStatus } from "../hooks";
+import { useEffect, useContext } from "react";
 import smash from "../assets/DataSunBig.png";
+import { updateStatus } from '../utils/profileUtils';
+import UserContext, { IUserContext } from '../context/UserContext'
 
 export const Dashboard = () => {
   useNewUserStatus("online");

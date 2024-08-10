@@ -70,7 +70,13 @@ function Sidebar() {
     }
     setAddUser(event);
   }
+  socket.off("kick_user_out").on("kick_user_out", (message: string) => {
 
+      alert(message);
+      joinRoom({ roomName: "general", password: false });
+    }
+  );
+    
   function joinRoom(room: RoomDto) {
     let password: string | null = "";
     if (room.password) {
@@ -807,7 +813,7 @@ function Sidebar() {
               <Col xs={5} onClick={() => joinDirectRoom(member)}>
                 {member.userName}
                 {member.userId === user?.userId && " (You)"}
-                <span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === chatId(member.userId))?.count}</span>
+                {currentRoom?.roomName !== chatId(member.userId) && (<span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === chatId(member.userId))?.count}</span>)}
               </Col>
               <Col xs={4}>
                 <Dropdown>

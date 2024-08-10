@@ -110,9 +110,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (response !== 'Success') {
       this.server.to(client.id).emit('create_room_response', response);
       this.logger.log(`${payload.user.userId} error ${response}`);
-      this.server
-      .to(client.id)
-      .emit('create_room_response', response);
       return;
     }
     this.logger.log(`${payload.user.userId} created ${payload.roomName}`);
@@ -368,10 +365,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
       return;
     }
+    this.logger.log(`game invite send to ${userReceiver.userId} from ${user.userId}`); 
+    this.logger.log(`game invite send`);
     await this.userService.setGame(
       userReceiver.userId,
       user.userId,
     );
+    
     await this.userService.setGame(
       user.userId,
       userReceiver.userId,
@@ -405,6 +405,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userReceiver : User | undefined = await this.userService.getUserById(
       payload.userReceiver.userId,
     );
+    this.logger.log(`payload inviter ${payload.userCreator.userId} receiver ${payload.userReceiver.userId}`);
     const user : User | undefined = await this.userService.getUserById(payload.userCreator.userId);
     if (user === undefined || userReceiver === undefined) {
       this.server
@@ -412,12 +413,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .emit('accept_game_response', 'The user dont exist');
       return;
     }
+    this.logger.log(`user id inviter ${user.userId} receiver ${userReceiver.userId}`); 
+    this.logger.log(`user game inviter ${user.game} receiver ${userReceiver.game}`);
     if (user.game !== userReceiver.userId) {
       this.server
         .to(client.id)
         .emit('accept_game_response', 'You are not invited to this game');
       return;
     }
+
     if (userReceiver.socketId === '') {
       this.userService.setGame(user.userId, '');
       this.server
@@ -445,6 +449,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user: payload.userCreator,
     };
     this.server.to(userReceiver.socketId).emit('game', accept);
+    this.server.to(user.socketId).emit('game', accept);
     this.server.to(client.id).emit('accept_game_response', 'Success');
     await this.userService.setGame(userReceiver.userId, '');
     await this.userService.setGame(user.userId, '');
@@ -487,6 +492,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const decline = {
       type: 'decline the game',
     };
+    this.server.to(user.socketId).emit('game', decline);
     this.server.to(userReceiver.socketId).emit('game', decline);
     this.logger.log(`decline`);
     this.server.to(client.id).emit('decline_game_response', 'Success');
@@ -588,6 +594,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(
       `${payload.user.userId} is trying to kick ${payload.toDoUser}`,
     );
+    this.logger.log(`${payload.user.userId} is trying to kick ${payload.toDoUser}`);
+    this.logger.log(`${payload.roomName}`);
     const response : string = await this.roomService.kickUserFromRoom(
       payload.roomName,
       payload.user.userId,
@@ -597,8 +605,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (response !== 'Success') {
       return;
     }
+    const toKickUser: User | undefined = await this.userService.getUserById(payload.toDoUser);
+    if (toKickUser === undefined) {
+      return;
+    }
     const userList : RoomUserDto = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
+    this.server.to(toKickUser.socketId).emit('kick_user_out', "you are kicked out");
   }
 
   @UsePipes(new ValidationPipe())
@@ -638,8 +651,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.user.userId,
       payload.toDoUser,
     );
+
     const userList : RoomUserDto = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
+    const toBanUser: User | undefined = await this.userService.getUserById(payload.toDoUser);
+    if (toBanUser === undefined) {
+      return;
+    }
+    this.server.to(toBanUser.socketId).emit('kick_user_out', "you are banned");
   }
 
   @UsePipes(new ValidationPipe())

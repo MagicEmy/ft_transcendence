@@ -81,9 +81,9 @@ export class RoomService {
       return blocked;
     }
     let chatId = '';
-    if (userStart.userId > userReceiver.userId)
-      chatId = "#" + userCreator.userId + userReceiver.userId;
-    else chatId = "#" + userReceiver.userId + userCreator.userId;
+    if (userStart.userId < userReceive.userId)
+      chatId = "#" + userStart.userId + userReceive.userId;
+    else chatId = "#" + userReceive.userId + userStart.userId;
     const room : number = await this.getRoomIndexByName(chatId);
     if (room === -1) {
       this.rooms.push({
@@ -165,6 +165,7 @@ export class RoomService {
     const roomIndex : number  = this.rooms.findIndex(
       (room) => room.roomName === roomName,
     );
+    console.log(roomIndex + " here");
     return roomIndex;
   }
 
@@ -577,6 +578,7 @@ export class RoomService {
     roomName: Room['roomName'],
     userId: User['userId'],
   ): Promise<void> {
+    console.log(roomName + "remove user");
     const roomIndex : number  = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) throw 'Not Existing Room';
     if (this.rooms[roomIndex].direct) throw 'Not Authorized User';
@@ -615,6 +617,7 @@ export class RoomService {
     user: UserDto['userId'],
     toKick: UserDto['userId'],
   ): Promise<string> {
+    console.log(roomName);
     const roomIndex : number = await this.getRoomIndexByName(roomName);
     if (roomIndex === -1) {
       throw 'Not Existing Room';
@@ -624,7 +627,7 @@ export class RoomService {
     if (!tokick) throw 'Not Existing User';
     if (await this.isBanned(roomIndex, tokick.userId)) return 'User Is Banned';
     if (await this.isAdmin(roomIndex, user) && !(await this.isOwner(roomIndex, toKick))) {
-      await this.removeUserFromRoom(tokick.userId, roomName);
+      await this.removeUserFromRoom(roomName, tokick.userId);
     } else return 'Not Authorized User';
     return 'Success';
   }
