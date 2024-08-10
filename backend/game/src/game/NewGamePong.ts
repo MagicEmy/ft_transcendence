@@ -112,6 +112,7 @@ export class GamePong implements IGame
 		this.gameState = GameState.WAITING;
 		this.timerGame = Date.now();
 		this.timerEvent = Date.now();
+		console.log(`binding methods`);
 		this.interval = setInterval(this.GameLoop.bind(this), 16);
 	}
 
@@ -168,38 +169,64 @@ export class GamePong implements IGame
 	Socket Listeners
 
 \* ************************************************************************** */
+private ImageHandlers = new Map<Socket, (client: Socket) => void>();
+private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 
 	private AddListerners(player: Player, client: Socket): void
 	{
-		console.log(`Add clientId: ${client.id}`);
-		// client.on("disconnect", () => { this.handlerDisconnect(client); });
-		console.log(`1 ${client.listeners("GameImage")}`);
-		client.on("GameImage", () => { this.handlerImage(client) });
-		console.log(`2 ${client.listeners("GameImage")}`);
+		var handler: any;
+
+		handler = () => this.handlerImage(client);
+		this.ImageHandlers.set(client, handler);
+		client.on("GameImage", handler);
+
+		handler = () => this.handlerDisconnect(client);
+		this.DisconnectHandlers.set(client, handler);
+		client.on("disconnect", handler);
 	}
 
 	private RemoveListeners(client: Socket): void
 	{
-		console.log(`rmv clientId: ${client.id}`);
-		// client.off("disconnect", this.handlerDisconnect);
-		console.log(`3 ${client.listeners("GameImage")}`);
-		client.off("GameImage", () => { this.handlerImage(client) });
-		client.leave("GameImage");
-		client.removeListener("GameImage", this.handlerImage);
-		client.removeAllListeners("GameImage");
+		var handler: any;
 
-		console.log(`4 ${client.listeners("GameImage")}`);
+		handler = this.ImageHandlers.get(client);
+		if (handler)
+		{
+			client.off("GameImage", handler);
+			this.ImageHandlers.delete(client);
+		}
+
+		handler = this.DisconnectHandlers.get(client);
+		if (handler)
+		{
+			client.off("disconnect", handler);
+			this.DisconnectHandlers.delete(client);
+		}
 	}
 
-	private handlerDisconnect(client: any)
+	private RemoveAllListeners(): void
+	{
+		this.ImageHandlers.forEach((handler, client) =>
+		{
+			client.off("GameImage", handler)
+			this.ImageHandlers.delete(client);
+		});
+		this.DisconnectHandlers.forEach((handler, client) =>
+		{
+			client.off("disconnect", handler)
+			this.DisconnectHandlers.delete(client);
+		});
+	}
+
+	private handlerDisconnect(client: Socket): void
 	{
 		console.log("GamePong: disconnect", client.id);
 		this.RemoveListeners(client);
 	}
 
-	private handlerImage(client: any): void
+	private handlerImage(client: Socket): void
 	{
-		// console.log(`image ID ${this.id}`);
+		console.log(`image ID ${this.id}`);
 		this.sendImage(client);
 	}
 
@@ -226,6 +253,7 @@ export class GamePong implements IGame
 							Player1: P2, Player2: P1, Ball: ball};
 			this.MirrorImageDataXAxis(imageData);
 		}
+		// console.log(`sendImage ${client}`);
 		if (client.emit)
 			client.emit("GameImage", JSON.stringify(imageData));
 	}
@@ -484,21 +512,6 @@ export class GamePong implements IGame
 	private GameLoopGameOver(): void
 	{
 		this.EndGame(GameStatus.COMPLETED);
-		// console.log(`Game over for ${this.player1.id} / ${this.player2.id}}`);
-
-		// clearInterval(this.interval);
-		// const data: IGameStatus = this.GenerateEndData(GameStatus.COMPLETED);
-		// const message: string = JSON.stringify(data);
-
-		// //send to Kafka
-		// GameManager.getInstance().kafkaEmit(GameStatus.COMPLETED, message);
-
-		// //send to players
-		// this.SendToPlayer(this.player1, GameStatus.COMPLETED, message);
-		// this.SendToPlayer(this.player2, GameStatus.COMPLETED, message);
-
-		// //delete game
-		// GameManager.getInstance().removeGame(this);
 	}
 
 	// private GenerateEndData(status: GameStatus): IGameStatus
@@ -827,13 +840,15 @@ export class GamePong implements IGame
 		const data: IGameStatus = this.GenerateEndData(status);
 		const message: string = JSON.stringify(data);
 
-
 		//send to Kafka
 		GameManager.getInstance().kafkaEmit(GameStatus.TOPIC, message);
 
 		//send to players
 		this.SendToPlayer(this.player1, GameStatus.TOPIC, message);
 		this.SendToPlayer(this.player2, GameStatus.TOPIC, message);
+
+		//remove handlers
+		this.RemoveAllListeners();
 
 		//delete game
 		GameManager.getInstance().removeGame(this);
