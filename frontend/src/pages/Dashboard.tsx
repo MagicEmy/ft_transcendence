@@ -5,7 +5,6 @@ import { updateStatus } from '../utils/profileUtils';
 import UserContext, { IUserContext } from '../context/UserContext'
 
 export const Dashboard = () => {
-  useNewUserStatus("online");
 
   return (
     <>
