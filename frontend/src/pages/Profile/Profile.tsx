@@ -28,7 +28,7 @@ export const Profile = () => {
   const [currentStatus, setCurrentStatus] = useState<string>('');
 
   const [ , setFriends] = useState<Friends[]>([]);
-
+  const profileName = profile?.userInfo?.userName;
   const userStatusIndicator = currentStatus;
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export const Profile = () => {
             <div className="item">
               {avatarUrl ?  <img src={avatarUrl} alt="User avatar" /> :<img src={defaultAvatar} alt="default avatar" />
 			}
-              <h4 className='profile-text'>{profile?.userInfo?.userName}</h4>
+              <h4 className='profile-text'>{profileName}</h4>
               <div className="status">
                 <span className={`status-indicator ${userStatusIndicator}`}></span>
                 <span>{userStatusIndicator}</span>
