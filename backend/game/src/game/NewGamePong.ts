@@ -82,6 +82,8 @@ export class GamePong implements IGame
 		console.log(`Creating new pong game ${data}/${players}`);
 		this.mode = data[0];
 		this.theme = data[1];
+		if (this.theme === undefined)
+			this.theme = "retro";
 		let player1: string;
 		let player2: string | null = null;
 
@@ -156,12 +158,10 @@ export class GamePong implements IGame
 
 	public PlayerIsInGame(player: GamePlayer): boolean
 	{
-		console.log("Trying to find player")
-		console.log(player.getId());
 		console.log(this.player1.player?.getId());
 		console.log(this.player2.player?.getId());
-		return (this.player1.player?.getId() == player.getId() ||
-				this.player2.player?.getId() == player.getId());
+		return (this.player1.id == player.getId() ||
+				this.player2.id == player.getId());
 	}
 
 	public clearGame(): void
@@ -235,7 +235,8 @@ export class GamePong implements IGame
 
 		// Set player status to disconnect/playing
 		this.player1.status = this.player1.player.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
-		this.player2.status = this.player2.player.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
+		this.player2.status = this.player2.player?.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
+
 
 		this.timerEvent = Date.now();
 		this.sendHUD();
@@ -628,7 +629,7 @@ export class GamePong implements IGame
 				break ;
 			case FLAGS.LOCAL.FLAG:
 				dirP1 = this.GetKeyPress(this.player1.player.button, true, false, this.theme === "modern");
-				dirP2 = this.GetKeyPress(this.player2.player.button, false, true, this.theme === "modern");
+				dirP2 = this.GetKeyPress(this.player1.player.button, false, true, this.theme === "modern");
 				break ;
 			default:
 				dirP1 = this.GetKeyPress(this.player1.player.button, true, true, this.theme === "modern");
@@ -956,7 +957,7 @@ export class GamePong implements IGame
 	private EventPlayerScored(player: Player): void
 	{
 		++player.score;
-		if (player.score >= 1)//11!
+		if (player.score >= 11)
 			this.gameState = GameState.GAMEOVER;
 		else
 			this.gameState = GameState.NEWBALL;
