@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import LeaderboardProfiles from './LeaderboardProfiles';
+import { useUpdateStatus } from '../../hooks';
 import { LeaderboardStats } from './types';
 import { LEADERBOARD } from '../../utils/constants';
 import "./Leaderboard.css";
 
 const Leaderboard = () => {
+  useUpdateStatus();
   const [leaderboard, setLeaderboard] = useState<LeaderboardStats[]>([]);
 
   useEffect(() => {

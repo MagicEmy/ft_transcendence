@@ -1,9 +1,11 @@
 import { ChangeName } from "../../components/ChangeName";
 import { ChangeAvatar } from "../../components/ChangeAvatar";
 import { TwoFaEnable } from "../../components/Tfa/TwoFaEnable";
+import { useUpdateStatus } from '../../hooks';
 import "./Settings.css";
 
 const Settings = () => {
+	useUpdateStatus();
 
 	return (
 		<div className="main">
