@@ -13,6 +13,7 @@ import {
   Post,
   Req,
   Res,
+  StreamableFile,
   UploadedFile,
   UseFilters,
   UseGuards,
@@ -271,17 +272,17 @@ export class AppController {
   @Get('/avatar/:id')
   getAvatar(
 	@Param('id', ParseUUIDPipe) userId: string,
-	@Res({ passthrough: true }) res: Response,
-  ): Observable<string> {
-	return this.appService.getAvatar(userId).pipe(
-	  catchError((error) => throwError(() => error)),
-	  map((avatarDto: AvatarDto) => {
-		res.set({
-		  'Content-Type': avatarDto.mimeType,
-		});
-		return avatarDto.avatar.toString('base64');
-	  }),
-	);
+    @Res({ passthrough: true }) res: Response,
+  ): Observable<StreamableFile> {
+    return this.appService.getAvatar(userId).pipe(
+      catchError((error) => throwError(() => error)),
+      map((avatarDto: AvatarDto) => {
+        res.set({
+          'Content-Type': `${avatarDto.mimeType}`,
+        });
+        return new StreamableFile(avatarDto.avatar);
+      }),
+    );
   }
 
   // SIMULATIONS
