@@ -207,8 +207,7 @@ export class AuthService {
       token: tokens.jwtRefreshToken,
       expirationTime: this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
     });
-    const userIdCookie = `userId=${user.user_id}; Path=/; HttpOnly`;
-    resp.setHeader('Set-Cookie', [accessCookie, refreshCookie, userIdCookie]);
+    resp.setHeader('Set-Cookie', [accessCookie, refreshCookie]);
     return resp;
   }
 

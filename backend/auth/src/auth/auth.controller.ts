@@ -28,6 +28,8 @@ export class AuthController {
   async handleRedirect(@Req() req, @Res() resp: Response): Promise<void> {
     if (await this.authService.isTfaEnabled(req.user.user_id)) {
       // redirect for TFA
+      const userIdCookie = `userId=${req.user.user_id}; Path=/; HttpOnly; Max-Age=${this.configService.get('JWT_REFRESH_EXPIRATION_TIME')}`; // do the lax thing
+      resp.setHeader('Set-Cookie', [userIdCookie]);
       return resp.redirect(302, this.configService.get('2FA_URL'));
     } else {
       // set jwt tokens in cookies and redirect to dashboard
@@ -41,7 +43,10 @@ export class AuthController {
   // This allows one person to be testing with two users (the TestUser and own 42 account) on two computers / in two browsers
   @Get('/testuser')
   async loginTestUser(@Res() resp: Response) {
-    const user = await this.authService.validateUserOrAddNewOne({ intraLogin: 'TestUser', avatarUrl: 'default' });
+    const user = await this.authService.validateUserOrAddNewOne({
+      intraLogin: 'TestUser',
+      avatarUrl: 'default',
+    });
     if (user) {
       resp = this.authService.addCookiesToResponse(resp, user);
       return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
@@ -50,7 +55,7 @@ export class AuthController {
       resp.status(500).send();
     }
   }
-  
+
   @UseGuards(TfaAuthGuard)
   @Post('tfa/authenticate')
   async handleTfa(

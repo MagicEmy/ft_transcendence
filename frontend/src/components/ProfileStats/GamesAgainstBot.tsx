@@ -1,4 +1,3 @@
-// GamesAgainstBotStats.tsx
 import React from 'react';
 import StatItem from './StatItem';
 

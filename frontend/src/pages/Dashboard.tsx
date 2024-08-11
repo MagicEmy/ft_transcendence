@@ -1,10 +1,9 @@
 import PageContent from "../components/PageContent";
-import { useEffect, useContext } from "react";
 import smash from "../assets/DataSunBig.png";
-import { updateStatus } from '../utils/profileUtils';
-import UserContext, { IUserContext } from '../context/UserContext'
+import { useUpdateStatus } from '../hooks';
 
 export const Dashboard = () => {
+	useUpdateStatus();
 
   return (
     <>

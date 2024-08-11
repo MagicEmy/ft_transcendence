@@ -22,11 +22,11 @@ interface Profile {
 	gamesAgainstHuman: gamesAgainstHuman;
 }
 
-interface GamesAgainstBotStatsProps {
+interface GamesAgainstPlayersStatsProps {
 	profile?: Profile | null;
 }
 
-const gamesAgainstHumanStats = ({ profile }: GamesAgainstBotStatsProps) => {
+const GamesAgainstPlayersStats = ({ profile }: GamesAgainstPlayersStatsProps) => {
 	if (!profile || !profile.gamesAgainstHuman) {
 		return <span className="stat">No games played yet</span>;
 	}
@@ -43,7 +43,7 @@ const gamesAgainstHumanStats = ({ profile }: GamesAgainstBotStatsProps) => {
 			<StatItem label="Wins" value={wins} />
 			<StatItem label="Draws" value={draws} />
 			<StatItem label="Losses" value={losses} />
-			<h4 className='profile-text-dark'>Total time played against bot</h4>
+			<h4 className='profile-text-dark'>Total time played against players</h4>
 			<div className="item info">
 				<StatItem label="Weeks" value={weeks} />
 				<StatItem label="Days" value={days} />
@@ -55,4 +55,4 @@ const gamesAgainstHumanStats = ({ profile }: GamesAgainstBotStatsProps) => {
 	);
 };
 
-export default gamesAgainstHumanStats;
+export default GamesAgainstPlayersStats;
