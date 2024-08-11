@@ -1,17 +1,18 @@
 import { IPlayerInfo, PlayerInfo, SockEventNames } from "./GamePong.communication";
 import { IGame } from "./IGame";
 import { GameManager } from "./NewGameManager";
+import { Socket } from 'socket.io';
 
 export class GamePlayer
 {
-	private client: any | null;
+	private client: Socket | null;
 	private id:	string;
 	public name: string;
 	public rank: number;
 	public status: string;
 	public button: {[key: number]: boolean};
 
-	constructor(client: any, id: string | null)
+	constructor(client: Socket, id: string | null)
 	{
 		if (typeof(id) === "string")
 			this.constructPlayer(client, id);
@@ -19,7 +20,7 @@ export class GamePlayer
 			this.ConstructBot();
 	}
 
-	private constructPlayer(client: any, id: string)
+	private constructPlayer(client: Socket, id: string)
 	{
 		// console.log("Creating player");
 		this.client = client;
@@ -71,11 +72,12 @@ export class GamePlayer
 	{
 		const key: any = JSON.parse(data);
 		this.button[key.code] = (key.event === "keydown");
+		// console.log(`${this.status}\t${key.code} ${key.event}`);
 	}
 
 	private handlerDisconnect(): void
 	{
-		// GameManager.getInstance()?.FindExistingGame(this)?.PlayerDisconnect(this);
+		this.client?.removeAllListeners();
 	}
 
 	public getClient(): any {return this.client}
