@@ -225,6 +225,15 @@ Socket.io
 	{
 		this.EmitMenu(client);
 	}
+	
+	@SubscribeMessage("LeaveMatchMaker")
+	handerLeaveMatchMaker(client: any, message: string): void
+	{
+		const msg: any = JSON.parse(message);
+
+		MatchMaker.RemovePlayer(msg.playerID);
+		this.EmitMenu(client);
+	}
 
 	// @SubscribeMessage("PlayGame")
 	// handlerPlayGame(client: any, message: string): void
@@ -277,6 +286,7 @@ Socket.io
 					console.log(`gameinstance before ${game}`);
 					gameInstance = new GamePong(data, players);
 					console.log(`gameinstance after ${game}`);
+
 					break ;
 				case MatchMaker.GetFlag():
 					gameInstance = MatchMaker.GetInstance();
@@ -348,6 +358,8 @@ Socket.io
 		const index: number = this.games.findIndex(game => game === gameToRemove);
 		if (index  != -1)
 			this.games.splice(index, 1)[0];
+		// this.games.filter
+		// console.log(`There are ${this.games.length} games running`);
 	}
 
 /* ************************************************************************** *\

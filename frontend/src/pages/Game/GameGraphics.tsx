@@ -188,6 +188,7 @@ class GameGraphics
 
 	public RenderCanvas(msg: any): void
 	{
+		// console.log(`${JSON.stringify(msg)}`);
 		this.clearContext(this.CnvsElement, this.CnvsContext);
 		switch (msg.Game)
 		{
@@ -546,6 +547,36 @@ class GameGraphics
 	
 	/* ************************************************************************** *\
 	
+		Match
+	
+	\* ************************************************************************** */
+	
+	public RenderMatchMaker(message: string): void
+	{
+		const msg: any = JSON.parse(message);
+
+		this.clearContext(this.HUDElement, this.HUDContext);
+		this.clearContext(this.MenuElement, this.MenuContext);
+		this.RenderHead("Match Maker");
+
+		this.MenuContext.fillStyle = "orange";
+		this.MenuContext.font = 42 + "px " + GameStyle.Menu.FONT;
+
+		let posY: number = this.MenuElement.height * 0.4;
+		const difY: number = this.MenuElement.height * 0.1;
+		const posX: number = this.MenuElement.width * 0.25;
+		for (const key in msg)
+		{
+			if (msg.hasOwnProperty(key))
+			{
+				this.MenuContext.fillText(`${key}: ${msg[key]}`, posX, posY);
+				posY += difY;
+			}
+		}
+	}
+
+	/* ************************************************************************** *\
+	
 		Game Over
 	
 	\* ************************************************************************** */
@@ -566,14 +597,17 @@ class GameGraphics
 		let printMsg: string;
 		let won: boolean;
 
+		//define winner
 		if (msg.player1Score > msg.player2Score)
 			won = true;
 		else if (msg.player1Score < msg.player2Score)
 			won = false;
 
-		if (msg.Player2ID === GameSocket.GetID() && won !== undefined)
+		//convert to local player
+		if (msg.player2ID === GameSocket.GetID() && won !== undefined)
 			won = !won;
 
+		//print info
 		if (won === true)
 		{
 			this.MenuContext.fillStyle = "green";

@@ -3,6 +3,7 @@ import { IGame } from "./IGame";
 import { PlayerInfo, IPlayerInfo, SockEventNames, ISockPongImage, ISockPongImagePlayer, ISockPongImageBall, ISockPongHudPlayer, GameTypes, IGameStatus, MatchTypes, GameStatus } from './GamePong.communication';
 import { Button, GameState, PlayerStatus } from "./GamePong.enums";
 import { GameManager } from "./NewGameManager";
+import { Socket } from 'socket.io';
 
 interface Player
 {
@@ -68,6 +69,8 @@ export class GamePong implements IGame
 	private ball: Ball | null;
 	private interval: any;
 
+	private id: string = Math.random().toString(36).substr(2, 9);
+
 	private timerGame: number = Date.now();
 	private timerEvent: number = Date.now();
 
@@ -79,7 +82,8 @@ export class GamePong implements IGame
 		let player1: string;
 		let player2: string | null = null;
 
-		// console.log(`Creating new pong game ${data}/${players}`);
+
+		console.log(`validating game mode [${this.mode}]`);
 		player1 = players[0];
 		switch (this.mode)
 		{
@@ -99,12 +103,16 @@ export class GamePong implements IGame
 			default:
 				throw (`Unknown game mode ${this.mode}`);
 		}
+		console.log(`constructing player 1 [${player1}]`);
 		this.player1 = this.ConstructPlayer(player1, 1/23);
+		console.log(`constructing player 2 [${player2}]`);
 		this.player2 = this.ConstructPlayer(player2, 22/23);
+		console.log(`preparing game`);
 		this.ball = null;
 		this.gameState = GameState.WAITING;
 		this.timerGame = Date.now();
 		this.timerEvent = Date.now();
+		console.log(`binding methods`);
 		this.interval = setInterval(this.GameLoop.bind(this), 16);
 	}
 
@@ -149,7 +157,11 @@ export class GamePong implements IGame
 
 	public clearGame(): void
 	{
-		
+		console.log(`removing ${this.id}`);
+		if (this.player1.player.getClient())
+			this.RemoveListeners(this.player1.player.getClient());
+		if (this.player2.player.getClient())
+			this.RemoveListeners(this.player2.player.getClient());
 	}
 
 /* ************************************************************************** *\
@@ -157,20 +169,64 @@ export class GamePong implements IGame
 	Socket Listeners
 
 \* ************************************************************************** */
+private ImageHandlers = new Map<Socket, (client: Socket) => void>();
+private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 
-	private AddListerners(player: Player, client: any): void
+	private AddListerners(player: Player, client: Socket): void
 	{
-		client.on("disconnect", () => { this.handlerDisconnect(client); });
-		client.on("GameImage", () => { this.handlerImage(client) });
+		var handler: any;
+
+		handler = () => this.handlerImage(client);
+		this.ImageHandlers.set(client, handler);
+		client.on("GameImage", handler);
+
+		handler = () => this.handlerDisconnect(client);
+		this.DisconnectHandlers.set(client, handler);
+		client.on("disconnect", handler);
 	}
 
-	private handlerDisconnect(client: any)
+	private RemoveListeners(client: Socket): void
+	{
+		var handler: any;
+
+		handler = this.ImageHandlers.get(client);
+		if (handler)
+		{
+			client.off("GameImage", handler);
+			this.ImageHandlers.delete(client);
+		}
+
+		handler = this.DisconnectHandlers.get(client);
+		if (handler)
+		{
+			client.off("disconnect", handler);
+			this.DisconnectHandlers.delete(client);
+		}
+	}
+
+	private RemoveAllListeners(): void
+	{
+		this.ImageHandlers.forEach((handler, client) =>
+		{
+			client.off("GameImage", handler)
+			this.ImageHandlers.delete(client);
+		});
+		this.DisconnectHandlers.forEach((handler, client) =>
+		{
+			client.off("disconnect", handler)
+			this.DisconnectHandlers.delete(client);
+		});
+	}
+
+	private handlerDisconnect(client: Socket): void
 	{
 		console.log("GamePong: disconnect", client.id);
+		this.RemoveListeners(client);
 	}
 
-	private handlerImage(client: any): void
+	private handlerImage(client: Socket): void
 	{
+		console.log(`image ID ${this.id}`);
 		this.sendImage(client);
 	}
 
@@ -197,6 +253,7 @@ export class GamePong implements IGame
 							Player1: P2, Player2: P1, Ball: ball};
 			this.MirrorImageDataXAxis(imageData);
 		}
+		// console.log(`sendImage ${client}`);
 		if (client.emit)
 			client.emit("GameImage", JSON.stringify(imageData));
 	}
@@ -455,21 +512,6 @@ export class GamePong implements IGame
 	private GameLoopGameOver(): void
 	{
 		this.EndGame(GameStatus.COMPLETED);
-		// console.log(`Game over for ${this.player1.id} / ${this.player2.id}}`);
-
-		// clearInterval(this.interval);
-		// const data: IGameStatus = this.GenerateEndData(GameStatus.COMPLETED);
-		// const message: string = JSON.stringify(data);
-
-		// //send to Kafka
-		// GameManager.getInstance().kafkaEmit(GameStatus.COMPLETED, message);
-
-		// //send to players
-		// this.SendToPlayer(this.player1, GameStatus.COMPLETED, message);
-		// this.SendToPlayer(this.player2, GameStatus.COMPLETED, message);
-
-		// //delete game
-		// GameManager.getInstance().removeGame(this);
 	}
 
 	// private GenerateEndData(status: GameStatus): IGameStatus
@@ -798,13 +840,15 @@ export class GamePong implements IGame
 		const data: IGameStatus = this.GenerateEndData(status);
 		const message: string = JSON.stringify(data);
 
-
 		//send to Kafka
 		GameManager.getInstance().kafkaEmit(GameStatus.TOPIC, message);
 
 		//send to players
 		this.SendToPlayer(this.player1, GameStatus.TOPIC, message);
 		this.SendToPlayer(this.player2, GameStatus.TOPIC, message);
+
+		//remove handlers
+		this.RemoveAllListeners();
 
 		//delete game
 		GameManager.getInstance().removeGame(this);

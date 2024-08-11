@@ -43,7 +43,7 @@ export class AuthService {
     return user;
   }
 
-  private async validateUserOrAddNewOne(
+  async validateUserOrAddNewOne(
     validateUserDto: ValidateUserDto,
   ): Promise<User> {
     const { intraLogin, avatarUrl } = validateUserDto;

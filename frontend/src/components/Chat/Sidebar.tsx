@@ -70,7 +70,13 @@ function Sidebar() {
     }
     setAddUser(event);
   }
+  socket.off("kick_user_out").on("kick_user_out", (message: string) => {
 
+      alert(message);
+      joinRoom({ roomName: "general", password: false });
+    }
+  );
+    
   function joinRoom(room: RoomDto) {
     let password: string | null = "";
     if (room.password) {
@@ -460,7 +466,7 @@ function Sidebar() {
       });
       return (
         <>
-          <Dropdown.Item href={"/profile"}>
+          <Dropdown.Item href={`/profile/${member.userId}`}>
             View Profile
           </Dropdown.Item>
           <Dropdown.Item
@@ -807,8 +813,7 @@ function Sidebar() {
               <Col xs={5} onClick={() => joinDirectRoom(member)}>
                 {member.userName}
                 {member.userId === user?.userId && " (You)"}
-                {member.online === false && " (Offline)"}
-                <span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === chatId(member.userId))?.count}</span>
+                {currentRoom?.roomName !== chatId(member.userId) && (<span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === chatId(member.userId))?.count}</span>)}
               </Col>
               <Col xs={4}>
                 <Dropdown>
@@ -837,9 +842,14 @@ function Sidebar() {
       )}
       {Object.keys(gameInvite).length !== 0 && "type" in gameInvite &&
         gameInvite.type === "invitation" && (
+          <>
           <Button variant="success" onClick={acceptGameInvite}>
             Accept
           </Button>
+            <Button variant="danger" onClick={declineGameInvite}>
+            Decline
+          </Button>
+          </>
         )}
       {Object.keys(gameInvite).length !== 0 && "type" in gameInvite && gameInvite.type === "host" && (
         <Button variant="danger" onClick={declineGameInvite}>

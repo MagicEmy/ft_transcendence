@@ -84,8 +84,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
   }, [userIdStorage]);
 
-  console.log("userIdContext: ", userIdContext);
-  console.log("userIdStorage: ", userIdStorage);
+//   console.log("userIdContext: ", userIdContext);
+//   console.log("userIdStorage: ", userIdStorage);
 
   return (
     <UserContext.Provider

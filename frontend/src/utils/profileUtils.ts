@@ -1,4 +1,3 @@
-import { UserStatus } from '../types/shared';
 import { Games } from '../types/shared';
 import { USER, GAMES, STATUS, AVATAR } from './constants';
 
@@ -24,22 +23,6 @@ export const loadGames = async (userId: string): Promise<Games[]> => {
 	  console.error('Error loading friends:', error);
 	  return [];
 	}
-  };
-
-
-  export const loadStatus = async (userId: string): Promise<UserStatus> => {
-	const response = await fetch(`${STATUS}/${userId}`, {
-	  method: 'GET',
-	  headers: {
-		'Content-Type': 'application/json'
-	  },
-	  credentials: 'include'
-	});
-	if (!response.ok) {
-	  throw new Error('Failed to fetch status');
-	}
-	const fetchedUserStatus: UserStatus = await response.json();
-	return fetchedUserStatus;
   };
 
   export const loadProfileAvatar = async (userId: string): Promise<string> => {
@@ -75,6 +58,21 @@ export const loadGames = async (userId: string): Promise<Games[]> => {
 	}
 	const newNameProfile = await response.json();
 	return newNameProfile;
+  };
+
+  export const updateStatus = async (userId: string, newStatus: string) => {
+	const response = await fetch(`${STATUS}/${userId}/${newStatus}`, {
+	  method: 'PATCH',
+	  headers: {
+		'Content-Type': 'application/json'
+	  },
+	  credentials: 'include'
+	});
+	if (!response.ok) {
+	  throw new Error('Failed to update user status');
+	}
+
+	return ;
   };
 
 

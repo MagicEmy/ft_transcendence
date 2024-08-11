@@ -65,7 +65,7 @@ export class MatchMaker implements IGame
 			console.log(i, MatchMaker.matchQueue[i].id, MatchMaker.matchQueue[i].rank, MatchMaker.matchQueue[i].time);
 	}
 
-	PlayerIsInGame(player: GamePlayer): boolean
+	public PlayerIsInGame(player: GamePlayer): boolean
 	{
 		// const id: any = player.getId();
 		// if (MatchMaker.matchQueue.findIndex(playerQueue => playerQueue.id === id) === -1)
@@ -73,7 +73,7 @@ export class MatchMaker implements IGame
 		return (true);
 	}
 
-	private static RemovePlayer(id: string)
+	public static RemovePlayer(id: string)
 	{
 		let index: number;
 		while ((index = MatchMaker.matchQueue.findIndex(id => id === id)) !== -1)
@@ -91,21 +91,21 @@ export class MatchMaker implements IGame
 
 	private static matchLoop()
 	{
-		console.log("checking for match general");
+		// console.log("checking for match general");
 		for (let i: number = 0; i < MatchMaker.matchQueue.length - 1; ++i)
 		{
-			console.log(`checking ${MatchMaker.matchQueue[i].player}/${MatchMaker.matchQueue[i + 1].player}`);
+			// console.log(`checking ${MatchMaker.matchQueue[i].player}/${MatchMaker.matchQueue[i + 1].player}`);
 			if (Math.abs(MatchMaker.matchQueue[i].rank - MatchMaker.matchQueue[i + 1].rank) <=
 				MatchMaker.matchQueue[i].time + MatchMaker.matchQueue[i + 1].time)
 			{
-				console.log("Found a match");
+				// console.log("Found a match");
 				const player1: PlayerRanked = MatchMaker.matchQueue[i];
 				const player2: PlayerRanked = MatchMaker.matchQueue[i + 1];
 				const game: IGame = GameManager.getInstance().CreateGame(player1.player, 
 													GamePong.GetFlag(), 
-													["PongGameMatch", "retro"],
+													["pair", "retro"],
 													[player1.id, player2.id]);
-				console.log(`match received game ${game}`);
+				// console.log(`match received game ${game}`);
 				MatchMaker.AddPlayerToGameAndRemoveFromList(game, player1.player);
 				MatchMaker.AddPlayerToGameAndRemoveFromList(game, player2.player);
 				break ;
@@ -138,14 +138,16 @@ export class MatchMaker implements IGame
 	{
 		const data: ISockRemoveMatch = 
 		{
+			queue:	GamePong.GetFlag(),
 			rank: player.rank,
 			time: player.time,
 		};
 
-		console.error(`sending ${JSON.stringify(data)} to PongMatch`);
+		// console.error(`sending ${JSON.stringify(data)} to PongMatch`);
 
 		if (player.player?.client?.emit)
-			player.player?.client.emit("PongMatch", JSON.stringify(data));
+			player.player?.client.emit("Matchmaker", JSON.stringify(data));
+
 	}
 
 	public static GetFlag(): string { return (MatchMaker.gameFlag); }
