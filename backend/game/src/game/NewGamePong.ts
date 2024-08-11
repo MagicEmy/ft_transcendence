@@ -32,7 +32,6 @@ interface Ball
 	speed:	number;
 	maxSpeed:	number;
 	angle:	number;
-	// lastEvent:	number;
 	lastHit:	Paddle | null;
 	lastPaddle:	Paddle | null;
 }
@@ -62,17 +61,21 @@ export class GamePong implements IGame
 {
 	private static gameFlag: string = FLAGS.FLAG;
 	private gameState: GameState;
+	private oldState: GameState;
 	private mode: string;
 	private theme: string;
 	private player1: Player;
 	private player2: Player;
 	private ball: Ball | null;
+
 	private interval: any;
+	private ImageHandlers: Map<Socket, (client: Socket) => void>;
+	private DisconnectHandlers: Map<Socket, (client: Socket) => void>;
 
-	private id: string = Math.random().toString(36).substr(2, 9);
+	// private id: string = Math.random().toString(36).substr(2, 9);
 
-	private timerGame: number = Date.now();
-	private timerEvent: number = Date.now();
+	private timerGame: number;
+	private timerEvent: number;
 
 	constructor(data: string[], players: string[])
 	{
@@ -81,7 +84,6 @@ export class GamePong implements IGame
 		this.theme = data[1];
 		let player1: string;
 		let player2: string | null = null;
-
 
 		console.log(`validating game mode [${this.mode}]`);
 		player1 = players[0];
@@ -113,6 +115,8 @@ export class GamePong implements IGame
 		this.timerGame = Date.now();
 		this.timerEvent = Date.now();
 		console.log(`binding methods`);
+		this.ImageHandlers = new Map<Socket, (client: Socket) => void>();
+		this.DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 		this.interval = setInterval(this.GameLoop.bind(this), 16);
 	}
 
@@ -141,6 +145,7 @@ export class GamePong implements IGame
 			playerPos = this.player2;
 		if (playerPos === undefined)
 			return (false);
+		console.log(`reached ${playerPos?.player?.name}`);
 		playerPos.player = playerToAdd;
 		this.AddListerners(playerPos, playerToAdd.getClient());
 		playerPos.status = PlayerStatus.WAITING;
@@ -151,13 +156,17 @@ export class GamePong implements IGame
 
 	public PlayerIsInGame(player: GamePlayer): boolean
 	{
+		console.log("Trying to find player")
+		console.log(player.getId());
+		console.log(this.player1.player?.getId());
+		console.log(this.player2.player?.getId());
 		return (this.player1.player?.getId() == player.getId() ||
 				this.player2.player?.getId() == player.getId());
 	}
 
 	public clearGame(): void
 	{
-		console.log(`removing ${this.id}`);
+		// console.log(`removing ${this.id}`);
 		if (this.player1.player.getClient())
 			this.RemoveListeners(this.player1.player.getClient());
 		if (this.player2.player.getClient())
@@ -169,8 +178,6 @@ export class GamePong implements IGame
 	Socket Listeners
 
 \* ************************************************************************** */
-private ImageHandlers = new Map<Socket, (client: Socket) => void>();
-private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 
 	private AddListerners(player: Player, client: Socket): void
 	{
@@ -208,7 +215,7 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 	{
 		this.ImageHandlers.forEach((handler, client) =>
 		{
-			client.off("GameImage", handler)
+			client.removeAllListeners("GameImage");
 			this.ImageHandlers.delete(client);
 		});
 		this.DisconnectHandlers.forEach((handler, client) =>
@@ -221,12 +228,23 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 	private handlerDisconnect(client: Socket): void
 	{
 		console.log("GamePong: disconnect", client.id);
+		// Pause the game 
+		if (this.gameState !== GameState.PAUSED)
+			this.oldState = this.gameState;
+		this.gameState = GameState.PAUSED;
+
+		// Set player status to disconnect/playing
+		this.player1.status = this.player1.player.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
+		this.player2.status = this.player2.player.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
+
+		this.timerEvent = Date.now();
+		this.sendHUD();
 		this.RemoveListeners(client);
 	}
 
 	private handlerImage(client: Socket): void
 	{
-		console.log(`image ID ${this.id}`);
+		// console.log(`image ID ${this.id}`);
 		this.sendImage(client);
 	}
 
@@ -296,7 +314,7 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 		const P1: ISockPongHudPlayer = this.GetHUDDataPlayer(this.player1);
 		const P2: ISockPongHudPlayer = this.GetHUDDataPlayer(this.player2);
 
-		// console.log("Seinding hud");
+		// console.log("Sending hud");
 		this.SendToPlayer(this.player1, "GameHUD", JSON.stringify({game: "pong", P1: P1, P2: P2}));
 		this.SendToPlayer(this.player2, "GameHUD", JSON.stringify({game: "pong", P1: P2, P2: P1}));
 	}
@@ -348,6 +366,7 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 		if (client != null && client.emit)
 			client.emit(flag, msg);
 	}
+
 /* ************************************************************************** *\
 
 	Menu
@@ -430,28 +449,30 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 
 	private GameLoopStart(): void
 	{
-		this.PressSpaceToStart();
-		this.UpdatePaddles();
+		// this.PressSpaceToStart();
+		this.PressSpaceToStart(this.player1);
+		this.PressSpaceToStart(this.player2);
+		this.UpdatePaddles2();
 		this.StartGame();
 	}
 
-	private PressSpaceToStart()
-	{
-		if (this.player1.status === PlayerStatus.NOTREADY &&
-			this.player1.player.button[Button.SPACE])
-		{
-			this.player1.status = PlayerStatus.READY;
-			this.sendHUD();
-		}
+	// private PressSpaceToStart()
+	// {
+	// 	if (this.player1.status === PlayerStatus.NOTREADY &&
+	// 		this.player1.player.button[Button.SPACE])
+	// 	{
+	// 		this.player1.status = PlayerStatus.READY;
+	// 		this.sendHUD();
+	// 	}
 
-		if (this.player2.status === PlayerStatus.NOTREADY &&
-			(this.player2.player.button[Button.SPACE] ||
-			this.player2.id === null))
-		{
-			this.player2.status = PlayerStatus.READY;
-			this.sendHUD();
-		}
-	}
+	// 	if (this.player2.status === PlayerStatus.NOTREADY &&
+	// 		(this.player2.player.button[Button.SPACE] ||
+	// 		this.player2.id === null))
+	// 	{
+	// 		this.player2.status = PlayerStatus.READY;
+	// 		this.sendHUD();
+	// 	}
+	// }
 
 	private StartGame(): void
 	{
@@ -472,7 +493,7 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 
 	private GameLoopNewBall(): void
 	{
-		this.UpdatePaddles();
+		this.UpdatePaddles2();
 		this.AddBall();
 	}
 
@@ -482,7 +503,7 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 
 	private GameLoopPlaying(): void
 	{
-		this.UpdatePaddles();
+		this.UpdatePaddles2();
 		this.UpdateBall();
 		this.CheckEventScore();
 	}
@@ -493,7 +514,17 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 
 	private GameLoopPaused(): void
 	{
-		console.log("Paused mode");
+		if (this.player1.status === PlayerStatus.WAITING &&
+			this.player2.status === PlayerStatus.WAITING)
+		{
+			this.player1.status = PlayerStatus.NOTREADY;
+			this.player2.status = PlayerStatus.NOTREADY;
+			this.gameState = GameState.UNPAUSE;
+			this.timerEvent = Date.now();
+			this.sendHUD();
+		}
+		else if (this.timerEvent + 60000 < Date.now()) // 60 seconds
+			this.EndGame(GameStatus.INTERRUPTED);
 	}
 
 /* ************************************************************************** *\
@@ -502,7 +533,19 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 
 	private GameLoopUnpause(): void
 	{
-		console.log("Unpause mode");
+		this.PressSpaceToStart(this.player1);
+		this.PressSpaceToStart(this.player2);
+
+		if (this.player1.status === PlayerStatus.READY &&
+			this.player2.status === PlayerStatus.READY)
+		{
+			this.player1.status = PlayerStatus.PLAYING;
+			this.player2.status = PlayerStatus.PLAYING;
+			this.gameState = this.oldState;
+			this.sendHUD();
+		}
+		else if (this.timerEvent + 300000 < Date.now()) // 5 minutes
+			this.EndGame(GameStatus.INTERRUPTED);
 	}
 
 /* ************************************************************************** *\
@@ -540,6 +583,17 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 
 \* ************************************************************************** */
 
+	private PressSpaceToStart(player: Player)
+	{
+		if (player.status === PlayerStatus.NOTREADY &&
+			(player.player.button[Button.SPACE] ||
+			player.id === null))
+		{
+			player.status = PlayerStatus.READY;
+			this.sendHUD();
+		}
+	}
+
 	private UpdatePaddles(): void
 	{
 		switch (this.mode)
@@ -558,6 +612,76 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 				this.UpdatePaddle(this.player2.paddle, this.player2.player.button, this.player2.player.button);
 				break ;
 		}
+	}
+
+	private UpdatePaddles2(): void
+	{
+		let dirP1: number = 0;
+		let dirP2: number = 0;
+
+		switch (this.mode)
+		{
+			case FLAGS.SOLO.FLAG:
+				this.BotKeyPress(this.player2);
+				dirP1 = this.GetKeyPress(this.player1.player.button, true, true, this.theme === "modern");
+				dirP2 = this.GetKeyPress(this.player2.player.button, false, true, false);
+				break ;
+			case FLAGS.LOCAL.FLAG:
+				dirP1 = this.GetKeyPress(this.player1.player.button, true, false, this.theme === "modern");
+				dirP2 = this.GetKeyPress(this.player2.player.button, false, true, this.theme === "modern");
+				break ;
+			default:
+				dirP1 = this.GetKeyPress(this.player1.player.button, true, true, this.theme === "modern");
+				dirP2 = this.GetKeyPress(this.player2.player.button, true, true, this.theme === "modern");
+				break ;
+		}
+
+		this.UpdatePaddle2(this.player1.paddle, dirP1);
+		this.UpdatePaddle2(this.player2.paddle, dirP2);
+	}
+
+	private GetKeyPress(key: { [key: number]: boolean }, wasd: boolean, arrows: boolean, horizontal: boolean): number
+	{
+		let dir: number = 0;
+
+		if (wasd)
+		{
+			if (horizontal)
+				dir += this.GetDir(key[Button.a], key[Button.d]);
+			else
+				dir += this.GetDir(key[Button.w], key[Button.s]);
+		}
+		if (arrows)
+		{
+			if (horizontal)
+				dir += this.GetDir(key[Button.ARROWLEFT], key[Button.ARROWRIGHT])
+			else
+				dir += this.GetDir(key[Button.ARROWUP], key[Button.ARROWDOWN]);
+		}
+
+		return (dir);
+	}
+
+	private GetDir(up: boolean, down: boolean): number
+	{
+		let dir: number = 0;
+
+		if (up)
+			dir -= 1;
+		if (down)
+			dir += 1;
+		return (dir);
+	}
+
+	private UpdatePaddle2(paddle: Paddle, dir: number): void
+	{
+		paddle.posY += dir * paddle.speed;
+		
+		if (paddle.posY - paddle.height / 2 < 0)
+			paddle.posY = paddle.height / 2;
+		else if (paddle.posY + paddle.height / 2 > 1)
+			paddle.posY = 1 - paddle.height / 2;
+
 	}
 
 	private BotKeyPress(bot: Player): void
@@ -630,13 +754,12 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 			speed:	0.002,
 			maxSpeed:	0.010,
 			angle:	0.5 * Math.PI,
-			// lastEvent:	0,
 			lastHit:	null,
 			lastPaddle:	null,
 		};
 
 		this.ball.angle = Math.random() + 0.25;
-		this.ball.angle = 0.5;//REMOVE
+		// this.ball.angle = 60;//REMOVE
 		if (this.ball.angle >= 0.75)
 			this.ball.angle += 0.5;
 		this.ball.angle *= Math.PI;
@@ -665,7 +788,7 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 
 	private UpdateBallPosition(remaining: number): number
 	{
-		this.FixBallRadial();
+		// this.FixBallRadial();
 		let move: number = this.CalculateNearestEvent(remaining);
 		if (move === remaining)
 			move -= this.ball.rad;
@@ -675,17 +798,6 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 		this.ball.posY -= Math.cos(this.ball.angle) * move;
 		return (move);
 	}
-	
-	private FixBallRadial(): void
-	{
-		const circle: number = Math.PI * 2;
-
-		if (this.ball.angle < 0)
-			this.ball.angle += circle;
-		if (this.ball.angle > circle)
-			this.ball.angle -= circle;
-	}
-
 
 	private CalculateNearestEvent(remaining: number): number
 	{
@@ -733,14 +845,40 @@ private DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 					this.ball.angle = Math.PI - this.ball.angle;
 				else
 					this.ball.angle = Math.PI + (Math.PI * 2 - this.ball.angle);
+					this.FixBallRadial();
 				break ;
 			case "vertical":
 					this.ball.angle = Math.PI * 2 - this.ball.angle;
+					this.FixBallRadial();
+					this.KeepBallAngleReasonable();
 				break ;
 			default:
 				console.error(`AdjustBallAngle() has no case for '${direction}`);
 				break ;
 		}
+
+	}
+	
+	private FixBallRadial(): void
+	{
+		const circle: number = Math.PI * 2;
+
+		if (this.ball.angle < 0)
+			this.ball.angle += circle;
+		if (this.ball.angle > circle)
+			this.ball.angle -= circle;
+	}
+
+	private KeepBallAngleReasonable()
+	{
+		if (this.ball.angle < Math.PI * 0.125)
+			this.ball.angle = Math.PI * 0.125;
+		else if (this.ball.angle > Math.PI * 0.875 && this.ball.angle < Math.PI)
+			this.ball.angle = Math.PI * 0.875;
+		else if (this.ball.angle > Math.PI && this.ball.angle < Math.PI * 1.125)
+			this.ball.angle = Math.PI * 1.125;
+		else if (this.ball.angle > Math.PI * 1.875)
+			this.ball.angle = Math.PI * 1.875;
 	}
 
 	private UpdateBallHeightZ()

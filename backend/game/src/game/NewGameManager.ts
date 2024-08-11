@@ -193,14 +193,17 @@ Socket.io
 	{
 		if (client.connected)
 			if (this.kafkaReady)
+			{	
 				if (client.emit)
 					client.emit(SockEventNames.SERVERREADY, "Connected to GameManager");
 				else
-					console.error("Error: can socket.io.emit to client.id:", client.id);
+					console.error("Error: can't socket.io.emit to client.id:", client.id);
+			}
 			else
 				setTimeout(() => this.sendConnectionConfirmation(client), 1000);
 		else
 			console.error("Error: Client no longer connected:", client.id);
+
 	}
 
 	public handleDisconnect(client: any)
@@ -217,7 +220,17 @@ Socket.io
 		this.players.push(player);
 		player.name = msg.playerName;
 
-		this.EmitMenu(client);
+		const game: IGame | null = this.FindExistingGame(player);
+		if (game)
+		{
+			game.AddPlayer(player);
+			console.log(`Existing game found ${game}`);
+		}
+		else
+		{
+			console.log("No game found");
+			this.EmitMenu(client);
+		}
 	}
 
 	@SubscribeMessage("RequestMenu")
@@ -278,17 +291,18 @@ Socket.io
 	{
 		console.log(`Trying to create ${game}`);
 		let gameInstance: IGame;
+
 		try
 		{
-			switch (game)
+			switch (game.toUpperCase())
 			{
-				case GamePong.GetFlag():
+				case GamePong.GetFlag().toUpperCase():
 					console.log(`gameinstance before ${game}`);
 					gameInstance = new GamePong(data, players);
 					console.log(`gameinstance after ${game}`);
 
 					break ;
-				case MatchMaker.GetFlag():
+				case MatchMaker.GetFlag().toUpperCase():
 					gameInstance = MatchMaker.GetInstance();
 					break ;
 				default:

@@ -234,7 +234,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userInvited : User | undefined = await this.userService.getUserById(payload.userReceiver.userId);
     console.log(messages);
     this.server.in(client.id).socketsJoin(response);
-    this.server.in(userInvited.socketId).socketsJoin(response);
     this.server.to(client.id).emit('chat', messages);
     const userList : RoomUserDto = await this.roomService.getUserInRoom(response);
     this.server.to(response).emit('room_users', userList);
@@ -581,6 +580,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userList : RoomUserDto = await this.roomService.getUserInRoom(payload.roomName);
     this.server.to(payload.roomName).emit('room_users', userList);
     this.logger.log(`${payload.user.userId} added ${payload.toDoUser}`);
+    const addedUser: User | undefined = await this.userService.getUserById(payload.toDoUser);
+    if (addedUser === undefined || addedUser.socketId === '') {
+      return;
+    }
+    const addedUserRoomlist: RoomShowDto[] = await this.roomService.getMyRooms(addedUser.userId);
+    this.server.to(addedUser.socketId).emit('my_rooms', addedUserRoomlist);
   }
 
   @UsePipes(new ValidationPipe())
