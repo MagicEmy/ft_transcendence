@@ -40,13 +40,19 @@ export const loadGames = async (userId: string): Promise<Games[]> => {
 	return newNameProfile;
   };
 
-  export const updateStatus = async (userId: string, newStatus: string) => {
-	const response = await fetch(`${STATUS}/${userId}/${newStatus}`, {
+  export const updateStatus = async (userId: string, userStatus: string) => {
+	const bodyStatus = {
+		userId: userId,
+		newStatus: userStatus,
+	  };
+	const body = JSON.stringify(bodyStatus);
+	const response = await fetch(STATUS, {
 	  method: 'PATCH',
+	  credentials: 'include',
 	  headers: {
 		'Content-Type': 'application/json'
 	  },
-	  credentials: 'include'
+	  body: body,
 	});
 	if (!response.ok) {
 	  throw new Error('Failed to update user status');

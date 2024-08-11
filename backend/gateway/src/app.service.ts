@@ -160,20 +160,6 @@ export class AppService {
     );
   }
 
-  async checkAndUpdateStatus(userId: string): Promise<void> {
-    lastValueFrom(
-      this.getUserStatus(userId).pipe(
-        catchError((error) => error),
-        map((result) => {
-          if (result != UserStatusEnum.ONLINE) {
-            this.setUserStatus(userId, UserStatusEnum.ONLINE);
-            return of(undefined);
-          }
-        }),
-      ),
-    );
-  }
-
   getUserStatus(userId: string): Observable<string> {
     const pattern = 'getStatus';
     const payload = userId;

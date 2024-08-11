@@ -105,12 +105,6 @@ export class AppController {
   async getProfile(
     @Param('id', ParseUUIDPipe) userId: string,
   ): Promise<Observable<ProfileDto>> {
-	try {
-		await this.appService.checkAndUpdateStatus(userId);
-	} catch (error) {
-		// under construction: handle error
-		console.log(`status check threw error: `, error);
-	}
     return forkJoin({
       userInfo: this.appService.getUserIdNameStatus(userId),
       leaderboard: this.appService.getLeaderboardPositionAndTotalPoints(userId),
@@ -142,12 +136,6 @@ export class AppController {
   @UseGuards(JwtAuthGuard)
   @Get('/leaderboard')
   async getLeaderboard(@GetUserId() userId: string): Promise<Observable<LeaderboardStatsDto[]>> {
-    try {
-		await this.appService.checkAndUpdateStatus(userId);
-	} catch (error) {
-		// under construction: handle error
-		console.log(`status check threw error: `, error);
-	}
 	return this.appService.getLeaderboard();
   }
 

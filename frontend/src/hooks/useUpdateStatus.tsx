@@ -1,5 +1,6 @@
 import { useEffect, useContext } from 'react';
-import { updateStatus } from '../utils/profileUtils';
+// import { updateStatus } from '../utils/profileUtils';
+import { STATUS } from '../utils/constants' 
 import UserContext, { IUserContext } from '../context/UserContext';
 
 export const useUpdateStatus = () => {
@@ -7,18 +8,29 @@ export const useUpdateStatus = () => {
   const statusOnline = 'online';
 
   useEffect(() => {
-    const changeStatus = async () => {
       if (!userIdContext) {
         console.error('User ID context is not available');
         return;
       }
-
-      try {
-        await updateStatus(userIdContext, statusOnline);
-        console.log('Status updated successfully');
-      } catch (error) {
-        console.error('Failed to update status:', error);
-      }
+	  const changeStatus = async () => {
+		const bodyStatus = {
+			userId: userIdContext,
+			newStatus: statusOnline,
+		  };
+		const body = JSON.stringify(bodyStatus);
+		const response = await fetch(STATUS, {
+		  method: 'PATCH',
+		  credentials: 'include',
+		  headers: {
+			'Content-Type': 'application/json'
+		  },
+		  body: body,
+		});
+		if (!response.ok) {
+		  throw new Error('Failed to update user status');
+		}
+	
+		return ;
     };
 
     changeStatus();
