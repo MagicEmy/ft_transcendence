@@ -13,7 +13,6 @@ import {
   Post,
   Req,
   Res,
-  StreamableFile,
   UploadedFile,
   UseFilters,
   UseGuards,
@@ -51,6 +50,7 @@ import { Opponent } from './enum/opponent.enum';
 import { GameHistoryDto } from './dto/game-history-dto';
 import { extractTokenFromCookies } from './utils/cookie-utils';
 import { GetUserId } from './utils/get-user-id.decorator';
+import { UserStatusEnum } from './enum/kafka.enum';
 
 @UseFilters()
 @Controller()
@@ -188,6 +188,16 @@ export class AppController {
     return this.appService.getUserStatus(userId);
   }
 
+  @ApiTags('status')
+  @UseGuards(JwtAuthGuard)
+  @Patch('/status')
+  setUserStatus(
+    @Body('userId', ParseUUIDPipe) userId: string,
+    @Body('newStatus') newStatus: UserStatusEnum,
+  ): void {
+    this.appService.setUserStatus(userId, newStatus);
+  }
+
   @ApiTags('user')
   @UseGuards(JwtAuthGuard)
   @Get('/allUsers')
@@ -237,7 +247,7 @@ export class AppController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 500000 }), // 500 kB
+          new MaxFileSizeValidator({ maxSize: 500 * 1024 }), // 500 kB
           new FileTypeValidator({ fileType: /(jpg|jpeg|png)$/ }),
         ],
       }),
