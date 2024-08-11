@@ -7,7 +7,6 @@ import {
   RoomDto,
   RoomShowDto,
   UserDto,
-  UserAndRoom,
   UserShowDto,
   RoomUserDto,
   UpdateRoomDto,
@@ -165,7 +164,6 @@ export class RoomService {
     const roomIndex : number  = this.rooms.findIndex(
       (room) => room.roomName === roomName,
     );
-    console.log(roomIndex + " here");
     return roomIndex;
   }
 

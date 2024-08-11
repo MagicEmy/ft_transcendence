@@ -24,11 +24,11 @@ function Sidebar() {
     setRoomMembers,
     roomMembers,
     setCurrentRoom,
+    currentRoom,
     setRooms,
-    directMsg,
     rooms,
     setDirectMsg,
-    currentRoom,
+    directMsg,
     setMyRooms,
     myRooms,
     setMessages,
@@ -41,6 +41,7 @@ function Sidebar() {
   const [roomUsersToggle, setRoomUsersToggle] = useState<boolean>(false);
   const [usersToggle, setUsersToggle] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+
 
   const renderTooltip = (message: string) => (
     <Tooltip id={`tooltip-${message}`}>
@@ -71,12 +72,11 @@ function Sidebar() {
     setAddUser(event);
   }
   socket.off("kick_user_out").on("kick_user_out", (message: string) => {
-
-      alert(message);
-      joinRoom({ roomName: "general", password: false });
-    }
+    alert(message);
+    joinRoom({ roomName: "general", password: false });
+  }
   );
-    
+
   function joinRoom(room: RoomDto) {
     let password: string | null = "";
     if (room.password) {
@@ -97,12 +97,11 @@ function Sidebar() {
         setMessages([]);
         setCurrentRoom(room);
         setNotifications(notifications.filter(notification => notification.roomName === room.roomName));
-
+        setDirectMsg(null);
         alert("Welcome in " + room.roomName);
       } else {
         return alert(message);
       }
-      setDirectMsg(null);
     });
   }
 
@@ -134,7 +133,7 @@ function Sidebar() {
         if (message.indexOf("#") === -1) {
           return alert(message);
         }
-        const room = {
+        const room : RoomDto = {
           roomName: message,
           password: false,
         };
@@ -143,7 +142,7 @@ function Sidebar() {
         setNotifications(notifications.filter(notification => notification.roomName === currentRoom?.roomName));
         setCurrentRoom(room);
         setNotifications(notifications.filter(notification => notification.roomName === room.roomName));
-        alert("Welcome");
+        alert("Welcome private chat with " + member.userName);
       });
   }
 
@@ -500,6 +499,7 @@ function Sidebar() {
     socket.emit("chat_rooms", user);
     socket.emit("my_rooms", user);
     socket.emit("game", user);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
@@ -723,7 +723,7 @@ function Sidebar() {
                   {member.userId === user.userId && " (You)"}
                 </Col>
                 <Col>
-                <OverlayTrigger
+                  <OverlayTrigger
                     placement="top"
                     overlay={renderTooltip("Room Owner")}
                   >
@@ -785,7 +785,7 @@ function Sidebar() {
             <IoEyeOutline />
           </Button>
         ) : (
-          <Button className="ms-3"onClick={() => setUsersToggle(!usersToggle)}>
+          <Button className="ms-3" onClick={() => setUsersToggle(!usersToggle)}>
             <IoEyeOffOutline />
           </Button>
         )}
@@ -794,8 +794,12 @@ function Sidebar() {
         members.map((member) => (
           <ListGroup.Item
             key={member.userId}
-            style={{ cursor: "pointer" }}
-            active={directMsg?.userId === member?.userId}
+            active={directMsg?.userId === member.userId}
+            style={{
+              cursor: "pointer",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
           >
             <Row>
               <Col xs={2} className="member-status">
@@ -843,12 +847,12 @@ function Sidebar() {
       {Object.keys(gameInvite).length !== 0 && "type" in gameInvite &&
         gameInvite.type === "invitation" && (
           <>
-          <Button variant="success" onClick={acceptGameInvite}>
-            Accept
-          </Button>
+            <Button variant="success" onClick={acceptGameInvite}>
+              Accept
+            </Button>
             <Button variant="danger" onClick={declineGameInvite}>
-            Decline
-          </Button>
+              Decline
+            </Button>
           </>
         )}
       {Object.keys(gameInvite).length !== 0 && "type" in gameInvite && gameInvite.type === "host" && (
