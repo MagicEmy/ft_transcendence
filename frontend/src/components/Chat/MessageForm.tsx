@@ -8,12 +8,13 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { IoBowlingBallOutline } from "react-icons/io5";
 import { host } from '../../utils/ApiRoutes';
 
-function MessageForm() {
+function MessageForm(): JSX.Element {
   const [userIdStorage] = useStorage<string>('userId', '');
   const [userNameStorage] = useStorage<string>('userName', '');
   const context = useContext(ChatContext);
   const [message, setMessage] = useState("");
   const messageEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (context && context.messages) {
       scrollToBottom();
@@ -30,20 +31,30 @@ function MessageForm() {
   } = context;
   const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
 
-  function scrollToBottom() {
+  function scrollToBottom(): void {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }
-  function getFormattedDate(rawdata: Date) {
-    const date = new Date(rawdata);
-    const year = date.getFullYear();
-    let month = (1 + date.getMonth()).toString();
+  function getFormattedDate(rawdata: Date): string {
+    const date: Date = new Date(rawdata);
+    const year: string = date.getFullYear().toString();
+    let month: string = (1 + date.getMonth()).toString();
 
     month = month.length > 1 ? month : "0" + month;
-    let day = date.getDate().toString();
+    let day: string = date.getDate().toString();
 
     day = day.length > 1 ? day : "0" + day;
 
     return month + "/" + day + "/" + year;
+  }
+  function getFormattedTime(rawdata: Date): string {
+    const date: Date = new Date(rawdata);
+    let hours: string = date.getHours().toString();
+    let minutes: string = date.getMinutes().toString();
+
+    hours = hours.length > 1 ? hours : "0" + hours;
+    minutes = minutes.length > 1 ? minutes : "0" + minutes;
+
+    return hours + ":" + minutes;
   }
 
   socket.off("chat").on("chat", (roomMessages: MessageRoomDto[]) => {
@@ -92,11 +103,14 @@ function MessageForm() {
         )}
         {!user && <div className="alert alert-danger">Please login</div>}
         {user &&
-          messages.map((mes: MessageRoomDto, idx: number) => {
-            let sender = mes.user;
-            let message = mes.message;
-            let date = getFormattedDate(mes.timesent);
-            let show = true;
+          messages.map((mes: MessageRoomDto, index: number) => {
+            const sender = mes.user;
+            const message: string = mes.message;
+            const currentDate: string = getFormattedDate(mes.timesent);
+            const previousMessage = index > 0 ? messages[index - 1] : null;
+            const showDate: boolean = !previousMessage || currentDate !== getFormattedDate(previousMessage.timesent);
+            const time: string = getFormattedTime(mes.timesent);
+            let show: boolean = true;
             mes.user.blockedUsers.forEach((userId: string) => {
               if (userId === user.userId) {
                 show = false;
@@ -112,17 +126,19 @@ function MessageForm() {
             }
 
             return (
-              <div key={idx}>
-                <p className="alert alert-info text-center message-date-indicator">
-                  {date}
-                </p>
+              <div key={index}>
+                {showDate && (
+                  <p className="alert alert-info text-center message-date-indicator">
+                    {currentDate}
+                  </p>
+                )}
                 <div
                   className={
                     sender?.userId === user?.userId
                       ? "message"
                       : "incoming-message"
                   }
-                  key={idx}
+                  key={index}
                 >
                   <div className="message-inner">
                     <div className="d-flex align-items-center mb-3">
@@ -144,7 +160,7 @@ function MessageForm() {
                       </p>
                     </div>
                     <p className="message-content">{message}</p>
-                    <p className="message-timestamp-left">{date}</p>
+                    <p className="message-timestamp-left">{time}</p>
                   </div>
                 </div>
               </div>
@@ -169,7 +185,7 @@ function MessageForm() {
             <Button
               variant="primary"
               type="submit"
-              style={{ width: "100%", backgroundColor: "orange"}}
+              style={{ width: "100%", backgroundColor: "orange" }}
               disabled={!user}
             >
               <IoBowlingBallOutline size={15} />
