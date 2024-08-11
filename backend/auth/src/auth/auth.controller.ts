@@ -26,10 +26,10 @@ export class AuthController {
   @UseGuards(FourtyTwoAuthGuard)
   @Get('42/redirect')
   async handleRedirect(@Req() req, @Res() resp: Response): Promise<void> {
+    const userIdCookie = `userId=${req.user.user_id}; Path=/; HttpOnly; Max-Age=${this.configService.get('JWT_REFRESH_EXPIRATION_TIME')}`; // do the lax thing
+    resp.setHeader('Set-Cookie', [userIdCookie]);
     if (await this.authService.isTfaEnabled(req.user.user_id)) {
       // redirect for TFA
-      const userIdCookie = `userId=${req.user.user_id}; Path=/; HttpOnly; Max-Age=${this.configService.get('JWT_REFRESH_EXPIRATION_TIME')}`; // do the lax thing
-      resp.setHeader('Set-Cookie', [userIdCookie]);
       return resp.redirect(302, this.configService.get('2FA_URL'));
     } else {
       // set jwt tokens in cookies and redirect to dashboard
