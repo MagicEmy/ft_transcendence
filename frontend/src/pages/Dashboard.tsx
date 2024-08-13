@@ -9,7 +9,8 @@ export const Dashboard = () => {
     <>
       <PageContent title="Welcome!">
         <br />
-        <p>Hit Play! Chat Away - Pong Awaits!</p>
+        <p>"Far out in the uncharted backwaters of the unfashionable end 
+			of the Western Spiral Arm of the Galaxy lies a small unregarded orange sun."</p>
         <img
           src={smash}
           alt="Logo"
