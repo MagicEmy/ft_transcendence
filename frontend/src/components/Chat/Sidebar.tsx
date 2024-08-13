@@ -483,7 +483,7 @@ function Sidebar() {
     } else {
       return (
 
-        <Dropdown.Item href={"/profile"}>
+        <Dropdown.Item href={`/profile/${user.userId}`}>
           View Profile
         </Dropdown.Item>
       );
