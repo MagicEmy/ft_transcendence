@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Button, Col, ListGroup, Row, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Button, Col, ListGroup, Row, OverlayTrigger, Tooltip, Toast, ToastContainer } from "react-bootstrap";
 import Dropdown from "react-bootstrap/Dropdown";
 import { ChatContext } from "../../context/ChatContext";
 import "./Sidebar.css";
@@ -41,7 +41,11 @@ function Sidebar() {
   const [roomUsersToggle, setRoomUsersToggle] = useState<boolean>(false);
   const [usersToggle, setUsersToggle] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [toast, setToast] = useState({ show: false, message: '' });
 
+  const showToast = (message: string) => {
+    setToast({ show: true, message });
+  };
 
   const renderTooltip = (message: string) => (
     <Tooltip id={`tooltip-${message}`}>
@@ -61,7 +65,7 @@ function Sidebar() {
     };
     socket.emit("add_user", newUser);
     socket.off("add_user_response").on("add_user_response", (messages: string) => {
-      alert(messages);
+      showToast(messages);
     });
   }
 
@@ -73,7 +77,7 @@ function Sidebar() {
   }
   socket.off("kick_user_out").on("kick_user_out", (kick: KickDto) => {
     if (kick.roomName === currentRoom?.roomName) {
-      alert(kick.message);
+      showToast(kick.message);
       joinRoom({ roomName: "general", password: false });
     }
   }
@@ -100,9 +104,9 @@ function Sidebar() {
         setCurrentRoom(room);
         setNotifications(notifications.filter(notification => notification.roomName === room.roomName));
         setDirectMsg(null);
-        alert("Welcome in " + room.roomName);
+        showToast("Welcome in " + room.roomName);
       } else {
-        return alert(message);
+        return showToast(message);
       }
     });
   }
@@ -117,7 +121,7 @@ function Sidebar() {
     if (currentRoom && currentRoom.roomName === roomName) {
       joinRoom({ roomName: "general", password: false });
     }
-    alert(`You have left the room ${roomName}`);
+    showToast(`You have left the room ${roomName}`);
   };
 
   function joinDirectRoom(member: UserDto) {
@@ -133,7 +137,7 @@ function Sidebar() {
       .off("join_direct_room_response")
       .on("join_direct_room_response", (message: string) => {
         if (message.indexOf("#") === -1) {
-          return alert(message);
+          return showToast(message);
         }
         const room : RoomDto = {
           roomName: message,
@@ -144,7 +148,7 @@ function Sidebar() {
         setNotifications(notifications.filter(notification => notification.roomName === currentRoom?.roomName));
         setCurrentRoom(room);
         setNotifications(notifications.filter(notification => notification.roomName === room.roomName));
-        alert("Welcome private chat with " + member.userName);
+        showToast("Welcome private chat with " + member.userName);
       });
   }
 
@@ -153,7 +157,7 @@ function Sidebar() {
       return;
     const seconds = prompt("Enter the number of seconds to mute the user");
     if (isNaN(Number(seconds))) {
-      return alert("Please enter a number");
+      return showToast("Please enter a number");
     } else {
       const muteUser: toDoUserRoomDto = {
         roomName: currentRoom.roomName,
@@ -213,10 +217,10 @@ function Sidebar() {
     socket.emit("kick_user", banUser);
     socket.off("kick_user_response").on("kick_user_response", (message: string) => {
       if (message !== "Success") {
-        alert(message);
+        showToast(message);
       }
       else {
-        alert("User Kicked:" + member.userName);
+        showToast("User Kicked:" + member.userName);
       }
     });
   }
@@ -257,7 +261,7 @@ function Sidebar() {
     socket.emit("block_user", blockUser);
     socket.off("block_user_response").on("block_user_response", (message: string) => {
       if (message !== "Success") {
-        alert(message);
+        showToast(message);
       }
     });
   }
@@ -285,9 +289,9 @@ function Sidebar() {
     socket.emit("invite_game", inviteGame);
     socket.off("invite_game_response").on("invite_game_response", (message: string) => {
       if (message !== "Success") {
-        alert(message);
+        showToast(message);
       } else {
-        alert("Game Invite Sent to " + member.userName);
+        showToast("Game Invite Sent to " + member.userName);
       }
     });
   }
@@ -305,9 +309,9 @@ function Sidebar() {
       socket.emit("accept_game", acceptGameInvite);
       socket.off("accept_game_response").on("accept_game_response", (message: string) => {
         if (message !== "Success") {
-          alert(message);
+          showToast(message);
         } else {
-          alert("Game Invite from" + gameInvite.user.userName + " Accepted");
+          showToast("Game Invite from" + gameInvite.user.userName + " Accepted");
         }
       });
     }
@@ -324,9 +328,9 @@ function Sidebar() {
         .off("decline_game_response")
         .on("decline_game_response", (message: string) => {
           if (message !== "Success") {
-            alert(message);
+            showToast(message);
           } else {
-            alert("Game Invite Declined");
+            showToast("Game Invite Declined");
           }
         });
     }
@@ -349,11 +353,11 @@ function Sidebar() {
     socket.emit("update_room", updateRoom);
     socket.off("update_room_response").on("update_room_response", (message: string) => {
       if (message !== "Success") {
-        alert(message);
+        showToast(message);
       } else if (isPassword) {
-        alert("Room Password Updated");
+        showToast("Room Password Updated");
       } else {
-        alert("Room Password Removed");
+        showToast("Room Password Removed");
       }
     });
   }
@@ -369,11 +373,11 @@ function Sidebar() {
     socket.emit("update_room", updateRoom);
     socket.off("update_room_response").on("update_room_response", (message: string) => {
       if (message !== "Success") {
-        alert(message);
+        showToast(message);
       } else if (isExclusive) {
-        alert("Room set as Exclusive");
+        showToast("Room set as Exclusive");
       } else {
-        alert("Room set as Public");
+        showToast("Room set as Public");
       }
     });
   }
@@ -868,6 +872,32 @@ function Sidebar() {
             Go to Game
           </Link>
         )}
+
+       <ToastContainer 
+        className="p-3" 
+        style={{
+          position: 'fixed',
+          top: '80px', // Adjust this value to position the toast below your navbar
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+        }}
+      >
+        <Toast 
+          onClose={() => setToast({ ...toast, show: false })} 
+          show={toast.show} 
+          delay={3000} 
+          autohide
+          style={{
+            minWidth: '250px',
+          }}
+        >
+          <Toast.Header>
+            <strong className="me-auto">Notification</strong>
+          </Toast.Header>
+          <Toast.Body>{toast.message}</Toast.Body>
+        </Toast>
+      </ToastContainer>
     </>
   );
 }
