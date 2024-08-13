@@ -9,7 +9,11 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
   const { isLoggedin, loading, error } = useIsLoggedIn();
 
   if (loading) {
-    return <div>Loading...</div>; 
+    return (
+		<PageContent title="Loading data">
+		  <p className='error'>Loading...</p>
+		</PageContent>
+	  );
   }
 
   if (error) {

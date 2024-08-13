@@ -32,7 +32,7 @@ export const Profile = () => {
   );
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe, userIdOrMe);
   const [isFriend, setIsFriend] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  const [error] = useState<string>("");
   const [currentStatus, setCurrentStatus] = useState<string>("");
 
   const [, setFriends] = useState<Friends[]>([]);

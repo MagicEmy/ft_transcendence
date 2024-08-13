@@ -75,7 +75,7 @@
     font-size: 1.3em;
     /* text-shadow: #0d045a; */
     /* border: 2px solid #2386a2; */
-    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
 	background-color: #c3d8f7;
   }
 
@@ -102,11 +102,10 @@
     width: 50px;
     align-items: center;
     border: 2px solid #2386a2;
-    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
     padding: 50px;
     font-size: 1.2em;
+	font-weight: bold;
     color: #09467f;
-    text-shadow: 5px 5px 5px #2386a2;
 }
 
 .stats .stat {
@@ -118,15 +117,19 @@
 	margin-left: 5px;
 }
 
-.nav-link {
-	color: #333;
-	text-decoration: none;
-	padding: 8px 12px;
-	border-radius: 5px;
-	margin-bottom: 6rem;
-}
-
-.nav-link.active {
-	background-color: #f0f0f0;
+.opponents {
+	color: #2386a2;
+	margin-top: 10px;
+	margin-bottom: 20px;
+	/* text-decoration: underline; */
+	/* text-underline-offset: 10px; */
+	font-size: 1.2em;
 	font-weight: bold;
+	margin-right: 25px;
+	cursor: pointer;
+  }
+.opponents:hover {
+  color: #30b8de;
+  text-decoration: underline;
+  text-underline-offset: 10px;
 }
