@@ -27,9 +27,8 @@ export const useUpdateStatus = () => {
 		  body: body,
 		});
 		if (!response.ok) {
-		  throw new Error('Failed to update user status');
+		  console.log('Failed to update user status');
 		}
-	
 		return ;
     };
 
