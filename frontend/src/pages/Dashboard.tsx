@@ -7,7 +7,7 @@ export const Dashboard = () => {
 
   return (
     <>
-      <PageContent title="Welcome in the digital land of the Ponginator!">
+      <PageContent title="Welcome in Pong!">
         <br />
         <p>Far out in the uncharted backwaters of the unfashionable end 
 			of the Western Spiral Arm of the Galaxy lies a small unregarded orange sun.</p>

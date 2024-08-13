@@ -11,6 +11,7 @@ import { KickDto, UserDto, DoWithUserDto, JoinRoomDto, RoomDto, LeaveRoomDto, to
 import useStorage from "./../../hooks/useStorage";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { host } from '../../utils/ApiRoutes';
+import { useNavigate } from "react-router-dom";
 
 
 function Sidebar() {
@@ -42,6 +43,7 @@ function Sidebar() {
   const [usersToggle, setUsersToggle] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [toast, setToast] = useState({ show: false, message: '' });
+  const navigate = useNavigate();
 
   const showToast = (message: string) => {
     setToast({ show: true, message });
@@ -471,7 +473,7 @@ function Sidebar() {
       });
       return (
         <>
-          <Dropdown.Item href={`/profile/${member.userId}`}>
+          <Dropdown.Item as={Link} to={`/profile/${member.userId}`}>
             View Profile
           </Dropdown.Item>
           <Dropdown.Item
@@ -487,7 +489,7 @@ function Sidebar() {
     } else {
       return (
 
-        <Dropdown.Item href={`/profile/${user.userId}`}>
+        <Dropdown.Item as={Link} to={`/profile/${user.userId}`}>
           View Profile
         </Dropdown.Item>
       );

@@ -39,6 +39,9 @@ export const Profile = () => {
   const profileName = profile?.userInfo?.userName;
   const userStatusIndicator = currentStatus;
   useUpdateStatus();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     setUserIdOrMe(userId || userIdContext);
