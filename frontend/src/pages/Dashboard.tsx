@@ -7,10 +7,12 @@ export const Dashboard = () => {
 
   return (
     <>
-      <PageContent title="Welcome!">
+      <PageContent title="Welcome in the digital land of the Ponginator!">
         <br />
-        <p>"Far out in the uncharted backwaters of the unfashionable end 
-			of the Western Spiral Arm of the Galaxy lies a small unregarded orange sun."</p>
+        <p>Far out in the uncharted backwaters of the unfashionable end 
+			of the Western Spiral Arm of the Galaxy lies a small unregarded orange sun.</p>
+		<p>Orbiting this at a distance of roughly ninety-two million miles is the world of a Pong master, the PONGINATOR.</p>
+		<p>Play a game or chat away, the Ponginator await</p>
         <img
           src={smash}
           alt="Logo"
