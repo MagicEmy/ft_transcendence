@@ -311,6 +311,7 @@ function Sidebar() {
       socket.emit("accept_game", acceptGameInvite);
       socket.off("accept_game_response").on("accept_game_response", (message: string) => {
         if (message !== "Success") {
+          setGameInvite({});
           showToast(message);
         } else {
           showToast("Game Invite from" + gameInvite.user.userName + " Accepted");
@@ -330,6 +331,7 @@ function Sidebar() {
         .off("decline_game_response")
         .on("decline_game_response", (message: string) => {
           if (message !== "Success") {
+            setGameInvite({});
             showToast(message);
           } else {
             showToast("Game Invite Declined");
