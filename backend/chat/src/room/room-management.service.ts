@@ -93,7 +93,7 @@ export class RoomManagementService {
     const room: number = await this.getRoomIndexByName(chatId)
     if (room !== -1) {
         this.logger.log('room is already existing')
-        return 'Room Already Exists'
+        return chatId
     }
       
     this.rooms.push({
