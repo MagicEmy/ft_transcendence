@@ -7,7 +7,7 @@ import { IoWalk, IoPizza, IoVolumeMute, IoSad, IoBeer, IoBicycle, IoDiamond, IoL
 import DropdownButton from "react-bootstrap/DropdownButton";
 import { Link } from "react-router-dom";
 import "./ListGroup.css";
-import { UserDto, DoWithUserDto, JoinRoomDto, RoomDto, LeaveRoomDto, toDoUserRoomDto, RoomShowDto, UserShowDto, RoomUserDto, ChatUserDto, UpdateRoomDto, GameDto, ChatContextType, Notification } from "../../types/chat.dto";
+import { KickDto, UserDto, DoWithUserDto, JoinRoomDto, RoomDto, LeaveRoomDto, toDoUserRoomDto, RoomShowDto, UserShowDto, RoomUserDto, ChatUserDto, UpdateRoomDto, GameDto, ChatContextType, Notification } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { host } from '../../utils/ApiRoutes';
@@ -71,9 +71,11 @@ function Sidebar() {
     }
     setAddUser(event);
   }
-  socket.off("kick_user_out").on("kick_user_out", (message: string) => {
-    alert(message);
-    joinRoom({ roomName: "general", password: false });
+  socket.off("kick_user_out").on("kick_user_out", (kick: KickDto) => {
+    if (kick.roomName === currentRoom?.roomName) {
+      alert(kick.message);
+      joinRoom({ roomName: "general", password: false });
+    }
   }
   );
 

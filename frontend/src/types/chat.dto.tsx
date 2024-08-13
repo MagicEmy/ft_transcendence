@@ -134,6 +134,10 @@ export interface MessageUserDto {
     user: MessageUserDto;
   }
 
+  export interface KickDto {
+    roomName: string;
+    message: string;
+  }
 
 export interface ChatContextType {
     socket: Socket; 
