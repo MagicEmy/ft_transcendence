@@ -34,7 +34,7 @@ export const UserStats = () => {
             <div key={opponent.userId}>
               <div className="stat-column"></div>
 			  {opponent.userName === 'bot' && !opponent.userId ? (
-				<div className="opponents">{opponent.userName}</div>
+				<div className="opponents-bot">{opponent.userName}</div>
 			  ) : (
 				<div
                 onClick={() => {

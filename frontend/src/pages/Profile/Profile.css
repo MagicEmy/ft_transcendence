@@ -155,6 +155,15 @@
   text-underline-offset: 10px;
 }
 
+.opponents-bot {
+	color: #2386a2;
+	margin-top: 10px;
+	margin-bottom: 20px;
+	font-size: 1.2em;
+	font-weight: bold;
+	margin-right: 25px;
+}
+
  .title {
   display: inline;;
   color: #09467f;
