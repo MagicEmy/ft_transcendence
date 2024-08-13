@@ -134,22 +134,26 @@ export interface MessageUserDto {
     user: MessageUserDto;
   }
 
+  export interface KickDto {
+    roomName: string;
+    message: string;
+  }
 
 export interface ChatContextType {
     socket: Socket; 
     currentRoom: RoomDto | null; 
     setCurrentRoom: React.Dispatch<React.SetStateAction<RoomDto | null>>;
-    members: ChatUserDto[]; // Replace 'any' with a more specific type
+    members: ChatUserDto[]; 
     setMembers: React.Dispatch<React.SetStateAction<ChatUserDto[]>>;
     roomMembers: RoomUserDto;
     setRoomMembers: React.Dispatch<React.SetStateAction<RoomUserDto>>;
-    messages: MessageRoomDto[]; // Replace 'any' with a more specific type
+    messages: MessageRoomDto[];
     setMessages: React.Dispatch<React.SetStateAction<MessageRoomDto[]>>;
     directMsg: UserDto | null;
     setDirectMsg: React.Dispatch<React.SetStateAction<UserDto | null>>;
-    rooms:  RoomShowDto[]; // Replace 'any' with a more specific type
+    rooms:  RoomShowDto[]; 
     setRooms: React.Dispatch<React.SetStateAction<RoomShowDto[]>>;
-    myRooms:  RoomShowDto[]; // Replace 'any' with a more specific type
+    myRooms:  RoomShowDto[]; 
     setMyRooms: React.Dispatch<React.SetStateAction<RoomShowDto[]>>;
 }
 

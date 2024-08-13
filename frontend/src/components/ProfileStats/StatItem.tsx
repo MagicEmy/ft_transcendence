@@ -1,5 +1,5 @@
 // StatItem.tsx
-import React from 'react';
+import React from "react";
 
 interface StatItemProps {
   label: string;
@@ -7,7 +7,11 @@ interface StatItemProps {
 }
 
 const StatItem = ({ label, value }: StatItemProps) => {
-  return <span className="stat"><strong>{value}</strong> {label}</span>;
+  return (
+    <span className="stat">
+      <strong>{value}</strong> {label}
+    </span>
+  );
 };
 
 export default StatItem;

@@ -160,18 +160,6 @@ export class AppService {
     );
   }
 
-  async checkAndUpdateStatus(userId: string): Promise<void> {
-    lastValueFrom(this.getUserStatus(userId).pipe(
-      catchError((error) => error),
-      map((result) => {
-        if (result != UserStatusEnum.ONLINE) {
-			this.setUserStatusToOnline(userId);
-		return of(undefined);
-		}
-      }),
-    ));
-  }
-
   getUserStatus(userId: string): Observable<string> {
     const pattern = 'getStatus';
     const payload = userId;
@@ -188,23 +176,20 @@ export class AppService {
     );
   }
 
-  setUserStatusToOnline(userId: string): void {
+  setUserStatus(userId: string, status: UserStatusEnum): void {
     const pattern = KafkaTopic.STATUS_CHANGE;
     const payload: StatusChangeDto = {
       userId,
-      newStatus: UserStatusEnum.ONLINE,
+      newStatus: status,
     };
     this.userService.emit(pattern, payload).pipe(
       catchError((error) => {
-        this.logger.error('Caught error when trying to change status: ', error, typeof error);
+        this.logger.error(
+          'Caught error when trying to change status: ',
+          error,
+          typeof error,
+        );
         return of(undefined);
-	// No need to throw anything if status isn't changed?
-		// return throwError(
-        //   () =>
-        //     new RpcException(
-        //       error.response || error || 'An unknown error occurred',
-        //     ),
-        // );
       }),
     );
   }

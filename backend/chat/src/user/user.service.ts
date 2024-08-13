@@ -82,6 +82,7 @@ export class UserService {
     socketId: string,
     status: boolean,
   ): Promise<void> {
+    console.log(`Setting user ${user.userId} socket status to ${status}`);
     return this.userRepository.setUserSocketStatus(
       user.userId,
       socketId,

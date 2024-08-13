@@ -6,5 +6,4 @@ export * from './useGetFriends';
 export * from './useStorage';
 export * from './useGetTfaStatus';
 export * from './useApiError';
-export * from './useNewUserStatus';
-
+export * from './useUpdateStatus';

@@ -5,7 +5,7 @@
   }
 
 .settings {
-	/* border : 2px solid #0a04ad; */
+	/* border : 2px solid #09467f; */
 	/* border-radius: 30px; */
     margin-top: 3em;
 	padding: 30px;
@@ -16,7 +16,7 @@
 
 .title {
     margin-bottom: 1em;
-	color: #0a04ad;
+	color: #09467f;
 	font-size: 2.5em;
 	display: flex;
     flex-direction: column;
@@ -35,7 +35,7 @@
 	margin-top: 20px;
     align-items: center;
 	gap: 2em;
-    border: 2px solid #a09df0;
+    border: 2px solid #2386a2;
 	/* border: 2px solid #78aaf6; */
     /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
     padding: 10px;
@@ -48,8 +48,8 @@
 
 }
 .text{
-	color: #0a04ad;
-	/* border: 2px solid #a09df0; */
+	color: #09467f;
+	/* border: 2px solid #2386a2; */
     /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
 	margin-top: 10px;
 	margin-bottom: 10px;
@@ -58,10 +58,10 @@
 }
 
 .text-dark{
-	color: #0a04ad;
+	color: #09467f;
 	margin-top: 10px;
 	margin-bottom: 10px;
-	border: 1px solid #a09df0;
+	border: 1px solid #2386a2;
 	padding: 10px;
 }
 

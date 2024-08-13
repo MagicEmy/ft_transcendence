@@ -51,6 +51,7 @@ import { Opponent } from './enum/opponent.enum';
 import { GameHistoryDto } from './dto/game-history-dto';
 import { extractTokenFromCookies } from './utils/cookie-utils';
 import { GetUserId } from './utils/get-user-id.decorator';
+import { UserStatusEnum } from './enum/kafka.enum';
 
 @UseFilters()
 @Controller()
@@ -104,12 +105,6 @@ export class AppController {
   async getProfile(
     @Param('id', ParseUUIDPipe) userId: string,
   ): Promise<Observable<ProfileDto>> {
-	try {
-		await this.appService.checkAndUpdateStatus(userId);
-	} catch (error) {
-		// under construction: handle error
-		console.log(`status check threw error: `, error);
-	}
     return forkJoin({
       userInfo: this.appService.getUserIdNameStatus(userId),
       leaderboard: this.appService.getLeaderboardPositionAndTotalPoints(userId),
@@ -141,12 +136,6 @@ export class AppController {
   @UseGuards(JwtAuthGuard)
   @Get('/leaderboard')
   async getLeaderboard(@GetUserId() userId: string): Promise<Observable<LeaderboardStatsDto[]>> {
-    try {
-		await this.appService.checkAndUpdateStatus(userId);
-	} catch (error) {
-		// under construction: handle error
-		console.log(`status check threw error: `, error);
-	}
 	return this.appService.getLeaderboard();
   }
 
@@ -186,6 +175,16 @@ export class AppController {
     @Param('id', ParseUUIDPipe) userId: string,
   ): Observable<string> {
     return this.appService.getUserStatus(userId);
+  }
+
+  @ApiTags('status')
+  @UseGuards(JwtAuthGuard)
+  @Patch('/status')
+  setUserStatus(
+    @Body('userId', ParseUUIDPipe) userId: string,
+    @Body('newStatus') newStatus: UserStatusEnum,
+  ): void {
+    this.appService.setUserStatus(userId, newStatus);
   }
 
   @ApiTags('user')
@@ -237,7 +236,7 @@ export class AppController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 500000 }), // 500 kB
+          new MaxFileSizeValidator({ maxSize: 500 * 1024 }), // 500 kB
           new FileTypeValidator({ fileType: /(jpg|jpeg|png)$/ }),
         ],
       }),

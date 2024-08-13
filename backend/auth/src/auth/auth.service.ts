@@ -43,7 +43,7 @@ export class AuthService {
     return user;
   }
 
-  private async validateUserOrAddNewOne(
+  async validateUserOrAddNewOne(
     validateUserDto: ValidateUserDto,
   ): Promise<User> {
     const { intraLogin, avatarUrl } = validateUserDto;
@@ -207,7 +207,7 @@ export class AuthService {
       token: tokens.jwtRefreshToken,
       expirationTime: this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
     });
-    const userIdCookie = `userId=${user.user_id}; Path=/; HttpOnly`;
+	const userIdCookie = `userId=${user.user_id}; Path=/; HttpOnly; Max-Age=${this.configService.get('JWT_REFRESH_EXPIRATION_TIME')}`; // do the lax thing
     resp.setHeader('Set-Cookie', [accessCookie, refreshCookie, userIdCookie]);
     return resp;
   }

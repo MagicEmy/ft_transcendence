@@ -1,4 +1,4 @@
-import { host, gatewayUrl, authUrl } from './ApiRoutes';
+import { host } from './ApiRoutes';
 
 export const SOCKET_URL = `http://${host}:3001`;
 export const JWT_CHECK = `http://${host}:3001/jwtValid`;

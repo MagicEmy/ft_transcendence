@@ -13,9 +13,9 @@
 	margin-top: 2em;
 }
 
-.board .leaderboard{
+.board .leaderboard {
     margin-bottom: 1em;
-	color: #0a04ad;
+	color: #09467f;
 	font-size: 2.5em;
 }
 
@@ -42,17 +42,16 @@
     width: 1000px;
     align-items: center;
 	gap: 3em;
-    border: 2px solid #a09df0;
+    border: 2px solid #2386a2;
     /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
     padding: 10px;
 }
-
 #leadProfile .flex .item-points {
     display: flex;
     width: 100px;
     align-items: center;
 	gap: 3em;
-    border: 2px solid #a09df0;
+    border: 2px solid #2386a2;
     box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
     padding: 5px;
 }
@@ -65,9 +64,9 @@
     box-shadow: 8px 5px 5px #0d045a;
 }
 
-#leadProfile .flex .info {
-   /* padding: 1em; */
-}
+/* #leadProfile .flex .info {
+   padding: 1em;
+} */
 
 #leadProfile .text {
     color: rgb(0, 0, 255);
@@ -75,10 +74,10 @@
     margin-bottom: 10px;
     font-size: 1.3em;
     /* text-shadow: #0d045a; */
-    /* border: 2px solid #a09df0; */
-    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
+    /* border: 2px solid #2386a2; */
+    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
 	background-color: #c3d8f7;
-}
+  }
 
 .text-dark {
     color: var(--color-light);
@@ -102,12 +101,11 @@
     justify-content: center;
     width: 50px;
     align-items: center;
-    border: 2px solid #a09df0;
-    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
+    border: 2px solid #2386a2;
     padding: 50px;
     font-size: 1.2em;
-    color: #0a04ad;
-    text-shadow: 5px 5px 5px #a09df0;
+	font-weight: bold;
+    color: #09467f;
 }
 
 .stats .stat {
@@ -119,15 +117,19 @@
 	margin-left: 5px;
 }
 
-.nav-link {
-	color: #333;
-	text-decoration: none;
-	padding: 8px 12px;
-	border-radius: 5px;
-	margin-bottom: 6rem;
-}
-
-.nav-link.active {
-	background-color: #f0f0f0;
+.opponents {
+	color: #2386a2;
+	margin-top: 10px;
+	margin-bottom: 20px;
+	/* text-decoration: underline; */
+	/* text-underline-offset: 10px; */
+	font-size: 1.2em;
 	font-weight: bold;
+	margin-right: 25px;
+	cursor: pointer;
+  }
+.opponents:hover {
+  color: #30b8de;
+  text-decoration: underline;
+  text-underline-offset: 10px;
 }

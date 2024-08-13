@@ -2,7 +2,7 @@ import { TFA_DISABLE } from '../../utils/constants';
 import useStorage from '../../hooks/useStorage';
 import { useGetTfaStatus } from '../../hooks/useGetTfaStatus';
 
-export const Disable2FA = ({ setFeedback, setError, clearFeedbackError }) => {
+export const Disable2FA = ({ setFeedback, setError, clearFeedbackError, onSuccess }) => {
   const [userIdStorage] = useStorage<string>('userId', '');
   const { refetch: refetchTfaStatus } = useGetTfaStatus(userIdStorage);
 
@@ -23,6 +23,7 @@ export const Disable2FA = ({ setFeedback, setError, clearFeedbackError }) => {
           setError(response.statusText);
           return false;
         } else {
+		  onSuccess();		
           setFeedback("Two Factor Authentication disabled successfully.");
         }
       } catch (error) {

@@ -7,7 +7,7 @@ import {
   useGetProfile,
   useGetUserStatus,
   useGetAvatarUrl,
-  useNewUserStatus,
+  useUpdateStatus,
 } from "../../hooks";
 import { MatchHistory } from "../../components/ProfileStats/MatchHistory";
 import { FriendsList } from "../../components/FriendsList";
@@ -20,7 +20,7 @@ import "./Profile.css";
 
 export const Profile = () => {
   const { userId } = useParams<{ userId?: string }>();
-  const { userIdContext, userNameContext } = useContext<IUserContext>(UserContext);
+  const { userIdContext } = useContext<IUserContext>(UserContext);
   const [userIdOrMe, setUserIdOrMe] = useState(userId || userIdContext);
 
   const { profile } = useGetProfile(userIdOrMe);
@@ -32,14 +32,13 @@ export const Profile = () => {
   );
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe, userIdOrMe);
   const [isFriend, setIsFriend] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  const [error] = useState<string>("");
   const [currentStatus, setCurrentStatus] = useState<string>("");
 
   const [, setFriends] = useState<Friends[]>([]);
-  useNewUserStatus("online");
+  const profileName = profile?.userInfo?.userName;
   const userStatusIndicator = currentStatus;
-  
-  const profileName = profile?.userInfo?.userName || "";
+  useUpdateStatus();
 
   useEffect(() => {
     setUserIdOrMe(userId || userIdContext);
@@ -102,7 +101,6 @@ export const Profile = () => {
               ) : (
                 <img src={defaultAvatar} alt="default avatar" />
               )}
-              {/* <h4 className="profile-text">{profile?.userInfo?.userName}</h4> */}
               <h4 className="profile-text">{profileName}</h4>
               <div className="status">
                 <span

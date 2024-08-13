@@ -1,3 +1,4 @@
+import React from 'react';
 import StatItem from './StatItem';
 
 interface TotalTimePlayed {
@@ -21,11 +22,11 @@ interface Profile {
 	gamesAgainstHuman: gamesAgainstHuman;
 }
 
-interface GamesAgainstBotStatsProps {
+interface GamesAgainstPlayersStatsProps {
 	profile?: Profile | null;
 }
 
-const GamesAgainstPlayersStats = ({ profile }: GamesAgainstBotStatsProps) => {
+const GamesAgainstPlayersStats = ({ profile }: GamesAgainstPlayersStatsProps) => {
 	if (!profile || !profile.gamesAgainstHuman) {
 		return <span className="stat">No games played yet</span>;
 	}
