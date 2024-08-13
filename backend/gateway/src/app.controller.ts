@@ -91,7 +91,7 @@ export class AppController {
 
   @ApiTags('profile')
   @UseGuards(JwtAuthGuard)
-  @Get('profile')
+  @Get('/profile')
   getUserInfo(@Req() req): Observable<UserIdNameDto> {
     return this.authService.getUserIdName(req.headers.cookie);
   }
