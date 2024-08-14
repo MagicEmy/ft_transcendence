@@ -1,25 +1,52 @@
-* {
-	box-sizing: border-box;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
 
-  .login-container {
-	display: flex;
-	justify-content: center;
-	height: 100vh;
-	background-image: url('../../assets/DataSun.png');
-	background-size: cover;
-  	background-position: center;
-  	background-repeat: no-repeat;
+* {
+  box-sizing: border-box;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  height: 100vh;
+  background-image: url('../../assets/DataSun.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pongverse-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 5rem;
+  margin-left: -2rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 24px;
+  color: #f57112;
+  text-shadow: 0 0 10px rgba(255, 107, 0, 0.7);
+  letter-spacing: 2px;
+}
+
+.animate-text {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  
-  /* .login-container img {
-	display: flex;
-	justify-content: center;
-} */
+}
 
 .button-login {
 	/* padding: 0.6em 2em; */
+	display: flex;
+  justify-content: center;
+  align-items: center;
 	padding: 1.5em 4.5em;
 	border: none;
 	outline: none;
@@ -32,8 +59,7 @@
 	user-select: none;
 	-webkit-user-select: none;
 	touch-action: manipulation;
-	margin-top: 10rem ;
-	margin-bottom: 5rem ;
+	margin-top: 5rem ;
 	font-size: 1.2em;
 	font-weight: bold;
 }
@@ -43,7 +69,8 @@
 	background: linear-gradient(
 		45deg,
 		#c54e05,
-		#ff7300,
+		#f57112,
+		#ff9500,
 		#00d9ff,
 		#356897,
 		#09467f,

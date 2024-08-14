@@ -2,11 +2,14 @@
 	margin: 3em auto;
 	text-align: center;
 	color: #09467f;
+	font-family: 'Orbitron', sans-serif;
+
   }
 
   .title {
 	font-size: 2em;
 	color: #09467f;
+	font-family: 'Orbitron', sans-serif;
   }
 
   .backButton {

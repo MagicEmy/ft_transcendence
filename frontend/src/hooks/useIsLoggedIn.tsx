@@ -13,6 +13,7 @@ export const useIsLoggedIn = () => {
           method: "GET",
           credentials: "include",
         });
+		console.log('useIsLoggedIn: response:', response);
         if (!response.ok) {
           setError(`Error: ${response.status}`);
           setIsLoggedin(false);

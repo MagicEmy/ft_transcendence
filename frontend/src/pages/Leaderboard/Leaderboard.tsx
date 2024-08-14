@@ -40,7 +40,7 @@ const Leaderboard = () => {
   return (
     <div className="App" id="main">
       <div className="board">
-        <h1 className="leaderboard">Leaderboard</h1>
+        <h1 className="leaderboard">Galactic Leaderboard</h1>
         <LeaderboardProfiles leaderboard={leaderboard}></LeaderboardProfiles>
       </div>
     </div>

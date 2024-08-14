@@ -20,7 +20,7 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
     console.error('PrivateRoute error:', error);
     return (
       <PageContent title="Error">
-        <p className='error'>Error: {error}</p>
+        <p className='error'>You must be logged in to view this page</p>
         <button
           className={classes.backButton}
           onClick={() => navigate('/')}
@@ -30,7 +30,7 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
       </PageContent>
     );
   }
-
+  console.log('PrivateRoute: isLoggedin?:', isLoggedin);
   if (!isLoggedin) {
     console.log('PrivateRoute: No user logged in');
     return (

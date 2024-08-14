@@ -7,12 +7,12 @@ export const Dashboard = () => {
 
   return (
     <>
-      <PageContent title="Welcome in Pong!">
+      <PageContent title="Welcome to the Pongverse">
         <br />
         <p>Far out in the uncharted backwaters of the unfashionable end 
 			of the Western Spiral Arm of the Galaxy lies a small unregarded orange sun.</p>
-		<p>Orbiting this at a distance of roughly ninety-two million miles is the world of a Pong master, the PONGINATOR.</p>
-		<p>Play a game or chat away, the Ponginator awaits</p>
+		<p>Orbiting this at a distance of roughly ninety-two million miles is Pongaris,</p>
+		<p> the world of a Pong master: the PONGINATOR </p>
         <img
           src={smash}
           alt="Logo"

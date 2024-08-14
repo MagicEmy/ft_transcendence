@@ -10,7 +10,7 @@
     margin-top: 3em;
 	padding: 30px;
 	margin-bottom: 20em;
-	background-color: #dee5f4;
+	background-color: #2386a235;
 	/* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
 }
 
@@ -23,6 +23,7 @@
     justify-content: flex-start;
     align-items: center;
 }
+
 .settings .flex{
 	gap: 1em;
 	text-align: left;
@@ -47,7 +48,7 @@
 	align-items: center;
 
 }
-.text{
+.text {
 	color: #09467f;
 	/* border: 2px solid #2386a2; */
     /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
@@ -57,20 +58,12 @@
 	padding: 10px;
 }
 
-.text-dark{
+.text-dark {
 	color: #09467f;
 	margin-top: 10px;
 	margin-bottom: 10px;
 	border: 1px solid #2386a2;
 	padding: 10px;
-}
-
-.avatar {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 50%;
-  box-shadow: 8px 5px 5px #0d045a;
 }
 
 .name-container {
@@ -82,6 +75,10 @@
 input[type="file"] {
 	margin-top: 10px;
 	margin-bottom: 10px;
+}
+input#file-upload-button {
+	background: linear-gradient(in oklab, #09467f 10%, #2386a2 90%);
+
 }
 
 input[type="text"] {
@@ -95,41 +92,39 @@ input[type="text"] {
 	margin-bottom: 20px;
   }
   
-  .upload-form {
+.upload-form {
 	display: flex;
 	align-items: center;
 	gap: 10px;
-  }
+}
   
-  .file-input {
-	flex-grow: 1;
-  }
+.file-input {
+	/* flex-grow: 1; */
+}
   
-  .settings-button {
+.settings-button {
 	white-space: nowrap;
-  }
+}
+
 .Change2FA {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .Info2fa {
-	color: #3e0965;
-	margin-top: 30px;
-	margin-right: 55px;
+  margin-top: 30px;
+  margin-right: 55px;
 }
 
 .bi-qr-code-scan {
-	margin-right: 20px;
-
+  margin-right: 20px;
 }
 
 .qr-container {
 	display: flex;
 	align-items: center;
 	flex-direction: column;
-
 	margin-top: 20px;
 	border: none;
   }
@@ -143,11 +138,13 @@ input[type="text"] {
   }
 
 .settings-button {
-	width: 150px;
+	/* width: 200px; */
 	border: none;
 	border-radius: 30px;
 	padding: 5px 20px;
-	background: linear-gradient(138deg, #3686fe 38%, blue 84.4%);
+	/* background: linear-gradient(138deg, #3686fe 38%, blue 84.4%); */
+	background: linear-gradient(in oklab, #09467f 10%, #2386a2 90%);
+
 	color: #fff;
 	cursor: pointer;
 	transition: transform 0.2s, box-shadow 0.2s;
@@ -166,7 +163,7 @@ input[type="text"] {
 	border: none;
 	border-radius: 30px;
 	padding: 5px 20px;
-	background: linear-gradient(138deg, #3686fe 38%, blue 84.4%);
+	background: linear-gradient(in oklab, #09467f 10%, #2386a2 90%);
 	color: #fff;
 	cursor: pointer;
 	transition: transform 0.2s, box-shadow 0.2s;
@@ -193,37 +190,4 @@ input[type="text"] {
 
 .custom-file-input {
     display: none;
-}
-
-.custom-file-label {
-	width: 150px;
-	border: none;
-	border-radius: 30px;
-	padding: 5px 20px;
-	background: linear-gradient(138deg, rgb(113, 153, 247) 36.7%, rgb(10, 4, 173) 84.4%);
-	color: #fff;
-	cursor: pointer;
-	transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.custom-file-label:hover {
-	box-shadow: rgba(113, 153, 247, .2) 0 3px 15px inset, rgba(10, 4, 173, .91) 0 3px 5px, rgba(10, 4, 173, .91) 0 10px 13px;
-	transform: scale(1.05);
-}
-
-.custom-file-label:disabled {
-    background-color: #ccc;
-    color: #666;
-    cursor: not-allowed;
-}
-
-.custom-file-label-off {
-	width: 150px;
-	border: none;
-	border-radius: 30px;
-	padding: 5px 20px;
-	background: linear-gradient(138deg, rgb(130, 147, 185) 36.7%, rgb(34, 33, 55) 84.4%);
-	color: #666;
-	cursor: pointer;
-	transition: transform 0.2s, box-shadow 0.2s;
 }
