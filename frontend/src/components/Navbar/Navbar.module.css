@@ -29,7 +29,6 @@ body {
   margin-right: 1rem;
   cursor: pointer;
   box-shadow: 8px 5px 5px #0d045a;
-
 }
 
 .name {
@@ -52,7 +51,7 @@ ul {
 }
 
 .list button {
-  margin-top: 15px;
+  margin-top: 5px;
   width: 135px;
   background-color:orange;
   border: none;
@@ -75,8 +74,15 @@ ul {
   transform: scale(1.05);
 }
 
-.logoutButton{
-	width: 125px;
+.logout {
+  display: flex;
+  align-items: center;
+  justify-items: center;
+  flex-direction: column;
+}
+
+.logoutButton {
+  width: 135px;
   padding: 10px;
   background-color: orange;
   border: none;
@@ -85,10 +91,10 @@ ul {
   font-family: 'Orbitron', sans-serif;
   font-size: 16px;
   cursor: pointer;
-  margin-top: -10px;
-  margin-left: -30px;
+  /* margin-top: -10px; */
   margin-right: 50px;
-
+  margin-left: -30px;
+  flex-wrap: wrap;
 }
 
 .logoutButton:hover {
@@ -98,3 +104,14 @@ ul {
   transform: scale(1.05);
 }
 
+.quote {
+	/* position: relative; */
+	/* flex-wrap: wrap; */
+	margin-top: -30px;
+	margin-left: -30px;
+	margin-right: 50px;
+	font-family: 'Orbitron', sans-serif;
+	font-size: 1rem;
+	color:  orange;
+	text-shadow: 1px 1px 3px black;
+  }

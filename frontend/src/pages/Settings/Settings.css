@@ -10,7 +10,7 @@
     margin-top: 3em;
 	padding: 30px;
 	margin-bottom: 20em;
-	background-color: #2386a235;
+	background-color: #2386a220;
 	/* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
 }
 
@@ -144,22 +144,25 @@ input[type="text"] {
 	padding: 5px 20px;
 	/* background: linear-gradient(138deg, #3686fe 38%, blue 84.4%); */
 	background: linear-gradient(in oklab, #09467f 10%, #2386a2 90%);
-
 	color: #fff;
 	cursor: pointer;
 	transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .settings-button:hover {
-	box-shadow: rgba(113, 153, 247, .2) 0 3px 15px inset, rgba(10, 4, 173, .91) 0 3px 5px, rgba(10, 4, 173, .91) 0 10px 13px;
+	box-shadow: 
+	  rgba(35, 174, 212, 0.3) 0 3px 15px inset,
+	  rgba(35, 174, 212, 0.6) 0 3px 5px, 
+	  rgba(35, 174, 212, 0.5) 0 10px 13px;
 	transform: scale(1.05);
 }
 
+/* width: 220px; */
+/* height: 55px; */
 .TwoFA {
-	width: 220px;
-	/* height: 55px; */
 	display: flex;
-	align-items: center;    
+	align-items: center;
+	justify-content: center;
 	border: none;
 	border-radius: 30px;
 	padding: 5px 20px;
@@ -167,12 +170,16 @@ input[type="text"] {
 	color: #fff;
 	cursor: pointer;
 	transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.TwoFA:hover {
-	box-shadow: rgba(113, 153, 247, .2) 0 3px 15px inset, rgba(10, 4, 173, .91) 0 3px 5px, rgba(10, 4, 173, .91) 0 10px 13px;
+  }
+  
+  .TwoFA:hover {
+	box-shadow: 
+	  rgba(35, 174, 212, 0.3) 0 3px 15px inset,
+	  rgba(35, 174, 212, 0.6) 0 3px 5px, 
+	  rgba(35, 174, 212, 0.5) 0 10px 13px;
 	transform: scale(1.05);
-}
+  }
+  
 
 .error2fa {
 	background-color: #f8d7da;

@@ -112,7 +112,7 @@ export const Profile = () => {
                 <span>{userStatusIndicator}</span>
               </div>
               {userId && userId !== userIdContext && (
-                <AddFriendButton onClick={handleFriendClick} className="button">
+                <AddFriendButton onClick={handleFriendClick} className="button-profile">
                   {isFriend ? "Delete Friend" : "Add Friend"}
                 </AddFriendButton>
               )}

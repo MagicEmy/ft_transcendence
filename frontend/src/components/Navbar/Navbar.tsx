@@ -40,9 +40,13 @@ export const Navbar = () => {
           </li>
         </ul>
       </nav>
+	  <div className={classes.logout}>
+
+		<span className={classes.quote}>“Don’t Panic”</span>
       <div className={classes.buttons}>
         <LogoutButton className={classes.logoutButton} />
       </div>
+	  </div>
     </header>
   );
 }
