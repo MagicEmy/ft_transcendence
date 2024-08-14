@@ -70,6 +70,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.in(socketId).socketsLeave(room)
     })
   }
+  
+  async updateUsers() {
+    const userRoom: Room[] = await this.roomManagementService.getRooms()
+    for (const room of userRoom) {
+      const userList: RoomUserDto = await this.roomUserManagementService.getUserInRoom(room.roomName);
+      this.server.to(room.roomName).emit('room_users', userList);
+    }
+    const users: ChatUserDto[] = await this.userService.getAllUsers()
+    this.server.emit('chat_users', users)
+  }
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('chat')
@@ -95,9 +105,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         `${payload.user.userId} sent a message in ${payload.roomName}`,
       )
     }
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-    this.server.to(payload.roomName).emit('room_users', userList)
+    this.updateUsers()
   }
 
   @UsePipes(new ValidationPipe())
@@ -127,9 +135,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const roomList: RoomShowDto[] =
       await this.roomManagementService.getRoomsAvailable()
     this.server.emit('chat_rooms', roomList)
-    const myRoomlist: RoomShowDto[] =
-      await this.roomManagementService.getMyRooms(payload.user.userId)
-    this.server.to(client.id).emit('my_rooms', myRoomlist)
+    this.updateUsers()
   }
 
   @UsePipes(new ValidationPipe())
@@ -161,9 +167,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const roomList: RoomShowDto[] =
       await this.roomManagementService.getRoomsAvailable()
     this.server.emit('chat_rooms', roomList)
-    const myRoomlist: RoomShowDto[] =
-      await this.roomManagementService.getMyRooms(payload.user.userId)
-    this.server.to(client.id).emit('my_rooms', myRoomlist)
+    this.updateUsers()
   }
 
   @UsePipes(new ValidationPipe())
@@ -217,10 +221,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         newStatus: UserStatusEnum.CHAT,
       })
     }
-
-    const myRoomlist: RoomShowDto[] =
-      await this.roomManagementService.getMyRooms(payload.user.userId)
-    this.server.to(client.id).emit('my_rooms', myRoomlist)
+    this.updateUsers()
   }
 
   @UsePipes(new ValidationPipe())
@@ -259,9 +260,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(messages)
     this.server.in(client.id).socketsJoin(response)
     this.server.to(client.id).emit('chat', messages)
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(response)
-    this.server.to(response).emit('room_users', userList)
+    this.updateUsers()
     this.logger.log(`${payload.userCreator.userId} joined ${response}`)
     const myRoomlist: RoomShowDto[] =
       await this.roomManagementService.getMyRooms(payload.userCreator.userId)
@@ -298,11 +297,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return
     }
     this.logger.log(`${payload.user.userId} blocked ${payload.toDoUser}`)
-    const users: ChatUserDto[] = await this.userService.getAllUsers()
-    this.server.emit('chat_users', users)
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-    this.server.to(payload.roomName).emit('room_users', userList)
+    this.updateUsers()
   }
 
   @UsePipes(new ValidationPipe())
@@ -328,11 +323,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return
     }
     this.logger.log(`${payload.user.userId} unblocked ${payload.toDoUser}`)
-    const users: ChatUserDto[] = await this.userService.getAllUsers()
-    this.server.emit('chat_users', users)
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-    this.server.to(payload.roomName).emit('room_users', userList)
+    this.updateUsers()
   }
 
   @UsePipes(new ValidationPipe())
@@ -546,11 +537,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.user.userId,
     )
     this.server.in(client.id).socketsLeave(payload.roomName)
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-
-    this.logger.log(`this is what is in there ${JSON.stringify(userList)}`)
-    this.server.to(payload.roomName).emit('room_users', userList)
+    this.updateUsers()
     const myRoomlist: RoomShowDto[] =
       await this.roomManagementService.getMyRooms(payload.user.userId)
     this.server.to(client.id).emit('my_rooms', myRoomlist)
@@ -571,8 +558,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     //guard for avoid user using more than one socket
     await this.userService.addUser(user, client.id)
     await this.userService.setUserSocketStatus(user, client.id, true)
-    const users: ChatUserDto[] = await this.userService.getAllUsers()
-    this.server.emit('chat_users', users)
+    this.updateUsers()
   }
 
   @UsePipes(new ValidationPipe())
@@ -612,9 +598,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (response !== 'Success') {
       return
     }
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-    this.server.to(payload.roomName).emit('room_users', userList)
+    this.updateUsers()
     this.logger.log(`${payload.user.userId} added ${payload.toDoUser}`)
     const addedUser: User | undefined = await this.userService.getUserById(
       payload.toDoUser,
@@ -658,9 +642,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (toKickUser === undefined) {
       return
     }
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-    this.server.to(payload.roomName).emit('room_users', userList)
+    this.updateUsers()
     this.server
       .to(toKickUser.socketId)
       .emit('kick_user_out', {
@@ -686,9 +668,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.toDoUser,
     )
     this.server.to(client.id).emit('ban_user_response', response)
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-    this.server.to(payload.roomName).emit('room_users', userList)
+    this.updateUsers()
     const toBanUser: User | undefined = await this.userService.getUserById(
       payload.toDoUser,
     )
@@ -742,9 +722,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.toDoUser,
       payload.timer,
     )
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-    this.server.to(payload.roomName).emit('room_users', userList)
+   this.updateUsers()
   }
 
   @UsePipes(new ValidationPipe())
@@ -763,9 +741,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.user.userId,
       payload.toDoUser,
     )
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-    this.server.to(payload.roomName).emit('room_users', userList)
+   this.updateUsers()
   }
 
   @UsePipes(new ValidationPipe())
@@ -784,9 +760,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.user.userId,
       payload.toDoUser,
     )
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-    this.server.to(payload.roomName).emit('room_users', userList)
+    this.updateUsers()
   }
 
   @UsePipes(new ValidationPipe())
@@ -805,9 +779,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.user.userId,
       payload.toDoUser,
     )
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-    this.server.to(payload.roomName).emit('room_users', userList)
+    this.updateUsers()
   }
 
   async handleConnection (socket: Socket): Promise<string> {

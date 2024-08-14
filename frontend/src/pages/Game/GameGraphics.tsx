@@ -107,6 +107,14 @@ class GameGraphics
 
 	public resizeElements(): void
 	{
+		if (this.GameElement.offsetHeight === 0)
+		{
+			console.error(this.GameElement);
+			window.location.reload();
+			console.error('forcing ugly refresh');
+		}
+		else
+			console.warn(this.GameElement);
 		this.GameElement.style.setProperty(`--TsHeightAdjust`, `${this.GameElement.offsetTop}px`);
 
 		this.adjustSize(this.BackElement);
