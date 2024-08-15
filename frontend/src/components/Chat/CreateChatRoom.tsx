@@ -5,11 +5,11 @@ import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import { ChatContextType, UserDto } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function CreateChatRoom() {
-  const [userIdStorage] = useStorage<string>('userId', '');
-  const [userNameStorage] = useStorage<string>('userName', '');
+  const [userIdStorage] = useStorage<string>("userId", "");
+  const [userNameStorage] = useStorage<string>("userName", "");
   const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
   const context = useContext(ChatContext);
   const [roomName, setRoomName] = useState("");
@@ -31,14 +31,15 @@ function CreateChatRoom() {
       exclusive: chatType === "Exclusive",
       password: password,
     });
-    socket.off("create_room_response").on("create_room_response", (message: string) => {
-      if (message !== "Success") {
-        alert(message);
-      }
-      else {
-        alert("Room Created Successfully: " + roomName);
-      }
-    });
+    socket
+      .off("create_room_response")
+      .on("create_room_response", (message: string) => {
+        if (message !== "Success") {
+          alert(message);
+        } else {
+          alert("Room Created Successfully: " + roomName);
+        }
+      });
     // Clear state
     setChatType("Public");
     setRoomName("");
@@ -49,7 +50,10 @@ function CreateChatRoom() {
       <Container>
         <h3 className="mt-5">Create a Chat Room</h3>
         <Row>
-          <Col md={7} className="d-flex align-items-center justify-content-left flex-direction-column">
+          <Col
+            md={7}
+            className="d-flex align-items-center justify-content-left flex-direction-column"
+          >
             <Form onSubmit={handleRoomCreation}>
               <Form.Group className="mb-3" controlId="formBasicEmail">
                 <Form.Label>Chat Name</Form.Label>
@@ -92,7 +96,16 @@ function CreateChatRoom() {
                   />
                 </Form.Group>
               )}
-              <Button variant="primary" type="submit">
+              <Button
+                variant="primary"
+                type="submit"
+                style={{
+                  background:
+                  "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+                  border: "none",
+                  borderRadius: "30px",
+                }}
+              >
                 {"Create"}
               </Button>
             </Form>

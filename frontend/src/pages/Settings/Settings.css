@@ -11,7 +11,11 @@
 	padding: 30px;
 	margin-bottom: 20em;
 	background-color: #2386a220;
-	/* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
+	box-shadow:
+      1px 2px 2px hsl(193deg 64% 39% / 0.125),
+      2px 4px 4px hsl(193deg 64% 39% / 0.125),
+      4px 8px 8px hsl(193deg 64% 39% / 0.125),
+	  8px 16px 16px hsl(193deg 64% 39% / 0.125);
 }
 
 .title {
@@ -37,8 +41,11 @@
     align-items: center;
 	gap: 2em;
     border: 2px solid #2386a2;
-	/* border: 2px solid #78aaf6; */
-    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
+	box-shadow:
+      1px 2px 2px hsl(193deg 64% 39% / 0.125),
+      2px 4px 4px hsl(193deg 64% 39% / 0.125),
+      4px 8px 8px hsl(193deg 64% 39% / 0.125),
+	  8px 16px 16px hsl(193deg 64% 39% / 0.125);
     padding: 10px;
 }
 

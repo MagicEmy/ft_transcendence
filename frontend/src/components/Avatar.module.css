@@ -5,6 +5,10 @@
   border-radius: 50%;
   margin-right: 1rem;
   cursor: pointer;
-  box-shadow: 8px 5px 5px #0d045a;
-
+  box-shadow:
+    1px 2px 2px hsl(209deg 87% 27% / 0.125),
+    2px 4px 4px hsl(209deg 87% 27% / 0.125),
+    4px 8px 8px hsl(209deg 87% 27% / 0.125),
+    8px 16px 16px hsl(209deg 87% 27% / 0.125),
+    16px 32px 32px hsl(209deg 87% 27% / 0.125);
 }

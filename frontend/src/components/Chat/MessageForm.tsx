@@ -185,7 +185,15 @@ function MessageForm(): JSX.Element {
             <Button
               variant="primary"
               type="submit"
-              style={{ width: "100%", backgroundColor: "orange" }}
+              style={{
+				background: "linear-gradient(in oklab, #f57112 10%, #f39d60 90%)",
+				border: "none",
+				borderRadius: "30px",
+				padding: "15px 20px",
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+			  }}
               disabled={!user}
             >
               <IoBowlingBallOutline size={15} />

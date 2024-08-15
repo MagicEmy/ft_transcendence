@@ -1,6 +1,7 @@
 :root {
 	--background-color: #E6E6E6;
 	--dark-blue-gray: #09467f;
+	--dark-blue-gray: hsl(209, 87%, 27%);
 	--orange: #f57112;
 	--light-orange: #f39d60;
 	--teal: #2386a2;
@@ -18,7 +19,12 @@
     margin-bottom: 10em;
     background-color: #2386a220;
     box-sizing: border-box;
-    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
+    box-shadow:
+      1px 2px 2px hsl(193deg 64% 39% / 0.125),
+      2px 4px 4px hsl(193deg 64% 39% / 0.125),
+      4px 8px 8px hsl(193deg 64% 39% / 0.125),
+      8px 16px 16px hsl(193deg 64% 39% / 0.125),
+      16px 32px 32px hsl(193deg 64% 39% / 0.125);
 }
 
 .main::-webkit-scrollbar {
@@ -68,7 +74,12 @@
   margin-right: 25px;
   object-fit: cover;
   border-radius: 50%;
-  box-shadow: 8px 5px 5px #073560;
+  box-shadow:
+    1px 2px 2px hsl(209deg 87% 27% / 0.125),
+    2px 4px 4px hsl(209deg 87% 27% / 0.125),
+    4px 8px 8px hsl(209deg 87% 27% / 0.125),
+    8px 16px 16px hsl(209deg 87% 27% / 0.125),
+    16px 32px 32px hsl(209deg 87% 27% / 0.125);
 }
 
 .profile .flex .info {
@@ -90,7 +101,10 @@
   margin-top: 10px;
   margin-bottom: 10px;
   border: 2px solid #2386a2;
-  box-shadow: 12px 5px 2px 1px rgba(82, 82, 233, 0.2);
+  box-shadow:
+      1px 2px 2px hsl(193deg 64% 39% / 0.125),
+      2px 4px 4px hsl(193deg 64% 39% / 0.125),
+      4px 8px 8px hsl(193deg 64% 39% / 0.125);
   padding: 5px;
 }
 
@@ -244,7 +258,11 @@
   flex-direction: column;
   align-items: center;
   border: 2px solid #2386a2;
-  box-shadow: 12px 5px 2px 1px rgba(82, 82, 233, 0.2);
+  box-shadow:
+      1px 2px 2px hsl(193deg 64% 39% / 0.125),
+      2px 4px 4px hsl(193deg 64% 39% / 0.125),
+      4px 8px 8px hsl(193deg 64% 39% / 0.125),
+	  8px 16px 16px hsl(193deg 64% 39% / 0.125);
   padding: 10px;
 }
 
@@ -267,7 +285,10 @@
   align-items: center;
   font-size: 16px;
   border: 2px solid #2386a2;
-  box-shadow: 12px 5px 2px 1px rgba(82, 82, 233, 0.2);
+  box-shadow:
+      1px 2px 2px hsl(193deg 64% 39% / 0.125),
+      2px 4px 4px hsl(193deg 64% 39% / 0.125),
+      4px 8px 8px hsl(193deg 64% 39% / 0.125);
   padding: 10px;
   margin-bottom: 10px;
 }

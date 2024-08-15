@@ -1,22 +1,57 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Button, Col, ListGroup, Row, OverlayTrigger, Tooltip, Toast, ToastContainer } from "react-bootstrap";
+import {
+  Button,
+  Col,
+  ListGroup,
+  Row,
+  OverlayTrigger,
+  Tooltip,
+  Toast,
+  ToastContainer,
+} from "react-bootstrap";
 import Dropdown from "react-bootstrap/Dropdown";
 import { ChatContext } from "../../context/ChatContext";
 import "./Sidebar.css";
-import { IoWalk, IoPizza, IoVolumeMute, IoSad, IoBeer, IoBicycle, IoDiamond, IoLockClosed, IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
+import {
+  IoWalk,
+  IoPizza,
+  IoVolumeMute,
+  IoSad,
+  IoBeer,
+  IoBicycle,
+  IoDiamond,
+  IoLockClosed,
+  IoEyeOffOutline,
+  IoEyeOutline,
+} from "react-icons/io5";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import { Link } from "react-router-dom";
 import "./ListGroup.css";
-import { KickDto, UserDto, DoWithUserDto, JoinRoomDto, RoomDto, LeaveRoomDto, toDoUserRoomDto, RoomShowDto, UserShowDto, RoomUserDto, ChatUserDto, UpdateRoomDto, GameDto, ChatContextType, Notification } from "../../types/chat.dto";
+import {
+  KickDto,
+  UserDto,
+  DoWithUserDto,
+  JoinRoomDto,
+  RoomDto,
+  LeaveRoomDto,
+  toDoUserRoomDto,
+  RoomShowDto,
+  UserShowDto,
+  RoomUserDto,
+  ChatUserDto,
+  UpdateRoomDto,
+  GameDto,
+  ChatContextType,
+  Notification,
+} from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { host } from '../../utils/ApiRoutes';
+import "bootstrap/dist/css/bootstrap.min.css";
+import { host } from "../../utils/ApiRoutes";
 import { useNavigate } from "react-router-dom";
 
-
 function Sidebar() {
-  const [userIdStorage] = useStorage<string>('userId', '');
-  const [userNameStorage] = useStorage<string>('userName', '');
+  const [userIdStorage] = useStorage<string>("userId", "");
+  const [userNameStorage] = useStorage<string>("userName", "");
   const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
   const {
     socket,
@@ -42,7 +77,7 @@ function Sidebar() {
   const [roomUsersToggle, setRoomUsersToggle] = useState<boolean>(false);
   const [usersToggle, setUsersToggle] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [toast, setToast] = useState({ show: false, message: '' });
+  const [toast, setToast] = useState({ show: false, message: "" });
   const navigate = useNavigate();
 
   const showToast = (message: string) => {
@@ -50,15 +85,12 @@ function Sidebar() {
   };
 
   const renderTooltip = (message: string) => (
-    <Tooltip id={`tooltip-${message}`}>
-      {message}
-    </Tooltip>
+    <Tooltip id={`tooltip-${message}`}>{message}</Tooltip>
   );
 
   function handleAddUser(event: React.FormEvent) {
     event.preventDefault();
-    if (!currentRoom)
-      return;
+    if (!currentRoom) return;
     const newUser = {
       roomName: currentRoom.roomName,
       user: user,
@@ -66,9 +98,11 @@ function Sidebar() {
       timer: 0,
     };
     socket.emit("add_user", newUser);
-    socket.off("add_user_response").on("add_user_response", (messages: string) => {
-      showToast(messages);
-    });
+    socket
+      .off("add_user_response")
+      .on("add_user_response", (messages: string) => {
+        showToast(messages);
+      });
   }
 
   function handleUserSelect(event: string | null): void {
@@ -82,8 +116,7 @@ function Sidebar() {
       showToast(kick.message);
       joinRoom({ roomName: "general", password: false });
     }
-  }
-  );
+  });
 
   function joinRoom(room: RoomDto) {
     let password: string | null = "";
@@ -99,18 +132,28 @@ function Sidebar() {
       password: room.password ? password : "",
     };
     socket.emit("join_room", roomToJoin);
-    socket.off("join_chat_response").on("join_chat_response", (message: string) => {
-      if (message === "Success") {
-        setNotifications(notifications.filter(notification => notification.roomName === currentRoom?.roomName));
-        setMessages([]);
-        setCurrentRoom(room);
-        setNotifications(notifications.filter(notification => notification.roomName === room.roomName));
-        setDirectMsg(null);
-        showToast("Welcome in " + room.roomName);
-      } else {
-        return showToast(message);
-      }
-    });
+    socket
+      .off("join_chat_response")
+      .on("join_chat_response", (message: string) => {
+        if (message === "Success") {
+          setNotifications(
+            notifications.filter(
+              (notification) => notification.roomName === currentRoom?.roomName
+            )
+          );
+          setMessages([]);
+          setCurrentRoom(room);
+          setNotifications(
+            notifications.filter(
+              (notification) => notification.roomName === room.roomName
+            )
+          );
+          setDirectMsg(null);
+          showToast("Welcome in " + room.roomName);
+        } else {
+          return showToast(message);
+        }
+      });
   }
 
   const leaveRoom = (roomName: string) => () => {
@@ -141,22 +184,29 @@ function Sidebar() {
         if (message.indexOf("#") === -1) {
           return showToast(message);
         }
-        const room : RoomDto = {
+        const room: RoomDto = {
           roomName: message,
           password: false,
         };
         setDirectMsg(member);
         setMessages([]);
-        setNotifications(notifications.filter(notification => notification.roomName === currentRoom?.roomName));
+        setNotifications(
+          notifications.filter(
+            (notification) => notification.roomName === currentRoom?.roomName
+          )
+        );
         setCurrentRoom(room);
-        setNotifications(notifications.filter(notification => notification.roomName === room.roomName));
+        setNotifications(
+          notifications.filter(
+            (notification) => notification.roomName === room.roomName
+          )
+        );
         showToast("Welcome private chat with " + member.userName);
       });
   }
 
   function muteUser(member: UserShowDto) {
-    if (!currentRoom)
-      return;
+    if (!currentRoom) return;
     const seconds = prompt("Enter the number of seconds to mute the user");
     if (isNaN(Number(seconds))) {
       return showToast("Please enter a number");
@@ -172,8 +222,7 @@ function Sidebar() {
   }
 
   function unMuteUser(member: UserShowDto) {
-    if (!currentRoom)
-      return;
+    if (!currentRoom) return;
     const unmuteUser: toDoUserRoomDto = {
       roomName: currentRoom.roomName,
       user: user,
@@ -184,8 +233,7 @@ function Sidebar() {
   }
 
   function banUser(member: UserShowDto) {
-    if (!currentRoom)
-      return;
+    if (!currentRoom) return;
     const banUser: toDoUserRoomDto = {
       roomName: currentRoom.roomName,
       user: user,
@@ -196,8 +244,7 @@ function Sidebar() {
   }
 
   function unBanUser(member: UserShowDto) {
-    if (!currentRoom)
-      return;
+    if (!currentRoom) return;
     const unBanUser: toDoUserRoomDto = {
       roomName: currentRoom.roomName,
       user: user,
@@ -208,8 +255,7 @@ function Sidebar() {
   }
 
   function kickUser(member: UserShowDto) {
-    if (!currentRoom)
-      return;
+    if (!currentRoom) return;
     const banUser: toDoUserRoomDto = {
       roomName: currentRoom.roomName,
       user: user,
@@ -217,19 +263,19 @@ function Sidebar() {
       timer: 0,
     };
     socket.emit("kick_user", banUser);
-    socket.off("kick_user_response").on("kick_user_response", (message: string) => {
-      if (message !== "Success") {
-        showToast(message);
-      }
-      else {
-        showToast("User Kicked:" + member.userName);
-      }
-    });
+    socket
+      .off("kick_user_response")
+      .on("kick_user_response", (message: string) => {
+        if (message !== "Success") {
+          showToast(message);
+        } else {
+          showToast("User Kicked:" + member.userName);
+        }
+      });
   }
 
   function makeAdmin(member: UserShowDto) {
-    if (!currentRoom)
-      return;
+    if (!currentRoom) return;
     const makeAdmin: toDoUserRoomDto = {
       roomName: currentRoom.roomName,
       user: user,
@@ -240,8 +286,7 @@ function Sidebar() {
   }
 
   function removeAdmin(member: UserShowDto) {
-    if (!currentRoom)
-      return;
+    if (!currentRoom) return;
     const removeAdmin: toDoUserRoomDto = {
       roomName: currentRoom.roomName,
       user: user,
@@ -252,8 +297,7 @@ function Sidebar() {
   }
 
   function blockUser(member: UserShowDto | ChatUserDto) {
-    if (!currentRoom)
-      return;
+    if (!currentRoom) return;
     const blockUser: toDoUserRoomDto = {
       roomName: currentRoom.roomName,
       user: user,
@@ -261,16 +305,17 @@ function Sidebar() {
       timer: 0,
     };
     socket.emit("block_user", blockUser);
-    socket.off("block_user_response").on("block_user_response", (message: string) => {
-      if (message !== "Success") {
-        showToast(message);
-      }
-    });
+    socket
+      .off("block_user_response")
+      .on("block_user_response", (message: string) => {
+        if (message !== "Success") {
+          showToast(message);
+        }
+      });
   }
 
   function unBlockUser(member: UserShowDto | ChatUserDto) {
-    if (!currentRoom)
-      return;
+    if (!currentRoom) return;
     const blockUser: toDoUserRoomDto = {
       roomName: currentRoom.roomName,
       user: user,
@@ -289,39 +334,46 @@ function Sidebar() {
       },
     };
     socket.emit("invite_game", inviteGame);
-    socket.off("invite_game_response").on("invite_game_response", (message: string) => {
-      if (message !== "Success") {
-        showToast(message);
-      } else {
-        showToast("Game Invite Sent to " + member.userName);
-      }
-    });
+    socket
+      .off("invite_game_response")
+      .on("invite_game_response", (message: string) => {
+        if (message !== "Success") {
+          showToast(message);
+        } else {
+          showToast("Game Invite Sent to " + member.userName);
+        }
+      });
   }
   function chatId(userId: string): string {
-    return userId < user.userId ? "#" + userId + user.userId : "#" + user.userId + userId;
+    return userId < user.userId
+      ? "#" + userId + user.userId
+      : "#" + user.userId + userId;
   }
 
   function acceptGameInvite() {
-    if ('user' in gameInvite) {
-
+    if ("user" in gameInvite) {
       const acceptGameInvite: DoWithUserDto = {
         userCreator: gameInvite.user,
         userReceiver: user,
       };
       socket.emit("accept_game", acceptGameInvite);
-      socket.off("accept_game_response").on("accept_game_response", (message: string) => {
-        if (message !== "Success") {
-          setGameInvite({});
-          showToast(message);
-        } else {
-          showToast("Game Invite from" + gameInvite.user.userName + " Accepted");
-        }
-      });
+      socket
+        .off("accept_game_response")
+        .on("accept_game_response", (message: string) => {
+          if (message !== "Success") {
+            setGameInvite({});
+            showToast(message);
+          } else {
+            showToast(
+              "Game Invite from" + gameInvite.user.userName + " Accepted"
+            );
+          }
+        });
     }
   }
 
   function declineGameInvite() {
-    if ('user' in gameInvite) {
+    if ("user" in gameInvite) {
       const declineGameInvite: DoWithUserDto = {
         userCreator: gameInvite.user,
         userReceiver: user,
@@ -355,15 +407,17 @@ function Sidebar() {
       updateExclusive: room.exclusive,
     };
     socket.emit("update_room", updateRoom);
-    socket.off("update_room_response").on("update_room_response", (message: string) => {
-      if (message !== "Success") {
-        showToast(message);
-      } else if (isPassword) {
-        showToast("Room Password Updated");
-      } else {
-        showToast("Room Password Removed");
-      }
-    });
+    socket
+      .off("update_room_response")
+      .on("update_room_response", (message: string) => {
+        if (message !== "Success") {
+          showToast(message);
+        } else if (isPassword) {
+          showToast("Room Password Updated");
+        } else {
+          showToast("Room Password Removed");
+        }
+      });
   }
 
   function setExclusive(room: RoomShowDto, isExclusive: boolean) {
@@ -375,15 +429,17 @@ function Sidebar() {
       updateExclusive: isExclusive,
     };
     socket.emit("update_room", updateRoom);
-    socket.off("update_room_response").on("update_room_response", (message: string) => {
-      if (message !== "Success") {
-        showToast(message);
-      } else if (isExclusive) {
-        showToast("Room set as Exclusive");
-      } else {
-        showToast("Room set as Public");
-      }
-    });
+    socket
+      .off("update_room_response")
+      .on("update_room_response", (message: string) => {
+        if (message !== "Success") {
+          showToast(message);
+        } else if (isExclusive) {
+          showToast("Room set as Exclusive");
+        } else {
+          showToast("Room set as Public");
+        }
+      });
   }
 
   function adminDropDown(currentUser: UserShowDto, member: UserShowDto) {
@@ -438,8 +494,10 @@ function Sidebar() {
 
     return (
       <Dropdown>
-        <Dropdown.Toggle variant="Secondary" id="dropdown-basic">
-        </Dropdown.Toggle>
+        <Dropdown.Toggle
+          variant="Secondary"
+          id="dropdown-basic"
+        ></Dropdown.Toggle>
         <Dropdown.Menu className="min-width-0">
           <Dropdown.Item
             onClick={() =>
@@ -452,9 +510,7 @@ function Sidebar() {
           </Dropdown.Item>
           <Dropdown.Item
             onClick={() =>
-              room.password
-                ? setPassword(room, false)
-                : setPassword(room, true)
+              room.password ? setPassword(room, false) : setPassword(room, true)
             }
           >
             {room.password ? "Remove Password" : "Add Password"}
@@ -490,7 +546,6 @@ function Sidebar() {
       );
     } else {
       return (
-
         <Dropdown.Item as={Link} to={`/profile/${user.userId}`}>
           View Profile
         </Dropdown.Item>
@@ -509,9 +564,8 @@ function Sidebar() {
     socket.emit("chat_rooms", user);
     socket.emit("my_rooms", user);
     socket.emit("game", user);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
 
   socket.off("chat_users").on("chat_users", (payload: ChatUserDto[]) => {
     setMembers(payload);
@@ -538,7 +592,9 @@ function Sidebar() {
     setNotifications((notifications) => {
       console.log("Current notifications:", notifications);
       // Check if notification for the room already exists
-      const existingNotificationIndex = notifications.findIndex(n => n.roomName === room);
+      const existingNotificationIndex = notifications.findIndex(
+        (n) => n.roomName === room
+      );
       if (existingNotificationIndex !== -1) {
         // If exists, create a new array with updated count for that notification
         return notifications.map((notification, index) => {
@@ -556,20 +612,43 @@ function Sidebar() {
     });
   });
 
-
-
   if (!user) {
     return <></>;
   }
   return (
     <>
-      <h4 className="mt-5">Public Rooms
+      <h4 className="mt-5">
+        Public Rooms
         {roomsToggle ? (
-          <Button className="ms-3" onClick={() => setRoomsToggle(!roomsToggle)}>
+          <Button
+            className="ms-3"
+            onClick={() => setRoomsToggle(!roomsToggle)}
+            style={{
+              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+              border: "none",
+              borderRadius: "30px",
+              padding: "5px 15px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <IoEyeOutline />
           </Button>
         ) : (
-          <Button className="ms-3" onClick={() => setRoomsToggle(!roomsToggle)}>
+          <Button
+            className="ms-3"
+            onClick={() => setRoomsToggle(!roomsToggle)}
+            style={{
+              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+              border: "none",
+              borderRadius: "30px",
+              padding: "5px 15px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <IoEyeOffOutline />
           </Button>
         )}
@@ -581,11 +660,18 @@ function Sidebar() {
               key={idx}
               onClick={() => joinRoom(room)}
               active={room.roomName === currentRoom?.roomName}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-              }}
+			  style={{
+				cursor: "pointer",
+				display: "flex",
+				justifyContent: "space-between",
+				backgroundColor: room.roomName === currentRoom?.roomName ? '#2386a2' : '#09467f',
+				color: '#ffffff',
+				border: 'none',
+				margin: '5px 0',
+				borderRadius: '5px',
+				padding: '10px 15px',
+				transition: 'background-color 0.3s ease'
+			  }}
             >
               {room.roomName} {currentRoom?.roomName !== room.roomName}
               <span>
@@ -602,19 +688,51 @@ function Sidebar() {
                   <span>{room.password && <IoLockClosed />}</span>
                 </OverlayTrigger>
               </span>
-              {currentRoom?.roomName !== room.roomName && (<span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === room.roomName)?.count}</span>)}
-
+              {currentRoom?.roomName !== room.roomName && (
+                <span className="badge rounded-pill bg-primary">
+                  {
+                    notifications.find(
+                      (notification) => notification.roomName === room.roomName
+                    )?.count
+                  }
+                </span>
+              )}
             </ListGroup.Item>
           ))}
         </ListGroup>
       )}
-      <h4 className="mt-5">My Rooms
+      <h4 className="mt-5">
+        My Rooms
         {myroomsToggle ? (
-          <Button className="ms-3" onClick={() => setMyRoomsToggle(!myroomsToggle)}>
+          <Button
+            className="ms-3"
+            onClick={() => setMyRoomsToggle(!myroomsToggle)}
+            style={{
+              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+              border: "none",
+              borderRadius: "30px",
+              padding: "5px 15px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <IoEyeOutline />
           </Button>
         ) : (
-          <Button className="ms-3" onClick={() => setMyRoomsToggle(!myroomsToggle)}>
+          <Button
+            className="ms-3"
+            onClick={() => setMyRoomsToggle(!myroomsToggle)}
+            style={{
+              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+              border: "none",
+              borderRadius: "30px",
+              padding: "5px 15px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <IoEyeOffOutline />
           </Button>
         )}
@@ -625,11 +743,18 @@ function Sidebar() {
             <ListGroup.Item
               key={idx}
               active={room.roomName === currentRoom?.roomName}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-              }}
+			  style={{
+				cursor: "pointer",
+				display: "flex",
+				justifyContent: "space-between",
+				backgroundColor: room.roomName === currentRoom?.roomName ? '#2386a2' : '#09467f',
+				color: '#ffffff',
+				border: 'none',
+				margin: '5px 0',
+				borderRadius: '5px',
+				padding: '10px 15px',
+				transition: 'background-color 0.3s ease',
+			  }}
             >
               <p onClick={() => joinRoom(room)}>{room.roomName} </p>
               <span>
@@ -646,10 +771,27 @@ function Sidebar() {
                   <span>{room.password && <IoLockClosed />}</span>
                 </OverlayTrigger>
               </span>
-              {currentRoom?.roomName !== room.roomName && (<span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === room.roomName)?.count}</span>)}
+              {currentRoom?.roomName !== room.roomName && (
+                <span className="badge rounded-pill bg-primary">
+                  {
+                    notifications.find(
+                      (notification) => notification.roomName === room.roomName
+                    )?.count
+                  }
+                </span>
+              )}
               {ownerDropDown(room)}
               {room.roomName !== "general" && (
-                <Button variant="warning" onClick={leaveRoom(room.roomName)}>
+                <Button variant="warning" onClick={leaveRoom(room.roomName)}
+				style={{
+					background: "linear-gradient(in oklab, #f57112 10%, #f39d60 90%)",
+					border: "none",
+					borderRadius: "30px",
+					padding: "5px 15px",
+					display: "inline-flex",
+					alignItems: "center",
+					justifyContent: "center",
+				  }}>
                   Leave Room
                 </Button>
               )}
@@ -660,11 +802,35 @@ function Sidebar() {
       <h4 className="mt-5">
         Room Users{" "}
         {roomUsersToggle ? (
-          <Button className="ms-3" onClick={() => setRoomUsersToggle(!roomUsersToggle)}>
+          <Button
+            className="ms-3"
+            onClick={() => setRoomUsersToggle(!roomUsersToggle)}
+			style={{
+				background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+				border: "none",
+				borderRadius: "30px",
+				padding: "5px 15px",
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+			  }}
+          >
             <IoEyeOutline />
           </Button>
         ) : (
-          <Button className="ms-3" onClick={() => setRoomUsersToggle(!roomUsersToggle)}>
+          <Button
+            className="ms-3"
+            onClick={() => setRoomUsersToggle(!roomUsersToggle)}
+			style={{
+				background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+				border: "none",
+				borderRadius: "30px",
+				padding: "5px 15px",
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+			  }}
+          >
             <IoEyeOffOutline />
           </Button>
         )}
@@ -690,22 +856,25 @@ function Sidebar() {
                             {member.userName}
                           </Dropdown.Item>
                         );
-                      }
-                      else return null;
-                    })
-
-                    }
+                      } else return null;
+                    })}
                   </DropdownButton>
-                  <Button variant="outline-dark" onClick={handleAddUser}>
+                  <Button variant="outline-dark" onClick={handleAddUser}
+				  style={{
+					background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+					border: "none",
+					borderRadius: "30px",
+					padding: "5px 15px",
+					display: "inline-flex",
+					alignItems: "center",
+					justifyContent: "center",
+				  }}>
                     + Add
                   </Button>
                 </>
               );
-            }
-            else return null;
-          }
-          )}
-
+            } else return null;
+          })}
       </h4>
       {roomUsersToggle &&
         Object.keys(roomMembers).length !== 0 &&
@@ -726,7 +895,7 @@ function Sidebar() {
                 <Col xs={6}>
                   {member.userName}
                   <img
-                    alt='user-avatar'
+                    alt="user-avatar"
                     src={`http://${host}:3001/avatar/${member.userId}`}
                     className="member-status-img"
                   />
@@ -789,13 +958,33 @@ function Sidebar() {
             </ListGroup.Item>
           );
         })}
-      <h4 className="mt-5">Users
+      <h4 className="mt-5">
+        Users
         {usersToggle ? (
-          <Button className="ms-3" onClick={() => setUsersToggle(!usersToggle)}>
+          <Button className="ms-3" onClick={() => setUsersToggle(!usersToggle)}
+		  style={{
+			background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+			border: "none",
+			borderRadius: "30px",
+			padding: "5px 15px",
+			display: "inline-flex",
+			alignItems: "center",
+			justifyContent: "center",
+		  }}
+		  >
             <IoEyeOutline />
           </Button>
         ) : (
-          <Button className="ms-3" onClick={() => setUsersToggle(!usersToggle)}>
+          <Button className="ms-3" onClick={() => setUsersToggle(!usersToggle)}
+		  style={{
+			background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+			border: "none",
+			borderRadius: "30px",
+			padding: "5px 15px",
+			display: "inline-flex",
+			alignItems: "center",
+			justifyContent: "center",
+		  }}>
             <IoEyeOffOutline />
           </Button>
         )}
@@ -827,7 +1016,16 @@ function Sidebar() {
               <Col xs={5} onClick={() => joinDirectRoom(member)}>
                 {member.userName}
                 {member.userId === user?.userId && " (You)"}
-                {currentRoom?.roomName !== chatId(member.userId) && (<span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === chatId(member.userId))?.count}</span>)}
+                {currentRoom?.roomName !== chatId(member.userId) && (
+                  <span className="badge rounded-pill bg-primary">
+                    {
+                      notifications.find(
+                        (notification) =>
+                          notification.roomName === chatId(member.userId)
+                      )?.count
+                    }
+                  </span>
+                )}
               </Col>
               <Col xs={4}>
                 <Dropdown>
@@ -854,46 +1052,76 @@ function Sidebar() {
           </Row>
         </ListGroup.Item>
       )}
-      {Object.keys(gameInvite).length !== 0 && "type" in gameInvite &&
+      {Object.keys(gameInvite).length !== 0 &&
+        "type" in gameInvite &&
         gameInvite.type === "invitation" && (
           <>
-            <Button variant="success" onClick={acceptGameInvite}>
+            <Button variant="success" onClick={acceptGameInvite}
+			style={{
+				background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+				border: "none",
+				borderRadius: "30px",
+				padding: "5px 15px",
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+			  }}>
               Accept
             </Button>
-            <Button variant="danger" onClick={declineGameInvite}>
+            <Button variant="danger" onClick={declineGameInvite}
+			style={{
+				background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+				border: "none",
+				borderRadius: "30px",
+				padding: "5px 15px",
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+			  }}>
               Decline
             </Button>
           </>
         )}
-      {Object.keys(gameInvite).length !== 0 && "type" in gameInvite && gameInvite.type === "host" && (
-        <Button variant="danger" onClick={declineGameInvite}>
-          Decline
-        </Button>
-      )}
-      {Object.keys(gameInvite).length !== 0 && "type" in gameInvite &&
+      {Object.keys(gameInvite).length !== 0 &&
+        "type" in gameInvite &&
+        gameInvite.type === "host" && (
+          <Button variant="danger" onClick={declineGameInvite}
+		  style={{
+			background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+			border: "none",
+			borderRadius: "30px",
+			padding: "5px 15px",
+			display: "inline-flex",
+			alignItems: "center",
+			justifyContent: "center",
+		  }}>
+            Decline
+          </Button>
+        )}
+      {Object.keys(gameInvite).length !== 0 &&
+        "type" in gameInvite &&
         gameInvite.type === "start the game" && (
           <Link to="/game" className="btn btn-info">
             Go to Game
           </Link>
         )}
-
-       <ToastContainer 
-        className="p-3" 
+      <ToastContainer
+        className="p-3"
         style={{
-          position: 'fixed',
-          top: '80px', // Adjust this value to position the toast below your navbar
-          left: '50%',
-          transform: 'translateX(-50%)',
+          position: "fixed",
+          top: "80px", // Adjust this value to position the toast below your navbar
+          left: "50%",
+          transform: "translateX(-50%)",
           zIndex: 9999,
         }}
       >
-        <Toast 
-          onClose={() => setToast({ ...toast, show: false })} 
-          show={toast.show} 
-          delay={3000} 
+        <Toast
+          onClose={() => setToast({ ...toast, show: false })}
+          show={toast.show}
+          delay={3000}
           autohide
           style={{
-            minWidth: '250px',
+            minWidth: "250px",
           }}
         >
           <Toast.Header>

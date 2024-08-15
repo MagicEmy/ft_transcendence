@@ -21,14 +21,21 @@
 }
 
 #leadProfile {
-	/* border : 2px solid #0a04ad; */
-	/* border-radius: 30px; */
     margin-top: 3em;
 	padding: 100px;
 	margin-bottom: 20em;
-	background-color: #2386a220; /* NEW SHADE
-    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
+	background-color: #2386a220;
+	box-shadow:
+      1px 2px 2px hsl(193deg 64% 39% / 0.125),
+      2px 4px 4px hsl(193deg 64% 39% / 0.125),
+      4px 8px 8px hsl(193deg 64% 39% / 0.125),
+      8px 16px 16px hsl(193deg 64% 39% / 0.125),
+      16px 32px 32px hsl(193deg 64% 39% / 0.125);
 }
+
+	/* NEW SHADE
+	background-color: hsla(193, 64%, 39%, 0.125); /* NEW SHADE
+    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
 
 #leadProfile .flex {
     display: flex;
@@ -44,17 +51,12 @@
     align-items: center;
 	gap: 3em;
     border: 2px solid #2386a2;
-    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
+    box-shadow:
+      1px 2px 2px hsl(193deg 64% 39% / 0.125),
+      2px 4px 4px hsl(193deg 64% 39% / 0.125),
+      4px 8px 8px hsl(193deg 64% 39% / 0.125),
+	  8px 16px 16px hsl(193deg 64% 39% / 0.125);
     padding: 10px;
-}
-#leadProfile .flex .item-points {
-    display: flex;
-    width: 100px;
-    align-items: center;
-	gap: 3em;
-    border: 2px solid #2386a2;
-    box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2);
-    padding: 5px;
 }
 
 #leadProfile .flex img {
@@ -62,7 +64,12 @@
     height: 70px;
     object-fit: cover;
     border-radius: 50%;
-    box-shadow: 8px 5px 5px #0d045a;
+    box-shadow:
+    1px 2px 2px hsl(209deg 87% 27% / 0.125),
+    2px 4px 4px hsl(209deg 87% 27% / 0.125),
+    4px 8px 8px hsl(209deg 87% 27% / 0.125),
+    8px 16px 16px hsl(209deg 87% 27% / 0.125),
+    16px 32px 32px hsl(209deg 87% 27% / 0.125);
 }
 
 /* #leadProfile .flex .info {
@@ -74,9 +81,6 @@
     margin-top: 10px;
     margin-bottom: 10px;
     font-size: 1.3em;
-    /* text-shadow: #0d045a; */
-    /* border: 2px solid #2386a2; */
-    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
 	background-color: #c3d8f7;
   }
 
@@ -109,6 +113,11 @@
     font-size: 1.2em;
 	font-weight: bold;
     color: #09467f;
+	box-shadow:
+      1px 2px 2px hsl(193deg 64% 39% / 0.125),
+      2px 4px 4px hsl(193deg 64% 39% / 0.125),
+      4px 8px 8px hsl(193deg 64% 39% / 0.125),
+	  8px 16px 16px hsl(193deg 64% 39% / 0.125);
 }
 
 .stats .stat {
@@ -132,6 +141,7 @@
 	margin-right: 25px;
 	cursor: pointer;
   }
+
 .opponents:hover {
   color: #30b8de;
   text-decoration: underline;
