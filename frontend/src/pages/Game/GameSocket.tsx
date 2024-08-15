@@ -88,7 +88,7 @@ class GameSocket
 
 		// this.socket.onAny((event: any, ...args: any[]) =>
 		// {
-		// 	console.error(`Error: unhandled event "${event}"`, ...args);
+		// 	console.warn(`Error: unhandled event "${event}"`, ...args);
 		// });
 
 		this.gameInterval = setInterval(() => { this.socket?.emit("GameImage"); }, 32);
@@ -97,10 +97,11 @@ class GameSocket
 
 	public static createInstance(userIdContext: any, userNameContext: any): GameSocket | null
 	{
-		if (!GameSocket.instance)
+		if (!GameSocket.instance?.socket)
 		{
 			try
 			{
+				GameSocket.instance?.disconnect();
 				GameSocket.instance = new GameSocket();
 				GameSocket.UserPack =
 				{
@@ -117,6 +118,7 @@ class GameSocket
 				GameSocket.instance = null;
 			}
 		}
+		console.log(this.instance.socket);
 		return (GameSocket.instance);
 	}
 

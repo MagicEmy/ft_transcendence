@@ -57,42 +57,97 @@ class GameGraphics
 
 	private constructor()
 	{
-		this.GameElement = this.getElement<HTMLDivElement>("game");
-		this.BackElement = this.getElement<HTMLCanvasElement>("gameBackground");
-		this.BackContext = this.getContext(this.BackElement);
-		this.CnvsElement = this.getElement<HTMLCanvasElement>("gameCanvas");
-		this.CnvsContext = this.getContext(this.CnvsElement);
-		this.HUDElement = this.getElement<HTMLCanvasElement>("gameHUD");
-		this.HUDContext = this.getContext(this.HUDElement);
-		this.MenuElement = this.getElement<HTMLCanvasElement>("gameMenu");
-		this.MenuContext = this.getContext(this.MenuElement);
+		// this.GameElement = this.getElement<HTMLDivElement>("game");
+		// this.BackElement = this.getElement<HTMLCanvasElement>("gameBackground");
+		// this.BackContext = this.getContext(this.BackElement);
+		// this.CnvsElement = this.getElement<HTMLCanvasElement>("gameCanvas");
+		// this.CnvsContext = this.getContext(this.CnvsElement);
+		// this.HUDElement = this.getElement<HTMLCanvasElement>("gameHUD");
+		// this.HUDContext = this.getContext(this.HUDElement);
+		// this.MenuElement = this.getElement<HTMLCanvasElement>("gameMenu");
+		// this.MenuContext = this.getContext(this.MenuElement);
 
-		this.resizeElements();
+		// this.resizeElements();
 	}
 
-	public static getInstance(): GameGraphics | null
+	public static CreateInstance(game: HTMLDivElement, back: HTMLCanvasElement, canvas: HTMLCanvasElement, HUD: HTMLCanvasElement, menu: HTMLCanvasElement): GameGraphics | null
 	{
-		if (!GameGraphics.instance) {
-			try {
-				GameGraphics.instance = new GameGraphics();
-			}
-			catch (error) {
-				console.error(`Error creating GameGraphics singleton: ${error}`);
-				GameGraphics.instance = null;
-			}
+		try
+		{
+			if (!this.instance)
+				this.instance = new GameGraphics();
+			GameGraphics.instance.GameElement = game;
+			GameGraphics.instance.BackElement = back;
+			GameGraphics.instance.BackContext = GameGraphics.instance.getContext(GameGraphics.instance.BackElement);
+			GameGraphics.instance.CnvsElement = canvas;
+			GameGraphics.instance.CnvsContext = GameGraphics.instance.getContext(GameGraphics.instance.CnvsElement);
+			GameGraphics.instance.HUDElement = HUD;
+			GameGraphics.instance.HUDContext = GameGraphics.instance.getContext(GameGraphics.instance.HUDElement);
+			GameGraphics.instance.MenuElement = menu;
+			GameGraphics.instance.MenuContext = GameGraphics.instance.getContext(GameGraphics.instance.MenuElement);
+
+			GameGraphics.instance.resizeElements();
+		}
+		catch (error)
+		{
+			console.error(`Error creating GameGraphics singleton: ${error}`);
+			GameGraphics.instance = null;
 		}
 		return (GameGraphics.instance);
 	}
 
-	private getElement<T extends HTMLElement>(elementId: string): T
+	public static getInstance(): GameGraphics | null
 	{
-		let element: T | null;
-
-		element = document.getElementById(elementId) as T | null;
-		if (!(element instanceof HTMLElement))
-			throw (`Failed to get element ${elementId}`);
-		return (element);
+		// if (!GameGraphics.instance) {
+		// 	try {
+		// 		GameGraphics.instance = new GameGraphics();
+		// 	}
+		// 	catch (error) {
+		// 		console.error(`Error creating GameGraphics singleton: ${error}`);
+		// 		GameGraphics.instance = null;
+		// 	}
+		// }
+		return (GameGraphics.instance);
 	}
+
+	// public setGameElement(element: HTMLDivElement): void
+	// {
+	// 	this.GameElement = element;
+	// }
+	
+	// public setBackElement(element: HTMLCanvasElement): void
+	// {
+	// 	this.BackElement = element;
+	// 	this.BackContext = this.getContext(element);
+	// }
+	
+	// public setCnvsElement(element: HTMLCanvasElement): void
+	// {
+	// 	this.CnvsElement = element;
+	// 	this.CnvsContext = this.getContext(element);
+	// }
+	// public setHUDElement(element: HTMLCanvasElement): void
+	// {
+	// 	this.HUDElement = element;
+	// 	this.HUDContext = this.getContext(element);
+	// }
+	// public setMenuElement(element: HTMLCanvasElement): void
+	// {
+	// 	this.MenuElement = element;
+	// 	this.MenuContext = this.getContext(element);
+	// }
+
+
+
+	// private getElement<T extends HTMLElement>(elementId: string): T
+	// {
+	// 	let element: T | null;
+
+	// 	element = document.getElementById(elementId) as T | null;
+	// 	if (!(element instanceof HTMLElement))
+	// 		throw (`Failed to get element ${elementId}`);
+	// 	return (element);
+	// }
 
 	private getContext(element: HTMLCanvasElement): CanvasRenderingContext2D
 	{
@@ -108,13 +163,8 @@ class GameGraphics
 	public resizeElements(): void
 	{
 		if (this.GameElement.offsetHeight === 0)
-		{
-			console.error(this.GameElement);
 			window.location.reload();
-			console.error('forcing ugly refresh');
-		}
-		else
-			console.warn(this.GameElement);
+		
 		this.GameElement.style.setProperty(`--TsHeightAdjust`, `${this.GameElement.offsetTop}px`);
 
 		this.adjustSize(this.BackElement);

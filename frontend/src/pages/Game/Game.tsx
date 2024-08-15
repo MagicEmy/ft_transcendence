@@ -16,13 +16,19 @@ const Game: React.FC = () => {
 	const [userIdStorage, , ] = useStorage<string>('userId', '');
   	const [userNameStorage, , ] = useStorage<string>('userName', '');
 
+	  const gameRef = useRef<HTMLDivElement>(null);
+	  const backRef = useRef<HTMLCanvasElement>(null);
+	  const canvRef = useRef<HTMLCanvasElement>(null);
+	  const hudRef = useRef<HTMLCanvasElement>(null);
+	  const menuRef = useRef<HTMLCanvasElement>(null);
+
 	useEffect(() => {
 		if (socket.current === null)
 			socket.current = GameSocket.createInstance(userIdStorage, userNameStorage);
 		if (logic.current === null)
 			logic.current = GameLogic.getInstance();
 		if (graphics.current === null)
-			graphics.current = GameGraphics.getInstance();
+			graphics.current = GameGraphics.CreateInstance(gameRef.current, backRef.current, canvRef.current, hudRef.current, menuRef.current);
 		if (events.current === null)
 			events.current = new GameEventListener();
 
@@ -40,11 +46,11 @@ const Game: React.FC = () => {
 	}, []);
 
 	return (
-		<div id="game">
-			<canvas id="gameBackground"></canvas>
-			<canvas id="gameCanvas"></canvas>
-			<canvas id="gameHUD"></canvas>
-			<canvas id="gameMenu"></canvas>
+		<div id="game" ref={gameRef}>
+			<canvas id="gameBackground" ref={backRef}></canvas>
+			<canvas id="gameCanvas" ref={canvRef}></canvas>
+			<canvas id="gameHUD" ref={hudRef}></canvas>
+			<canvas id="gameMenu" ref={menuRef}></canvas>
 		</div>
 	);
 }
