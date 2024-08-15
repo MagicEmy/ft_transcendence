@@ -24,7 +24,7 @@ import { GameResult } from './enum/game-result.enum';
 import { UserIdOpponentDto } from './dto/games-against-dto';
 import { ClientKafka, RpcException } from '@nestjs/microservices';
 import { PositionTotalPointsDto } from './dto/position-total-points-dto';
-import { PlayerInfo } from './enum/kafka.enum';
+import { MatchTypes, PlayerInfo } from './enum/kafka.enum';
 
 @Injectable()
 export class StatsService {
@@ -48,8 +48,12 @@ export class StatsService {
   }
 
   async updateStats(gameStatus: IGameStatus): Promise<void> {
-    const { player1ID, player2ID, player1Score, player2Score, duration } =
+    const { matchType, player1ID, player2ID, player1Score, player2Score, duration } =
       gameStatus;
+    if (matchType == MatchTypes.LOCAL) {
+      // no stats of local games are being kept, as it is not clear who the opponent was
+      return;
+    }
     const player1 = {
       playerId: player1ID,
       opponent: player2ID ? Opponent.HUMAN : Opponent.BOT,
