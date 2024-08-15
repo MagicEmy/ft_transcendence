@@ -1,15 +1,9 @@
-import React from 'react';
-import classes from '../../components/Navbar/Navbar.module.css';
+import React from "react";
+import classes from "../../components/Navbar/Navbar.module.css";
 
 export const NavbarError = () => {
-
   return (
     <header className={classes.header}>
-      <div className={classes.avatar}>
-        <div className={classes.avatarImage}> No image available
-        </div>
-        <span className={classes.name}></span>
-      </div>
       <nav>
         <ul className={classes.list}>
           <li>
@@ -32,11 +26,14 @@ export const NavbarError = () => {
           </li>
         </ul>
       </nav>
-      <div className={classes.buttons}>
-        <button className={classes.logoutButton}>Logout</button>
+      <div className={classes.logout}>
+        <span className={classes.quote}>“Don’t Panic”</span>
+        <div className={classes.buttons}>
+          <button className={classes.logoutButton}>Logout</button>
+        </div>
       </div>
     </header>
   );
-}
+};
 
 export default NavbarError;
