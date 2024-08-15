@@ -86,7 +86,7 @@ export class RoomModerationService {
     return 'Success'
   }
 
-  async addUserToAdmin (
+  async makeUserAdmin (
     roomName: Room['roomName'],
     user: UserDto['userId'],
     toAdmin: UserDto['userId'],

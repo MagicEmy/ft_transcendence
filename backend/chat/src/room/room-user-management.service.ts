@@ -57,8 +57,8 @@ export class RoomUserManagementService {
   }
 
   async addUserToRoom (
-    user: UserDto['userId'],
     roomName: Room['roomName'],
+    user: UserDto['userId'],
     userToAdd: string,
   ): Promise<string> {
     const newUser: User | undefined = await this.userService.getUserById(user)
