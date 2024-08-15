@@ -30,11 +30,27 @@ export interface RoomDto{
     password: boolean
 }
 
-export interface toDoUserRoomDto{
+export enum ModerationType {
+    MUTE = 'mute',
+    UNMUTE = 'unmute',
+    BAN = 'ban',
+    UNBAN = 'unban',
+    ADD = 'add',
+    KICK = 'kick',
+    MAKEADMIN = 'makeadmin',
+    REMOVEADMIN = 'removeadmin',
+}
+
+export interface ToDoUserRoomDto{
     roomName: string
     user: UserDto
+    type: ModerationType
     toDoUser: string
     timer: number
+}
+export class RoomMessageDto {
+    roomName: string;
+    message: string;
 }
 
 

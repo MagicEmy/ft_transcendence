@@ -4,6 +4,7 @@ import { RoomUserManagementService } from './room-user-management.service';
 import { RoomPermissionService } from './room-permission.service';
 import { RoomModerationService } from './room-moderation.service';
 import { RoomMessageService } from './room-message.service';
+import { RoomRouterService } from './room-router.service';
 import { UserModule } from 'src/user/user.module';
 
 @Module({
@@ -13,14 +14,16 @@ import { UserModule } from 'src/user/user.module';
     RoomUserManagementService,
     RoomPermissionService,
     RoomModerationService,
-    RoomMessageService
+    RoomMessageService,
+    RoomRouterService
   ],
   exports: [
     RoomManagementService,
     RoomUserManagementService,
     RoomPermissionService,
     RoomModerationService,
-    RoomMessageService
+    RoomMessageService,
+    RoomRouterService
   ],
 })
 export class RoomModule {}

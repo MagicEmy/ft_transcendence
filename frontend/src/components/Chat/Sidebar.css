@@ -26,3 +26,14 @@
     bottom: 0;
     left: 12px;
 }
+
+.gradient-badge {
+    background: linear-gradient(in oklab, #09467f 10%, #2386a2 90%);
+    color: #ffffff;
+    border: none;
+    padding: 5px 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50rem;
+}

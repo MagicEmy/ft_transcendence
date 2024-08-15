@@ -34,7 +34,6 @@ import {
   JoinRoomDto,
   RoomDto,
   LeaveRoomDto,
-  toDoUserRoomDto,
   RoomShowDto,
   UserShowDto,
   RoomUserDto,
@@ -43,6 +42,9 @@ import {
   GameDto,
   ChatContextType,
   Notification,
+  ToDoUserRoomDto,
+  ModerationType,
+  RoomMessageDto,
 } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -70,7 +72,8 @@ function Sidebar() {
     setMessages,
   } = useContext(ChatContext) as ChatContextType;
 
-  const [addUser, setAddUser] = useState<string>("Select User");
+
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [gameInvite, setGameInvite] = useState<GameDto | {}>({} as GameDto);
   const [myroomsToggle, setMyRoomsToggle] = useState<boolean>(false);
   const [roomsToggle, setRoomsToggle] = useState<boolean>(false);
@@ -88,28 +91,10 @@ function Sidebar() {
     <Tooltip id={`tooltip-${message}`}>{message}</Tooltip>
   );
 
-  function handleAddUser(event: React.FormEvent) {
-    event.preventDefault();
-    if (!currentRoom) return;
-    const newUser = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: addUser,
-      timer: 0,
-    };
-    socket.emit("add_user", newUser);
-    socket
-      .off("add_user_response")
-      .on("add_user_response", (messages: string) => {
-        showToast(messages);
-      });
-  }
 
-  function handleUserSelect(event: string | null): void {
-    if (event === null) {
-      return;
-    }
-    setAddUser(event);
+
+  function handleUserSelect(userId: string): void {
+    setSelectedUserId(userId);
   }
   socket.off("kick_user_out").on("kick_user_out", (kick: KickDto) => {
     if (kick.roomName === currentRoom?.roomName) {
@@ -205,101 +190,59 @@ function Sidebar() {
       });
   }
 
-  function muteUser(member: UserShowDto) {
+
+  function handleModRoomAction(userId: string, type: ModerationType) {
     if (!currentRoom) return;
-    const seconds = prompt("Enter the number of seconds to mute the user");
-    if (isNaN(Number(seconds))) {
-      return showToast("Please enter a number");
-    } else {
-      const muteUser: toDoUserRoomDto = {
-        roomName: currentRoom.roomName,
-        user: user,
-        toDoUser: member.userId,
-        timer: parseInt(seconds ?? "0", 10),
-      };
-      socket.emit("mute_user", muteUser);
+    let toDoUser: ToDoUserRoomDto = {
+      roomName: currentRoom.roomName,
+      type: type,
+      user: user,
+      toDoUser: userId,
+      timer: 0,
+    };
+    if (type === ModerationType.MUTE) {
+      const seconds = prompt("Enter the number of seconds to mute the user");
+      if (isNaN(Number(seconds))) {
+        return showToast("Please enter a number");
+      }
+      toDoUser.timer = parseInt(seconds ?? "0", 10);
     }
-  }
-
-  function unMuteUser(member: UserShowDto) {
-    if (!currentRoom) return;
-    const unmuteUser: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("unmute_user", unmuteUser);
-  }
-
-  function banUser(member: UserShowDto) {
-    if (!currentRoom) return;
-    const banUser: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("ban_user", banUser);
-  }
-
-  function unBanUser(member: UserShowDto) {
-    if (!currentRoom) return;
-    const unBanUser: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("unban_user", unBanUser);
-  }
-
-  function kickUser(member: UserShowDto) {
-    if (!currentRoom) return;
-    const banUser: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("kick_user", banUser);
+    console.log("Sending moderate_room event with data:", toDoUser);
+    socket.emit("moderate_room", toDoUser);
     socket
-      .off("kick_user_response")
-      .on("kick_user_response", (message: string) => {
-        if (message !== "Success") {
-          showToast(message);
-        } else {
-          showToast("User Kicked:" + member.userName);
-        }
+      .off("moderate_room_response")
+      .on("moderate_room_response", (message: string) => {
+        showToast(message);
       });
   }
 
-  function makeAdmin(member: UserShowDto) {
-    if (!currentRoom) return;
-    const makeAdmin: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("make_admin", makeAdmin);
-  }
+  socket.off("moderate_room_action").on("moderate_room_action", (message: RoomMessageDto) => {
+    if (message.roomName === currentRoom?.roomName) {
+      if (message.message === "Kicked") {
+        showToast("You have been kicked from the room");
+        joinRoom({ roomName: "general", password: false });
+      }
+      else if (message.message === "Banned") {
+        showToast("You have been banned from the room");
+        joinRoom({ roomName: "general", password: false });
+      }
+      else {
+        showToast(message.message);
+      }
+    }
+  });
 
-  function removeAdmin(member: UserShowDto) {
-    if (!currentRoom) return;
-    const removeAdmin: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("remove_admin", removeAdmin);
+  function handleAddUser(event: React.FormEvent) {
+    event.preventDefault();
+    if (!currentRoom || !selectedUserId) return;
+    handleModRoomAction(selectedUserId, ModerationType.ADD);
   }
 
   function blockUser(member: UserShowDto | ChatUserDto) {
     if (!currentRoom) return;
-    const blockUser: toDoUserRoomDto = {
+    const blockUser:ToDoUserRoomDto = {
       roomName: currentRoom.roomName,
+      type: ModerationType.BAN,
       user: user,
       toDoUser: member.userId,
       timer: 0,
@@ -316,8 +259,9 @@ function Sidebar() {
 
   function unBlockUser(member: UserShowDto | ChatUserDto) {
     if (!currentRoom) return;
-    const blockUser: toDoUserRoomDto = {
+    const blockUser: ToDoUserRoomDto = {
       roomName: currentRoom.roomName,
+      type: ModerationType.UNBAN,
       user: user,
       toDoUser: member.userId,
       timer: 0,
@@ -452,26 +396,26 @@ function Sidebar() {
         <>
           <Dropdown.Item
             onClick={() =>
-              member.isAdmin ? removeAdmin(member) : makeAdmin(member)
+              member.isAdmin ? handleModRoomAction(member.userId, ModerationType.REMOVEADMIN) : handleModRoomAction(member.userId, ModerationType.MAKEADMIN)
             }
           >
             {member.isAdmin ? "Remove Admin" : "Make Admin"}
           </Dropdown.Item>
           <Dropdown.Item
             onClick={() =>
-              member.isMuted ? unMuteUser(member) : muteUser(member)
+              member.isMuted ? handleModRoomAction(member.userId, ModerationType.UNMUTE) : handleModRoomAction(member.userId, ModerationType.MUTE)
             }
           >
             {member.isMuted ? "Unmute User" : "Mute User"}
           </Dropdown.Item>
           <Dropdown.Item
             onClick={() =>
-              member.isBanned ? unBanUser(member) : banUser(member)
+              member.isBanned ? handleModRoomAction(member.userId, ModerationType.UNBAN) : handleModRoomAction(member.userId, ModerationType.BAN)
             }
           >
             {member.isBanned ? "Unban User" : "Ban User"}
           </Dropdown.Item>
-          <Dropdown.Item onClick={() => kickUser(member)}>
+          <Dropdown.Item onClick={() => handleModRoomAction(member.userId, ModerationType.KICK)}>
             {"kick User"}
           </Dropdown.Item>
         </>
@@ -660,18 +604,18 @@ function Sidebar() {
               key={idx}
               onClick={() => joinRoom(room)}
               active={room.roomName === currentRoom?.roomName}
-			  style={{
-				cursor: "pointer",
-				display: "flex",
-				justifyContent: "space-between",
-				backgroundColor: room.roomName === currentRoom?.roomName ? '#2386a2' : '#09467f',
-				color: '#ffffff',
-				border: 'none',
-				margin: '5px 0',
-				borderRadius: '5px',
-				padding: '10px 15px',
-				transition: 'background-color 0.3s ease'
-			  }}
+              style={{
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "space-between",
+                backgroundColor: room.roomName === currentRoom?.roomName ? '#2386a2' : '#09467f',
+                color: '#ffffff',
+                border: 'none',
+                margin: '5px 0',
+                borderRadius: '5px',
+                padding: '10px 15px',
+                transition: 'background-color 0.3s ease'
+              }}
             >
               {room.roomName} {currentRoom?.roomName !== room.roomName}
               <span>
@@ -743,18 +687,18 @@ function Sidebar() {
             <ListGroup.Item
               key={idx}
               active={room.roomName === currentRoom?.roomName}
-			  style={{
-				cursor: "pointer",
-				display: "flex",
-				justifyContent: "space-between",
-				backgroundColor: room.roomName === currentRoom?.roomName ? '#2386a2' : '#09467f',
-				color: '#ffffff',
-				border: 'none',
-				margin: '5px 0',
-				borderRadius: '5px',
-				padding: '10px 15px',
-				transition: 'background-color 0.3s ease',
-			  }}
+              style={{
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "space-between",
+                backgroundColor: room.roomName === currentRoom?.roomName ? '#2386a2' : '#09467f',
+                color: '#ffffff',
+                border: 'none',
+                margin: '5px 0',
+                borderRadius: '5px',
+                padding: '10px 15px',
+                transition: 'background-color 0.3s ease',
+              }}
             >
               <p onClick={() => joinRoom(room)}>{room.roomName} </p>
               <span>
@@ -783,15 +727,15 @@ function Sidebar() {
               {ownerDropDown(room)}
               {room.roomName !== "general" && (
                 <Button variant="warning" onClick={leaveRoom(room.roomName)}
-				style={{
-					background: "linear-gradient(in oklab, #f57112 10%, #f39d60 90%)",
-					border: "none",
-					borderRadius: "30px",
-					padding: "5px 15px",
-					display: "inline-flex",
-					alignItems: "center",
-					justifyContent: "center",
-				  }}>
+                  style={{
+                    background: "linear-gradient(in oklab, #f57112 10%, #f39d60 90%)",
+                    border: "none",
+                    borderRadius: "30px",
+                    padding: "5px 15px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}>
                   Leave Room
                 </Button>
               )}
@@ -805,15 +749,15 @@ function Sidebar() {
           <Button
             className="ms-3"
             onClick={() => setRoomUsersToggle(!roomUsersToggle)}
-			style={{
-				background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-				border: "none",
-				borderRadius: "30px",
-				padding: "5px 15px",
-				display: "inline-flex",
-				alignItems: "center",
-				justifyContent: "center",
-			  }}
+            style={{
+              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+              border: "none",
+              borderRadius: "30px",
+              padding: "5px 15px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
             <IoEyeOutline />
           </Button>
@@ -821,15 +765,15 @@ function Sidebar() {
           <Button
             className="ms-3"
             onClick={() => setRoomUsersToggle(!roomUsersToggle)}
-			style={{
-				background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-				border: "none",
-				borderRadius: "30px",
-				padding: "5px 15px",
-				display: "inline-flex",
-				alignItems: "center",
-				justifyContent: "center",
-			  }}
+            style={{
+              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+              border: "none",
+              borderRadius: "30px",
+              padding: "5px 15px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
             <IoEyeOffOutline />
           </Button>
@@ -841,8 +785,7 @@ function Sidebar() {
                 <>
                   <DropdownButton
                     id="dropdown-basic-button"
-                    title={addUser}
-                    onSelect={handleUserSelect}
+                    title={selectedUserId ? members.find(m => m.userId === selectedUserId)?.userName || "Select User" : "Select User"}
                     variant=""
                     className="d-inline-block"
                   >
@@ -851,7 +794,7 @@ function Sidebar() {
                         return (
                           <Dropdown.Item
                             key={member.userId}
-                            eventKey={member.userId}
+                            onClick={() => handleUserSelect(member.userId)}
                           >
                             {member.userName}
                           </Dropdown.Item>
@@ -860,15 +803,15 @@ function Sidebar() {
                     })}
                   </DropdownButton>
                   <Button variant="outline-dark" onClick={handleAddUser}
-				  style={{
-					background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-					border: "none",
-					borderRadius: "30px",
-					padding: "5px 15px",
-					display: "inline-flex",
-					alignItems: "center",
-					justifyContent: "center",
-				  }}>
+                    style={{
+                      background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+                      border: "none",
+                      borderRadius: "30px",
+                      padding: "5px 15px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
                     + Add
                   </Button>
                 </>
@@ -941,7 +884,7 @@ function Sidebar() {
                 </Col>
 
                 <Col xs={3}>
-                  <span className="badge rounded-pill bg-primary">
+                  <span className="gradient-badge">
                     <Dropdown>
                       <Dropdown.Toggle variant="Secondary" id="dropdown-basic">
                         ...
@@ -962,29 +905,29 @@ function Sidebar() {
         Users
         {usersToggle ? (
           <Button className="ms-3" onClick={() => setUsersToggle(!usersToggle)}
-		  style={{
-			background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-			border: "none",
-			borderRadius: "30px",
-			padding: "5px 15px",
-			display: "inline-flex",
-			alignItems: "center",
-			justifyContent: "center",
-		  }}
-		  >
+            style={{
+              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+              border: "none",
+              borderRadius: "30px",
+              padding: "5px 15px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <IoEyeOutline />
           </Button>
         ) : (
           <Button className="ms-3" onClick={() => setUsersToggle(!usersToggle)}
-		  style={{
-			background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-			border: "none",
-			borderRadius: "30px",
-			padding: "5px 15px",
-			display: "inline-flex",
-			alignItems: "center",
-			justifyContent: "center",
-		  }}>
+            style={{
+              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+              border: "none",
+              borderRadius: "30px",
+              padding: "5px 15px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
             <IoEyeOffOutline />
           </Button>
         )}
@@ -1057,27 +1000,27 @@ function Sidebar() {
         gameInvite.type === "invitation" && (
           <>
             <Button variant="success" onClick={acceptGameInvite}
-			style={{
-				background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-				border: "none",
-				borderRadius: "30px",
-				padding: "5px 15px",
-				display: "inline-flex",
-				alignItems: "center",
-				justifyContent: "center",
-			  }}>
+              style={{
+                background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+                border: "none",
+                borderRadius: "30px",
+                padding: "5px 15px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
               Accept
             </Button>
             <Button variant="danger" onClick={declineGameInvite}
-			style={{
-				background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-				border: "none",
-				borderRadius: "30px",
-				padding: "5px 15px",
-				display: "inline-flex",
-				alignItems: "center",
-				justifyContent: "center",
-			  }}>
+              style={{
+                background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+                border: "none",
+                borderRadius: "30px",
+                padding: "5px 15px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
               Decline
             </Button>
           </>
@@ -1086,15 +1029,15 @@ function Sidebar() {
         "type" in gameInvite &&
         gameInvite.type === "host" && (
           <Button variant="danger" onClick={declineGameInvite}
-		  style={{
-			background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-			border: "none",
-			borderRadius: "30px",
-			padding: "5px 15px",
-			display: "inline-flex",
-			alignItems: "center",
-			justifyContent: "center",
-		  }}>
+            style={{
+              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+              border: "none",
+              borderRadius: "30px",
+              padding: "5px 15px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
             Decline
           </Button>
         )}

@@ -17,9 +17,8 @@ import { GameTypes, MatchTypes, UserStatusEnum } from 'src/kafka/kafka.enum'
 import { Room } from 'src/entities/room.entity'
 import { RoomManagementService } from 'src/room/room-management.service'
 import { RoomUserManagementService } from 'src/room/room-user-management.service'
-import { RoomPermissionService } from 'src/room/room-permission.service'
-import { RoomModerationService } from 'src/room/room-moderation.service'
 import { RoomMessageService } from 'src/room/room-message.service'
+import { RoomRouterService} from 'src/room/room-router.service';
 import {
   CreateRoomDto,
   MessageDto,
@@ -33,14 +32,14 @@ import {
   MessageRoomDto,
   RoomUserDto,
   ChatUserDto,
+  ModerateResponseDto,
 } from 'src/dto/chat.dto'
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor (
     private roomManagementService: RoomManagementService,
     private roomUserManagementService: RoomUserManagementService,
-    private roomPermissionService: RoomPermissionService,
-    private roomModerationService: RoomModerationService,
+    private roomRouterService: RoomRouterService,
     private roomMessageService: RoomMessageService,
     private userService: UserService,
     private readonly kafkaProducerService: KafkaProducerService,
@@ -135,6 +134,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const roomList: RoomShowDto[] =
       await this.roomManagementService.getRoomsAvailable()
     this.server.emit('chat_rooms', roomList)
+    const myRoomList: RoomShowDto[] = await this.roomManagementService.getMyRooms( payload.user.userId)
+    this.server.to(client.id).emit('my_rooms', myRoomList)
     this.updateUsers()
   }
 
@@ -167,6 +168,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const roomList: RoomShowDto[] =
       await this.roomManagementService.getRoomsAvailable()
     this.server.emit('chat_rooms', roomList)
+    const myRoomList: RoomShowDto[] = await this.roomManagementService.getMyRooms( payload.user.userId)
+    this.server.to(client.id).emit('my_rooms', myRoomList)
     this.updateUsers()
   }
 
@@ -221,6 +224,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         newStatus: UserStatusEnum.CHAT,
       })
     }
+    const myRoomList: RoomShowDto[] = await this.roomManagementService.getMyRooms( payload.user.userId)
+    this.server.to(client.id).emit('my_rooms', myRoomList)
     this.updateUsers()
   }
 
@@ -578,207 +583,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UsePipes(new ValidationPipe())
-  @SubscribeMessage('add_user')
-  async addUser (
+  @SubscribeMessage('moderate_room')
+  async moderateRoom( 
     @MessageBody()
     payload: ToDoUserRoomDto,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
+
     await this.userService.addUser(payload.user, client.id)
-    this.logger.log(
-      `${payload.user.userId} is trying to add ${payload.toDoUser}`,
-    )
-    const response: string = await this.roomUserManagementService.addUserToRoom(
-      payload.user.userId,
-      payload.roomName,
+    const toDoUser: User | undefined = await this.userService.getUserById(
       payload.toDoUser,
     )
-    this.logger.log(response)
-    this.server.to(client.id).emit('add_user_response', response)
-    if (response !== 'Success') {
-      return
+    if (toDoUser === undefined) {
+      this.server.to(client.id).emit('moderate_room_response', 'User not found');
+      return;
     }
-    this.updateUsers()
-    this.logger.log(`${payload.user.userId} added ${payload.toDoUser}`)
-    const addedUser: User | undefined = await this.userService.getUserById(
-      payload.toDoUser,
-    )
-    if (addedUser === undefined || addedUser.socketId === '') {
-      return
+    let response: ModerateResponseDto = await this.roomRouterService.handleModeration(payload);
+    if (response.success) {
+      this.server.to(client.id).emit('moderate_room_response', toDoUser.userName + " " + response.user_response);
+      if (toDoUser.socketId !== '') {
+        this.server.to(toDoUser.socketId).emit('moderate_room_action', response.user_response);
+        if (payload.type === 'add') {
+          const myRoomList: RoomShowDto[] = await this.roomManagementService.getMyRooms( payload.toDoUser)
+          this.server.to(toDoUser.socketId).emit('my_rooms', myRoomList)
+        }
+      }
     }
-    const addedUserRoomlist: RoomShowDto[] =
-      await this.roomManagementService.getMyRooms(addedUser.userId)
-    this.server.to(addedUser.socketId).emit('my_rooms', addedUserRoomlist)
-  }
-
-  @UsePipes(new ValidationPipe())
-  @SubscribeMessage('kick_user')
-  async kickUser (
-    @MessageBody()
-    payload: ToDoUserRoomDto,
-    @ConnectedSocket() client: Socket,
-  ): Promise<void> {
-    await this.userService.addUser(payload.user, client.id)
-    this.logger.log(
-      `${payload.user.userId} is trying to kick ${payload.toDoUser}`,
-    )
-    this.logger.log(
-      `${payload.user.userId} is trying to kick ${payload.toDoUser}`,
-    )
-    this.logger.log(`${payload.roomName}`)
-    const response: string =
-      await this.roomUserManagementService.kickUserFromRoom(
-        payload.roomName,
-        payload.user.userId,
-        payload.toDoUser,
-      )
-    this.server.to(client.id).emit('kick_user_response', response)
-    if (response !== 'Success') {
-      return
-    }
-    const toKickUser: User | undefined = await this.userService.getUserById(
-      payload.toDoUser,
-    )
-    if (toKickUser === undefined) {
-      return
-    }
-    this.updateUsers()
-    this.server
-      .to(toKickUser.socketId)
-      .emit('kick_user_out', {
-        roomName: payload.roomName,
-        message: 'you are kicked out',
-      })
-  }
-
-  @UsePipes(new ValidationPipe())
-  @SubscribeMessage('ban_user')
-  async banUser (
-    @MessageBody()
-    payload: ToDoUserRoomDto,
-    @ConnectedSocket() client: Socket,
-  ): Promise<void> {
-    await this.userService.addUser(payload.user, client.id)
-    this.logger.log(
-      `${payload.user.userId} is trying to ban ${payload.toDoUser}`,
-    )
-    const response: string = await this.roomModerationService.addUserToBanned(
-      payload.roomName,
-      payload.user.userId,
-      payload.toDoUser,
-    )
-    this.server.to(client.id).emit('ban_user_response', response)
-    this.updateUsers()
-    const toBanUser: User | undefined = await this.userService.getUserById(
-      payload.toDoUser,
-    )
-    if (toBanUser === undefined) {
-      return
-    }
-    this.server
-      .to(toBanUser.socketId)
-      .emit('kick_user_out', {
-        roomName: payload.roomName,
-        message: 'you are banned',
-      })
-  }
-
-  @UsePipes(new ValidationPipe())
-  @SubscribeMessage('unban_user')
-  async unBanUser (
-    @MessageBody()
-    payload: ToDoUserRoomDto,
-    @ConnectedSocket() client: Socket,
-  ): Promise<void> {
-    await this.userService.addUser(payload.user, client.id)
-    this.logger.log(
-      `${payload.user.userId} is trying to unban ${payload.toDoUser}`,
-    )
-    await this.roomModerationService.removeUserFromBanned(
-      payload.roomName,
-      payload.user.userId,
-      payload.toDoUser,
-    )
-
-    const userList: RoomUserDto =
-      await this.roomUserManagementService.getUserInRoom(payload.roomName)
-    this.server.to(payload.roomName).emit('room_users', userList)
-  }
-
-  @UsePipes(new ValidationPipe())
-  @SubscribeMessage('mute_user')
-  async muteUser (
-    @MessageBody()
-    payload: ToDoUserRoomDto,
-    @ConnectedSocket() client: Socket,
-  ): Promise<void> {
-    await this.userService.addUser(payload.user, client.id)
-    this.logger.log(
-      `${payload.user.userId} is trying to mute ${payload.toDoUser} for ${payload.timer} seconds`,
-    )
-    await this.roomModerationService.addUserToMuted(
-      payload.roomName,
-      payload.user.userId,
-      payload.toDoUser,
-      payload.timer,
-    )
-   this.updateUsers()
-  }
-
-  @UsePipes(new ValidationPipe())
-  @SubscribeMessage('unmute_user')
-  async unMuteUser (
-    @MessageBody()
-    payload: ToDoUserRoomDto,
-    @ConnectedSocket() client: Socket,
-  ): Promise<void> {
-    await this.userService.addUser(payload.user, client.id)
-    this.logger.log(
-      `${payload.user.userId} is trying to unmute ${payload.toDoUser}`,
-    )
-    await this.roomModerationService.removeUserFromMuted(
-      payload.roomName,
-      payload.user.userId,
-      payload.toDoUser,
-    )
-   this.updateUsers()
-  }
-
-  @UsePipes(new ValidationPipe())
-  @SubscribeMessage('make_admin')
-  async addAdmin (
-    @MessageBody()
-    payload: ToDoUserRoomDto,
-    @ConnectedSocket() client: Socket,
-  ): Promise<void> {
-    await this.userService.addUser(payload.user, client.id)
-    this.logger.log(
-      `${payload.user.userId} is trying to make admin ${payload.toDoUser}`,
-    )
-    await this.roomModerationService.addUserToAdmin(
-      payload.roomName,
-      payload.user.userId,
-      payload.toDoUser,
-    )
-    this.updateUsers()
-  }
-
-  @UsePipes(new ValidationPipe())
-  @SubscribeMessage('remove_admin')
-  async removeAdmin (
-    @MessageBody()
-    payload: ToDoUserRoomDto,
-    @ConnectedSocket() client: Socket,
-  ): Promise<void> {
-    this.logger.log(
-      `${payload.user.userId} is trying to remove admin ${payload.toDoUser}`,
-    )
-    await this.userService.addUser(payload.user, client.id)
-    await this.roomModerationService.removeUserFromAdmin(
-      payload.roomName,
-      payload.user.userId,
-      payload.toDoUser,
-    )
     this.updateUsers()
   }
 
