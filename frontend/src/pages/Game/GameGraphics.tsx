@@ -1,5 +1,5 @@
-import React, { useEffect, useContext } from 'react';
-import UserContext from '../../context/UserContext';
+// import React, { useEffect, useContext } from 'react';
+// import UserContext from '../../context/UserContext';
 import GameLogic from './GameLogic';
 import GameStyle from './GameStyle';
 import GameSocket from './GameSocket';
@@ -449,7 +449,7 @@ class GameGraphics
 
 	private renderHUDPongRetro(msg: any): void
 	{
-		console.warn("Need HUD to account for resizing");
+		// console.warn("Need HUD to account for resizing");
 		this.clearContext(this.HUDElement, this.HUDContext);
 		this.AddPlayerInfo(0.25, msg.P1.name, msg.P1.score, msg.P1.status);
 		this.AddPlayerInfo(0.75, msg.P2.name, msg.P2.score, msg.P2.status);

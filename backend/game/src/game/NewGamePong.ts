@@ -71,6 +71,7 @@ export class GamePong implements IGame
 	private interval: any;
 	private ImageHandlers: Map<Socket, (client: Socket) => void>;
 	private DisconnectHandlers: Map<Socket, (client: Socket) => void>;
+	private ImageFullHandelers: Map<Socket, (client: Socket) => void>;
 
 	// private id: string = Math.random().toString(36).substr(2, 9);
 
@@ -118,6 +119,7 @@ export class GamePong implements IGame
 		this.timerEvent = Date.now();
 		console.log(`binding methods`);
 		this.ImageHandlers = new Map<Socket, (client: Socket) => void>();
+		this.ImageFullHandelers = new Map<Socket, (client: Socket) => void>();
 		this.DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 		this.interval = setInterval(this.GameLoop.bind(this), 16);
 	}
@@ -187,6 +189,10 @@ export class GamePong implements IGame
 		this.ImageHandlers.set(client, handler);
 		client.on("GameImage", handler);
 
+		handler = () => this.handlerImageFull(client);
+		this.ImageFullHandelers.set(client, handler);
+		client.on("GameImageFull", handler);
+
 		handler = () => this.handlerDisconnect(client);
 		this.DisconnectHandlers.set(client, handler);
 		client.on("disconnect", handler);
@@ -201,6 +207,13 @@ export class GamePong implements IGame
 		{
 			client.off("GameImage", handler);
 			this.ImageHandlers.delete(client);
+		}
+
+		handler = this.ImageFullHandelers.get(client);
+		if (handler)
+		{
+			client.off("GameImageFull", handler);
+			this.ImageFullHandelers.delete(client);
 		}
 
 		handler = this.DisconnectHandlers.get(client);
@@ -247,6 +260,12 @@ export class GamePong implements IGame
 	{
 		// console.log(`image ID ${this.id}`);
 		this.sendImage(client);
+	}
+
+	private handlerImageFull(client: Socket): void
+	{
+		this.sendImage(client);
+		this.sendHUD();
 	}
 
 /* ************************************************************************** *\
