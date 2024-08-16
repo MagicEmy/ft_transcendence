@@ -303,7 +303,7 @@ Socket.io
 
 	public removeGame(gameToRemove: IGame): void
 	{
-		gameToRemove.clearGame();
+		gameToRemove.ClearGame();
 		const index: number = this.games.findIndex(game => game === gameToRemove);
 		if (index  != -1)
 			this.games.splice(index, 1)[0];

@@ -39,7 +39,7 @@ export class MatchMaker implements IGame
 			MatchMaker.matchQueue.push(newPlayer);
 			// MatchMaker.matchQueue.push({player: undefined, id: id, rank: 5, time: 0});
 			MatchMaker.matchQueue.sort((a, b) => a.rank - b.rank);
-			MatchMaker.printMatchList();
+			MatchMaker.PrintMatchList();
 		}
 
 		else
@@ -47,7 +47,7 @@ export class MatchMaker implements IGame
 
 		if (MatchMaker.matchQueue.length > 0 &&
 			(!MatchMaker.matchInterval || MatchMaker.matchInterval._idleTimeout === -1))
-			MatchMaker.matchInterval = setInterval(MatchMaker.matchLoop.bind(MatchMaker), MatchMaker.timeInterval);
+			MatchMaker.matchInterval = setInterval(MatchMaker.MatchLoop.bind(MatchMaker), MatchMaker.timeInterval);
 		return (true);
 	}
 	
@@ -59,7 +59,7 @@ export class MatchMaker implements IGame
 					MatchMaker.matchQueue[i].rank = player.playerRank;
 	}
 
-	private static printMatchList(): void
+	private static PrintMatchList(): void
 	{
 		for (let i: number = 0; i < MatchMaker.matchQueue.length; ++i)
 			console.log(i, MatchMaker.matchQueue[i].id, MatchMaker.matchQueue[i].rank, MatchMaker.matchQueue[i].time);
@@ -83,13 +83,13 @@ export class MatchMaker implements IGame
 			clearInterval(MatchMaker.matchInterval);
 	}
 
-	clearGame(): void
+	ClearGame(): void
 	{
 		MatchMaker.matchQueue = [];
 		clearInterval(MatchMaker.matchInterval);
 	}
 
-	private static matchLoop()
+	private static MatchLoop()
 	{
 		// console.log("checking for match general");
 		for (let i: number = 0; i < MatchMaker.matchQueue.length - 1; ++i)
