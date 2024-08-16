@@ -33,7 +33,7 @@ const Game: React.FC = () => {
 			events.current = new GameEventListener();
 
 		if (graphics.current !== null)
-			graphics.current.resizeElements();
+			graphics.current.ConfigureGame();
 		if (logic.current !== null)
 			logic.current.UpdateGraphics();
 

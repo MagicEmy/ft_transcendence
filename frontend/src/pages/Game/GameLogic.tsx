@@ -281,7 +281,7 @@ public SetGameStateTo(state: GameState)
 			if (node === this.menuActive)
 				select = i;
 		}
-		GameGraphics.getInstance()?.renderMenu2(menuList, select);
+		GameGraphics.getInstance()?.renderMenu(menuList, select);
 	}
 
 	public getMenuStruct(): string[]

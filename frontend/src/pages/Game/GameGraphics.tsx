@@ -12,6 +12,7 @@ enum Game
 enum GamePongTheme
 {
 	Retro,
+	Modern,
 }
 
 class GameMenu
@@ -41,7 +42,6 @@ class GameGraphics
 	private static instance: GameGraphics | null = null;
 	// private static userID: any = useContext(UserContext);
 
-
 	private GameElement: HTMLDivElement;
 	private BackElement: HTMLCanvasElement;
 	private BackContext: CanvasRenderingContext2D;
@@ -52,22 +52,13 @@ class GameGraphics
 	private MenuElement: HTMLCanvasElement;
 	private MenuContext: CanvasRenderingContext2D;
 
-	private game: Game = Game.Pong;
-	private theme: number = 0;
+	private game: Game;
+	private theme: number;
 
 	private constructor()
 	{
-		// this.GameElement = this.getElement<HTMLDivElement>("game");
-		// this.BackElement = this.getElement<HTMLCanvasElement>("gameBackground");
-		// this.BackContext = this.getContext(this.BackElement);
-		// this.CnvsElement = this.getElement<HTMLCanvasElement>("gameCanvas");
-		// this.CnvsContext = this.getContext(this.CnvsElement);
-		// this.HUDElement = this.getElement<HTMLCanvasElement>("gameHUD");
-		// this.HUDContext = this.getContext(this.HUDElement);
-		// this.MenuElement = this.getElement<HTMLCanvasElement>("gameMenu");
-		// this.MenuContext = this.getContext(this.MenuElement);
-
-		// this.resizeElements();
+		this.game = 0;
+		this.theme = 0;
 	}
 
 	public static CreateInstance(game: HTMLDivElement, back: HTMLCanvasElement, canvas: HTMLCanvasElement, HUD: HTMLCanvasElement, menu: HTMLCanvasElement): GameGraphics | null
@@ -98,56 +89,10 @@ class GameGraphics
 
 	public static getInstance(): GameGraphics | null
 	{
-		// if (!GameGraphics.instance) {
-		// 	try {
-		// 		GameGraphics.instance = new GameGraphics();
-		// 	}
-		// 	catch (error) {
-		// 		console.error(`Error creating GameGraphics singleton: ${error}`);
-		// 		GameGraphics.instance = null;
-		// 	}
-		// }
+		if (!GameGraphics.instance)
+			console.error("Trying to retrieve non existing GameGraphics instance.\r\nCall GameGraphic.CreateInstance().")
 		return (GameGraphics.instance);
 	}
-
-	// public setGameElement(element: HTMLDivElement): void
-	// {
-	// 	this.GameElement = element;
-	// }
-	
-	// public setBackElement(element: HTMLCanvasElement): void
-	// {
-	// 	this.BackElement = element;
-	// 	this.BackContext = this.getContext(element);
-	// }
-	
-	// public setCnvsElement(element: HTMLCanvasElement): void
-	// {
-	// 	this.CnvsElement = element;
-	// 	this.CnvsContext = this.getContext(element);
-	// }
-	// public setHUDElement(element: HTMLCanvasElement): void
-	// {
-	// 	this.HUDElement = element;
-	// 	this.HUDContext = this.getContext(element);
-	// }
-	// public setMenuElement(element: HTMLCanvasElement): void
-	// {
-	// 	this.MenuElement = element;
-	// 	this.MenuContext = this.getContext(element);
-	// }
-
-
-
-	// private getElement<T extends HTMLElement>(elementId: string): T
-	// {
-	// 	let element: T | null;
-
-	// 	element = document.getElementById(elementId) as T | null;
-	// 	if (!(element instanceof HTMLElement))
-	// 		throw (`Failed to get element ${elementId}`);
-	// 	return (element);
-	// }
 
 	private getContext(element: HTMLCanvasElement): CanvasRenderingContext2D
 	{
@@ -160,7 +105,22 @@ class GameGraphics
 		return (context);
 	}
 
-	public resizeElements(): void
+	public ConfigureGame(game: Game = this.game, theme: any = this.theme): void
+	{
+		this.game = game;
+		this.theme = theme;
+
+		this.resizeElements();
+		this.renderBackground();
+	}
+
+	public ResetSize(): void
+	{
+		this.resizeElements();
+		this.renderBackground();
+	}
+
+	private resizeElements(): void
 	{
 		if (this.GameElement.offsetHeight === 0)
 			window.location.reload();
@@ -200,27 +160,29 @@ class GameGraphics
 	
 	\* ************************************************************************** */
 
-	private renderBackground(): void
+	private renderBackground(game: Game = this.game, theme?: any): void
 	{
 		this.clearContext(this.BackElement, this.BackContext);
 
-		switch (this.game)
+		switch (game)
 		{
 			case Game.Pong:
-				this.renderBackgroundPong(); break;
+				this.renderBackgroundPong(theme); break;
 			default:
 				console.error(`Error: Undefined game ${this.game}`); break;
 		}
 	}
 
-	private renderBackgroundPong(): void
+	private renderBackgroundPong(theme: GamePongTheme = this.theme): void
 	{
-		switch (this.theme)
+		switch (theme)
 		{
 			case GamePongTheme.Retro:
-				this.renderBackgroundPongRetro(); break;
+				this.renderBackgroundPongRetro();	break;
+			case GamePongTheme.Modern:
+				this.renderBackgroundPongModern();	break;
 			default:
-				console.error(`Error: Undefined Pong theme ${this.theme}`); break;
+				console.error(`Error: Undefined Pong theme ${theme}`); break;
 		}
 	}
 
@@ -238,6 +200,37 @@ class GameGraphics
 			this.BackContext.fillRect(posX, posY, square.width, square.height);
 	}
 
+	private renderBackgroundPongModern(): void
+	{		
+		this.fillContext(this.BackElement, this.BackContext, "black");
+
+		this.renderTableSegment(0, "white");
+		this.renderTableSegment(1/23, "green");
+	}
+
+	private renderTableSegment(margin: number, color: string)
+	{
+		let posXY: {posX: number, posY: number};
+		
+		this.BackContext.fillStyle = color;
+		this.BackContext.beginPath();
+		
+		posXY = this.GetXY(1 - margin, 1 - margin, 0);
+		this.BackContext.moveTo(posXY.posX, posXY.posY);
+
+		posXY = this.GetXY(1 - margin, margin, 0);
+		this.BackContext.lineTo(posXY.posX, posXY.posY);
+
+		posXY = this.GetXY(margin, margin, 0);
+		this.BackContext.lineTo(posXY.posX, posXY.posY);
+
+		posXY = this.GetXY(margin, 1 - margin, 0);
+		this.BackContext.lineTo(posXY.posX, posXY.posY);
+
+		this.BackContext.fill();
+		this.BackContext.closePath();
+	}
+
 	/* ************************************************************************** *\
 	
 		Canvas
@@ -246,7 +239,6 @@ class GameGraphics
 
 	public RenderCanvas(msg: any): void
 	{
-		// console.log(`${JSON.stringify(msg)}`);
 		this.clearContext(this.CnvsElement, this.CnvsContext);
 		switch (msg.Game)
 		{
@@ -262,8 +254,12 @@ class GameGraphics
 		switch (msg.Theme)
 		{
 			case "retro":
+				if (this.theme !== GamePongTheme.Retro)
+					this.ConfigureGame(Game.Pong, GamePongTheme.Retro);
 				this.RenderCanvasPongRetro(msg); break;
 			case "modern":
+				if (this.theme !== GamePongTheme.Modern)
+					this.ConfigureGame(Game.Pong, GamePongTheme.Modern);
 				this.RenderCanvasPongModern(msg);	break;
 			default:
 				console.error(`Error: Undefined Pong themes ${msg.Theme}`); break;
@@ -308,56 +304,61 @@ class GameGraphics
 
 	private RenderCanvasPongModern(msg: any): void
 	{
-		this.RenderPongModernBackDrop();
-		this.RenderPongModernEntity(msg.Player2.posX, msg.Player2.posY, 1, msg.Player2.height / 2, "red");
-		if (msg.Ball !== null)
+		type RenderFunction = (...args: any[]) => void;
+		interface RenderItem
 		{
-			this.RenderPongModernEntity(msg.Ball.posX, msg.Ball.posY, 0, msg.Ball.size * 2, "black");
-			if (msg.Ball.posX > 0.5)
-				this.RenderPongModernEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.posZ, msg.Ball.size * 2, "yellow");
+			sortValue: number;
+			func: RenderFunction;
 		}
-		this.RenderPongModernNet(0.5, "grey");
-		if (msg.Ball !== null && msg?.Ball.posX <= 0.5)
-			this.RenderPongModernEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.posZ, msg.Ball.size * 2, "yellow");
-		this.RenderPongModernEntity(msg.Player1.posX, msg.Player1.posY, 1 - msg.Player1.height, msg.Player1.height / 2, "red");
+		const renderList: RenderItem[] = [];
+
+		this.renderPongModernShadows(msg.Player1, msg.Player2, msg.Ball);
+		
+		renderList.push({ sortValue: msg.Player2.posX, func: () => this.RenderPongModernEntity(msg.Player2.posX, msg.Player2.posY, 1, msg.Player2.height / 2, "red") });
+		if (msg.Ball !== null)
+			renderList.push({ sortValue: msg.Ball.posX, func: () => 		this.RenderPongModernEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.posZ, msg.Ball.size * 2, "yellow") });
+		renderList.push({ sortValue: 0.5, func: () => this.RenderPongModernNet(0.5, "grey") });
+		renderList.push({ sortValue: msg.Player1.posX, func: () => this.RenderPongModernEntity(msg.Player1.posX, msg.Player1.posY, 1, msg.Player1.height / 2, "red") });
+
+		renderList.sort((a, b) => b.sortValue - a.sortValue);
+		for (const item of renderList)
+			item.func();
 	}
 
-	private RenderPongModernBackDrop()
+	private renderPongModernShadows(player1: any, player2: any, ball: any): void
+	{
+		if (player1)
+			this.renderPongModernShadowsPlayer(player1)
+		if (player2)
+			this.renderPongModernShadowsPlayer(player2)
+		if (ball)
+			this.RenderPongModernEntity(ball.posX, ball.posY, 0, ball.size * 2, "rgba(0, 0, 0, 0.69)");
+	}
+
+	private renderPongModernShadowsPlayer(player: any)
 	{
 		let posXY: {posX: number, posY: number};
-
-		// Background
-		this.fillContext(this.CnvsElement, this.CnvsContext, "black");
-
-		// Table outline
-		this.CnvsContext.fillStyle = "white";
+		const width: number = player.width / 2;
+		const height: number = player.height / 2;
+		
+		this.CnvsContext.fillStyle = "rgba(0, 0, 0, 0.69)";
 		this.CnvsContext.beginPath();
-		posXY = this.GetXY(1, 1, 0);
+
+		posXY = this.GetXY(player.posX - width, player.posY - height, 0);
 		this.CnvsContext.moveTo(posXY.posX, posXY.posY);
-		posXY = this.GetXY(1, 0, 0);
+
+		posXY = this.GetXY(player.posX - width, player.posY + height, 0);
 		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
-		posXY = this.GetXY(0, 0, 0);
+
+		posXY = this.GetXY(player.posX + width, player.posY + height, 0);
 		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
-		posXY = this.GetXY(0, 1, 0);
+
+		posXY = this.GetXY(player.posX + width, player.posY - height, 0);
 		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
-		posXY = this.GetXY(1, 1, 0);
-		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
+
 		this.CnvsContext.fill();
 		this.CnvsContext.closePath();
 
-		// Table Color
-		this.CnvsContext.fillStyle = "green";
-		this.CnvsContext.beginPath();
-		posXY = this.GetXY(22/23, 22/23, 0);
-		this.CnvsContext.moveTo(posXY.posX, posXY.posY);
-		posXY = this.GetXY(22/23, 1/23, 0);
-		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
-		posXY = this.GetXY(1/23, 1/23, 0);
-		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
-		posXY = this.GetXY(1/23, 22/23, 0);
-		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
-		this.CnvsContext.fill();
-		this.CnvsContext.closePath();
 	}
 	
 	private RenderPongModernNet(height: number, color: string)
@@ -366,13 +367,13 @@ class GameGraphics
 
 		this.CnvsContext.fillStyle = color;
 		this.CnvsContext.beginPath();
-		posXY = this.GetXY(height, 0, 0.5);
+		posXY = this.GetXY(0.5, 0, height);
 		this.CnvsContext.moveTo(posXY.posX, posXY.posY);
-		posXY = this.GetXY(height, 1, 0.5);
+		posXY = this.GetXY(0.5, 1, height);
 		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
-		posXY = this.GetXY(height, 1, 0);
+		posXY = this.GetXY(0.5, 1, 0);
 		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
-		posXY = this.GetXY(height, 0, 0);
+		posXY = this.GetXY(0.5, 0, 0);
 		this.CnvsContext.lineTo(posXY.posX, posXY.posY);
 		this.CnvsContext.fill();
 		this.CnvsContext.closePath();
@@ -423,17 +424,17 @@ class GameGraphics
 
 	public renderHUD(message: string): void
 	{
-		console.log(`Rendering HUD ${message}`);
 		const msg: any = JSON.parse(message);
 		switch (msg.game)
 		{
 			case "pong":
 				this.renderHUDPong(msg); break;
 			default:
-				console.error(`Error: Undefined game ${this.theme}`);
+				console.error(`Error: Undefined game ${msg.game}`);
 				return;
 		}
 		GameLogic.getInstance()?.SetGameStateTo(4);
+		this.clearContext(this.MenuElement, this.MenuContext);
 	}
 
 	private renderHUDPong(msg: any): void
@@ -442,6 +443,8 @@ class GameGraphics
 		{
 			case GamePongTheme.Retro:
 				this.renderHUDPongRetro(msg); break;
+			case GamePongTheme.Modern:
+				this.renderHUDPongRetro(msg); break;
 			default:
 				console.error(`Error: Undefined Pong theme ${this.theme}`); break;
 		}
@@ -449,7 +452,6 @@ class GameGraphics
 
 	private renderHUDPongRetro(msg: any): void
 	{
-		// console.warn("Need HUD to account for resizing");
 		this.clearContext(this.HUDElement, this.HUDContext);
 		this.AddPlayerInfo(0.25, msg.P1.name, msg.P1.score, msg.P1.status);
 		this.AddPlayerInfo(0.75, msg.P2.name, msg.P2.score, msg.P2.status);
@@ -459,19 +461,19 @@ class GameGraphics
 	{
 		this.HUDContext.fillStyle = "rgba(123, 123, 123, 1)";
 
-		this.HUDContext.font = this.HUDElement.width / 16 + "px " + GameStyle.Menu.FONTDEFAULT;
+		this.HUDContext.font = `${this.HUDElement.width / 16}px ${GameStyle.Menu.FONT}`;
 		let posX = this.HUDElement.width * pos - this.HUDContext.measureText(name).width / 2;
 		let posY = this.HUDContext.measureText(name).actualBoundingBoxAscent +
 					this.HUDElement.height / 23;
 		this.HUDContext.fillText(name, posX, posY);
 
-		this.HUDContext.font = this.HUDElement.width / 8 + "px " + GameStyle.Menu.FONTDEFAULT;
+		this.HUDContext.font = `${this.HUDElement.width / 8}px ${GameStyle.Menu.FONT}`;
 		posX = this.HUDElement.width * pos - this.HUDContext.measureText(score).width / 2;
 		posY += this.HUDContext.measureText(score).actualBoundingBoxAscent +
 				this.HUDElement.height / 23;
 		this.HUDContext.fillText(score, posX, posY);
 
-		this.HUDContext.font = this.HUDElement.width / 23 + "px " + GameStyle.Menu.FONTDEFAULT;
+		this.HUDContext.font = `${this.HUDElement.width / 23}px ${GameStyle.Menu.FONT}`;
 		posX = this.HUDElement.width * pos - this.HUDContext.measureText(status).width / 2;
 		posY = this.HUDContext.measureText(status).actualBoundingBoxAscent +
 					this.HUDElement.height * 21 / 23;
@@ -483,23 +485,6 @@ class GameGraphics
 		HUD - Words
 	
 	\* ************************************************************************** */
-
-	private RenderHead(title: string): void
-	{
-		const height = 0.23;
-		this.HUDContext.fillStyle = GameStyle.Menu.HEADER;
-		this.HUDContext.fillRect(0, 0, this.HUDElement.width, this.HUDElement.height * height);
-		this.HUDContext.fillStyle = GameStyle.Menu.BORDER;
-		this.HUDContext.fillRect(0, this.HUDElement.height * (height - 0.01), this.HUDElement.width, this.HUDElement.height * 0.01);
-
-		const size = this.getFontSize(this.HUDContext, title, this.HUDElement.height * height / 2, this.HUDElement.width * 0.75, GameStyle.Menu.FONT);
-		this.HUDContext.font = size + "px " + GameStyle.Menu.FONT;
-		const posX = (this.HUDElement.width - this.HUDContext.measureText(title).width) * 0.5;
-		let posY = this.HUDElement.height * 0.04 + this.HUDContext.measureText(title).actualBoundingBoxAscent;
-		posY = this.HUDElement.height * height * 0.75;
-		this.HUDContext.fillStyle = GameStyle.Menu.FONTFOCUS;
-		this.HUDContext.fillText(title, posX, posY);
-	}
 
 	public RenderWord(word: string): void
 	{
@@ -524,84 +509,41 @@ class GameGraphics
 	
 	\* ************************************************************************** */
 
-	// public renderMenu(selectMenu: number): void
-	// {
-	// 	this.fillContext(this.HUDElement, this.HUDContext, GameStyle.Menu.BODY);
-	// 	this.RenderHead("Pong");
-	// 	this.renderMenuList(selectMenu);
-	// }
-	
-	public renderMenu2(menuList: string[], selectMenu: number): void
+	public renderMenu(menuList: string[], selectMenu: number): void
 	{
 		this.clearContext(this.MenuElement, this.MenuContext);
-		this.clearContext(this.HUDElement, this.HUDContext);
-		this.fillContext(this.HUDElement, this.HUDContext, GameStyle.Menu.BODY);
-		this.RenderHead("Menu");
-		this.renderMenuList2(menuList, selectMenu);
+		this.fillContext(this.MenuElement, this.MenuContext, GameStyle.Menu.BODY);
+		this.RenderHead("Menu", this.MenuElement, this.MenuContext);
+		this.renderMenuList(menuList, selectMenu);
 	}
 
-	private renderMenuList2(menuList: string[], selectMenu: number): void
+	private renderMenuList(menuList: string[], selectMenu: number): void
 	{
-		let size = this.HUDElement.height * 0.77 / menuList.length;
+		let size = this.MenuElement.height * 0.77 / menuList.length;
 		for (let i = 0; i < menuList.length; ++i)
 		{
-			let temp = this.getFontSize(this.HUDContext, menuList[i], 
-										this.HUDElement.height * 0.77 / (menuList.length + 2),
-										this.HUDElement.width * 0.75,
+			let temp = this.getFontSize(this.MenuContext, menuList[i], 
+										this.MenuElement.height * 0.77 / (menuList.length + 2),
+										this.MenuElement.width * 0.75,
 										GameStyle.Menu.FONT);
 			if (temp < size)
 				size = temp;
 		}
-		this.HUDContext.font = size + "px " + GameStyle.Menu.FONT;
-		const sizeH = this.HUDContext.measureText("M").actualBoundingBoxAscent;
-		this.HUDContext.font = size * 0.75 + "px " + GameStyle.Menu.FONT;
+		this.MenuContext.font = size + "px " + GameStyle.Menu.FONT;
+		const sizeH = this.MenuContext.measureText("M").actualBoundingBoxAscent;
+		this.MenuContext.font = size * 0.75 + "px " + GameStyle.Menu.FONT;
 
 		for (let i: number = 0; i < menuList.length; ++i)
 		{
 			if (i === selectMenu)
-				this.HUDContext.fillStyle = GameStyle.Menu.FONTFOCUS;
+				this.MenuContext.fillStyle = GameStyle.Menu.FONTFOCUS;
 			else
-				this.HUDContext.fillStyle = GameStyle.Menu.FONTDEFAULT;
-			const posX = this.HUDElement.width * 0.5 - this.HUDContext.measureText(menuList[i]).width / 2;
-			const posY = this.HUDElement.height * 0.23 + sizeH * (i + 2);
-			this.HUDContext.fillText(menuList[i], posX, posY);
+				this.MenuContext.fillStyle = GameStyle.Menu.FONTDEFAULT;
+			const posX = this.MenuElement.width * 0.5 - this.MenuContext.measureText(menuList[i]).width / 2;
+			const posY = this.MenuElement.height * 0.23 + sizeH * (i + 2);
+			this.MenuContext.fillText(menuList[i], posX, posY);
 		}
 	}
-
-	// private renderMenuList(selectMenu: number): void
-	// {
-	// 	const menuList: string[] | undefined = GameLogic.getInstance()?.getMenuStruct();
-	// 	if (menuList === undefined)
-	// 	{
-	// 		console.error("Couldn't find list for menu");
-	// 		return ;
-	// 	}
-
-	// 	let size = this.HUDElement.height * 0.77 / menuList.length;
-	// 	for (let i = 0; i < menuList.length; ++i)
-	// 	{
-	// 		let temp = this.getFontSize(this.HUDContext, menuList[i], 
-	// 									this.HUDElement.height * 0.77 / (menuList.length + 2),
-	// 									this.HUDElement.width * 0.75,
-	// 									GameStyle.Menu.FONT);
-	// 		if (temp < size)
-	// 			size = temp;
-	// 	}
-	// 	this.HUDContext.font = size + "px " + GameStyle.Menu.FONT;
-	// 	const sizeH = this.HUDContext.measureText("M").actualBoundingBoxAscent;
-	// 	this.HUDContext.font = size * 0.75 + "px " + GameStyle.Menu.FONT;
-
-	// 	for (let i: number = 0; i < menuList.length; ++i)
-	// 	{
-	// 		if (i === selectMenu)
-	// 			this.HUDContext.fillStyle = GameStyle.Menu.FONTFOCUS;
-	// 		else
-	// 			this.HUDContext.fillStyle = GameStyle.Menu.FONTDEFAULT;
-	// 		const posX = this.HUDElement.width * 0.5 - this.HUDContext.measureText(menuList[i]).width / 2;
-	// 		const posY = this.HUDElement.height * 0.23 + sizeH * (i + 2);
-	// 		this.HUDContext.fillText(menuList[i], posX, posY);
-	// 	}
-	// }
 	
 	/* ************************************************************************** *\
 	
@@ -613,9 +555,8 @@ class GameGraphics
 	{
 		const msg: any = JSON.parse(message);
 
-		this.clearContext(this.HUDElement, this.HUDContext);
 		this.clearContext(this.MenuElement, this.MenuContext);
-		this.RenderHead("Match Maker");
+		this.RenderHead("Match Maker", this.MenuElement, this.MenuContext);
 
 		this.MenuContext.fillStyle = "orange";
 		this.MenuContext.font = 42 + "px " + GameStyle.Menu.FONT;
@@ -641,18 +582,19 @@ class GameGraphics
 	
 	public RenderGameOver(message: string): void
 	{
-		this.clearContext(this.MenuElement, this.MenuContext);
-		this.clearContext(this.HUDElement, this.HUDContext);
-		this.fillContext(this.HUDElement, this.HUDContext, "black");
+		this.fillContext(this.MenuElement, this.MenuContext, "black");
 
-		this.RenderHead("Game Over");
+		this.RenderHead("Game Over", this.MenuElement, this.MenuContext);
 		this.RenderEndGameInfo(message);
+
+		this.renderBackground(Game.Pong, GamePongTheme.Retro);
+		this.clearContext(this.CnvsElement, this.CnvsContext);
+		this.clearContext(this.HUDElement, this.HUDContext);
 	}
 
 	private RenderEndGameInfo(message: string): void
 	{
 		const msg: any = JSON.parse(message);
-		let printMsg: string;
 		let won: boolean;
 
 		//define winner
@@ -667,20 +609,36 @@ class GameGraphics
 
 		//print info
 		if (won === true)
-		{
-			this.MenuContext.fillStyle = "green";
-			printMsg = "You won!";
-		}
+			this.RenderEndGameText("You won!", "green", `${msg.player1Score}:${msg.player2Score}`);
 		else if (won === false)
-		{
-			this.MenuContext.fillStyle = "red";
-			printMsg = "You lost!";
-		}
-		this.MenuContext.font = 42 * 0.75 + "px " + GameStyle.Menu.FONT;
-		this.MenuContext.fillText(printMsg, this.MenuElement.width / 4, this.MenuElement.height / 3, this.MenuElement.width / 2);
+			this.RenderEndGameText("You lost!", "red", `${msg.player1Score}:${msg.player2Score}`);
+		else
+			this.RenderEndGameText("Its a tie!", "orange", `${msg.player1Score}:${msg.player2Score}`);
+	}
+
+	private RenderEndGameText(status: string, color: string, score: string): void
+	{
+		let posX: number;
+		let posY: number;
+	
+		this.MenuContext.fillStyle = color;
+		this.MenuContext.font = `${this.MenuElement.width / 10}px ${GameStyle.Menu.FONT}`;
+		posX = this.MenuElement.width / 2 - (this.MenuContext.measureText(status).width / 2);
+		posY = this.MenuElement.height * 0.4;
+		this.MenuContext.fillText(status, posX, posY, this.MenuElement.width / 2);
+
+		posY += this.MenuContext.measureText(status).actualBoundingBoxAscent;
 		this.MenuContext.fillStyle = "grey";
-		this.MenuContext.fillText(`${msg.player1Score}:${msg.player2Score}`, this.MenuElement.width / 4, this.MenuElement.height * 0.4, this.MenuElement.width / 2);
-		this.MenuContext.fillText("Press 'any' key to continue", this.MenuElement.width / 4, this.MenuElement.height * 0.9, this.MenuElement.width / 2);
+		this.MenuContext.font = `${this.MenuElement.width / 16}px ${GameStyle.Menu.FONT}`;
+		posX = this.MenuElement.width / 2 - (this.MenuContext.measureText(score).width / 2);
+		this.MenuContext.fillText(score, posX, posY, this.MenuElement.width / 2);
+
+		this.MenuContext.fillStyle = "grey";
+		const pressKey: string = "Press 'any' key to continue";
+		this.MenuContext.font = `${this.MenuElement.width / 23}px ${GameStyle.Menu.FONT}`;
+		posX = this.MenuElement.width / 2 - (this.MenuContext.measureText(pressKey).width / 2);
+		posY = this.MenuElement.height * 0.9;
+		this.MenuContext.fillText(pressKey, posX, posY, this.MenuElement.width * 0.75);
 	}
 
 	/* ************************************************************************** *\
@@ -688,6 +646,23 @@ class GameGraphics
 		Util
 	
 	\* ************************************************************************** */
+
+	private RenderHead(title: string, element: HTMLCanvasElement = this.HUDElement, context: CanvasRenderingContext2D = element.getContext("2d")): void
+	{
+		const height = 0.23;
+		context.fillStyle = GameStyle.Menu.HEADER;
+		context.fillRect(0, 0, element.width, element.height * height);
+		context.fillStyle = GameStyle.Menu.BORDER;
+		context.fillRect(0, element.height * (height - 0.01), element.width, element.height * 0.01);
+
+		const size = this.getFontSize(context, title, element.height * height / 2, element.width * 0.75, GameStyle.Menu.FONT);
+		context.font = size + "px " + GameStyle.Menu.FONT;
+		const posX = (element.width - context.measureText(title).width) * 0.5;
+		let posY = element.height * 0.04 + context.measureText(title).actualBoundingBoxAscent;
+		posY = element.height * height * 0.75;
+		context.fillStyle = GameStyle.Menu.FONTFOCUS;
+		context.fillText(title, posX, posY);
+	}
 	
 	private getFontSize(context: CanvasRenderingContext2D, text: string, height: number, width: number, font: string): number
 	{

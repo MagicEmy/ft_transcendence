@@ -34,7 +34,7 @@ class GameEventListener
 
 	private static handleResizeEvent(event: Event): void
 	{
-		GameGraphics.getInstance()?.resizeElements();
+		GameGraphics.getInstance()?.ResetSize();
 		GameLogic.getInstance()?.UpdateGraphics();
 		GameSocket.getInstance()?.emit("GameImageFull");
 	}
