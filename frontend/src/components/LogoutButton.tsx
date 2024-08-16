@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import useStorage from '../hooks/useStorage';
 import { LOGOUT } from '../utils/constants';
 
@@ -16,7 +16,7 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
       const response = await fetch(LOGOUT, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         credentials: 'include',
       });

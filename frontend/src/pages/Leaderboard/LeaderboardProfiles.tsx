@@ -1,7 +1,7 @@
-import { LeaderboardStats } from "./types";
-import { useGetAvatarUrl } from "../../hooks/useGetAvatarUrl";
-import { useNavigate } from "react-router-dom";
-import classes from "./Leaderboard.css";
+import { LeaderboardStats } from './types';
+import { useGetAvatarUrl } from '../../hooks/useGetAvatarUrl';
+import { useNavigate } from 'react-router-dom';
+import classes from './Leaderboard.css';
 
 interface LeaderboardProfilesProps {
   leaderboard: LeaderboardStats[];
@@ -33,7 +33,7 @@ const Item = ({ user }: ItemProps) => {
     <div className="flex">
       <div className="item">
         <img
-          src={avatar || "https://loremflickr.com/200/200/dog"}
+          src={avatar || 'https://loremflickr.com/200/200/dog'}
           alt="profile picture"
         />
         <div className="info">

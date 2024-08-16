@@ -5,8 +5,4 @@ const authPort = process.env.REACT_APP_AUTH_PORT;
 const gatewayUrl = `https://${host}:${gatewayPort}`;
 const authUrl = `https://${host}:${authPort}`;
 
-export {
-  host,
-  gatewayUrl,
-  authUrl
-};
+export { host, gatewayUrl, authUrl };

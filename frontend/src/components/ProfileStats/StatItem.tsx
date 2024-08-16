@@ -1,5 +1,5 @@
 // StatItem.tsx
-import React from "react";
+import React from 'react';
 
 interface StatItemProps {
   label: string;

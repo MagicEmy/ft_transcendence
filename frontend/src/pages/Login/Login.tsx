@@ -10,19 +10,22 @@ const Login: React.FC = () => {
     setTextArray(text.split(''));
   }, []);
 
-  const animatedText = useMemo(() =>
-	textArray.map((char, index) => (
-	  <span
-		key={`char_${index}`}
-		className="animate-text"
-		style={{
-		  animationDelay: `${index * 0.1}s`,
-		  display: char === ' ' ? 'inline-block' : 'inline',
-		}}
-	  >
-		{char === ' ' ? '\u00A0' : char}
-	  </span>
-	)), [textArray]);
+  const animatedText = useMemo(
+    () =>
+      textArray.map((char, index) => (
+        <span
+          key={`char_${index}`}
+          className="animate-text"
+          style={{
+            animationDelay: `${index * 0.1}s`,
+            display: char === ' ' ? 'inline-block' : 'inline',
+          }}
+        >
+          {char === ' ' ? '\u00A0' : char}
+        </span>
+      )),
+    [textArray],
+  );
 
   const handleLogin = async (): Promise<void> => {
     window.location.href = LOGIN_AUTH0;

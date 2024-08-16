@@ -1,11 +1,11 @@
-import React, { useContext } from "react";
-import { useGetProfile } from "../../hooks";
-import { useParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import UserContext, { IUserContext } from "../../context/UserContext";
+import React, { useContext } from 'react';
+import { useGetProfile } from '../../hooks';
+import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import UserContext, { IUserContext } from '../../context/UserContext';
 
-import GamesAgainstBotStats from "./GamesAgainstBot";
-import GamesAgainstPlayersStats from "./GamesAgainstPlayers";
+import GamesAgainstBotStats from './GamesAgainstBot';
+import GamesAgainstPlayersStats from './GamesAgainstPlayers';
 
 export const UserStats = () => {
   const { userIdContext } = useContext<IUserContext>(UserContext);
@@ -19,7 +19,7 @@ export const UserStats = () => {
     <div className="info">
       <div className="stats">
         <h4 className="profile-text-dark">
-          Leaderboard position:{" "}
+          Leaderboard position:{' '}
           <span className="stat">
             <strong>{profile?.leaderboard?.position}</strong>of
           </span>
@@ -33,20 +33,19 @@ export const UserStats = () => {
           profile.mostFrequentOpponent?.map((opponent) => (
             <div key={opponent.userId}>
               <div className="stat-column"></div>
-			  {opponent.userName === 'bot' && !opponent.userId ? (
-				<div className="opponents-bot">{opponent.userName}</div>
-			  ) : (
-				<div
-                onClick={() => {
-                  navigate(`/profile/${opponent.userId}`);
-                  window.scrollTo(0, 0);
-                }}
-                className="opponents"
-              >
-                {opponent.userName}
-              </div>
-			  )}
-             
+              {opponent.userName === 'bot' && !opponent.userId ? (
+                <div className="opponents-bot">{opponent.userName}</div>
+              ) : (
+                <div
+                  onClick={() => {
+                    navigate(`/profile/${opponent.userId}`);
+                    window.scrollTo(0, 0);
+                  }}
+                  className="opponents"
+                >
+                  {opponent.userName}
+                </div>
+              )}
             </div>
           ))
         ) : (

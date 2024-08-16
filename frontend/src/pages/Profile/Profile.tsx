@@ -1,22 +1,22 @@
-import React, { useEffect, useState, useContext } from "react";
-import { useParams } from "react-router-dom";
-import { addFriend, deleteFriend } from "../../utils/friendsUtils";
-import { Friends } from "../../types/shared";
+import React, { useEffect, useState, useContext } from 'react';
+import { useParams } from 'react-router-dom';
+import { addFriend, deleteFriend } from '../../utils/friendsUtils';
+import { Friends } from '../../types/shared';
 import {
   useGetFriends,
   useGetProfile,
   useGetUserStatus,
   useGetAvatarUrl,
   useUpdateStatus,
-} from "../../hooks";
-import { MatchHistory } from "../../components/ProfileStats/MatchHistory";
-import { FriendsList } from "../../components/FriendsList";
-import { UserStats } from "../../components/ProfileStats/ProfileStats";
-import { AddFriendButton } from "../../components/AddFriendButton";
-import UserContext, { IUserContext } from "../../context/UserContext";
-import defaultAvatar from "../../assets/defaultAvatar.png";
+} from '../../hooks';
+import { MatchHistory } from '../../components/ProfileStats/MatchHistory';
+import { FriendsList } from '../../components/FriendsList';
+import { UserStats } from '../../components/ProfileStats/ProfileStats';
+import { AddFriendButton } from '../../components/AddFriendButton';
+import UserContext, { IUserContext } from '../../context/UserContext';
+import defaultAvatar from '../../assets/defaultAvatar.png';
 // import useStorage from "../../hooks/useStorage";
-import "./Profile.css";
+import './Profile.css';
 
 export const Profile = () => {
   const { userId } = useParams<{ userId?: string }>();
@@ -28,12 +28,12 @@ export const Profile = () => {
   const { avatar: avatarUrl } = useGetAvatarUrl(userIdOrMe);
   const { friends: loggedUserFriends } = useGetFriends(
     userIdContext,
-    userIdOrMe
+    userIdOrMe,
   );
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe, userIdOrMe);
   const [isFriend, setIsFriend] = useState<boolean>(false);
-  const [error] = useState<string>("");
-  const [currentStatus, setCurrentStatus] = useState<string>("");
+  const [error] = useState<string>('');
+  const [currentStatus, setCurrentStatus] = useState<string>('');
 
   const [, setFriends] = useState<Friends[]>([]);
   const profileName = profile?.userInfo?.userName;
@@ -62,7 +62,7 @@ export const Profile = () => {
       const deleted = await deleteFriend(userIdContext, userId!);
       if (deleted !== null && loggedUserFriends) {
         const newFriends = loggedUserFriends.filter(
-          (friend) => friend.userId !== userId
+          (friend) => friend.userId !== userId,
         );
         setFriends(newFriends);
         setIsFriend(false);
@@ -72,7 +72,7 @@ export const Profile = () => {
       if (added !== null && loggedUserFriends) {
         const newFriends = [
           ...loggedUserFriends,
-          { userId: userId!, userName: "", status: "" },
+          { userId: userId!, userName: '', status: '' },
         ];
         setFriends(newFriends);
         setIsFriend(true);
@@ -112,8 +112,11 @@ export const Profile = () => {
                 <span>{userStatusIndicator}</span>
               </div>
               {userId && userId !== userIdContext && (
-                <AddFriendButton onClick={handleFriendClick} className="button-profile">
-                  {isFriend ? "Delete Friend" : "Add Friend"}
+                <AddFriendButton
+                  onClick={handleFriendClick}
+                  className="button-profile"
+                >
+                  {isFriend ? 'Delete Friend' : 'Add Friend'}
                 </AddFriendButton>
               )}
             </div>

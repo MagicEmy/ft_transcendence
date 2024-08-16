@@ -28,4 +28,4 @@ export const useGetUserStatus = (userId: string) => {
   }, [userId]);
 
   return { userStatus, isLoading, error };
-}
+};

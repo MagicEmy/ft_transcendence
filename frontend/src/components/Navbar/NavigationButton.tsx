@@ -7,13 +7,17 @@ interface NavigationButtonProps {
   className?: string;
 }
 
-export const NavigationButton = ({ children, to, className }: NavigationButtonProps) => {
+export const NavigationButton = ({
+  children,
+  to,
+  className,
+}: NavigationButtonProps) => {
   const navigate = useNavigate();
   const onClick = () => {
     navigate(to);
   };
 
-  return (  
+  return (
     <button onClick={onClick} className={className}>
       {children}
     </button>

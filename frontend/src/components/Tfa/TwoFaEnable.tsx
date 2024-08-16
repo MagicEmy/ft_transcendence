@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { QrCodeGenerator } from "./QrCodeGenerator";
-import { Enable2FA } from "./Enable2FA";
-import { Disable2FA } from "./Disable2FA";
-import { useGetTfaStatus } from "../../hooks/useGetTfaStatus";
-import useStorage from "../../hooks/useStorage";
+import { useState, useEffect } from 'react';
+import { QrCodeGenerator } from './QrCodeGenerator';
+import { Enable2FA } from './Enable2FA';
+import { Disable2FA } from './Disable2FA';
+import { useGetTfaStatus } from '../../hooks/useGetTfaStatus';
+import useStorage from '../../hooks/useStorage';
 
 export const TwoFaEnable = () => {
   const [userIdStorage] = useStorage<string>('userId', '');
@@ -22,8 +22,8 @@ export const TwoFaEnable = () => {
 
   const clearFeedbackError = () => {
     setTimeout(() => {
-      setFeedback("");
-      setError("");
+      setFeedback('');
+      setError('');
     }, 5000);
   };
 
@@ -39,7 +39,7 @@ export const TwoFaEnable = () => {
               setFeedback={setFeedback}
               setError={setError}
               clearFeedbackError={clearFeedbackError}
-			  onSuccess={refetchTfaStatus}
+              onSuccess={refetchTfaStatus}
             />
           ) : (
             <QrCodeGenerator
@@ -50,7 +50,7 @@ export const TwoFaEnable = () => {
           )}
           <Enable2FA
             qrCodeUrl={qrCodeUrl}
-			setQrCodeUrl={setQrCodeUrl}
+            setQrCodeUrl={setQrCodeUrl}
             clearFeedbackError={clearFeedbackError}
             setFeedback={setFeedback}
             setError={setError}

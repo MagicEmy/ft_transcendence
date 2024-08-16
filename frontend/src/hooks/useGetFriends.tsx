@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Friends } from "../types/shared";
-import { loadFriends } from "../utils/friendsUtils";
+import { useEffect, useState } from 'react';
+import { Friends } from '../types/shared';
+import { loadFriends } from '../utils/friendsUtils';
 
 export const useGetFriends = (userId: string, userIdorMe: string) => {
   const [friends, setFriends] = useState<Array<Friends> | null>(null);
@@ -19,8 +19,8 @@ export const useGetFriends = (userId: string, userIdorMe: string) => {
           return getFriends(userId, retry - 1);
         } else {
           setLoading(false);
-          setError(err.message || "Failed to load friends");
-		  console.log("Error handled in useEffect:", err.message);
+          setError(err.message || 'Failed to load friends');
+          console.log('Error handled in useEffect:', err.message);
         }
       }
     };

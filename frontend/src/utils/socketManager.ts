@@ -1,4 +1,4 @@
-import { io, Socket } from "socket.io-client";
+import { io, Socket } from 'socket.io-client';
 import { SOCKET_URL } from './constants';
 
 let socket: Socket | null = null;
@@ -20,11 +20,11 @@ export const mangeSocket = (userId: string) => {
 };
 
 export const connectSocket = () => {
-	if (socket) {
-	  socket.disconnect();
-	  socket = null;
-	}
-  };
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
+};
 
 export const disconnectSocket = () => {
   if (socket) {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { loadGames} from '../utils/profileUtils';
+import { loadGames } from '../utils/profileUtils';
 import { Games } from '../types/shared';
 
 export const useGetMatchHistory = (userId: string) => {
@@ -23,4 +23,4 @@ export const useGetMatchHistory = (userId: string) => {
   }, [userId]);
 
   return { games, isLoading, error };
-}
+};

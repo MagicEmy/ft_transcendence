@@ -6,8 +6,11 @@ interface AddFriendButtonProps {
   className?: string;
 }
 
-export const AddFriendButton = ({ children, onClick, className }: AddFriendButtonProps) => {
-
+export const AddFriendButton = ({
+  children,
+  onClick,
+  className,
+}: AddFriendButtonProps) => {
   return (
     <button onClick={onClick} className={className}>
       {children}

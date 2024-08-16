@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import LeaderboardProfiles from "./LeaderboardProfiles";
-import { useUpdateStatus } from "../../hooks";
-import { LeaderboardStats } from "./types";
-import { LEADERBOARD } from "../../utils/constants";
-import "./Leaderboard.css";
+import { useState, useEffect } from 'react';
+import LeaderboardProfiles from './LeaderboardProfiles';
+import { useUpdateStatus } from '../../hooks';
+import { LeaderboardStats } from './types';
+import { LEADERBOARD } from '../../utils/constants';
+import './Leaderboard.css';
 
 const Leaderboard = () => {
   useUpdateStatus();
@@ -13,23 +13,23 @@ const Leaderboard = () => {
     const fetchDbBoard = async (retry = 1) => {
       try {
         const response = await fetch(LEADERBOARD, {
-          method: "GET",
+          method: 'GET',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
-          credentials: "include",
+          credentials: 'include',
         });
-		if (!response.ok) {
-			if (response.status === 400 && retry > 0) {
-			  return fetchDbBoard(retry - 1);
-			} else {
-			  throw new Error('Failed to fetch leaderboard data.');
-			}
-		}
+        if (!response.ok) {
+          if (response.status === 400 && retry > 0) {
+            return fetchDbBoard(retry - 1);
+          } else {
+            throw new Error('Failed to fetch leaderboard data.');
+          }
+        }
         const leaderboardDB: LeaderboardStats[] = await response.json();
         setLeaderboard(leaderboardDB || []);
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error('Error fetching user data:', error);
         setLeaderboard([]);
       }
     };

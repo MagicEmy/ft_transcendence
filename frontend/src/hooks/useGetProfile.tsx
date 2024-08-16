@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { UserProfile } from "../types/shared";
-import { USER } from "../utils/constants";
+import { useState, useEffect } from 'react';
+import { UserProfile } from '../types/shared';
+import { USER } from '../utils/constants';
 
 export const useGetProfile = (userId: string) => {
   const [profile, setProfile] = useState<UserProfile>();
@@ -11,9 +11,9 @@ export const useGetProfile = (userId: string) => {
     const fetchDbProfile = async (retry = 2) => {
       setIsLoading(true);
       const response = await fetch(`${USER}/${userId}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
       setIsLoading(false);
       if (!response.ok) {

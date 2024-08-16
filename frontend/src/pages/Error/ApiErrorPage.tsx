@@ -36,7 +36,7 @@ function ApiErrorPage({ error }: ApiErrorPageProps) {
     <>
       <NavbarError />
       <PageContent title={title}>
-        <p className='error'>{message}</p>
+        <p className="error">{message}</p>
         <button
           className={classes.button}
           onClick={() => {

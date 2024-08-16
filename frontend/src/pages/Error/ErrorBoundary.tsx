@@ -23,10 +23,9 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error("ErrorBoundary caught an error", error, errorInfo);
-    // Log error to an error reporting service here if needed
   }
   handleRedirect = () => {
-    window.location.href = '/'; // Redirect to login or home page
+    window.location.href = '/';
   };
 
   render() {

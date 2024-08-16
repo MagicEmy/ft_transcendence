@@ -8,7 +8,7 @@ interface FriendsListProps {
 }
 
 export const FriendsList = ({ userId }: FriendsListProps) => {
-  const { friends, loading } = useGetFriends(userId, "");
+  const { friends, loading } = useGetFriends(userId, '');
   const navigate = useNavigate();
 
   return (
@@ -33,7 +33,9 @@ export const FriendsList = ({ userId }: FriendsListProps) => {
                       {friend.userName}
                     </button>
                     <span className="statsFriends"></span>
-                    <span className={`status-indicator ${friend.status}`}></span>
+                    <span
+                      className={`status-indicator ${friend.status}`}
+                    ></span>
                     <span>{friend.status}</span>
                   </li>
                 ))}
