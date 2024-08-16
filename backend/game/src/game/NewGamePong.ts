@@ -114,9 +114,7 @@ export class GamePong implements IGame
 		this.player2 = this.ConstructPlayer(player2, 22/23);
 		console.log(`preparing game`);
 		this.ball = null;
-		this.gameState = GameState.WAITING;
-		this.timerGame = Date.now();
-		this.timerEvent = Date.now();
+		this.SetGameState(GameState.WAITING);
 		console.log(`binding methods`);
 		this.ImageHandlers = new Map<Socket, (client: Socket) => void>();
 		this.ImageFullHandelers = new Map<Socket, (client: Socket) => void>();
@@ -126,7 +124,6 @@ export class GamePong implements IGame
 
 	private ConstructPlayer(playerId: any, posX: number): Player
 	{
-		// console.log(`${playerId}`);
 		const player: Player =
 		{
 			player:	(playerId !== null) ? null : new GamePlayer(null, null),
@@ -135,7 +132,6 @@ export class GamePong implements IGame
 			status:	(playerId !== null) ? PlayerStatus.CONNECTING : PlayerStatus.WAITING,
 			score:	0,
 		}
-		// console.log(`player ${player === null}/${player.player}/${player.id}/${player.status}/${player.paddle.posX}`);
 		return (player);
 	}
 
@@ -168,7 +164,6 @@ export class GamePong implements IGame
 
 	public clearGame(): void
 	{
-		// console.log(`removing ${this.id}`);
 		if (this.player1.player.getClient())
 			this.RemoveListeners(this.player1.player.getClient());
 		if (this.player2.player.getClient())
@@ -231,6 +226,11 @@ export class GamePong implements IGame
 			client.removeAllListeners("GameImage");
 			this.ImageHandlers.delete(client);
 		});
+		this.ImageFullHandelers.forEach((handler, client) =>
+		{
+			client.removeAllListeners("GameImageFull");
+			this.ImageHandlers.delete(client);
+		});
 		this.DisconnectHandlers.forEach((handler, client) =>
 		{
 			client.off("disconnect", handler)
@@ -241,24 +241,17 @@ export class GamePong implements IGame
 	private handlerDisconnect(client: Socket): void
 	{
 		console.log("GamePong: disconnect", client.id);
-		// Pause the game 
-		if (this.gameState !== GameState.PAUSED)
-			this.oldState = this.gameState;
-		this.gameState = GameState.PAUSED;
 
-		// Set player status to disconnect/playing
 		this.player1.status = this.player1.player.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
 		this.player2.status = this.player2.player?.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
 
+		this.SetGameState(GameState.PAUSED);
 
-		this.timerEvent = Date.now();
-		this.sendHUD();
 		this.RemoveListeners(client);
 	}
 
 	private handlerImage(client: Socket): void
 	{
-		// console.log(`image ID ${this.id}`);
 		this.sendImage(client);
 	}
 
@@ -281,7 +274,7 @@ export class GamePong implements IGame
 		const P1: ISockPongImagePlayer = this.GetImageDataPlayer(this.player1);
 		const P2: ISockPongImagePlayer = this.GetImageDataPlayer(this.player2);
 		const ball: ISockPongImageBall | null = this.GetImageDataBall();
-// console.warn("need to adjust note pong");
+
 		if (this.player1.player.getClient() === client)
 			imageData = { Game: GamePong.gameFlag, Theme: this.theme,
 							Player1: P1, Player2: P2, Ball: ball};
@@ -291,7 +284,6 @@ export class GamePong implements IGame
 							Player1: P2, Player2: P1, Ball: ball};
 			this.MirrorImageDataXAxis(imageData);
 		}
-		// console.log(`sendImage ${client}`);
 		if (client.emit)
 			client.emit("GameImage", JSON.stringify(imageData));
 	}
@@ -334,7 +326,6 @@ export class GamePong implements IGame
 		const P1: ISockPongHudPlayer = this.GetHUDDataPlayer(this.player1);
 		const P2: ISockPongHudPlayer = this.GetHUDDataPlayer(this.player2);
 
-		// console.log("Sending hud");
 		this.SendToPlayer(this.player1, "GameHUD", JSON.stringify({game: "pong", P1: P1, P2: P2}));
 		this.SendToPlayer(this.player2, "GameHUD", JSON.stringify({game: "pong", P1: P2, P2: P1}));
 	}
@@ -350,34 +341,6 @@ export class GamePong implements IGame
 			status:	player.status,
 		});
 	}
-
-	// private SendGameState(state :GameState): void
-	// {
-	// 	const data = 
-	// 	{
-	// 		GameState:	state,
-	// 		Player1:	this.player1.id,
-	// 		Player1Score:	this.player1.score,
-	// 		Player2:	this.player2.id,
-	// 		Player2Score:	this.player2.score,
-	// 		message:	"",
-	// 	};
-
-	// 	switch (state)
-	// 	{
-	// 		case GameState.GAMEOVER:
-	// 			data.message = this.player1.score > this.player2.score ? "You won" : "You lost";
-	// 			this.SendToPlayer(this.player1, "GameState", JSON.stringify(data));
-	// 			data.message = this.player2.score > this.player1.score ? "You won" : "You lost";
-	// 			this.SendToPlayer(this.player2, "GameState", JSON.stringify(data));
-	// 			break ;
-	// 		default:
-	// 			const message: string = JSON.stringify(data);
-	// 			this.SendToPlayer(this.player1, "GameState", message);
-	// 			this.SendToPlayer(this.player2, "GameState", message);
-	// 			break ;
-	// 	}
-	// }
 
 	private SendToPlayer(player: Player, flag: string, msg: string)
 	{
@@ -446,6 +409,45 @@ export class GamePong implements IGame
 		}
 	}
 
+	private SetGameState(newState: GameState): void
+	{
+		switch (newState)
+		{
+			case GameState.WAITING:
+				this.timerGame = Date.now();
+				this.timerEvent = Date.now();
+				break ;
+			case GameState.START:
+				this.player1.status = PlayerStatus.NOTREADY;
+				this.player2.status = PlayerStatus.NOTREADY;
+				this.timerGame = Date.now();
+				break ;
+			case GameState.NEWBALL:
+				this.player1.status = PlayerStatus.PLAYING;
+				this.player2.status = PlayerStatus.PLAYING;
+				break ;
+			case GameState.PLAYING:
+				break ;
+			case GameState.PAUSED:
+				if (this.gameState !== GameState.PAUSED)
+					this.oldState = this.gameState;
+				this.timerEvent = Date.now();
+				break ;
+			case GameState.UNPAUSE:
+				this.player1.status = PlayerStatus.NOTREADY;
+				this.player2.status = PlayerStatus.NOTREADY;
+				this.timerEvent = Date.now();
+				break ;
+			case GameState.GAMEOVER:
+				break ;
+			default:
+				console.error(`Error: unknown GameState ${this.gameState}`); return ;
+		}
+		this.gameState = newState;
+		this.sendHUD();
+
+	}
+
 /* ************************************************************************** *\
 	GameLoop - Waiting
 \* ************************************************************************** */
@@ -455,9 +457,7 @@ export class GamePong implements IGame
 		if (this.player1.status === PlayerStatus.WAITING &&
 			this.player2.status === PlayerStatus.WAITING)
 		{
-			this.player1.status = PlayerStatus.NOTREADY;
-			this.player2.status = PlayerStatus.NOTREADY;
-			this.gameState = GameState.START;
+			this.SetGameState(GameState.START);
 		}
 		else if (this.timerEvent + 60000 < Date.now()) // 60 seconds
 			this.EndGame(GameStatus.NOCONNECT);
@@ -469,41 +469,18 @@ export class GamePong implements IGame
 
 	private GameLoopStart(): void
 	{
-		// this.PressSpaceToStart();
 		this.PressSpaceToStart(this.player1);
 		this.PressSpaceToStart(this.player2);
 		this.UpdatePaddles2();
 		this.StartGame();
 	}
 
-	// private PressSpaceToStart()
-	// {
-	// 	if (this.player1.status === PlayerStatus.NOTREADY &&
-	// 		this.player1.player.button[Button.SPACE])
-	// 	{
-	// 		this.player1.status = PlayerStatus.READY;
-	// 		this.sendHUD();
-	// 	}
-
-	// 	if (this.player2.status === PlayerStatus.NOTREADY &&
-	// 		(this.player2.player.button[Button.SPACE] ||
-	// 		this.player2.id === null))
-	// 	{
-	// 		this.player2.status = PlayerStatus.READY;
-	// 		this.sendHUD();
-	// 	}
-	// }
-
 	private StartGame(): void
 	{
 		if (this.player1.status === PlayerStatus.READY &&
 			this.player2.status === PlayerStatus.READY)
 		{
-			this.player1.status = PlayerStatus.PLAYING;
-			this.player2.status = PlayerStatus.PLAYING;
-			this.gameState = GameState.NEWBALL;
-			this.timerGame = Date.now();
-			this.sendHUD();
+			this.SetGameState(GameState.NEWBALL);
 		}
 	}
 
@@ -537,11 +514,12 @@ export class GamePong implements IGame
 		if (this.player1.status === PlayerStatus.WAITING &&
 			this.player2.status === PlayerStatus.WAITING)
 		{
-			this.player1.status = PlayerStatus.NOTREADY;
-			this.player2.status = PlayerStatus.NOTREADY;
-			this.gameState = GameState.UNPAUSE;
-			this.timerEvent = Date.now();
-			this.sendHUD();
+			this.SetGameState(GameState.UNPAUSE);
+			// this.player1.status = PlayerStatus.NOTREADY;
+			// this.player2.status = PlayerStatus.NOTREADY;
+			// this.gameState = GameState.UNPAUSE;
+			// this.timerEvent = Date.now();
+			// this.sendHUD();
 		}
 		else if (this.timerEvent + 60000 < Date.now()) // 60 seconds
 			this.EndGame(GameStatus.INTERRUPTED);
@@ -559,10 +537,7 @@ export class GamePong implements IGame
 		if (this.player1.status === PlayerStatus.READY &&
 			this.player2.status === PlayerStatus.READY)
 		{
-			this.player1.status = PlayerStatus.PLAYING;
-			this.player2.status = PlayerStatus.PLAYING;
-			this.gameState = this.oldState;
-			this.sendHUD();
+			this.SetGameState(this.oldState);
 		}
 		else if (this.timerEvent + 300000 < Date.now()) // 5 minutes
 			this.EndGame(GameStatus.INTERRUPTED);
@@ -576,26 +551,6 @@ export class GamePong implements IGame
 	{
 		this.EndGame(GameStatus.COMPLETED);
 	}
-
-	// private GenerateEndData(status: GameStatus): IGameStatus
-	// {
-	// 	console.error("Matchtypes hardcoded");
-	// 	return ({
-	// 		gameType:	GameTypes.PONG,
-	// 		matchType:	MatchTypes.LOCAL,
-	// 		status:		status,
-	// 		player1ID:	this.player1.id,
-	// 		player1Score:	this.player1.score,
-	// 		player2ID:	this.player2.id,
-	// 		player2Score:	this.player2.score,
-	// 	});
-	// }
-
-	// private SendGameOverToKafka(topic: GameStatus, data: IGameStatus)
-	// {
-		
-	// 	GameManager.getInstance().kafkaEmit(topic, JSON.stringify(data));
-	// }
 
 /* ************************************************************************** *\
 
@@ -614,25 +569,25 @@ export class GamePong implements IGame
 		}
 	}
 
-	private UpdatePaddles(): void
-	{
-		switch (this.mode)
-		{
-			case FLAGS.SOLO.FLAG:
-				this.BotKeyPress(this.player2);
-				this.UpdatePaddle(this.player1.paddle, this.player1.player.button, this.player1.player.button);
-				this.UpdatePaddle(this.player2.paddle, null, this.player2.player.button);
-				break ;
-			case FLAGS.LOCAL.FLAG:
-				this.UpdatePaddle(this.player1.paddle, this.player1.player.button, null);
-				this.UpdatePaddle(this.player2.paddle, null, this.player1.player.button);
-				break ;
-			default:
-				this.UpdatePaddle(this.player1.paddle, this.player1.player.button, this.player1.player.button);
-				this.UpdatePaddle(this.player2.paddle, this.player2.player.button, this.player2.player.button);
-				break ;
-		}
-	}
+	// private UpdatePaddles(): void
+	// {
+	// 	switch (this.mode)
+	// 	{
+	// 		case FLAGS.SOLO.FLAG:
+	// 			this.BotKeyPress(this.player2);
+	// 			this.UpdatePaddle(this.player1.paddle, this.player1.player.button, this.player1.player.button);
+	// 			this.UpdatePaddle(this.player2.paddle, null, this.player2.player.button);
+	// 			break ;
+	// 		case FLAGS.LOCAL.FLAG:
+	// 			this.UpdatePaddle(this.player1.paddle, this.player1.player.button, null);
+	// 			this.UpdatePaddle(this.player2.paddle, null, this.player1.player.button);
+	// 			break ;
+	// 		default:
+	// 			this.UpdatePaddle(this.player1.paddle, this.player1.player.button, this.player1.player.button);
+	// 			this.UpdatePaddle(this.player2.paddle, this.player2.player.button, this.player2.player.button);
+	// 			break ;
+	// 	}
+	// }
 
 	private UpdatePaddles2(): void
 	{
@@ -725,28 +680,28 @@ export class GamePong implements IGame
 		bot.player.button[Button.ARROWDOWN] = posY > bot.paddle.posY;
 	}
 
-	private UpdatePaddle(paddle: Paddle, wasd: { [key: number]: boolean } | null, arrows: { [key: number]: boolean } | null)
-	{
-		let moveY: number = 0;
+	// private UpdatePaddle(paddle: Paddle, wasd: { [key: number]: boolean } | null, arrows: { [key: number]: boolean } | null)
+	// {
+	// 	let moveY: number = 0;
 
-		if ((wasd !== null && wasd[Button.w]) || 
-			(arrows !== null && arrows[Button.ARROWUP]))
-			moveY -= paddle.speed;
-			if ((wasd !== null && wasd[Button.s]) || 
-				(arrows !== null && arrows[Button.ARROWDOWN]))
-			moveY += paddle.speed;
-		this.UpdatePaddlePos(paddle, moveY);
-	}
+	// 	if ((wasd !== null && wasd[Button.w]) || 
+	// 		(arrows !== null && arrows[Button.ARROWUP]))
+	// 		moveY -= paddle.speed;
+	// 		if ((wasd !== null && wasd[Button.s]) || 
+	// 			(arrows !== null && arrows[Button.ARROWDOWN]))
+	// 		moveY += paddle.speed;
+	// 	this.UpdatePaddlePos(paddle, moveY);
+	// }
 
-	private UpdatePaddlePos(paddle: Paddle, moveY: number)
-	{
-		paddle.posY += moveY;
+	// private UpdatePaddlePos(paddle: Paddle, moveY: number)
+	// {
+	// 	paddle.posY += moveY;
 
-		if (paddle.posY + paddle.height / 2 > 1)
-			paddle.posY = 1 - paddle.height / 2;
-		else if (paddle.posY - paddle.height / 2 < 0)
-			paddle.posY = paddle.height / 2;
-	}
+	// 	if (paddle.posY + paddle.height / 2 > 1)
+	// 		paddle.posY = 1 - paddle.height / 2;
+	// 	else if (paddle.posY - paddle.height / 2 < 0)
+	// 		paddle.posY = paddle.height / 2;
+	// }
 
 /* ************************************************************************** *\
 
@@ -760,7 +715,7 @@ export class GamePong implements IGame
 			return ;
 
 		this.AddBallRandom();
-		this.gameState = GameState.PLAYING;
+		this.SetGameState(GameState.PLAYING);
 	}
 
 	private AddBallRandom(): void
@@ -773,13 +728,12 @@ export class GamePong implements IGame
 			rad:	0.0025,
 			speed:	0.002,
 			maxSpeed:	0.010,
-			angle:	0.5 * Math.PI,
+			angle:	0.5,
 			lastHit:	null,
 			lastPaddle:	null,
 		};
 
 		this.ball.angle = Math.random() + 0.25;
-		// this.ball.angle = 60;//REMOVE
 		if (this.ball.angle >= 0.75)
 			this.ball.angle += 0.5;
 		this.ball.angle *= Math.PI;
@@ -808,7 +762,6 @@ export class GamePong implements IGame
 
 	private UpdateBallPosition(remaining: number): number
 	{
-		// this.FixBallRadial();
 		let move: number = this.CalculateNearestEvent(remaining);
 		if (move === remaining)
 			move -= this.ball.rad;
@@ -910,7 +863,8 @@ export class GamePong implements IGame
 		else
 			distance = Math.abs(0.5 - this.ball.posX) + diff / 2;
 		distance /= diff;
-		//height = -8/3x^2 + 2/3x + 1
+
+		// height = -8/3x^2 + 2/3x + 1
 		this.ball.posZ = Math.abs(-8/3 * Math.pow(distance, 2) + 2/3 * distance + 1);
 	}
 
@@ -946,9 +900,7 @@ export class GamePong implements IGame
 					this.ball.speed = this.ball.speed * 0.90 + this.ball.maxSpeed * 0.10;
 			}
 			else
-			{
 				this.AdjustBallAngle("horizontal");
-			}
 			this.ball.lastHit = paddle;
 			this.ball.lastPaddle = paddle;
 		}
@@ -976,12 +928,11 @@ export class GamePong implements IGame
 	private EventPlayerScored(player: Player): void
 	{
 		++player.score;
-		if (player.score >= 11)
-			this.gameState = GameState.GAMEOVER;
+		if (player.score >= 1)//set to 11
+			this.SetGameState(GameState.GAMEOVER);
 		else
-			this.gameState = GameState.NEWBALL;
+			this.SetGameState(GameState.NEWBALL);
 		this.ball = null;
-		this.sendHUD();
 	}
 
 /* ************************************************************************** *\
@@ -1004,6 +955,8 @@ export class GamePong implements IGame
 		//send to players
 		this.SendToPlayer(this.player1, GameStatus.TOPIC, message);
 		this.SendToPlayer(this.player2, GameStatus.TOPIC, message);
+		this.player1.player.button = [];
+		this.player2.player.button = [];
 
 		//remove handlers
 		this.RemoveAllListeners();

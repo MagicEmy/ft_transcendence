@@ -27,15 +27,11 @@ class GameMenu
 		this.left = null;
 		this.right = null;
 	}
-	
+
 	public ToJson()
 	{
 		const nodes: any[] = [];
 		let current: GameMenu | null = this;
-		// while (current && current.up !== null)
-		// 	current = current.up;
-		// while (current && current.left !== null)
-		// 	current = current.left;
 		console.log("Creating nodes");
 		while (current)
 		{
@@ -83,13 +79,6 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		{
 			console.log("Connected to Kafka");
 			this.kafkaReady = true;
-			// let game: INewGame = {
-			// 	gameType: GameTypes.PONG,
-			// 	matchType: MatchTypes.PAIR,
-			// 	player1ID: "lorem",
-			// 	player2ID: "ipsum",
-			// };
-			// this.kafkaEmit(NewGame.TOPIC, JSON.stringify(game));
 		});
 		GameManager.instance = this;
 	}
@@ -248,24 +237,6 @@ Socket.io
 		this.EmitMenu(client);
 	}
 
-	// @SubscribeMessage("PlayGame")
-	// handlerPlayGame(client: any, message: string): void
-	// {
-	// 	const msg: string[] = JSON.parse(message);
-	// 	switch (msg[0])
-	// 	{
-	// 		case GamePong.GetFlag():
-	// 			console.log("Pong requested");
-	// 			break ;
-	// 		case MatchMaker.GetFlag():
-	// 			console.log("Matchmaker requested");
-	// 			break ;
-	// 		default:
-	// 			console.error(`Error: Unknown target flag '${msg[0]}'`);
-	// 			break ;
-	// 	}
-	// }
-
 /* ************************************************************************** *\
 
 	Menu
@@ -319,42 +290,6 @@ Socket.io
 			return (null);
 		}
 	}
-
-	// public PlayGame(player: GamePlayer, mode: string, type: string, data: string)
-	// {
-	// 	switch (mode)
-	// 	{
-	// 		case "solo":
-	// 			this.PlayGameSolo(player, type, data);
-	// 			break;
-	// 		case "local":
-	// 			console.log("time to play solo");
-	// 			break;
-	// 		case "match":
-	// 			console.log("time to find a match!");
-	// 			break;
-	// 		default:
-	// 			console.error(`Error: Unknown game mode:`, mode);
-	// 			break;
-	// 	}
-	// }
-
-	// private PlayGameSolo(player: GamePlayer, type: string, data: string)
-	// {
-	// 	var game: IGame;
-	// 	switch (type)
-	// 	{
-	// 		case "pong":
-	// 			const dataPack = { IDs: [player.getId()] };
-	// 			game = new GamePong(type, JSON.stringify(dataPack));
-	// 			break ;
-	// 		default:
-	// 			console.error(`Error: Unknown game type:`, type);
-	// 			return ;
-	// 	}
-	// 	if (!game.AddPlayer(player))
-	// 		console.error("Failed to add player");
-	// }
 
 	public FindExistingGame(player: GamePlayer): IGame | null
 	{
