@@ -28,7 +28,6 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 import { Link } from "react-router-dom";
 import "./ListGroup.css";
 import {
-  KickDto,
   UserDto,
   DoWithUserDto,
   JoinRoomDto,
@@ -45,6 +44,8 @@ import {
   ToDoUserRoomDto,
   ModerationType,
   RoomMessageDto,
+  GameInvitationDto,
+  GameInvitationtype
 } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -91,17 +92,9 @@ function Sidebar() {
     <Tooltip id={`tooltip-${message}`}>{message}</Tooltip>
   );
 
-
-
   function handleUserSelect(userId: string): void {
     setSelectedUserId(userId);
   }
-  socket.off("kick_user_out").on("kick_user_out", (kick: KickDto) => {
-    if (kick.roomName === currentRoom?.roomName) {
-      showToast(kick.message);
-      joinRoom({ roomName: "general", password: false });
-    }
-  });
 
   function joinRoom(room: RoomDto) {
     let password: string | null = "";
@@ -269,72 +262,47 @@ function Sidebar() {
     socket.emit("unblock_user", blockUser);
   }
 
-  function inviteGame(member: UserShowDto | ChatUserDto) {
-    const inviteGame: DoWithUserDto = {
-      userCreator: user,
-      userReceiver: {
+  function gameInvitation(member: UserShowDto | ChatUserDto | UserDto, type: GameInvitationtype) {
+    const gameInvitation: GameInvitationDto = {
+      sender: user,
+      receiver: {
         userId: member.userId,
         userName: member.userName,
       },
+      type: type
     };
-    socket.emit("invite_game", inviteGame);
+    console.log("Sending game_invitation event with data:", gameInvitation);
+    socket.emit("game_invitation", gameInvitation);
     socket
-      .off("invite_game_response")
-      .on("invite_game_response", (message: string) => {
-        if (message !== "Success") {
+      .off("game_invitation_response")
+      .on("game_invitation_response", (message: string) => {
           showToast(message);
-        } else {
-          showToast("Game Invite Sent to " + member.userName);
-        }
       });
   }
+  socket.off("game_invitation").on("game_invitation", (payload: GameDto) => {
+    if (payload.type === "Remove the game") {
+      setGameInvite({}); // clear the game invite
+    } else if (payload.type === "decline the game") {
+      setGameInvite({});
+      showToast("Game invitation declined");
+    } else {
+      setGameInvite(payload);
+      if (payload.type === "start the game" && payload.user.userId === user.userId) {
+        showToast("Game invitation accepted");
+      }
+      else if (payload.type === "invitation") {
+        showToast("You were invited to a game by " + payload.user.userName);
+      }
+    }
+  });
+ 
+
   function chatId(userId: string): string {
     return userId < user.userId
       ? "#" + userId + user.userId
       : "#" + user.userId + userId;
   }
 
-  function acceptGameInvite() {
-    if ("user" in gameInvite) {
-      const acceptGameInvite: DoWithUserDto = {
-        userCreator: gameInvite.user,
-        userReceiver: user,
-      };
-      socket.emit("accept_game", acceptGameInvite);
-      socket
-        .off("accept_game_response")
-        .on("accept_game_response", (message: string) => {
-          if (message !== "Success") {
-            setGameInvite({});
-            showToast(message);
-          } else {
-            showToast(
-              "Game Invite from" + gameInvite.user.userName + " Accepted"
-            );
-          }
-        });
-    }
-  }
-
-  function declineGameInvite() {
-    if ("user" in gameInvite) {
-      const declineGameInvite: DoWithUserDto = {
-        userCreator: gameInvite.user,
-        userReceiver: user,
-      };
-      socket.emit("decline_game", declineGameInvite);
-      socket
-        .off("decline_game_response")
-        .on("decline_game_response", (message: string) => {
-          if (message !== "Success") {
-            setGameInvite({});
-            showToast(message);
-          } else {
-            showToast("Game Invite Declined");
-          }
-        });
-    }
-  }
   function setPassword(room: RoomShowDto, isPassword: boolean) {
     let password: string | null = "";
     if (isPassword) {
@@ -483,7 +451,7 @@ function Sidebar() {
           >
             {isBlock ? "unblock User" : "block User"}
           </Dropdown.Item>
-          <Dropdown.Item onClick={() => inviteGame(member)}>
+          <Dropdown.Item onClick={() => gameInvitation(member, GameInvitationtype.SEND) }>
             {"invite game"}
           </Dropdown.Item>
         </>
@@ -523,14 +491,6 @@ function Sidebar() {
   socket.off("room_users").on("room_users", (payload: RoomUserDto) => {
     setRoomMembers(payload);
   });
-  socket.off("game").on("game", (payload: GameDto) => {
-    if (payload.type === "decline the game") {
-      setGameInvite({}); // clear the game invite
-    } else {
-      setGameInvite(payload);
-    }
-  });
-
   socket.off("notifications").on("notifications", (room: string) => {
     console.log("Notification received for room:", room);
     setNotifications((notifications) => {
@@ -999,7 +959,9 @@ function Sidebar() {
         "type" in gameInvite &&
         gameInvite.type === "invitation" && (
           <>
-            <Button variant="success" onClick={acceptGameInvite}
+            <Button variant="success" onClick={() => {
+  gameInvitation(gameInvite.user, GameInvitationtype.ACCEPT);
+}}
               style={{
                 background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
                 border: "none",
@@ -1011,7 +973,7 @@ function Sidebar() {
               }}>
               Accept
             </Button>
-            <Button variant="danger" onClick={declineGameInvite}
+            <Button variant="danger" onClick={() =>gameInvitation(gameInvite.user, GameInvitationtype.DECLINE)}
               style={{
                 background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
                 border: "none",
@@ -1028,7 +990,7 @@ function Sidebar() {
       {Object.keys(gameInvite).length !== 0 &&
         "type" in gameInvite &&
         gameInvite.type === "host" && (
-          <Button variant="danger" onClick={declineGameInvite}
+          <Button variant="danger" onClick={() => gameInvitation(gameInvite.user, GameInvitationtype.DECLINE)}
             style={{
               background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
               border: "none",

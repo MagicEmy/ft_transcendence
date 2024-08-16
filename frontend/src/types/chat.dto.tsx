@@ -173,3 +173,14 @@ export interface Notification {
   roomName: string;
   count: number;
 }
+
+export enum GameInvitationtype {
+    SEND = 'send',
+    ACCEPT = 'accept',
+    DECLINE = 'decline',
+}
+export class GameInvitationDto {
+    type: GameInvitationtype;
+    sender: UserDto;
+    receiver: UserDto;
+}

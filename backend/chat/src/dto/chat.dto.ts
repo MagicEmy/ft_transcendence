@@ -185,3 +185,8 @@ export class ModerateResponseDto {
   toDoUser_message: RoomMessageDto;
 }
 
+export class ResponseDto{
+  success: boolean;
+  message: string;
+}
+
