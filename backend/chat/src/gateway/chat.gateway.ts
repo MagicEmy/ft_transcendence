@@ -13,12 +13,13 @@ import { UserService } from 'src/user/user.service'
 import { User } from 'src/entities/user.entity'
 import { ValidationPipe, UsePipes } from '@nestjs/common'
 import { KafkaProducerService } from 'src/kafka/kafka-producer.service'
-import { GameTypes, MatchTypes, UserStatusEnum } from 'src/kafka/kafka.enum'
+import { UserStatusEnum } from 'src/kafka/kafka.enum'
 import { Room } from 'src/entities/room.entity'
 import { RoomManagementService } from 'src/room/room-management.service'
 import { RoomUserManagementService } from 'src/room/room-user-management.service'
 import { RoomMessageService } from 'src/room/room-message.service'
-import { RoomRouterService} from 'src/room/room-router.service';
+import { RoomRouterService } from 'src/room/room-router.service';
+import { GameInvitation } from 'src/game/game-invitation.service'
 import {
   CreateRoomDto,
   MessageDto,
@@ -33,7 +34,10 @@ import {
   RoomUserDto,
   ChatUserDto,
   ModerateResponseDto,
+  ResponseDto
 } from 'src/dto/chat.dto'
+import { GameInvitationDto, GameInvitationtype } from 'src/dto/game.dto'
+
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor (
@@ -42,6 +46,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private roomRouterService: RoomRouterService,
     private roomMessageService: RoomMessageService,
     private userService: UserService,
+    private readonly gameInvitation: GameInvitation,
     private readonly kafkaProducerService: KafkaProducerService,
   ) {}
   @WebSocketServer() server: Server
@@ -332,200 +337,77 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UsePipes(new ValidationPipe())
-  @SubscribeMessage('invite_game')
-  async createGame (
+  @SubscribeMessage('game_invitation')
+  async createGame(
     @MessageBody()
-    payload: DoWithUserDto,
+    payload: GameInvitationDto,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    this.logger.log(`${payload.userCreator.userId} is trying to create a game`)
-    await this.userService.addUser(payload.userCreator, client.id)
-    const userReceiver: User | undefined = await this.userService.getUserById(
-      payload.userReceiver.userId,
+    await this.userService.addUser(payload.sender, client.id)
+    const receiver: User | undefined = await this.userService.getUserById(
+      payload.receiver.userId,
     )
     const user: User | undefined = await this.userService.getUserById(
-      payload.userCreator.userId,
+      payload.sender.userId,
     )
-    if (
-      userReceiver === undefined ||
-      userReceiver.socketId === '' ||
-      user === undefined
-    ) {
-      this.server
-        .to(client.id)
-        .emit('invite_game_response', 'the user You invited is not Online')
-      return
+    const remove = {
+      type: 'Remove the game',
     }
-    const blocked: string = await this.userService.checkBlockedUser(
-      user,
-      userReceiver.userId,
-    )
-    if (blocked !== 'Not Blocked') {
-      this.server.to(client.id).emit('invite_game_response', blocked)
-      return
-    }
-    if (user.userId === userReceiver.userId) {
-      this.server
-        .to(client.id)
-        .emit('invite_game_response', 'You cannot invite yourself')
-      return
-    }
-    if (user.game !== '') {
-      this.server
-        .to(client.id)
-        .emit(
-          'invite_game_response',
-          'you need to decline the previus game first',
-        )
-      return
-    }
-    if (userReceiver.game !== '') {
-      this.server
-        .to(client.id)
-        .emit(
-          'invite_game_response',
-          'The user You invited is already invited by someone else',
-        )
-      return
-    }
-    this.logger.log(
-      `game invite send to ${userReceiver.userId} from ${user.userId}`,
-    )
-    this.logger.log(`game invite send`)
-    await this.userService.setGame(userReceiver.userId, user.userId)
+    if (!user)
+      throw new Error('User not found');
+    let response: ResponseDto;
 
-    await this.userService.setGame(user.userId, userReceiver.userId)
-
-    this.server.to(client.id).emit('invite_game_response', 'Success')
-    const invitation = {
-      type: 'invitation',
-      user: payload.userCreator,
+    if (payload.type === GameInvitationtype.SEND) {
+      response = await this.gameInvitation.sendGameInvitation(user, receiver);
+      if (response.success) {
+        const invitation = {
+          type: 'invitation',
+          user: payload.sender,
+        }
+        const host = {
+          type: 'host',
+          user: payload.receiver,
+        }
+        this.server.to(receiver.socketId).emit('game_invitation', invitation)
+        this.server.to(client.id).emit('game_invitation', host)
+      }
+      else
+        this.server.to(client.id).emit('game_invitation', remove)
+      this.server.to(client.id).emit('game_invitation_response', response.message)
     }
-    const host = {
-      type: 'host',
-      user: payload.userReceiver,
+    else if (payload.type === GameInvitationtype.ACCEPT) {
+      response = await this.gameInvitation.acceptGameInvitation(user, receiver);
+      if (response.success) {
+        const accept = {
+          type: 'start the game',
+          user: payload.sender,
+        }
+        this.server.to(receiver.socketId).emit('game_invitation', accept)
+        this.server.to(client.id).emit('game_invitation', accept)
+      }
+      else
+        this.server.to(client.id).emit('game_invitation', remove)
+      this.server.to(client.id).emit('game_invitation_response', response.message)
+      return
     }
-    this.logger.log(
-      `host hi  ${JSON.stringify(host)} receiver ${JSON.stringify(invitation)}`,
-    )
-    this.server.to(userReceiver.socketId).emit('game', invitation)
-    this.server.to(client.id).emit('game', host)
+    else if (payload.type === GameInvitationtype.DECLINE) {
+      response = await this.gameInvitation.declineGameInvitation(user, receiver);
+      if (response.success) {
+        const decline = {
+          type: 'decline the game',
+        }
+        this.server.to(receiver.socketId).emit('game_invitation', decline)
+        this.server.to(client.id).emit('game_invitation', decline)
+      }
+      else {
+        this.server.to(client.id).emit('game_invitation', remove)
+        this.server.to(client.id).emit('game_invitation_response', response.message)
+      }
+      return
+    }
   }
+    
 
-  @UsePipes(new ValidationPipe())
-  @SubscribeMessage('accept_game')
-  async joinGame (
-    @MessageBody()
-    payload: DoWithUserDto,
-    @ConnectedSocket() client: Socket,
-  ): Promise<void> {
-    this.logger.log(`${payload.userCreator.userId} is trying to join a game`)
-    await this.userService.addUser(payload.userCreator, client.id)
-    const userReceiver: User | undefined = await this.userService.getUserById(
-      payload.userReceiver.userId,
-    )
-    this.logger.log(
-      `payload inviter ${payload.userCreator.userId} receiver ${payload.userReceiver.userId}`,
-    )
-    const user: User | undefined = await this.userService.getUserById(
-      payload.userCreator.userId,
-    )
-    if (user === undefined || userReceiver === undefined) {
-      this.server
-        .to(client.id)
-        .emit('accept_game_response', 'The user dont exist')
-      return
-    }
-    this.logger.log(
-      `user id inviter ${user.userId} receiver ${userReceiver.userId}`,
-    )
-    this.logger.log(
-      `user game inviter ${user.game} receiver ${userReceiver.game}`,
-    )
-    if (user.game !== userReceiver.userId) {
-      this.server
-        .to(client.id)
-        .emit('accept_game_response', 'You are not invited to this game')
-      return
-    }
-
-    if (userReceiver.socketId === '') {
-      this.userService.setGame(user.userId, '')
-      this.server
-        .to(client.id)
-        .emit('accept_game_response', 'The user that invited you is not Onine')
-      return
-    }
-    const blocked: string = await this.userService.checkBlockedUser(
-      payload.userCreator,
-      payload.userReceiver.userId,
-    )
-    if (blocked !== 'Not Blocked') {
-      this.server.to(client.id).emit('accept_game_response', blocked)
-      return
-    }
-    this.logger.log(`game started`)
-    this.kafkaProducerService.announceStartOfPairGame({
-      gameType: GameTypes.PONG,
-      matchType: MatchTypes.PAIR,
-      player1ID: payload.userCreator.userId,
-      player2ID: payload.userReceiver.userId,
-    }) // DM added
-    const accept = {
-      type: 'start the game',
-      user: payload.userCreator,
-    }
-    this.server.to(userReceiver.socketId).emit('game', accept)
-    this.server.to(user.socketId).emit('game', accept)
-    this.server.to(client.id).emit('accept_game_response', 'Success')
-    await this.userService.setGame(userReceiver.userId, '')
-    await this.userService.setGame(user.userId, '')
-  }
-
-  @UsePipes(new ValidationPipe())
-  @SubscribeMessage('decline_game')
-  async declineGame (
-    @MessageBody()
-    payload: DoWithUserDto,
-    @ConnectedSocket() client: Socket,
-  ): Promise<void> {
-    this.logger.log(`${payload.userCreator.userId} is trying to join a game`)
-    await this.userService.addUser(payload.userCreator, client.id)
-    const userReceiver: User | undefined = await this.userService.getUserById(
-      payload.userReceiver.userId,
-    )
-    const user: User | undefined = await this.userService.getUserById(
-      payload.userCreator.userId,
-    )
-    if (user === undefined) {
-      this.server
-        .to(client.id)
-        .emit('decline_game_response', 'The user dont exist')
-      return
-    }
-    if (user.game !== payload.userReceiver.userId) {
-      this.server
-        .to(client.id)
-        .emit('decline_game_response', 'You are not invited to this game')
-      return
-    }
-    if (userReceiver === undefined) {
-      await this.userService.setGame(user.userId, '')
-      this.server
-        .to(client.id)
-        .emit('decline_game_response', 'The user dont exist')
-      return
-    }
-    await this.userService.setGame(userReceiver.userId, '')
-    await this.userService.setGame(user.userId, '')
-    const decline = {
-      type: 'decline the game',
-    }
-    this.server.to(user.socketId).emit('game', decline)
-    this.server.to(userReceiver.socketId).emit('game', decline)
-    this.logger.log(`decline`)
-    this.server.to(client.id).emit('decline_game_response', 'Success')
-  }
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('leave_room')
