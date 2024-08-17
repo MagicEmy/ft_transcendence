@@ -73,10 +73,10 @@ export class MatchMaker implements IGame
 		return (true);
 	}
 
-	public static RemovePlayer(id: string)
+	public static RemovePlayer(playerID: string)
 	{
 		let index: number;
-		while ((index = MatchMaker.matchQueue.findIndex(id => id === id)) !== -1)
+		while ((index = MatchMaker.matchQueue.findIndex(id => id.id === playerID)) !== -1)
 			MatchMaker.matchQueue.splice(index, 1)[0];
 
 		if (MatchMaker.matchQueue.length < 1)

@@ -15,27 +15,27 @@ enum GamePongTheme
 	Modern,
 }
 
-class GameMenu
-{
-	public name:	string;
-	public flag:	string;
-	public active:	boolean;
-	public up:	GameMenu | null;
-	public down:	GameMenu | null;
-	public left:	GameMenu | null;
-	public right:	GameMenu | null;
+// class GameMenu
+// {
+// 	public name:	string;
+// 	public flag:	string;
+// 	public active:	boolean;
+// 	public up:	GameMenu | null;
+// 	public down:	GameMenu | null;
+// 	public left:	GameMenu | null;
+// 	public right:	GameMenu | null;
 
-	public constructor(name: string, flag: string)
-	{
-		this.name = name;
-		this.flag = flag;
-		this.active = false;
-		this.up = null;
-		this.down = null;
-		this.left = null;
-		this.right = null;
-	}
-}
+// 	public constructor(name: string, flag: string)
+// 	{
+// 		this.name = name;
+// 		this.flag = flag;
+// 		this.active = false;
+// 		this.up = null;
+// 		this.down = null;
+// 		this.left = null;
+// 		this.right = null;
+// 	}
+// }
 
 class GameGraphics
 {
@@ -101,7 +101,7 @@ class GameGraphics
 		context = element.getContext("2d");
 
 		if (!(context instanceof CanvasRenderingContext2D))
-			throw (`Failed to get 2D context for ${element.id}`);
+			throw new Error(`Failed to get 2D context for ${element.id}`);
 		return (context);
 	}
 
@@ -556,6 +556,7 @@ class GameGraphics
 		const msg: any = JSON.parse(message);
 
 		this.clearContext(this.MenuElement, this.MenuContext);
+		this.fillContext(this.HUDElement, this.HUDContext, "black");
 		this.RenderHead("Match Maker", this.MenuElement, this.MenuContext);
 
 		this.MenuContext.fillStyle = "orange";

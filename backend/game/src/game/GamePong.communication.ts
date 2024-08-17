@@ -233,8 +233,6 @@ export namespace SocketCommunication
 \* ************************************************************************** */
 
 import { logLevel } from 'kafkajs';
-import { Button } from './GamePong.enums';
-import { MatchMaker } from './NewGameMatchMaker';
 
 export namespace KafkaCommunication
 {

@@ -4,6 +4,7 @@ import { GameManager } from "./NewGameManager";
 import { IGame } from "./IGame";
 import { KafkaCommunication, SocketCommunication } from "./GamePong.communication";
 
+
 export class GamePlayer
 {
 	private client: Socket | null;
