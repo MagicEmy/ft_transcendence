@@ -1,40 +1,11 @@
-import { GamePlayer } from "./GamePlayer";
-import { IGame } from "./IGame";
-import { PlayerInfo, IPlayerInfo, SockEventNames, ISockPongImage, ISockPongImagePlayer, ISockPongImageBall, ISockPongHudPlayer, GameTypes, IGameStatus, MatchTypes, GameStatus } from './GamePong.communication';
-import { Button, GameState, PlayerStatus } from "./GamePong.enums";
-import { GameManager } from "./NewGameManager";
 import { Socket } from 'socket.io';
 
-interface Player
-{
-	player:	GamePlayer | null;
-	id:		any;
-	paddle:	Paddle;
-	status:	string;
-	score:	number
-}
-
-interface Paddle
-{
-	posX:	number;
-	posY:	number;
-	width:	number;
-	height:	number;
-	speed:	number;
-}
-
-interface Ball
-{
-	posX:	number;
-	posY:	number;
-	posZ:	number;
-	rad:	number;
-	speed:	number;
-	maxSpeed:	number;
-	angle:	number;
-	lastHit:	Paddle | null;
-	lastPaddle:	Paddle | null;
-}
+import { IGame } from "./IGame";
+import { GamePlayer } from "./GamePlayer";
+import { GameManager } from "./NewGameManager";
+import { GameTypes, MatchTypes, SocketCommunication, SharedCommunication } from './GamePong.communication';
+import { Button, GameState, PlayerStatus } from "./GamePong.enums";
+import { IPlayer, IPaddle, IBall } from "./GamePong.interfaces";
 
 const FLAGS =
 {
@@ -64,9 +35,9 @@ export class GamePong implements IGame
 	private oldState: GameState;
 	private mode: string;
 	private theme: string;
-	private player1: Player;
-	private player2: Player;
-	private ball: Ball | null;
+	private player1: IPlayer;
+	private player2: IPlayer;
+	private ball: IBall | null;
 
 	private interval: any;
 	private ImageHandlers: Map<Socket, (client: Socket) => void>;
@@ -117,9 +88,9 @@ export class GamePong implements IGame
 		this.interval = setInterval(this.GameLoop.bind(this), 16);
 	}
 
-	private ConstructPlayer(playerId: any, posX: number): Player
+	private ConstructPlayer(playerId: any, posX: number): IPlayer
 	{
-		const player: Player =
+		const player: IPlayer =
 		{
 			player:	(playerId !== null) ? null : new GamePlayer(null, null),
 			id:		(playerId !== null) ? playerId : null,
@@ -132,7 +103,7 @@ export class GamePong implements IGame
 
 	public AddPlayer(playerToAdd: GamePlayer): boolean
 	{
-		let playerPos: Player;
+		let playerPos: IPlayer;
 		if (playerToAdd?.getId() === this.player1.id)
 			playerPos = this.player1;
 		else if (playerToAdd?.getId() === this.player2.id)
@@ -168,17 +139,17 @@ export class GamePong implements IGame
 
 \* ************************************************************************** */
 
-	private AddListerners(player: Player, client: Socket): void
+	private AddListerners(player: IPlayer, client: Socket): void
 	{
 		var handler: any;
 
 		handler = () => this.HandlerImage(client);
 		this.ImageHandlers.set(client, handler);
-		client.on("GameImage", handler);
+		client.on(SocketCommunication.GameImage.REQUEST, handler);
 
 		handler = () => this.HandlerImageFull(client);
 		this.ImageFullHandelers.set(client, handler);
-		client.on("GameImageFull", handler);
+		client.on(SocketCommunication.GameImage.REQUESTFULL, handler);
 
 		handler = () => this.HandlerDisconnect(client);
 		this.DisconnectHandlers.set(client, handler);
@@ -192,14 +163,14 @@ export class GamePong implements IGame
 		handler = this.ImageHandlers.get(client);
 		if (handler)
 		{
-			client.off("GameImage", handler);
+			client.off(SocketCommunication.GameImage.REQUEST, handler);
 			this.ImageHandlers.delete(client);
 		}
 
 		handler = this.ImageFullHandelers.get(client);
 		if (handler)
 		{
-			client.off("GameImageFull", handler);
+			client.off(SocketCommunication.GameImage.REQUESTFULL, handler);
 			this.ImageFullHandelers.delete(client);
 		}
 
@@ -215,12 +186,12 @@ export class GamePong implements IGame
 	{
 		this.ImageHandlers.forEach((handler, client) =>
 		{
-			client.removeAllListeners("GameImage");
+			client.removeAllListeners(SocketCommunication.GameImage.REQUEST);
 			this.ImageHandlers.delete(client);
 		});
 		this.ImageFullHandelers.forEach((handler, client) =>
 		{
-			client.removeAllListeners("GameImageFull");
+			client.removeAllListeners(SocketCommunication.GameImage.REQUESTFULL);
 			this.ImageHandlers.delete(client);
 		});
 		this.DisconnectHandlers.forEach((handler, client) =>
@@ -261,11 +232,11 @@ export class GamePong implements IGame
 
 	private SendImage(client: any): void
 	{
-		let imageData: ISockPongImage;
+		let imageData: SocketCommunication.GameImage.IPong;
 
-		const P1: ISockPongImagePlayer = this.GetImageDataPlayer(this.player1);
-		const P2: ISockPongImagePlayer = this.GetImageDataPlayer(this.player2);
-		const ball: ISockPongImageBall | null = this.GetImageDataBall();
+		const P1: SocketCommunication.GameImage.IPlayer = this.GetImageDataPlayer(this.player1);
+		const P2: SocketCommunication.GameImage.IPlayer = this.GetImageDataPlayer(this.player2);
+		const ball: SocketCommunication.GameImage.IBall | null = this.GetImageDataBall();
 
 		if (this.player1.player.getClient() === client)
 			imageData = { Game: GamePong.gameFlag, Theme: this.theme,
@@ -277,10 +248,10 @@ export class GamePong implements IGame
 			this.MirrorImageDataXAxis(imageData);
 		}
 		if (client.emit)
-			client.emit("GameImage", JSON.stringify(imageData));
+			client.emit(SocketCommunication.GameImage.TOPIC, JSON.stringify(imageData));
 	}
 
-	private GetImageDataPlayer(player: Player): ISockPongImagePlayer
+	private GetImageDataPlayer(player: IPlayer): SocketCommunication.GameImage.IPlayer
 	{
 		return (
 		{
@@ -292,9 +263,9 @@ export class GamePong implements IGame
 		});
 	}
 
-	private GetImageDataBall(): ISockPongImageBall | null
+	private GetImageDataBall(): SocketCommunication.GameImage.IBall | null
 	{
-		let ball: ISockPongImageBall | null = null;
+		let ball: SocketCommunication.GameImage.IBall | null = null;
 		if (this.ball !== null)
 			return({
 				posX: this.ball.posX,
@@ -305,7 +276,7 @@ export class GamePong implements IGame
 		return (null);
 	}
 
-	private MirrorImageDataXAxis(imageData: ISockPongImage): void
+	private MirrorImageDataXAxis(imageData: SocketCommunication.GameImage.IPong): void
 	{
 		imageData.Player1.posX = 1 - imageData.Player1.posX;
 		imageData.Player2.posX = 1 - imageData.Player2.posX;
@@ -315,17 +286,17 @@ export class GamePong implements IGame
 
 	private SendHUD(): void
 	{
-		const P1: ISockPongHudPlayer = this.GetHUDDataPlayer(this.player1);
-		const P2: ISockPongHudPlayer = this.GetHUDDataPlayer(this.player2);
+		const P1: SocketCommunication.GameImage.IPongHUDPlayer = this.GetHUDDataPlayer(this.player1);
+		const P2: SocketCommunication.GameImage.IPongHUDPlayer = this.GetHUDDataPlayer(this.player2);
 
-		this.SendToPlayer(this.player1, "GameHUD", JSON.stringify({game: "pong", P1: P1, P2: P2}));
-		this.SendToPlayer(this.player2, "GameHUD", JSON.stringify({game: "pong", P1: P2, P2: P1}));
+		this.SendToPlayer(this.player1, SocketCommunication.GameImage.TOPICHUD, JSON.stringify({game: GameTypes.PONG, P1: P1, P2: P2}));
+		this.SendToPlayer(this.player2, SocketCommunication.GameImage.TOPICHUD, JSON.stringify({game: GameTypes.PONG, P1: P2, P2: P1}));
 	}
 
-	private GetHUDDataPlayer(player: Player): ISockPongHudPlayer
+	private GetHUDDataPlayer(player: IPlayer): SocketCommunication.GameImage.IPongHUDPlayer
 	{
 		let name: string = (player.player !== null) ? player.player.name : "Bot";
-		
+	
 		return (
 		{
 			name:	name,
@@ -334,7 +305,7 @@ export class GamePong implements IGame
 		});
 	}
 
-	private SendToPlayer(player: Player, flag: string, msg: string)
+	private SendToPlayer(player: IPlayer, flag: string, msg: string)
 	{
 		const client: any = player.player?.getClient();
 
@@ -377,7 +348,7 @@ export class GamePong implements IGame
 	GameLoop
 
 \* ************************************************************************** */
-	
+
 	private GameLoop(): void
 	{
 		switch (this.gameState)
@@ -452,7 +423,7 @@ export class GamePong implements IGame
 			this.SetGameState(GameState.START);
 		}
 		else if (this.timerEvent + 60000 < Date.now()) // 60 seconds
-			this.EndGame(GameStatus.NOCONNECT);
+			this.EndGame(SharedCommunication.PongStatus.Status.NOCONNECT);
 	}
 
 /* ************************************************************************** *\
@@ -509,7 +480,7 @@ export class GamePong implements IGame
 			this.SetGameState(GameState.UNPAUSE);
 		}
 		else if (this.timerEvent + 60000 < Date.now()) // 60 seconds
-			this.EndGame(GameStatus.INTERRUPTED);
+			this.EndGame(SharedCommunication.PongStatus.Status.INTERRUPTED);
 	}
 
 /* ************************************************************************** *\
@@ -527,7 +498,7 @@ export class GamePong implements IGame
 			this.SetGameState(this.oldState);
 		}
 		else if (this.timerEvent + 300000 < Date.now()) // 5 minutes
-			this.EndGame(GameStatus.INTERRUPTED);
+			this.EndGame(SharedCommunication.PongStatus.Status.INTERRUPTED);
 	}
 
 /* ************************************************************************** *\
@@ -536,7 +507,7 @@ export class GamePong implements IGame
 
 	private GameLoopGameOver(): void
 	{
-		this.EndGame(GameStatus.COMPLETED);
+		this.EndGame(SharedCommunication.PongStatus.Status.COMPLETED);
 	}
 
 /* ************************************************************************** *\
@@ -545,7 +516,7 @@ export class GamePong implements IGame
 
 \* ************************************************************************** */
 
-	private PressSpaceToStart(player: Player)
+	private PressSpaceToStart(player: IPlayer)
 	{
 		if (player.status === PlayerStatus.NOTREADY &&
 			(player.player.button[Button.SPACE] ||
@@ -615,10 +586,10 @@ export class GamePong implements IGame
 		return (dir);
 	}
 
-	private UpdatePaddle(paddle: Paddle, dir: number): void
+	private UpdatePaddle(paddle: IPaddle, dir: number): void
 	{
 		paddle.posY += dir * paddle.speed;
-		
+	
 		if (paddle.posY - paddle.height / 2 < 0)
 			paddle.posY = paddle.height / 2;
 		else if (paddle.posY + paddle.height / 2 > 1)
@@ -626,7 +597,7 @@ export class GamePong implements IGame
 
 	}
 
-	private BotKeyPress(bot: Player): void
+	private BotKeyPress(bot: IPlayer): void
 	{
 		if (this.mode !== FLAGS.SOLO.FLAG)
 			return;
@@ -775,7 +746,7 @@ export class GamePong implements IGame
 		}
 
 	}
-	
+
 	private FixBallRadial(): void
 	{
 		const circle: number = Math.PI * 2;
@@ -829,7 +800,7 @@ export class GamePong implements IGame
 		}
 	}
 
-	private CheckEventPaddle(paddle: Paddle): void
+	private CheckEventPaddle(paddle: IPaddle): void
 	{
 		let checkX: number = this.GetRelevantPaddleBorder(this.ball.posX, paddle.posX, paddle.width / 2);
 		let checkY: number = this.GetRelevantPaddleBorder(this.ball.posY, paddle.posY, paddle.height / 2);
@@ -869,7 +840,7 @@ export class GamePong implements IGame
 			this.EventPlayerScored(this.player1);
 	}
 
-	private EventPlayerScored(player: Player): void
+	private EventPlayerScored(player: IPlayer): void
 	{
 		++player.score;
 		if (player.score >= 11)//set to 11
@@ -885,20 +856,20 @@ export class GamePong implements IGame
 
 \* ************************************************************************** */
 
-	private EndGame(status: GameStatus): void
+	private EndGame(status: SharedCommunication.PongStatus.Status): void
 	{
 		console.log(`Pong: Game over for ${this.player1.id} / ${this.player2.id} / ${status}}`);
 
 		clearInterval(this.interval);
-		const data: IGameStatus = this.GenerateEndData(status);
+		const data: SharedCommunication.PongStatus.IPongStatus = this.GenerateEndData(status);
 		const message: string = JSON.stringify(data);
 
 		//send to Kafka
-		GameManager.getInstance().kafkaEmit(GameStatus.TOPIC, message);
+		GameManager.getInstance().kafkaEmit(SharedCommunication.PongStatus.TOPIC, message);
 
 		//send to players
-		this.SendToPlayer(this.player1, GameStatus.TOPIC, message);
-		this.SendToPlayer(this.player2, GameStatus.TOPIC, message);
+		this.SendToPlayer(this.player1, SharedCommunication.PongStatus.TOPIC, message);
+		this.SendToPlayer(this.player2, SharedCommunication.PongStatus.TOPIC, message);
 		this.player1.player.button = [];
 		this.player2.player.button = [];
 
@@ -909,7 +880,7 @@ export class GamePong implements IGame
 		GameManager.getInstance().removeGame(this);
 	}
 
-	private GenerateEndData(status: GameStatus): IGameStatus
+	private GenerateEndData(status: SharedCommunication.PongStatus.Status): SharedCommunication.PongStatus.IPongStatus
 	{
 		console.error("Matchtypes hardcoded");
 		return ({

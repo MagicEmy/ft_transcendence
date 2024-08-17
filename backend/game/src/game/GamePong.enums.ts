@@ -1,9 +1,3 @@
-// export enum GameStatus
-// {
-// 	COMPLETED = 'completed',
-// 	INTERRUPTED = 'interrupted'
-// }
-
 export enum GameState
 {
 	WAITING,

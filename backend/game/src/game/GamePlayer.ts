@@ -1,7 +1,8 @@
-import { IPlayerInfo, PlayerInfo, SockEventNames } from "./GamePong.communication";
-import { IGame } from "./IGame";
-import { GameManager } from "./NewGameManager";
 import { Socket } from 'socket.io';
+
+import { GameManager } from "./NewGameManager";
+import { IGame } from "./IGame";
+import { KafkaCommunication, SocketCommunication } from "./GamePong.communication";
 
 export class GamePlayer
 {
@@ -20,20 +21,20 @@ export class GamePlayer
 			this.ConstructBot();
 	}
 
-	private constructPlayer(client: Socket, id: string)
+	private constructPlayer(client: Socket, id: string): void
 	{
 		// console.log("Creating player");
 		this.client = client;
 		this.id = id;
 		this.button = {};
-	
-		client.on("PlayGame", (message: string) => { this.handlerPlayGame(message); });
-		client.on(SockEventNames.BUTTON, (data: string) => { this.handlerButtonEvent(data); });
-		const player: IPlayerInfo = {
+
+		client.on(SocketCommunication.PlayGame.TOPIC, (message: string) => { this.handlerPlayGame(message); });
+		client.on(SocketCommunication.Button.TOPIC, (data: string) => { this.handlerButtonEvent(data); });
+		const player: KafkaCommunication.PlayerInfo.IPlayerInfo = {
 			playerID:	id,
 		}
 		client.on("disconnect", () => { this.handlerDisconnect() ;});
-		GameManager.getInstance().kafkaEmit(PlayerInfo.TOPIC, JSON.stringify(player));
+		GameManager.getInstance().kafkaEmit(KafkaCommunication.PlayerInfo.TOPIC, JSON.stringify(player));
 	}
 
 	private ConstructBot(): void
@@ -50,7 +51,7 @@ export class GamePlayer
 		// GameManager.getInstance().kafkaEmit(PlayerInfo.REPLY, JSON.stringify(bot));
 	}
 
-	private handlerPlayGame(message: string)
+	private handlerPlayGame(message: string): void
 	{
 		const msg: string[] = JSON.parse(message);
 		console.log(`msg: ${msg[0]}/${msg}`);
@@ -68,9 +69,9 @@ export class GamePlayer
 		}
 	}
 
-	private handlerButtonEvent(data: string)
+	private handlerButtonEvent(data: string): void
 	{
-		const key: any = JSON.parse(data);
+		const key: SocketCommunication.Button.IButton = JSON.parse(data);
 		this.button[key.code] = (key.event === "keydown");
 		// console.log(`${this.status}\t${key.code} ${key.event}`);
 	}
