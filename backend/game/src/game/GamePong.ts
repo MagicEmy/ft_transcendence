@@ -7,6 +7,10 @@ import { GameTypes, MatchTypes, SocketCommunication, SharedCommunication } from 
 import { Button, GameState, PlayerStatus } from "./GamePong.enums";
 import { IPlayer, IPaddle, IBall } from "./GamePong.interfaces";
 
+const maxScore: number = 3;
+const connectionTime: number = 60000; // 1 minute
+const disconnectTime: number = 300000; // 5 minutes
+
 const FLAGS =
 {
 	NAME:	"Pong",
@@ -442,7 +446,7 @@ export class GamePong implements IGame
 		{
 			this.SetGameState(GameState.START);
 		}
-		else if (this.timerEvent + 60000 < Date.now()) // 60 seconds
+		else if (this.timerEvent + connectionTime < Date.now())
 			this.EndGame(SharedCommunication.PongStatus.Status.NOCONNECT);
 	}
 
@@ -517,7 +521,7 @@ export class GamePong implements IGame
 		{
 			this.SetGameState(this.oldState);
 		}
-		else if (this.timerEvent + 300000 < Date.now()) // 5 minutes
+		else if (this.timerEvent + disconnectTime < Date.now())
 			this.EndGame(SharedCommunication.PongStatus.Status.INTERRUPTED);
 	}
 
@@ -863,7 +867,7 @@ export class GamePong implements IGame
 	private EventPlayerScored(player: IPlayer): void
 	{
 		++player.score;
-		if (player.score >= 1)//set to 11
+		if (player.score >= maxScore)
 			this.SetGameState(GameState.GAMEOVER);
 		else
 			this.SetGameState(GameState.NEWBALL);
@@ -902,7 +906,6 @@ export class GamePong implements IGame
 
 	private GenerateEndData(status: SharedCommunication.PongStatus.Status): SharedCommunication.PongStatus.IPongStatus
 	{
-		console.error("Matchtypes hardcoded");
 		return ({
 			gameType:	GameTypes.PONG,
 			matchType:	this.mode,

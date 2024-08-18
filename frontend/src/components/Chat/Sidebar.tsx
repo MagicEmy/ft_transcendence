@@ -49,6 +49,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { host } from "../../utils/ApiRoutes";
 import { useNavigate } from "react-router-dom";
 import GameInvitation from "./GameInvitation";
+import  CreateChatRoom  from "./CreateChatRoom";
 
 function Sidebar() {
   const [userIdStorage] = useStorage<string>("userId", "");
@@ -75,11 +76,9 @@ function Sidebar() {
 
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [roomsToggle, setRoomsToggle] = useState<boolean>(false);
-  const [roomUsersToggle, setRoomUsersToggle] = useState<boolean>(false);
-  const [usersToggle, setUsersToggle] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [toast, setToast] = useState({ show: false, message: "" });
+  const [openSection, setOpenSection] = useState<string>("rooms")
   const navigate = useNavigate();
   const [userToInvite, setUserToInvite] = useState(null);
 
@@ -121,6 +120,10 @@ function Sidebar() {
     }
     return '#09467f'; // Public room color
   };
+
+  const toggleSection = (section: string) => {
+    setOpenSection(openSection === section ? "" : section);
+  }
 
   function joinRoom(room: RoomDto) {
     let password: string | null = "";
@@ -515,18 +518,6 @@ function Sidebar() {
     return <></>;
   }
 
- // Add this function for debugging
- const logImageStyle = (element) => {
-  if (element) {
-    const styles = window.getComputedStyle(element);
-    console.log("Image styles:", {
-      width: styles.width,
-      height: styles.height,
-      borderRadius: styles.borderRadius,
-      objectFit: styles.objectFit
-    });
-  }
-};
   return (
     <div className="sidebar-container">
       <div className="sidebar-section">
@@ -534,12 +525,12 @@ function Sidebar() {
           Rooms
           <Button
             className="sidebar-toggle-button"
-            onClick={() => setRoomsToggle(!roomsToggle)}
+            onClick={() => toggleSection("rooms")}
           >
-            {roomsToggle ? <IoEyeOutline /> : <IoEyeOffOutline />}
+            {openSection === "rooms" ? <IoEyeOutline /> : <IoEyeOffOutline />}
           </Button>
         </h4>
-      {roomsToggle && (
+      {openSection === "rooms" && (
         <ListGroup className="list-group">
           {combinedRooms.map((room, idx) => {
             const isMyRoom = myRooms.some(myRoom => myRoom.roomName === room.roomName);
@@ -613,19 +604,18 @@ function Sidebar() {
         </ListGroup>
         )}
       </div>
-
-      
+    
       <div className="sidebar-section">
         <h4 className="sidebar-heading">
           Room Users
           <Button
-            onClick={() => setRoomUsersToggle(!roomUsersToggle)}
+            onClick={() => toggleSection("roomUsers")}
             className="sidebar-toggle-button"
           >
-            {roomUsersToggle ? <IoEyeOutline /> : <IoEyeOffOutline />}
+            {openSection === "roomUsers" ? <IoEyeOutline /> : <IoEyeOffOutline />}
           </Button>
         </h4>
-        {roomUsersToggle && (
+        {openSection === "roomUsers" && (
           <ListGroup className="scrollable-list">
             {Object.keys(roomMembers).length !== 0 &&
               roomMembers.roomName === currentRoom?.roomName &&
@@ -757,13 +747,13 @@ function Sidebar() {
       <h4 className="sidebar-heading">
         Users
           <Button
-            onClick={() => setUsersToggle(!usersToggle)}
+            onClick={() => toggleSection("users")}
             className="sidebar-toggle-button"
           >
-             {usersToggle ? <IoEyeOutline /> : <IoEyeOffOutline />}
+             {openSection === "users" ? <IoEyeOutline /> : <IoEyeOffOutline />}
           </Button>
         </h4>
-        {usersToggle && (
+        {openSection === "users" && (
           <ListGroup>
             {members.map((member) => (
               <ListGroup.Item
@@ -821,6 +811,10 @@ function Sidebar() {
         <GameInvitation
           userToInvite={userToInvite} 
           onInvitationSent={handleInvitationSent} />
+      </div>
+
+      <div className="sidebar-section">
+        <CreateChatRoom />
       </div>
 
       <ToastContainer className="p-3 sidebar-toast-container">
