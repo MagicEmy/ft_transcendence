@@ -1,63 +1,7 @@
 import GameGraphics from "./GameGraphics";
 import GameSocket from "./GameSocket";
-
-class GameMenu
-{
-	public name:	string;
-	public flag:	string;
-	// public active:	boolean;
-	public up:	GameMenu | null;
-	public down:	GameMenu | null;
-	public left:	GameMenu | null;
-	public right:	GameMenu | null;
-
-	public constructor(name: string, flag: string)
-	{
-		this.name = name;
-		this.flag = flag;
-		// this.active = false;
-		this.up = null;
-		this.down = null;
-		this.left = null;
-		this.right = null;
-	}
-}
-
-enum GameState
-{
-	ERROR = -1,
-	CONNECT,
-	MENU,
-	MATCH,
-	LOADING,
-	PLAYING,
-	GAMEOVER,
-}
-
-// const MenuList =
-// {
-// 	SOLO:		"Solo Game",
-// 	LOCAL:		"Local Game",
-// 	MATCH:		"Find Match",
-// 	INFINITE:	"Infinite Load",
-// 	EXIT:		"Exit",
-// 	EXTRA:		"ExtraTSX",
-// } as const;
-// type MenuKey = keyof typeof MenuList;
-// const menuKeys = Object.keys(MenuList) as MenuKey[];
-
-enum Button
-{
-	ENTER = 13,
-	ESCAPE = 27,
-	SPACE = 32,
-	ARROWLEFT = 37,
-	ARROWUP = 38,
-	ARROWRIGHT = 39,
-	ARROWDOWN = 40,
-	s = 83,
-	w = 87,
-}
+import GameMenu from "./GameMenu";
+import { GameState, Button } from "./Game.enums";
 
 class GameLogic
 {
@@ -80,7 +24,6 @@ class GameLogic
 
 	public keyPress(key: any, event: any): void
 	{
-		// console.log(`Key[${key}]: ${event}`);
 		switch(this.gameState)
 		{
 			case GameState.CONNECT:
@@ -117,14 +60,11 @@ class GameLogic
 				instance.RenderWord("Connecting");	break;
 			case GameState.MENU:
 				this.SendMenuToGraphics();	break ;
-				// instance.renderMenu(this.menuSelect);	break ;
 			case GameState.MATCH:
-			// 	this.keyPressMatch(key, event);	break ;
 				break ;
 			case GameState.LOADING:
 				instance.RenderWord("Loading");	break ;
 			case GameState.PLAYING:
-				// this.keyPressPlaying(key, event);
 				break ;
 			case GameState.GAMEOVER:
 				break ;
@@ -241,16 +181,10 @@ public SetGameStateTo(state: GameState)
 				this.SetMenuCreateDown(pos, "Start", "START");
 			}
 		});
-		// pos = this.menuActive;
-		// while (pos && pos.down)
-		// 	pos = pos.down;
-		// if (pos)
-		// 	this.menuStart = this.SetMenuCreateDown(pos, "Start", "START");
 	}
 
 	private SetMenuCreateDown(node: GameMenu, name: string, flag: string): GameMenu
 	{
-		// console.log(`Down[${node.name}]: ${name}`);
 		node.down = new GameMenu(name, flag);
 		node.down.up = node;
 		return (node.down);
@@ -258,7 +192,6 @@ public SetGameStateTo(state: GameState)
 
 	private SetMenuCreateRight(node: GameMenu, name: string, flag: string): GameMenu
 	{
-		// console.log(`Right[${node.name}]: ${name}`);
 		node.right = new GameMenu(name, flag);
 		node.right.left = node;
 		return (node.right);
@@ -299,11 +232,6 @@ public SetGameStateTo(state: GameState)
 		}
 		return (menu);
 	}
-
-	// public getMenuList(): string[]
-	// {
-	// 	return (Object.values(MenuList));
-	// }
 
 	private keyPressMenu(key: any, event: any): void
 	{
@@ -412,13 +340,9 @@ public SetGameStateTo(state: GameState)
 
 	private keyPressMatchEscape(): void
 	{
-		// const instance: GameSocket = GameSocket.getInstance();
 		const data = {playerID:	GameSocket.GetID(),};
 
 		GameSocket.getInstance()?.emit("LeaveMatchMaker", JSON.stringify(data));
-		// this.ReturnToMenu();
-		// console.error(`inform backend off leaving!`)
-		// console.error(`Undefined keyPressMatchEscape`);
 	}
 
 /* ************************************************************************** *\
@@ -453,18 +377,9 @@ public SetGameStateTo(state: GameState)
 
 	private keyPressPlaying(key: any, event: any): void
 	{
-	// 	const eventData = {
-	// 	code:	key,
-	// 	event:	event,
-	// };
 		GameSocket.getInstance()?.emit("Button", JSON.stringify({code: key, event: event}))
 		if (event === "keyup")
 			return ;
-		switch (key)
-		{
-			default:
-				break ;
-		}
 	}
 }
 

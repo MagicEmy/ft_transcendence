@@ -1,7 +1,7 @@
 // import React, { useEffect, useContext } from 'react';
 // import UserContext from '../../context/UserContext';
 import GameLogic from './GameLogic';
-import GameStyle from './GameStyle';
+import { GameStyle } from './Game.style';
 import GameSocket from './GameSocket';
 
 enum Game
@@ -14,28 +14,6 @@ enum GamePongTheme
 	Retro,
 	Modern,
 }
-
-// class GameMenu
-// {
-// 	public name:	string;
-// 	public flag:	string;
-// 	public active:	boolean;
-// 	public up:	GameMenu | null;
-// 	public down:	GameMenu | null;
-// 	public left:	GameMenu | null;
-// 	public right:	GameMenu | null;
-
-// 	public constructor(name: string, flag: string)
-// 	{
-// 		this.name = name;
-// 		this.flag = flag;
-// 		this.active = false;
-// 		this.up = null;
-// 		this.down = null;
-// 		this.left = null;
-// 		this.right = null;
-// 	}
-// }
 
 class GameGraphics
 {
@@ -77,7 +55,7 @@ class GameGraphics
 			GameGraphics.instance.MenuElement = menu;
 			GameGraphics.instance.MenuContext = GameGraphics.instance.getContext(GameGraphics.instance.MenuElement);
 
-			GameGraphics.instance.resizeElements();
+			GameGraphics.instance.ConfigureGame();
 		}
 		catch (error)
 		{
@@ -131,8 +109,6 @@ class GameGraphics
 		this.adjustSize(this.CnvsElement);
 		this.adjustSize(this.HUDElement);
 		this.adjustSize(this.MenuElement);
-
-		this.renderBackground();
 	}
 
 	private adjustSize(element: HTMLCanvasElement): void
@@ -188,24 +164,24 @@ class GameGraphics
 
 	private renderBackgroundPongRetro(): void
 	{
-		this.fillContext(this.BackElement, this.BackContext, GameStyle.Retro.BACKGROUND);
+		this.fillContext(this.BackElement, this.BackContext, GameStyle.Pong.Retro.BACKGROUND);
 		const posX: number = this.BackElement.width / 2 - 2;
 		const square =
 		{
 			height: this.BackElement.height / 60,
 			width: 4,
 		};
-		this.BackContext.fillStyle = GameStyle.Retro.LINES;
+		this.BackContext.fillStyle = GameStyle.Pong.Retro.LINES;
 		for (let posY: number = square.height / 2; posY < this.BackElement.height; posY += square.height * 2)
 			this.BackContext.fillRect(posX, posY, square.width, square.height);
 	}
 
 	private renderBackgroundPongModern(): void
 	{	
-		this.fillContext(this.BackElement, this.BackContext, "black");
+		this.fillContext(this.BackElement, this.BackContext, GameStyle.Pong.Modern.BACKGROUND);
 
-		this.renderTableSegment(0, "white");
-		this.renderTableSegment(1/23, "green");
+		this.renderTableSegment(0, GameStyle.Pong.Modern.LINES);
+		this.renderTableSegment(1/23, GameStyle.Pong.Modern.TABLE);
 	}
 
 	private renderTableSegment(margin: number, color: string)
@@ -277,7 +253,7 @@ class GameGraphics
 
 	private AddPaddleRetro(player: any)
 	{
-		this.CnvsContext.fillStyle = GameStyle.Retro.PADDLE;
+		this.CnvsContext.fillStyle = GameStyle.Pong.Retro.PADDLE;
 
 		player.posX = (player.posX - (player.width / 2)) * this.CnvsElement.width;
 		player.posY = (player.posY - (player.height / 2)) * this.CnvsElement.height;
@@ -294,7 +270,7 @@ class GameGraphics
 		ball.posY *= this.CnvsElement.height;
 		ball.size *= this.CnvsElement.width;
 
-		this.CnvsContext.fillStyle = "white";
+		this.CnvsContext.fillStyle = GameStyle.Pong.Retro.BALL;
 		this.CnvsContext.beginPath();
 		this.CnvsContext.arc(ball.posX, ball.posY, ball.size, 0, 2 * Math.PI);
 		this.CnvsContext.fill();
@@ -314,11 +290,11 @@ class GameGraphics
 
 		this.renderPongModernShadows(msg.Player1, msg.Player2, msg.Ball);
 	
-		renderList.push({ sortValue: msg.Player2.posX, func: () => this.RenderPongModernEntity(msg.Player2.posX, msg.Player2.posY, 1, msg.Player2.height / 2, "red") });
+		renderList.push({ sortValue: msg.Player2.posX, func: () => this.RenderPongModernEntity(msg.Player2.posX, msg.Player2.posY, 1, msg.Player2.height / 2, GameStyle.Pong.Modern.PADDLE) });
 		if (msg.Ball !== null)
-			renderList.push({ sortValue: msg.Ball.posX, func: () => 		this.RenderPongModernEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.posZ, msg.Ball.size * 2, "yellow") });
-		renderList.push({ sortValue: 0.5, func: () => this.RenderPongModernNet(0.5, "grey") });
-		renderList.push({ sortValue: msg.Player1.posX, func: () => this.RenderPongModernEntity(msg.Player1.posX, msg.Player1.posY, 1, msg.Player1.height / 2, "red") });
+			renderList.push({ sortValue: msg.Ball.posX, func: () => 		this.RenderPongModernEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.posZ, msg.Ball.size * 2, GameStyle.Pong.Modern.BALL) });
+		renderList.push({ sortValue: 0.5, func: () => this.RenderPongModernNet(0.5, GameStyle.Pong.Modern.NET) });
+		renderList.push({ sortValue: msg.Player1.posX, func: () => this.RenderPongModernEntity(msg.Player1.posX, msg.Player1.posY, 1, msg.Player1.height / 2, GameStyle.Pong.Modern.PADDLE) });
 
 		renderList.sort((a, b) => b.sortValue - a.sortValue);
 		for (const item of renderList)
@@ -332,7 +308,7 @@ class GameGraphics
 		if (player2)
 			this.renderPongModernShadowsPlayer(player2)
 		if (ball)
-			this.RenderPongModernEntity(ball.posX, ball.posY, 0, ball.size * 2, "rgba(0, 0, 0, 0.69)");
+			this.RenderPongModernEntity(ball.posX, ball.posY, 0, ball.size * 2, GameStyle.Pong.Modern.SHADOW);
 	}
 
 	private renderPongModernShadowsPlayer(player: any)
@@ -341,7 +317,7 @@ class GameGraphics
 		const width: number = player.width / 2;
 		const height: number = player.height / 2;
 	
-		this.CnvsContext.fillStyle = "rgba(0, 0, 0, 0.69)";
+		this.CnvsContext.fillStyle = GameStyle.Pong.Modern.SHADOW;
 		this.CnvsContext.beginPath();
 
 		posXY = this.GetXY(player.posX - width, player.posY - height, 0);
@@ -459,25 +435,25 @@ class GameGraphics
 
 	private AddPlayerInfo(pos: number, name: string, score: string, status: string)
 	{
-		this.HUDContext.fillStyle = "rgba(123, 123, 123, 1)";
+		this.HUDContext.fillStyle = GameStyle.Pong.HUD.COLOR;
 
-		this.HUDContext.font = `${this.HUDElement.width / 16}px ${GameStyle.Menu.FONT}`;
+		this.HUDContext.font = `${this.HUDElement.width / 16}px ${GameStyle.Pong.HUD.FONT}`;
 		let posX = this.HUDElement.width * pos - this.HUDContext.measureText(name).width / 2;
 		let posY = this.HUDContext.measureText(name).actualBoundingBoxAscent +
 					this.HUDElement.height / 23;
 		this.HUDContext.fillText(name, posX, posY);
 
-		this.HUDContext.font = `${this.HUDElement.width / 8}px ${GameStyle.Menu.FONT}`;
+		this.HUDContext.font = `${this.HUDElement.width / 8}px ${GameStyle.Pong.HUD.FONT}`;
 		posX = this.HUDElement.width * pos - this.HUDContext.measureText(score).width / 2;
 		posY += this.HUDContext.measureText(score).actualBoundingBoxAscent +
 				this.HUDElement.height / 23;
 		this.HUDContext.fillText(score, posX, posY);
 
-		this.HUDContext.font = `${this.HUDElement.width / 23}px ${GameStyle.Menu.FONT}`;
+		this.HUDContext.font = `${this.HUDElement.width / 32}px ${GameStyle.Pong.HUD.FONT}`;
 		posX = this.HUDElement.width * pos - this.HUDContext.measureText(status).width / 2;
 		posY = this.HUDContext.measureText(status).actualBoundingBoxAscent +
 					this.HUDElement.height * 21 / 23;
-		this.HUDContext.fillText(status, posX, posY);
+		this.HUDContext.fillText(status, posX, posY, this.HUDElement.width / 2);
 	}
 
 	/* ************************************************************************** *\
@@ -488,17 +464,18 @@ class GameGraphics
 
 	public RenderWord(word: string): void
 	{
+		const measureWord = `${word}    `;
 		let dots = new Date().getSeconds() % 4;
 		word += ".".repeat(dots);
 		word += " ".repeat(4 - dots);
 
-		let size = this.getFontSize(this.HUDContext, word, this.HUDElement.height / 2, this.HUDElement.width / 2, GameStyle.Menu.FONT); //add to this
-		this.HUDContext.font = size + "px " + GameStyle.Menu.FONT;
-		let posX = this.HUDElement.width / 2 - (this.HUDContext.measureText(word).width / 2);
+		let size = this.getFontSize(this.HUDContext, measureWord, this.HUDElement.height / 2, this.HUDElement.width / 2, GameStyle.Base.FONT); //add to this
+		this.HUDContext.font = `${size}px ${GameStyle.Base.FONT}`;
+		let posX = this.HUDElement.width / 2 - (this.HUDContext.measureText(measureWord).width / 2);
 		let posY = this.HUDElement.height / 2;
 
-		this.fillContext(this.HUDElement, this.HUDContext, GameStyle.Menu.BODY);
-		this.HUDContext.fillStyle = GameStyle.Menu.FONTDEFAULT;
+		this.fillContext(this.HUDElement, this.HUDContext, GameStyle.Base.BACKGROUND);
+		this.HUDContext.fillStyle = GameStyle.Base.COLOR;
 		this.HUDContext.fillText(word, posX, posY);
 		setTimeout(() => GameLogic.getInstance()?.UpdateGraphics?.(), 500);
 	}
@@ -512,7 +489,7 @@ class GameGraphics
 	public renderMenu(menuList: string[], selectMenu: number): void
 	{
 		this.clearContext(this.MenuElement, this.MenuContext);
-		this.fillContext(this.MenuElement, this.MenuContext, GameStyle.Menu.BODY);
+		this.fillContext(this.MenuElement, this.MenuContext, GameStyle.Menu.Body.BACKGROUND);
 		this.RenderHead("Menu", this.MenuElement, this.MenuContext);
 		this.renderMenuList(menuList, selectMenu);
 	}
@@ -525,25 +502,47 @@ class GameGraphics
 			let temp = this.getFontSize(this.MenuContext, menuList[i], 
 										this.MenuElement.height * 0.77 / (menuList.length + 2),
 										this.MenuElement.width * 0.75,
-										GameStyle.Menu.FONT);
+										GameStyle.Menu.Font.BASE);
 			if (temp < size)
 				size = temp;
 		}
-		this.MenuContext.font = size + "px " + GameStyle.Menu.FONT;
+		this.MenuContext.font = size + "px " + GameStyle.Menu.Font.BASE;
 		const sizeH = this.MenuContext.measureText("M").actualBoundingBoxAscent;
-		this.MenuContext.font = size * 0.75 + "px " + GameStyle.Menu.FONT;
+		this.MenuContext.font = size * 0.75 + "px " + GameStyle.Menu.Font.BASE;
 
 		for (let i: number = 0; i < menuList.length; ++i)
 		{
 			if (i === selectMenu)
-				this.MenuContext.fillStyle = GameStyle.Menu.FONTFOCUS;
+				this.MenuContext.fillStyle = GameStyle.Menu.Font.C_FOCUS;
 			else
-				this.MenuContext.fillStyle = GameStyle.Menu.FONTDEFAULT;
+				this.MenuContext.fillStyle = GameStyle.Menu.Font.C_BASE;
 			const posX = this.MenuElement.width * 0.5 - this.MenuContext.measureText(menuList[i]).width / 2;
 			const posY = this.MenuElement.height * 0.23 + sizeH * (i + 2);
 			this.MenuContext.fillText(menuList[i], posX, posY);
 		}
 	}
+
+	// class GameMenu
+	// {
+	// 	public name:	string;
+	// 	public flag:	string;
+	// 	public active:	boolean;
+	// 	public up:	GameMenu | null;
+	// 	public down:	GameMenu | null;
+	// 	public left:	GameMenu | null;
+	// 	public right:	GameMenu | null;
+	
+	// 	public constructor(name: string, flag: string)
+	// 	{
+	// 		this.name = name;
+	// 		this.flag = flag;
+	// 		this.active = false;
+	// 		this.up = null;
+	// 		this.down = null;
+	// 		this.left = null;
+	// 		this.right = null;
+	// 	}
+	// }
 
 	/* ************************************************************************** *\
 
@@ -556,11 +555,11 @@ class GameGraphics
 		const msg: any = JSON.parse(message);
 
 		this.clearContext(this.MenuElement, this.MenuContext);
-		this.fillContext(this.HUDElement, this.HUDContext, "black");
+		this.fillContext(this.HUDElement, this.HUDContext, GameStyle.Base.BACKGROUND);
 		this.RenderHead("Match Maker", this.MenuElement, this.MenuContext);
 
-		this.MenuContext.fillStyle = "orange";
-		this.MenuContext.font = 42 + "px " + GameStyle.Menu.FONT;
+		this.MenuContext.fillStyle = GameStyle.Base.C_FOCUS;
+		this.MenuContext.font = 42 + "px " + GameStyle.Base.FONT;
 
 		let posY: number = this.MenuElement.height * 0.4;
 		const difY: number = this.MenuElement.height * 0.1;
@@ -583,7 +582,7 @@ class GameGraphics
 
 	public RenderGameOver(message: string): void
 	{
-		this.fillContext(this.MenuElement, this.MenuContext, "black");
+		this.fillContext(this.MenuElement, this.MenuContext, GameStyle.Pong.EndScreen.BACKGROUND);
 
 		this.RenderHead("Game Over", this.MenuElement, this.MenuContext);
 		this.RenderEndGameInfo(message);
@@ -610,11 +609,11 @@ class GameGraphics
 
 		//print info
 		if (won === true)
-			this.RenderEndGameText("You won!", "green", `${msg.player1Score}:${msg.player2Score}`);
+			this.RenderEndGameText("You won!", GameStyle.Pong.EndScreen.C_WIN, `${msg.player1Score}:${msg.player2Score}`);
 		else if (won === false)
-			this.RenderEndGameText("You lost!", "red", `${msg.player1Score}:${msg.player2Score}`);
+			this.RenderEndGameText("You lost!", GameStyle.Pong.EndScreen.C_LOSE, `${msg.player1Score}:${msg.player2Score}`);
 		else
-			this.RenderEndGameText("Its a tie!", "orange", `${msg.player1Score}:${msg.player2Score}`);
+			this.RenderEndGameText("Its a tie!", GameStyle.Pong.EndScreen.C_DEFAULT, `${msg.player1Score}:${msg.player2Score}`);
 	}
 
 	private RenderEndGameText(status: string, color: string, score: string): void
@@ -623,20 +622,20 @@ class GameGraphics
 		let posY: number;
 
 		this.MenuContext.fillStyle = color;
-		this.MenuContext.font = `${this.MenuElement.width / 10}px ${GameStyle.Menu.FONT}`;
+		this.MenuContext.font = `${this.MenuElement.width / 10}px ${GameStyle.Pong.EndScreen.FONT}`;
 		posX = this.MenuElement.width / 2 - (this.MenuContext.measureText(status).width / 2);
 		posY = this.MenuElement.height * 0.4;
 		this.MenuContext.fillText(status, posX, posY, this.MenuElement.width / 2);
 
 		posY += this.MenuContext.measureText(status).actualBoundingBoxAscent;
-		this.MenuContext.fillStyle = "grey";
-		this.MenuContext.font = `${this.MenuElement.width / 16}px ${GameStyle.Menu.FONT}`;
+		this.MenuContext.fillStyle = GameStyle.Pong.EndScreen.COLOR;
+		this.MenuContext.font = `${this.MenuElement.width / 16}px ${GameStyle.Pong.EndScreen.FONT}`;
 		posX = this.MenuElement.width / 2 - (this.MenuContext.measureText(score).width / 2);
 		this.MenuContext.fillText(score, posX, posY, this.MenuElement.width / 2);
 
-		this.MenuContext.fillStyle = "grey";
+		this.MenuContext.fillStyle = GameStyle.Pong.EndScreen.COLOR;
 		const pressKey: string = "Press 'any' key to continue";
-		this.MenuContext.font = `${this.MenuElement.width / 23}px ${GameStyle.Menu.FONT}`;
+		this.MenuContext.font = `${this.MenuElement.width / 23}px ${GameStyle.Pong.EndScreen.FONT}`;
 		posX = this.MenuElement.width / 2 - (this.MenuContext.measureText(pressKey).width / 2);
 		posY = this.MenuElement.height * 0.9;
 		this.MenuContext.fillText(pressKey, posX, posY, this.MenuElement.width * 0.75);
@@ -651,17 +650,17 @@ class GameGraphics
 	private RenderHead(title: string, element: HTMLCanvasElement = this.HUDElement, context: CanvasRenderingContext2D = element.getContext("2d")): void
 	{
 		const height = 0.23;
-		context.fillStyle = GameStyle.Menu.HEADER;
+		context.fillStyle = GameStyle.Menu.Header.C_BODY;
 		context.fillRect(0, 0, element.width, element.height * height);
-		context.fillStyle = GameStyle.Menu.BORDER;
+		context.fillStyle = GameStyle.Menu.Header.C_BORDER;
 		context.fillRect(0, element.height * (height - 0.01), element.width, element.height * 0.01);
 
-		const size = this.getFontSize(context, title, element.height * height / 2, element.width * 0.75, GameStyle.Menu.FONT);
-		context.font = size + "px " + GameStyle.Menu.FONT;
+		const size = this.getFontSize(context, title, element.height * height / 2, element.width * 0.75, GameStyle.Menu.Header.FONT);
+		context.font = size + "px " + GameStyle.Menu.Header.FONT;
 		const posX = (element.width - context.measureText(title).width) * 0.5;
 		let posY = element.height * 0.04 + context.measureText(title).actualBoundingBoxAscent;
 		posY = element.height * height * 0.75;
-		context.fillStyle = GameStyle.Menu.FONTFOCUS;
+		context.fillStyle = GameStyle.Menu.Header.C_FONT;
 		context.fillText(title, posX, posY);
 	}
 

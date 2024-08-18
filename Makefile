@@ -1,19 +1,25 @@
+DOCKER :=	docker
+DCKR_COMP :=	${DOCKER}-compose
+
 all:
-	docker-compose up --build
+	$(DCKR_COMP) up --build
 
 build start up stop kill down:
-	docker compose $@
+	$(DCKR_COMP) $@
+
+daemon:
+	${DCKR_COMP} up -d
 
 clean: down
-	docker rmi $(shell docker images -q)
-	docker volume rm $(shell docker volume ls -q)
+	$(DOCKER) rmi $(shell $(DOCKER) images -aq) | true
+	$(DOCKER) volume rm $(shell $(DOCKER) volume ls -q) | true
 
 fclean: clean
-	docker system prune -af
-	docker volume prune -f
+	$(DOCKER) system prune -af
+	$(DOCKER) volume prune -f
 
 #volumes that are no longer associated with containers after a docker system prune,
 
 re: fclean all
 
-.PHONY: all build start up stop kill down clean fclean re
+.PHONY: all build start up stop kill down daemon clean fclean re

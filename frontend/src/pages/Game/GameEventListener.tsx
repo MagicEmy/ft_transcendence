@@ -1,3 +1,4 @@
+import { SocketCommunication } from "./Game.communication";
 import GameGraphics from "./GameGraphics";
 import GameLogic from "./GameLogic";
 import GameSocket from "./GameSocket";
@@ -36,7 +37,7 @@ class GameEventListener
 	{
 		GameGraphics.getInstance()?.ResetSize();
 		GameLogic.getInstance()?.UpdateGraphics();
-		GameSocket.getInstance()?.emit("GameImageFull");
+		GameSocket.getInstance()?.emit(SocketCommunication.GameImage.REQUESTFULL);
 	}
 
 	private static handleKeyEvent(event: KeyboardEvent): void
