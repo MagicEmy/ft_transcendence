@@ -1,0 +1,49 @@
+.game-invitation {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+  }
+  
+  .game-invitation-heading {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+  }
+  
+  .inviter-name {
+    font-weight: bold;
+  }
+  
+  .invitation-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+  }
+  
+  .action-button {
+    margin-left: 10px;
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 0.9rem;
+  }
+  
+  .accept-button {
+    background: linear-gradient(in oklab, #28a745 10%, #34ce57 90%);
+    border: none;
+  }
+  
+  .decline-button {
+    background: linear-gradient(in oklab, #dc3545 10%, #e4606d 90%);
+    border: none;
+  }
+  
+  .btn-info {
+    background: linear-gradient(in oklab, #17a2b8 10%, #1fc8e3 90%);
+    border: none;
+    color: white;
+  }
+  
+  .btn-info:hover {
+    background: linear-gradient(in oklab, #17a2b8 30%, #1fc8e3 70%);
+    color: white;
+  }
