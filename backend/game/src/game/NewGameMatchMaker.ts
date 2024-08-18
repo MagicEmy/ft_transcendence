@@ -147,14 +147,6 @@ export class MatchMaker implements IGame
 		});
 	}
 
-	// public static UpdatePlayer(player: KafkaCommunication.PlayerInfo.IPlayerInfo): void
-	// {
-	// 	if (player.playerRank)
-	// 		for (let i: number = 0; i < MatchMaker.matchQueue.length; ++i)
-	// 			if (MatchMaker.matchQueue[i].id === player.playerID)
-	// 				MatchMaker.matchQueue[i].rank = player.playerRank;
-	// }
-
 	public static RemovePlayer(playerID: string): void
 	{
 		let index: number;
@@ -184,21 +176,17 @@ export class MatchMaker implements IGame
 
 	private static MatchLoop()
 	{
-		// console.log("checking for match general");
 		for (let i: number = 0; i < MatchMaker.matchQueue.length - 1; ++i)
 		{
-			// console.log(`checking ${MatchMaker.matchQueue[i].player}/${MatchMaker.matchQueue[i + 1].player}`);
 			if (Math.abs(MatchMaker.matchQueue[i].rank - MatchMaker.matchQueue[i + 1].rank) <=
 				MatchMaker.matchQueue[i].time + MatchMaker.matchQueue[i + 1].time)
 			{
-				// console.log("Found a match");
 				const player1: IPlayerRanked = MatchMaker.matchQueue[i];
 				const player2: IPlayerRanked = MatchMaker.matchQueue[i + 1];
 				const game: IGame = GameManager.getInstance().CreateGame(player1.player, 
 													GamePong.GetFlag(), 
 													["pair", "retro"],
 													[player1.id, player2.id]);
-				// console.log(`match received game ${game}`);
 				MatchMaker.AddPlayerToGameAndRemoveFromList(game, player1.player);
 				MatchMaker.AddPlayerToGameAndRemoveFromList(game, player2.player);
 				break ;
@@ -216,7 +204,6 @@ export class MatchMaker implements IGame
 	{
 		try
 		{
-			console.log(`game ${game}`);
 			if (!game.AddPlayer(player))
 				console.error(`Error adding ${player.getId()} to game.`);
 		}
@@ -225,6 +212,7 @@ export class MatchMaker implements IGame
 			console.error(`Exception adding ${player.getId()} to game.`);
 		}
 		MatchMaker.RemovePlayer(player.getId());
+		MatchMaker.RemoveListeners(player.getClient());
 	}
 
 	private static UpdateClient(player: IPlayerRanked)
