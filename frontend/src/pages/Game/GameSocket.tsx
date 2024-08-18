@@ -5,6 +5,7 @@ import { io, Socket } from "socket.io-client";
 import GameLogic from "./GameLogic";
 import GameGraphics from "./GameGraphics";
 import { SocketCommunication } from "./Game.communication";
+import { GamePongTheme, GameTypes } from "./Game.enums";
 
 class GameSocket
 {
@@ -64,6 +65,13 @@ class GameSocket
 		{
 			GameLogic.getInstance()?.SetGameStateTo(2);
 			GameGraphics.getInstance()?.RenderMatchMaker(message);
+		});
+
+		this.socket.on(SocketCommunication.NewGame.TOPIC, (message: any) =>
+		{
+			const msg: SocketCommunication.NewGame.INewGame = JSON.parse(message);
+
+			GameGraphics.getInstance()?.ConfigureGame(msg.game, msg.theme);
 		});
 
 		this.socket.on(SocketCommunication.GameImage.TOPICHUD, (message: any) =>

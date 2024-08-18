@@ -3,17 +3,7 @@
 import GameLogic from './GameLogic';
 import { GameStyle } from './Game.style';
 import GameSocket from './GameSocket';
-
-enum Game
-{
-	Pong,
-}
-
-enum GamePongTheme
-{
-	Retro,
-	Modern,
-}
+import { GameTypes, GamePongTheme } from './Game.enums';
 
 class GameGraphics
 {
@@ -30,13 +20,13 @@ class GameGraphics
 	private MenuElement: HTMLCanvasElement;
 	private MenuContext: CanvasRenderingContext2D;
 
-	private game: Game;
-	private theme: number;
+	private game: GameTypes;
+	private theme: GamePongTheme;
 
 	private constructor()
 	{
-		this.game = 0;
-		this.theme = 0;
+		this.game = GameTypes.PONG;
+		this.theme = GamePongTheme.Retro;
 	}
 
 	public static CreateInstance(game: HTMLDivElement, back: HTMLCanvasElement, canvas: HTMLCanvasElement, HUD: HTMLCanvasElement, menu: HTMLCanvasElement): GameGraphics | null
@@ -83,7 +73,7 @@ class GameGraphics
 		return (context);
 	}
 
-	public ConfigureGame(game: Game = this.game, theme: any = this.theme): void
+	public ConfigureGame(game: GameTypes = this.game, theme: any = this.theme): void
 	{
 		this.game = game;
 		this.theme = theme;
@@ -136,13 +126,13 @@ class GameGraphics
 
 	\* ************************************************************************** */
 
-	private renderBackground(game: Game = this.game, theme?: any): void
+	private renderBackground(game: GameTypes = this.game, theme?: any): void
 	{
 		this.clearContext(this.BackElement, this.BackContext);
 
 		switch (game)
 		{
-			case Game.Pong:
+			case GameTypes.PONG:
 				this.renderBackgroundPong(theme); break;
 			default:
 				console.error(`Error: Undefined game ${this.game}`); break;
@@ -231,11 +221,11 @@ class GameGraphics
 		{
 			case "retro":
 				if (this.theme !== GamePongTheme.Retro)
-					this.ConfigureGame(Game.Pong, GamePongTheme.Retro);
+					this.ConfigureGame(GameTypes.PONG, GamePongTheme.Retro);
 				this.RenderCanvasPongRetro(msg); break;
 			case "modern":
 				if (this.theme !== GamePongTheme.Modern)
-					this.ConfigureGame(Game.Pong, GamePongTheme.Modern);
+					this.ConfigureGame(GameTypes.PONG, GamePongTheme.Modern);
 				this.RenderCanvasPongModern(msg);	break;
 			default:
 				console.error(`Error: Undefined Pong themes ${msg.Theme}`); break;
@@ -464,10 +454,10 @@ class GameGraphics
 
 	public RenderWord(word: string): void
 	{
-		const measureWord = `${word}    `;
+		const measureWord = `${word}...`;
 		let dots = new Date().getSeconds() % 4;
 		word += ".".repeat(dots);
-		word += " ".repeat(4 - dots);
+		word += " ".repeat(3 - dots);
 
 		let size = this.getFontSize(this.HUDContext, measureWord, this.HUDElement.height / 2, this.HUDElement.width / 2, GameStyle.Base.FONT); //add to this
 		this.HUDContext.font = `${size}px ${GameStyle.Base.FONT}`;
@@ -587,7 +577,7 @@ class GameGraphics
 		this.RenderHead("Game Over", this.MenuElement, this.MenuContext);
 		this.RenderEndGameInfo(message);
 
-		this.renderBackground(Game.Pong, GamePongTheme.Retro);
+		this.renderBackground(GameTypes.PONG, GamePongTheme.Retro);
 		this.clearContext(this.CnvsElement, this.CnvsContext);
 		this.clearContext(this.HUDElement, this.HUDContext);
 	}

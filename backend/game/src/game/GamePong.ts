@@ -136,7 +136,8 @@ export class GamePong implements IGame
 		playerPos.player = playerToAdd;
 		this.AddListerners(playerPos, playerToAdd.getClient());
 		playerPos.status = PlayerStatus.WAITING;
-		this.SendHUD();
+		this.SendGameInfo(playerPos);
+		// this.SendHUD();
 //TODOKAFKA: add kafka to inform player is playing
 		return (true);
 	}
@@ -254,6 +255,19 @@ export class GamePong implements IGame
 
 \* ************************************************************************** */
 
+	private SendGameInfo(player: IPlayer)
+	{
+		const data: SocketCommunication.NewGame.INewGame =
+		{
+			game: GameTypes.PONG,
+			theme:	this.theme,
+			mode:	this.mode,
+		};
+
+		player.player.getClient()?.emit(SocketCommunication.NewGame.TOPIC, JSON.stringify(data));
+		this.SendHUD();
+	}
+
 	private SendImage(client: any): void
 	{
 		let imageData: SocketCommunication.GameImage.IPong;
@@ -316,6 +330,8 @@ export class GamePong implements IGame
 		this.SendToPlayer(this.player1, SocketCommunication.GameImage.TOPICHUD, JSON.stringify({game: GameTypes.PONG, P1: P1, P2: P2}));
 		this.SendToPlayer(this.player2, SocketCommunication.GameImage.TOPICHUD, JSON.stringify({game: GameTypes.PONG, P1: P2, P2: P1}));
 	}
+
+
 
 	private GetHUDDataPlayer(player: IPlayer): SocketCommunication.GameImage.IPongHUDPlayer
 	{
