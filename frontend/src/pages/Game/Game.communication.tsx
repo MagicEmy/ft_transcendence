@@ -30,6 +30,18 @@ export namespace SocketCommunication
 		};
 	}
 
+	export namespace NewGame
+	{
+		export const TOPIC: string = "NewGame";
+
+		export interface INewGame
+		{
+			game: GameTypes,
+			theme: string,
+			mode: string,
+		};
+	}
+
 	export namespace GameImage
 	{
 		export const REQUEST: string =	"GameImage";

@@ -4,6 +4,12 @@ export enum GameTypes
 	PONG =	"PONG",
 };
 
+export enum GamePongTheme
+{
+	Retro = "retro",
+	Modern = "modern",
+}
+
 export enum MatchTypes
 {
 	SOLO =	"solo",
