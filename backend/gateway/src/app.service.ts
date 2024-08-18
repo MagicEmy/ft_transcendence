@@ -11,7 +11,6 @@ import {
   switchMap,
   mergeMap,
   throwError,
-  lastValueFrom,
 } from 'rxjs';
 import { IGameStatus } from './interface/kafka.interface';
 import { FriendshipDto } from './dto/friendship-dto';
@@ -31,8 +30,8 @@ import { UserIdNameDto } from './dto/user-id-name-dto';
 import { AvatarDto } from './dto/avatar-dto';
 import { GameHistoryDto } from './dto/game-history-dto';
 import { Opponent } from './enum/opponent.enum';
-import { Kafka } from '@nestjs/microservices/external/kafka.interface';
 import { StatusChangeDto } from './dto/status-change-dto';
+import { UserIdRequestingUserIdDto } from './dto/userId-requestingUserId-dto';
 
 @Injectable()
 export class AppService {
@@ -62,9 +61,12 @@ export class AppService {
       );
   }
 
-  getUserIdNameStatus(userId: string): Observable<UserIdNameStatusDto> {
+  getUserIdNameStatus(
+    userId: string,
+    requestingUserId?: string,
+  ): Observable<UserIdNameStatusDto> {
     const pattern = 'getUserIdNameStatus';
-    const payload = userId;
+    const payload: UserIdRequestingUserIdDto = { userId, requestingUserId };
     return this.userService.send<UserIdNameStatusDto>(pattern, payload).pipe(
       catchError((error) => {
         this.logger.error('Caught: ', error, typeof error);

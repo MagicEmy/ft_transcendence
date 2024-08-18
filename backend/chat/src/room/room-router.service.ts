@@ -27,7 +27,7 @@ export class RoomRouterService {
         const moderationResponse: ModerateResponseDto = {
             success: response === 'Success',
             user_response: response === 'Success' ? 'muted' : response,
-            toDoUser_message,
+            toDoUser_message : toDoUser_message,
         }
         return moderationResponse
     }
@@ -45,7 +45,7 @@ export class RoomRouterService {
         const moderationResponse: ModerateResponseDto = {
             success: response === 'Success',
             user_response: response === 'Success' ? 'unmuted' : response,
-            toDoUser_message,
+            toDoUser_message : toDoUser_message,
         }
         return moderationResponse
     }
@@ -63,7 +63,7 @@ export class RoomRouterService {
         const moderationResponse: ModerateResponseDto = {
             success: response === 'success',
             user_response: response === 'success' ? 'banned' : response,
-            toDoUser_message,
+            toDoUser_message : toDoUser_message,
         }
         return moderationResponse
     }
@@ -81,7 +81,7 @@ export class RoomRouterService {
         const moderationResponse: ModerateResponseDto = {
             success: response === 'Success',
             user_response: response === 'Success' ? 'unbanned' : response,
-            toDoUser_message,
+            toDoUser_message : toDoUser_message,
         }
         return moderationResponse
     }
@@ -99,7 +99,7 @@ export class RoomRouterService {
         const moderationResponse: ModerateResponseDto = {
             success: response === 'Success',
             user_response: response === 'Success' ? 'added to the room' : response,
-            toDoUser_message,
+            toDoUser_message : toDoUser_message,
         }
         return moderationResponse
     }
@@ -117,7 +117,7 @@ export class RoomRouterService {
         const moderationResponse: ModerateResponseDto = {
             success: response === 'Success',
             user_response: response === 'Success' ? 'kicked' : response,
-            toDoUser_message,
+            toDoUser_message : toDoUser_message,
         }
         return moderationResponse
     }
@@ -135,7 +135,7 @@ export class RoomRouterService {
         const moderationResponse: ModerateResponseDto = {
             success: response === 'Success',
             user_response: response === 'Success' ? 'made as admin' : response,
-            toDoUser_message,
+            toDoUser_message : toDoUser_message,
         }
         return moderationResponse
     }
@@ -153,7 +153,7 @@ export class RoomRouterService {
         const moderationResponse: ModerateResponseDto = {
             success: response === 'Success',
             user_response: response === 'Success' ? 'removed as admin' : response,
-            toDoUser_message,
+            toDoUser_message : toDoUser_message,
         }
         return moderationResponse
     }

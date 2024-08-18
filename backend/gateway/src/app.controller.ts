@@ -61,7 +61,7 @@ export class AppController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
-// DASHBOARD & SETTINGS - add something for status - TBD
+  // DASHBOARD & SETTINGS - add something for status - TBD
 
   // AUTH
 
@@ -104,9 +104,10 @@ export class AppController {
   @Get('/profile/:id')
   async getProfile(
     @Param('id', ParseUUIDPipe) userId: string,
+    @GetUserId() requestingUserId: string,
   ): Promise<Observable<ProfileDto>> {
     return forkJoin({
-      userInfo: this.appService.getUserIdNameStatus(userId),
+      userInfo: this.appService.getUserIdNameStatus(userId, requestingUserId),
       leaderboard: this.appService.getLeaderboardPositionAndTotalPoints(userId),
       totalPlayers: this.appService.getTotalNoOfUsers(),
       gamesAgainstHuman: this.appService.getGamesAgainst({
@@ -135,8 +136,8 @@ export class AppController {
   @ApiTags('leaderboard')
   @UseGuards(JwtAuthGuard)
   @Get('/leaderboard')
-  async getLeaderboard(@GetUserId() userId: string): Promise<Observable<LeaderboardStatsDto[]>> {
-	return this.appService.getLeaderboard();
+  async getLeaderboard(): Promise<Observable<LeaderboardStatsDto[]>> {
+    return this.appService.getLeaderboard();
   }
 
   // GAME
@@ -259,7 +260,7 @@ export class AppController {
   @UseGuards(JwtAuthGuard)
   @Get('/avatar/:id')
   getAvatar(
-	@Param('id', ParseUUIDPipe) userId: string,
+    @Param('id', ParseUUIDPipe) userId: string,
     @Res({ passthrough: true }) res: Response,
   ): Observable<StreamableFile> {
     return this.appService.getAvatar(userId).pipe(
@@ -306,5 +307,4 @@ export class AppController {
       }),
     );
   }
-
 }
