@@ -13,6 +13,7 @@ import { FriendshipDto } from './friend/dto/friendship-dto';
 import { FriendService } from './friend/friend.service';
 import { User } from './user/user.entity';
 import { StatusChangeDto } from './user/dto/status-change-dto';
+import { UserIdRequestingUserIdDto } from './user/dto/userId-requestingUserId-dto';
 
 @Controller()
 export class AppController {
@@ -46,20 +47,6 @@ export class AppController {
     }
   }
 
-  //   @EventPattern(GameStatus.TOPIC) // CHECKED
-  //   handleGameEnd(data: IGameStatus): void {
-  //     this.userService.changeUserStatus({
-  //       userId: data.player1ID,
-  //       newStatus: UserStatusEnum.ONLINE,
-  //     });
-  //     if (data.player2ID) {
-  //       this.userService.changeUserStatus({
-  //         userId: data.player2ID,
-  //         newStatus: UserStatusEnum.ONLINE,
-  //       });
-  //     }
-  //   }
-
   @EventPattern(KafkaTopic.STATUS_CHANGE) // CHECKED
   updateUserStatus(data: StatusChangeDto): void {
     this.userService.changeUserStatus(data);
@@ -89,10 +76,13 @@ export class AppController {
 
   @MessagePattern('getUserIdNameStatus')
   async getUserIdNameStatus(
-    userId: string,
+    data: UserIdRequestingUserIdDto,
   ): Promise<Observable<UserIdNameStatusDto>> {
     try {
-      const result = await this.userService.getUserIdNameStatus(userId);
+      const result = await this.userService.getUserIdNameStatus(
+        data.userId,
+        data.requestingUserId,
+      );
       return of(result);
     } catch (error) {
       throw error;

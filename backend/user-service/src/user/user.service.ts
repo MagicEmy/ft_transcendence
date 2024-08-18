@@ -32,14 +32,20 @@ export class UserService {
 
   //   USER
 
-  async getUserIdNameStatus(userId: string): Promise<UserIdNameStatusDto> {
+  async getUserIdNameStatus(
+    userId: string,
+    requestingUserId: string,
+  ): Promise<UserIdNameStatusDto> {
     try {
       const user = await this.getUserById(userId);
-      const status = await this.getUserStatus(userId);
+      const status =
+        (requestingUserId && userId == requestingUserId)
+          ? UserStatusEnum.ONLINE
+          : (await this.getUserStatus(userId)).status;
       return {
         userId,
         userName: user.user_name,
-        status: status.status,
+        status: status,
       };
     } catch (error) {
       throw error;
