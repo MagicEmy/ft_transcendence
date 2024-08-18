@@ -85,7 +85,12 @@ export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 		{
 			case KafkaCommunication.NewGame.TOPIC:
 				const newGame: KafkaCommunication.NewGame.INewGame = JSON.parse(message.value);
-				this.CreateGame(undefined, newGame.gameType, [newGame.matchType], [newGame.player1ID, newGame.player2ID]);
+				if (this.PlayerIDIsInAGame(newGame.player1ID))
+					console.error(`Kafka: Player1[${newGame.player1ID}] is already in a game!`);
+				else if (this.PlayerIDIsInAGame(newGame.player2ID))
+					console.error(`Kafka: Player2[${newGame.player2ID}] is already in a game!`);
+				else
+					this.CreateGame(undefined, newGame.gameType, [newGame.matchType], [newGame.player1ID, newGame.player2ID]);
 				break ;
 			case KafkaCommunication.PlayerInfo.REPLY:
 				this.SetPlayerInfo(JSON.parse(message.value));
@@ -277,11 +282,19 @@ Socket.io
 	public FindExistingGame(player: GamePlayer): IGame | null
 	{
 		for (const game of this.games)
-			if (game.PlayerIsInGame(player))
+			if (game.PlayerIDIsInGame(player.getId()))
 			{
 				return (game);
 			}
 		return (null);
+	}
+
+	private PlayerIDIsInAGame(playerID: any): boolean
+	{
+		for (const game of this.games)
+			if (game.PlayerIDIsInGame(playerID))
+				return (true);
+		return (false);
 	}
 
 	public removeGame(gameToRemove: IGame): void

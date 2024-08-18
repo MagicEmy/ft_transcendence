@@ -198,6 +198,16 @@ export namespace KafkaCommunication
 		}
 	}
 
+	export namespace GameForUser
+	{
+		export const TOPIC = "GameForUser";
+
+		export interface IGameForUser
+		{
+			playerID: any,
+		};
+	}
+
 /* ************************************************************************** *\
 	Kafka - Database/GameManager/GamePlayer
 \* ************************************************************************** */

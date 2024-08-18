@@ -5,7 +5,6 @@ import { io, Socket } from "socket.io-client";
 import GameLogic from "./GameLogic";
 import GameGraphics from "./GameGraphics";
 import { SocketCommunication } from "./Game.communication";
-import { GamePongTheme, GameTypes } from "./Game.enums";
 
 class GameSocket
 {
@@ -155,15 +154,9 @@ class GameSocket
 
 	public disconnect(): void
 	{
-		if (this.socket)
-		{
-			console.log("Disconnecting socket.IO");
-			this.socket.disconnect();
-			this.socket = null;
-			clearInterval(this.gameInterval);
-		}
-		else
-			console.error("Tried to disconnect non-existing socket.");
+		console.log("Disconnecting socket.IO");
+		this.socket?.disconnect();
+		clearInterval(this.gameInterval);
 	}
 }
 
