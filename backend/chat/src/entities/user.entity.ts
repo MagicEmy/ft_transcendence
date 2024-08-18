@@ -21,4 +21,7 @@ export class User implements UserDto {
 
   @Column()
   game: string;
+
+  @Column()
+  isGameHost: boolean;
 }

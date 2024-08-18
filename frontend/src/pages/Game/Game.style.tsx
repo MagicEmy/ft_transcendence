@@ -55,7 +55,7 @@ export namespace GameStyle
 		export const HUD =
 		{
 			FONT:	Base.FONT,
-			COLOR:	"rgba(123, 123, 123, 1)",
+			COLOR:	"rgba(255, 255, 255, 0.5)",
 			BACKGROUND:	"rgba(23, 23, 23, 1)",
 		};
 

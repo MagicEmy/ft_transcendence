@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsString, IsBoolean, IsInt, IsEnum, IsUUID } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsBoolean,
+  IsInt,
+  IsEnum,
+  IsUUID,
+} from 'class-validator';
 
 export class UserDto {
   @IsNotEmpty()
@@ -15,6 +22,7 @@ export class CreateUserDto {
   socketId: string;
   online: boolean;
   game: string;
+  isGameHost: boolean;
 }
 
 export class RoomDto {
@@ -76,7 +84,7 @@ export class ToDoUserRoomDto {
   roomName: string;
   @IsNotEmpty()
   @IsEnum(ModerationType)
-  type: ModerationType
+  type: ModerationType;
   @IsNotEmpty()
   user: UserDto;
   @IsNotEmpty()
@@ -185,8 +193,7 @@ export class ModerateResponseDto {
   toDoUser_message: RoomMessageDto;
 }
 
-export class ResponseDto{
+export class ResponseDto {
   success: boolean;
   message: string;
 }
-

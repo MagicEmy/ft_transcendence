@@ -21,4 +21,9 @@ export class KafkaConsumerService {
   changeUsername(userNameDto: UserIdNameDto) {
     this.userService.setUserName(userNameDto);
   }
+
+  // game end -> remove from database
+  removeGameFromDB(player1ID: string, player2ID: string) {
+    this.userService.removeGameFromDB(player1ID, player2ID);
+  }
 }

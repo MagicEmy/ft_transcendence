@@ -41,7 +41,7 @@ export class GamePlayer
 		this.client = null;
 		this.id = "Bot";
 		this.button = {};
-		this.name = "Ponginator"
+		this.name = "Ponginator";
 	}
 
 	private handlerPlayGame(message: string): void

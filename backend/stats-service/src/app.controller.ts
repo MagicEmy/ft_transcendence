@@ -16,7 +16,7 @@ export class AppController {
 
   // Kafka-related methods
 
-  @EventPattern(GameStatus.TOPIC) // CHECKED
+  @EventPattern(KafkaTopic.GAME_END) // CHECKED
   handleGameEnd(data: IGameStatus): Promise<void> {
     return this.statsService.updateStats(data);
   }

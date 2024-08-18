@@ -243,10 +243,17 @@ private static PrintMatchList(): void
 		console.log(i, MatchMaker.matchQueue[i].id, MatchMaker.matchQueue[i].rank, MatchMaker.matchQueue[i].time);
 }
 
-public PlayerIsInGame(player: GamePlayer): boolean
+// public PlayerIsInGame(player: GamePlayer): boolean
+// {
+// 	const id: any = player.getId();
+// 	if (MatchMaker.matchQueue.findIndex(playerQueue => playerQueue.id === id) === -1)
+// 		return (false);
+// 	return (true);
+// }
+
+public PlayerIDIsInGame(playerID: any): boolean
 {
-	const id: any = player.getId();
-	if (MatchMaker.matchQueue.findIndex(playerQueue => playerQueue.id === id) === -1)
+	if (MatchMaker.matchQueue.findIndex(playerQueue => playerQueue.id === playerID) === -1)
 		return (false);
 	return (true);
 }
