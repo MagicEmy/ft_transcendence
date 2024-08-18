@@ -1,7 +1,7 @@
 // import React, { useEffect, useContext } from 'react';
 // import UserContext from '../../context/UserContext';
 import GameLogic from './GameLogic';
-import { GameStyle } from './GameStyle';
+import { GameStyle } from './Game.style';
 import GameSocket from './GameSocket';
 
 enum Game
