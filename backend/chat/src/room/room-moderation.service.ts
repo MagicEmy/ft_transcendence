@@ -221,7 +221,7 @@ export class RoomModerationService {
       toUnadmin,
     )
     if (!toUnadminUser) throw 'Not Existing User'
-    if (!(await this.roomPermissionService.isOwner(roomIndex, user)))
+    if (!(await this.roomPermissionService.isAdmin(roomIndex, user)))
       return 'Not Authorized User'
     if (
       !(await this.roomPermissionService.isAdmin(
