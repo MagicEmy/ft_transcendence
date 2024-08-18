@@ -111,6 +111,7 @@ export class MatchMaker implements IGame
 	{
 		MatchMaker.RemoveListeners(client);
 		MatchMaker.RemovePlayer(playerID);
+		GameManager.getInstance().EmitMenu(client);
 	}
 
 	private static RemoveListeners(client: Socket): void

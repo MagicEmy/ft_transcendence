@@ -229,15 +229,15 @@ Socket.io
 		this.EmitMenu(client);
 	}
 
-	@SubscribeMessage(SocketCommunication.LeaveMatchMaker.TOPIC)
-	handerLeaveMatchMaker(client: Socket, message: string): void
-	{
-		const msg: SocketCommunication.LeaveMatchMaker.ILeaveMatchMaker = JSON.parse(message);
-		// const msg: any = JSON.parse(message);
+	// @SubscribeMessage(SocketCommunication.LeaveMatchMaker.TOPIC)
+	// handerLeaveMatchMaker(client: Socket, message: string): void
+	// {
+	// 	const msg: SocketCommunication.LeaveMatchMaker.ILeaveMatchMaker = JSON.parse(message);
+	// 	// const msg: any = JSON.parse(message);
 
-		MatchMaker.RemovePlayer(msg.playerID);
-		this.EmitMenu(client);
-	}
+	// 	MatchMaker.RemovePlayer(msg.playerID);
+	// 	this.EmitMenu(client);
+	// }
 
 /* ************************************************************************** *\
 
@@ -245,7 +245,7 @@ Socket.io
 
 \* ************************************************************************** */
 
-	private EmitMenu(client: Socket): void
+	public EmitMenu(client: Socket): void
 	{
 		const menuJson = { rows: [] };
 
