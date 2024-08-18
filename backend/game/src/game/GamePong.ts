@@ -3,7 +3,7 @@ import { Socket } from 'socket.io';
 import { IGame } from "./IGame";
 import { GamePlayer } from "./GamePlayer";
 import { GameManager } from "./GameManager";
-import { GameTypes, MatchTypes, SocketCommunication, SharedCommunication } from './GamePong.communication';
+import { GameTypes, MatchTypes, SocketCommunication, SharedCommunication, KafkaCommunication } from './GamePong.communication';
 import { Button, GameState, PlayerStatus } from "./GamePong.enums";
 import { IPlayer, IPaddle, IBall } from "./GamePong.interfaces";
 
@@ -120,6 +120,8 @@ export class GamePong implements IGame
 			status:	(playerId !== null) ? PlayerStatus.CONNECTING : PlayerStatus.WAITING,
 			score:	0,
 		}
+		if (player.id)
+			GameManager.getInstance().kafkaEmit(KafkaCommunication.GameForUser.TOPIC, JSON.stringify({playerID: player.id}));
 		return (player);
 	}
 
@@ -142,10 +144,15 @@ export class GamePong implements IGame
 		return (true);
 	}
 
-	public PlayerIsInGame(player: GamePlayer): boolean
+	// public PlayerIsInGame(player: GamePlayer): boolean
+	// {
+	// 	return (this.PlayerIDIsInGame(player.getId()));
+	// }
+
+	public PlayerIDIsInGame(playerID: any): boolean
 	{
-		return (this.player1.id == player.getId() ||
-				this.player2.id == player.getId());
+		return (this.player1.id == playerID ||
+				this.player2.id == playerID);
 	}
 
 	public ClearGame(): void
@@ -326,6 +333,9 @@ export class GamePong implements IGame
 	{
 		const P1: SocketCommunication.GameImage.IPongHUDPlayer = this.GetHUDDataPlayer(this.player1);
 		const P2: SocketCommunication.GameImage.IPongHUDPlayer = this.GetHUDDataPlayer(this.player2);
+
+		if (this.mode === "local")
+			P2.name = `${P1.name.split('').reverse().join('')}`;
 
 		this.SendToPlayer(this.player1, SocketCommunication.GameImage.TOPICHUD, JSON.stringify({game: GameTypes.PONG, P1: P1, P2: P2}));
 		this.SendToPlayer(this.player2, SocketCommunication.GameImage.TOPICHUD, JSON.stringify({game: GameTypes.PONG, P1: P2, P2: P1}));
