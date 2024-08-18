@@ -43,7 +43,7 @@ const Game: React.FC = () => {
 			if (events.current)
 				events.current.stopListening();
 		};
-	}, []);
+	}, [userIdStorage, userNameStorage]);
 
 	return (
 		<div id="game" ref={gameRef}>

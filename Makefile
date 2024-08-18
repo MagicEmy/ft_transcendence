@@ -1,19 +1,8 @@
-all: up
+all:
+	docker-compose up --build
 
 build start up stop kill down:
 	docker compose $@
-
-# up:
-# 	docker-compose up
-
-# down:
-# 	docker-compose down
-
-# start:
-# 	docker-compose start
-
-# stop:
-# 	docker-compose stop
 
 clean: down
 	docker rmi $(shell docker images -q)
@@ -27,4 +16,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all up down start stop clean fclean re
+.PHONY: all build start up stop kill down clean fclean re

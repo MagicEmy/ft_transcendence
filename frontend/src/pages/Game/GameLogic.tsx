@@ -412,7 +412,7 @@ public SetGameStateTo(state: GameState)
 
 	private keyPressMatchEscape(): void
 	{
-		const instance: GameSocket = GameSocket.getInstance();
+		// const instance: GameSocket = GameSocket.getInstance();
 		const data = {playerID:	GameSocket.GetID(),};
 
 		GameSocket.getInstance()?.emit("LeaveMatchMaker", JSON.stringify(data));
@@ -453,10 +453,10 @@ public SetGameStateTo(state: GameState)
 
 	private keyPressPlaying(key: any, event: any): void
 	{
-		const eventData = {
-		code:	key,
-		event:	event,
-	};
+	// 	const eventData = {
+	// 	code:	key,
+	// 	event:	event,
+	// };
 		GameSocket.getInstance()?.emit("Button", JSON.stringify({code: key, event: event}))
 		if (event === "keyup")
 			return ;

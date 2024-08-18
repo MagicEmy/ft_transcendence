@@ -22,7 +22,7 @@ class GameEventListener
 		GameEventListener.documentEventHandlers.forEach(({event, handler}) =>
 			document.addEventListener(event, handler));
 	}
-	
+
 	public stopListening(): void
 	{
 		console.log("Stopping event listeners...");

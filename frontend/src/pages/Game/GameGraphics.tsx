@@ -15,27 +15,27 @@ enum GamePongTheme
 	Modern,
 }
 
-class GameMenu
-{
-	public name:	string;
-	public flag:	string;
-	public active:	boolean;
-	public up:	GameMenu | null;
-	public down:	GameMenu | null;
-	public left:	GameMenu | null;
-	public right:	GameMenu | null;
+// class GameMenu
+// {
+// 	public name:	string;
+// 	public flag:	string;
+// 	public active:	boolean;
+// 	public up:	GameMenu | null;
+// 	public down:	GameMenu | null;
+// 	public left:	GameMenu | null;
+// 	public right:	GameMenu | null;
 
-	public constructor(name: string, flag: string)
-	{
-		this.name = name;
-		this.flag = flag;
-		this.active = false;
-		this.up = null;
-		this.down = null;
-		this.left = null;
-		this.right = null;
-	}
-}
+// 	public constructor(name: string, flag: string)
+// 	{
+// 		this.name = name;
+// 		this.flag = flag;
+// 		this.active = false;
+// 		this.up = null;
+// 		this.down = null;
+// 		this.left = null;
+// 		this.right = null;
+// 	}
+// }
 
 class GameGraphics
 {
@@ -101,7 +101,7 @@ class GameGraphics
 		context = element.getContext("2d");
 
 		if (!(context instanceof CanvasRenderingContext2D))
-			throw (`Failed to get 2D context for ${element.id}`);
+			throw new Error(`Failed to get 2D context for ${element.id}`);
 		return (context);
 	}
 
@@ -124,7 +124,7 @@ class GameGraphics
 	{
 		if (this.GameElement.offsetHeight === 0)
 			window.location.reload();
-		
+	
 		this.GameElement.style.setProperty(`--TsHeightAdjust`, `${this.GameElement.offsetTop}px`);
 
 		this.adjustSize(this.BackElement);
@@ -155,9 +155,9 @@ class GameGraphics
 	}
 
 	/* ************************************************************************** *\
-	
+
 		BackGround
-	
+
 	\* ************************************************************************** */
 
 	private renderBackground(game: Game = this.game, theme?: any): void
@@ -201,7 +201,7 @@ class GameGraphics
 	}
 
 	private renderBackgroundPongModern(): void
-	{		
+	{	
 		this.fillContext(this.BackElement, this.BackContext, "black");
 
 		this.renderTableSegment(0, "white");
@@ -211,10 +211,10 @@ class GameGraphics
 	private renderTableSegment(margin: number, color: string)
 	{
 		let posXY: {posX: number, posY: number};
-		
+	
 		this.BackContext.fillStyle = color;
 		this.BackContext.beginPath();
-		
+	
 		posXY = this.GetXY(1 - margin, 1 - margin, 0);
 		this.BackContext.moveTo(posXY.posX, posXY.posY);
 
@@ -232,9 +232,9 @@ class GameGraphics
 	}
 
 	/* ************************************************************************** *\
-	
+
 		Canvas
-	
+
 	\* ************************************************************************** */
 
 	public RenderCanvas(msg: any): void
@@ -313,7 +313,7 @@ class GameGraphics
 		const renderList: RenderItem[] = [];
 
 		this.renderPongModernShadows(msg.Player1, msg.Player2, msg.Ball);
-		
+	
 		renderList.push({ sortValue: msg.Player2.posX, func: () => this.RenderPongModernEntity(msg.Player2.posX, msg.Player2.posY, 1, msg.Player2.height / 2, "red") });
 		if (msg.Ball !== null)
 			renderList.push({ sortValue: msg.Ball.posX, func: () => 		this.RenderPongModernEntity(msg.Ball.posX, msg.Ball.posY, msg.Ball.posZ, msg.Ball.size * 2, "yellow") });
@@ -340,7 +340,7 @@ class GameGraphics
 		let posXY: {posX: number, posY: number};
 		const width: number = player.width / 2;
 		const height: number = player.height / 2;
-		
+	
 		this.CnvsContext.fillStyle = "rgba(0, 0, 0, 0.69)";
 		this.CnvsContext.beginPath();
 
@@ -360,7 +360,7 @@ class GameGraphics
 		this.CnvsContext.closePath();
 
 	}
-	
+
 	private RenderPongModernNet(height: number, color: string)
 	{
 		let posXY: {posX: number, posY: number};
@@ -417,9 +417,9 @@ class GameGraphics
 	}
 
 	/* ************************************************************************** *\
-	
+
 		HUD (Heads Up Display)
-	
+
 	\* ************************************************************************** */
 
 	public renderHUD(message: string): void
@@ -427,7 +427,7 @@ class GameGraphics
 		const msg: any = JSON.parse(message);
 		switch (msg.game)
 		{
-			case "pong":
+			case "PONG":
 				this.renderHUDPong(msg); break;
 			default:
 				console.error(`Error: Undefined game ${msg.game}`);
@@ -481,9 +481,9 @@ class GameGraphics
 	}
 
 	/* ************************************************************************** *\
-	
+
 		HUD - Words
-	
+
 	\* ************************************************************************** */
 
 	public RenderWord(word: string): void
@@ -504,9 +504,9 @@ class GameGraphics
 	}
 
 	/* ************************************************************************** *\
-	
+
 		Menu
-	
+
 	\* ************************************************************************** */
 
 	public renderMenu(menuList: string[], selectMenu: number): void
@@ -544,18 +544,19 @@ class GameGraphics
 			this.MenuContext.fillText(menuList[i], posX, posY);
 		}
 	}
-	
+
 	/* ************************************************************************** *\
-	
+
 		Match
-	
+
 	\* ************************************************************************** */
-	
+
 	public RenderMatchMaker(message: string): void
 	{
 		const msg: any = JSON.parse(message);
 
 		this.clearContext(this.MenuElement, this.MenuContext);
+		this.fillContext(this.HUDElement, this.HUDContext, "black");
 		this.RenderHead("Match Maker", this.MenuElement, this.MenuContext);
 
 		this.MenuContext.fillStyle = "orange";
@@ -575,11 +576,11 @@ class GameGraphics
 	}
 
 	/* ************************************************************************** *\
-	
+
 		Game Over
-	
+
 	\* ************************************************************************** */
-	
+
 	public RenderGameOver(message: string): void
 	{
 		this.fillContext(this.MenuElement, this.MenuContext, "black");
@@ -620,7 +621,7 @@ class GameGraphics
 	{
 		let posX: number;
 		let posY: number;
-	
+
 		this.MenuContext.fillStyle = color;
 		this.MenuContext.font = `${this.MenuElement.width / 10}px ${GameStyle.Menu.FONT}`;
 		posX = this.MenuElement.width / 2 - (this.MenuContext.measureText(status).width / 2);
@@ -642,9 +643,9 @@ class GameGraphics
 	}
 
 	/* ************************************************************************** *\
-	
+
 		Util
-	
+
 	\* ************************************************************************** */
 
 	private RenderHead(title: string, element: HTMLCanvasElement = this.HUDElement, context: CanvasRenderingContext2D = element.getContext("2d")): void
@@ -663,20 +664,20 @@ class GameGraphics
 		context.fillStyle = GameStyle.Menu.FONTFOCUS;
 		context.fillText(title, posX, posY);
 	}
-	
+
 	private getFontSize(context: CanvasRenderingContext2D, text: string, height: number, width: number, font: string): number
 	{
 		let size: number = 230;
-	
+
 		context.font = size + "px " + font;
 		while (height < context.measureText(text).actualBoundingBoxAscent ||
 				width < context.measureText(text).width)
-		{	
+		{
 			--size;
 			context.font = size + "px " + font;
-		}	
+		}
 		return (size);
-	}	
-}	
+	}
+}
 
 export default GameGraphics

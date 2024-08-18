@@ -110,7 +110,7 @@ class GameSocket
 				};
 				if (!GameSocket.UserPack.playerID ||
 					!GameSocket.UserPack.playerName)
-					throw (`Bad User Context ${GameSocket.UserPack}`);
+					throw new Error(`Bad User Context ${GameSocket.UserPack}`);
 			}
 			catch (error)
 			{
@@ -127,7 +127,7 @@ class GameSocket
 		if (GameSocket.instance)
 			GameSocket.userContext = UserContext;
 		else
-			throw (`No instance to set ${UserContext} to`);
+			throw new Error(`No instance to set ${UserContext} to`);
 		console.log(`User set ${GameSocket.userContext}`);
 	}
 

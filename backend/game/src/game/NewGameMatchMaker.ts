@@ -1,23 +1,23 @@
+import { GameManager } from "./NewGameManager";
 import { GamePlayer } from "./GamePlayer";
 import { IGame } from "./IGame";
-import { Player, PlayerRanked } from './GamePong.interfaces';
-import { IPlayerInfo, ISockRemoveMatch } from "./GamePong.communication";
-import { GameManager } from "./NewGameManager";
 import { GamePong } from "./NewGamePong";
+import { IPlayerRanked } from './GamePong.interfaces';
+import { KafkaCommunication, SocketCommunication } from "./GamePong.communication";
 
 export class MatchMaker implements IGame
 {
 	private static instance: MatchMaker | undefined;
 
 	private static gameFlag: string = "MATCH";
-	private static matchQueue: PlayerRanked[] = [];
+	private static matchQueue: IPlayerRanked[] = [];
 	private static matchInterval: any;
 	private static timeInterval: number = 1000;
 
 	private constructor()
 	{}
 
-	public static GetInstance()
+	public static GetInstance(): MatchMaker
 	{
 		if (MatchMaker.instance === undefined)
 			MatchMaker.instance = new MatchMaker();
@@ -30,7 +30,7 @@ export class MatchMaker implements IGame
 		var rank: number = player.rank? player.rank : -1;
 		if (MatchMaker.matchQueue.findIndex(playerQueue => playerQueue.id === id) === -1)
 		{
-			let newPlayer: PlayerRanked = {
+			let newPlayer: IPlayerRanked = {
 				player: player,
 				id:		id,
 				rank:	rank,
@@ -39,7 +39,7 @@ export class MatchMaker implements IGame
 			MatchMaker.matchQueue.push(newPlayer);
 			// MatchMaker.matchQueue.push({player: undefined, id: id, rank: 5, time: 0});
 			MatchMaker.matchQueue.sort((a, b) => a.rank - b.rank);
-			MatchMaker.PrintMatchList();
+			// MatchMaker.PrintMatchList();
 		}
 
 		else
@@ -50,8 +50,8 @@ export class MatchMaker implements IGame
 			MatchMaker.matchInterval = setInterval(MatchMaker.MatchLoop.bind(MatchMaker), MatchMaker.timeInterval);
 		return (true);
 	}
-	
-	public static UpdatePlayer(player: IPlayerInfo): void
+
+	public static UpdatePlayer(player: KafkaCommunication.PlayerInfo.IPlayerInfo): void
 	{
 		if (player.playerRank)
 			for (let i: number = 0; i < MatchMaker.matchQueue.length; ++i)
@@ -73,10 +73,10 @@ export class MatchMaker implements IGame
 		return (true);
 	}
 
-	public static RemovePlayer(id: string)
+	public static RemovePlayer(playerID: string)
 	{
 		let index: number;
-		while ((index = MatchMaker.matchQueue.findIndex(id => id === id)) !== -1)
+		while ((index = MatchMaker.matchQueue.findIndex(id => id.id === playerID)) !== -1)
 			MatchMaker.matchQueue.splice(index, 1)[0];
 
 		if (MatchMaker.matchQueue.length < 1)
@@ -99,8 +99,8 @@ export class MatchMaker implements IGame
 				MatchMaker.matchQueue[i].time + MatchMaker.matchQueue[i + 1].time)
 			{
 				// console.log("Found a match");
-				const player1: PlayerRanked = MatchMaker.matchQueue[i];
-				const player2: PlayerRanked = MatchMaker.matchQueue[i + 1];
+				const player1: IPlayerRanked = MatchMaker.matchQueue[i];
+				const player2: IPlayerRanked = MatchMaker.matchQueue[i + 1];
 				const game: IGame = GameManager.getInstance().CreateGame(player1.player, 
 													GamePong.GetFlag(), 
 													["pair", "retro"],
@@ -134,20 +134,18 @@ export class MatchMaker implements IGame
 		MatchMaker.RemovePlayer(player.getId());
 	}
 
-	private static UpdateClient(player: PlayerRanked)
+	private static UpdateClient(player: IPlayerRanked)
 	{
-		const data: ISockRemoveMatch = 
-		{
-			queue:	GamePong.GetFlag(),
-			rank: player.rank,
-			time: player.time,
-		};
-
-		// console.error(`sending ${JSON.stringify(data)} to PongMatch`);
-
 		if (player.player?.client?.emit)
-			player.player?.client.emit("Matchmaker", JSON.stringify(data));
-
+		{
+			const data: SocketCommunication.MatchMaker.IMatchMaker =
+			{
+				queue:	GamePong.GetFlag(),
+				rank:	player.rank,
+				time:	player.time,
+			};
+			player.player?.client?.emit(SocketCommunication.MatchMaker.TOPIC, JSON.stringify(data));
+		}
 	}
 
 	public static GetFlag(): string { return (MatchMaker.gameFlag); }
