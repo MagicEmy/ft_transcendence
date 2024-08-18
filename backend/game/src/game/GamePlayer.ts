@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io';
 
-import { GameManager } from "./NewGameManager";
+import { GameManager } from "./GameManager";
 import { IGame } from "./IGame";
 import { KafkaCommunication, SocketCommunication } from "./GamePong.communication";
 

@@ -4,8 +4,8 @@ import { Consumer, Kafka, Producer, } from 'kafkajs';
 
 import { GamePlayer } from './GamePlayer';
 import { IGame } from "./IGame"
-import { GamePong } from './NewGamePong';
-import { MatchMaker } from './NewGameMatchMaker';
+import { GamePong } from './GamePong';
+import { MatchMaker } from './GameMatchMaker';
 import { SocketCommunication, KafkaCommunication  } from './GamePong.communication';
 
 @WebSocketGateway({ cors: true })

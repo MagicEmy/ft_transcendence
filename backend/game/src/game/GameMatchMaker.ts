@@ -1,9 +1,9 @@
 import { Socket } from 'socket.io';
 
-import { GameManager } from "./NewGameManager";
+import { GameManager } from "./GameManager";
 import { GamePlayer } from "./GamePlayer";
 import { IGame } from "./IGame";
-import { GamePong } from "./NewGamePong";
+import { GamePong } from "./GamePong";
 import { IPlayerRanked } from './GamePong.interfaces';
 import { KafkaCommunication, SocketCommunication } from "./GamePong.communication";
 

@@ -2,7 +2,7 @@ import { Socket } from 'socket.io';
 
 import { IGame } from "./IGame";
 import { GamePlayer } from "./GamePlayer";
-import { GameManager } from "./NewGameManager";
+import { GameManager } from "./GameManager";
 import { GameTypes, MatchTypes, SocketCommunication, SharedCommunication } from './GamePong.communication';
 import { Button, GameState, PlayerStatus } from "./GamePong.enums";
 import { IPlayer, IPaddle, IBall } from "./GamePong.interfaces";
