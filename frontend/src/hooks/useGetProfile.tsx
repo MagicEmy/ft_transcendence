@@ -25,8 +25,6 @@ export const useGetProfile = (userId: string) => {
             setError(response.status);
           }
         }
-				        setError(500);
-				
         const profileData: UserProfile = await response.json();
         setProfile(profileData);
       } catch (e) {
