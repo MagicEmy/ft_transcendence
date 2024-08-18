@@ -412,7 +412,7 @@ export class AppService {
   }
 
   createGameAndUpdateStats(gameStatus: IGameStatus): void {
-    const pattern = GameStatus.TOPIC;
+    const pattern = KafkaTopic.GAME_END;
     const payload: IGameStatus = gameStatus;
     this.statsService.emit(pattern, payload);
     this.gameService.emit(pattern, payload);
