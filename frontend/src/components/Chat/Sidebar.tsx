@@ -38,19 +38,17 @@ import {
   RoomUserDto,
   ChatUserDto,
   UpdateRoomDto,
-  GameDto,
   ChatContextType,
   Notification,
   ToDoUserRoomDto,
   ModerationType,
   RoomMessageDto,
-  GameInvitationDto,
-  GameInvitationtype
 } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { host } from "../../utils/ApiRoutes";
 import { useNavigate } from "react-router-dom";
+import GameInvitation from "./GameInvitation";
 
 function Sidebar() {
   const [userIdStorage] = useStorage<string>("userId", "");
@@ -71,18 +69,19 @@ function Sidebar() {
     setMyRooms,
     myRooms,
     setMessages,
+    gameInvite,
+    setGameInvite,
   } = useContext(ChatContext) as ChatContextType;
 
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [gameInvite, setGameInvite] = useState<GameDto | {}>({} as GameDto);
-  const [myroomsToggle, setMyRoomsToggle] = useState<boolean>(false);
   const [roomsToggle, setRoomsToggle] = useState<boolean>(false);
   const [roomUsersToggle, setRoomUsersToggle] = useState<boolean>(false);
   const [usersToggle, setUsersToggle] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [toast, setToast] = useState({ show: false, message: "" });
   const navigate = useNavigate();
+  const [userToInvite, setUserToInvite] = useState(null);
 
   const showToast = (message: string) => {
     setToast({ show: true, message });
@@ -95,6 +94,33 @@ function Sidebar() {
   function handleUserSelect(userId: string): void {
     setSelectedUserId(userId);
   }
+
+  const combinedRooms = [...myRooms, ...rooms.filter(room => !myRooms.some(myRoom => myRoom.roomName === room.roomName))]
+  .sort((a, b) => {
+    // General room always first
+    if (a.roomName === "general") return -1;
+    if (b.roomName === "general") return 1;
+    
+    // Then sort my rooms
+    const aIsMyRoom = myRooms.some(room => room.roomName === a.roomName);
+    const bIsMyRoom = myRooms.some(room => room.roomName === b.roomName);
+    
+    if (aIsMyRoom && !bIsMyRoom) return -1;
+    if (!aIsMyRoom && bIsMyRoom) return 1;
+    
+    // If both are my rooms or both are public, sort alphabetically
+    return a.roomName.localeCompare(b.roomName);
+  });
+
+  const getRoomBackgroundColor = (room: RoomShowDto, isActive: boolean) => {
+    if (isActive) {
+      return '#2386a2'; // Active room color
+    }
+    if (myRooms.some(myRoom => myRoom.roomName === room.roomName)) {
+      return '#1a5f7a'; // My room color
+    }
+    return '#09467f'; // Public room color
+  };
 
   function joinRoom(room: RoomDto) {
     let password: string | null = "";
@@ -261,42 +287,7 @@ function Sidebar() {
     };
     socket.emit("unblock_user", blockUser);
   }
-
-  function gameInvitation(member: UserShowDto | ChatUserDto | UserDto, type: GameInvitationtype) {
-    const gameInvitation: GameInvitationDto = {
-      sender: user,
-      receiver: {
-        userId: member.userId,
-        userName: member.userName,
-      },
-      type: type
-    };
-    console.log("Sending game_invitation event with data:", gameInvitation);
-    socket.emit("game_invitation", gameInvitation);
-    socket
-      .off("game_invitation_response")
-      .on("game_invitation_response", (message: string) => {
-          showToast(message);
-      });
-  }
-  socket.off("game_invitation").on("game_invitation", (payload: GameDto) => {
-    if (payload.type === "Remove the game") {
-      setGameInvite({}); // clear the game invite
-    } else if (payload.type === "decline the game") {
-      setGameInvite({});
-      showToast("Game invitation declined");
-    } else {
-      setGameInvite(payload);
-      if (payload.type === "start the game" && payload.user.userId === user.userId) {
-        showToast("Game invitation accepted");
-      }
-      else if (payload.type === "invitation") {
-        showToast("You were invited to a game by " + payload.user.userName);
-      }
-    }
-  });
  
-
   function chatId(userId: string): string {
     return userId < user.userId
       ? "#" + userId + user.userId
@@ -451,7 +442,7 @@ function Sidebar() {
           >
             {isBlock ? "unblock User" : "block User"}
           </Dropdown.Item>
-          <Dropdown.Item onClick={() => gameInvitation(member, GameInvitationtype.SEND) }>
+          <Dropdown.Item onClick={() => setUserToInvite(member)}>
             {"invite game"}
           </Dropdown.Item>
         </>
@@ -464,6 +455,10 @@ function Sidebar() {
       );
     }
   }
+
+  const handleInvitationSent = () => {
+    setUserToInvite(null);
+  };
 
   useEffect(() => {
     setCurrentRoom({ roomName: "general", password: false });
@@ -519,65 +514,57 @@ function Sidebar() {
   if (!user) {
     return <></>;
   }
+
+ // Add this function for debugging
+ const logImageStyle = (element) => {
+  if (element) {
+    const styles = window.getComputedStyle(element);
+    console.log("Image styles:", {
+      width: styles.width,
+      height: styles.height,
+      borderRadius: styles.borderRadius,
+      objectFit: styles.objectFit
+    });
+  }
+};
   return (
-    <>
-      <h4 className="mt-5">
-        Public Rooms
-        {roomsToggle ? (
+    <div className="sidebar-container">
+      <div className="sidebar-section">
+        <h4 className="sidebar-heading">
+          Rooms
           <Button
-            className="ms-3"
+            className="sidebar-toggle-button"
             onClick={() => setRoomsToggle(!roomsToggle)}
-            style={{
-              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-              border: "none",
-              borderRadius: "30px",
-              padding: "5px 15px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
           >
-            <IoEyeOutline />
+            {roomsToggle ? <IoEyeOutline /> : <IoEyeOffOutline />}
           </Button>
-        ) : (
-          <Button
-            className="ms-3"
-            onClick={() => setRoomsToggle(!roomsToggle)}
-            style={{
-              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-              border: "none",
-              borderRadius: "30px",
-              padding: "5px 15px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <IoEyeOffOutline />
-          </Button>
-        )}
-      </h4>{" "}
+        </h4>
       {roomsToggle && (
         <ListGroup className="list-group">
-          {rooms.map((room, idx) => (
-            <ListGroup.Item
-              key={idx}
-              onClick={() => joinRoom(room)}
-              active={room.roomName === currentRoom?.roomName}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-                backgroundColor: room.roomName === currentRoom?.roomName ? '#2386a2' : '#09467f',
-                color: '#ffffff',
-                border: 'none',
-                margin: '5px 0',
-                borderRadius: '5px',
-                padding: '10px 15px',
-                transition: 'background-color 0.3s ease'
+          {combinedRooms.map((room, idx) => {
+            const isMyRoom = myRooms.some(myRoom => myRoom.roomName === room.roomName);
+            const isActive = room.roomName === currentRoom?.roomName;
+            return (
+              <ListGroup.Item
+                key={idx}
+                active={isActive}
+                style={{
+                  cursor: "pointer",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  backgroundColor: getRoomBackgroundColor(room, isActive),
+                  color: '#ffffff',
+                  border: 'none',
+                  margin: '5px 0',
+                  borderRadius: '5px',
+                  padding: '10px 15px',
+                  transition: 'background-color 0.3s ease'
               }}
-            >
-              {room.roomName} {currentRoom?.roomName !== room.roomName}
+            > <span onClick={() => joinRoom(room)} style={{ flex: 1 }}>
+            {room.roomName}
+            {isMyRoom && " (My Room)"}
+            </span>
               <span>
                 <OverlayTrigger
                   placement="top"
@@ -592,157 +579,60 @@ function Sidebar() {
                   <span>{room.password && <IoLockClosed />}</span>
                 </OverlayTrigger>
               </span>
-              {currentRoom?.roomName !== room.roomName && (
+              {!isActive && (
                 <span className="badge rounded-pill bg-primary">
-                  {
-                    notifications.find(
-                      (notification) => notification.roomName === room.roomName
-                    )?.count
-                  }
+                    {notifications.find(notification => notification.roomName === room.roomName)?.count}
                 </span>
               )}
-            </ListGroup.Item>
-          ))}
+              {isMyRoom && (
+                  <>
+                    {ownerDropDown(room)}
+                    {room.roomName !== "general" && (
+                      <Button
+                        variant="warning"
+                        onClick={leaveRoom(room.roomName)}
+                        style={{
+                          background: "linear-gradient(in oklab, #f57112 10%, #f39d60 90%)",
+                          border: "none",
+                          borderRadius: "30px",
+                          padding: "5px 15px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginLeft: "10px",
+                        }}
+                      >
+                        Leave
+                      </Button>
+                    )}
+                  </>
+                )}
+              </ListGroup.Item>
+            );
+          })}
         </ListGroup>
-      )}
-      <h4 className="mt-5">
-        My Rooms
-        {myroomsToggle ? (
-          <Button
-            className="ms-3"
-            onClick={() => setMyRoomsToggle(!myroomsToggle)}
-            style={{
-              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-              border: "none",
-              borderRadius: "30px",
-              padding: "5px 15px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <IoEyeOutline />
-          </Button>
-        ) : (
-          <Button
-            className="ms-3"
-            onClick={() => setMyRoomsToggle(!myroomsToggle)}
-            style={{
-              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-              border: "none",
-              borderRadius: "30px",
-              padding: "5px 15px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <IoEyeOffOutline />
-          </Button>
         )}
-      </h4>{" "}
-      {myroomsToggle && (
-        <ListGroup className="list-group">
-          {myRooms.map((room, idx) => (
-            <ListGroup.Item
-              key={idx}
-              active={room.roomName === currentRoom?.roomName}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-                backgroundColor: room.roomName === currentRoom?.roomName ? '#2386a2' : '#09467f',
-                color: '#ffffff',
-                border: 'none',
-                margin: '5px 0',
-                borderRadius: '5px',
-                padding: '10px 15px',
-                transition: 'background-color 0.3s ease',
-              }}
-            >
-              <p onClick={() => joinRoom(room)}>{room.roomName} </p>
-              <span>
-                <OverlayTrigger
-                  placement="top"
-                  overlay={renderTooltip("Exclusive Room")}
-                >
-                  <span>{room.exclusive && <IoDiamond />}</span>
-                </OverlayTrigger>
-                <OverlayTrigger
-                  placement="top"
-                  overlay={renderTooltip("Password Protected")}
-                >
-                  <span>{room.password && <IoLockClosed />}</span>
-                </OverlayTrigger>
-              </span>
-              {currentRoom?.roomName !== room.roomName && (
-                <span className="badge rounded-pill bg-primary">
-                  {
-                    notifications.find(
-                      (notification) => notification.roomName === room.roomName
-                    )?.count
-                  }
-                </span>
-              )}
-              {ownerDropDown(room)}
-              {room.roomName !== "general" && (
-                <Button variant="warning" onClick={leaveRoom(room.roomName)}
-                  style={{
-                    background: "linear-gradient(in oklab, #f57112 10%, #f39d60 90%)",
-                    border: "none",
-                    borderRadius: "30px",
-                    padding: "5px 15px",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}>
-                  Leave Room
-                </Button>
-              )}
-            </ListGroup.Item>
-          ))}
-        </ListGroup>
-      )}
-      <h4 className="mt-5">
-        Room Users{" "}
-        {roomUsersToggle ? (
+      </div>
+
+      
+      <div className="sidebar-section">
+        <h4 className="sidebar-heading">
+          Room Users
           <Button
-            className="ms-3"
             onClick={() => setRoomUsersToggle(!roomUsersToggle)}
-            style={{
-              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-              border: "none",
-              borderRadius: "30px",
-              padding: "5px 15px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            className="sidebar-toggle-button"
           >
-            <IoEyeOutline />
+            {roomUsersToggle ? <IoEyeOutline /> : <IoEyeOffOutline />}
           </Button>
-        ) : (
-          <Button
-            className="ms-3"
-            onClick={() => setRoomUsersToggle(!roomUsersToggle)}
-            style={{
-              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-              border: "none",
-              borderRadius: "30px",
-              padding: "5px 15px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <IoEyeOffOutline />
-          </Button>
-        )}
-        {Object.keys(roomMembers).length !== 0 &&
-          roomMembers.users.map((member) => {
-            if (member.userId === user.userId && member.isAdmin) {
+        </h4>
+        {roomUsersToggle && (
+          <ListGroup className="scrollable-list">
+            {Object.keys(roomMembers).length !== 0 &&
+              roomMembers.roomName === currentRoom?.roomName &&
+              roomMembers.users.map((member) => {
+              if (member.userId === user.userId && member.isAdmin) {
               return (
-                <>
+                <React.Fragment key={member.userId}>
                   <DropdownButton
                     id="dropdown-basic-button"
                     title={selectedUserId ? members.find(m => m.userId === selectedUserId)?.userName || "Select User" : "Select User"}
@@ -774,268 +664,180 @@ function Sidebar() {
                     }}>
                     + Add
                   </Button>
-                </>
+                </React.Fragment>
               );
             } else return null;
           })}
-      </h4>
-      {roomUsersToggle &&
-        Object.keys(roomMembers).length !== 0 &&
-        roomMembers.roomName === currentRoom?.roomName &&
-        roomMembers.users.map((member) => {
-          let currentUser: UserShowDto = {} as UserShowDto;
-          roomMembers.users.forEach((element) => {
-            if (element.userId === user.userId) {
-              currentUser = element;
-            }
-          });
-          if (!currentUser) {
-            return null;
-          }
-          return (
-            <ListGroup.Item key={member.userId} style={{ cursor: "pointer" }}>
-              <Row>
-                <Col xs={6}>
-                  {member.userName}
-                  <img
-                    alt="user-avatar"
-                    src={`http://${host}:3001/avatar/${member.userId}`}
-                    className="member-status-img"
-                  />
-                  {member.userId === user.userId && " (You)"}
-                </Col>
-                <Col>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={renderTooltip("Room Owner")}
-                  >
-                    <span>{member.isOwner && <IoPizza />}</span>
-                  </OverlayTrigger>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={renderTooltip("Admin")}
-                  >
-                    <span>{member.isAdmin && <IoWalk />}</span>
-                  </OverlayTrigger>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={renderTooltip("Muted")}
-                  >
-                    <span>{member.isMuted && <IoVolumeMute />}</span>
-                  </OverlayTrigger>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={renderTooltip("Banned")}
-                  >
-                    <span>{member.isBanned && <IoSad />}</span>
-                  </OverlayTrigger>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={renderTooltip("Online")}
-                  >
-                    <span>{member.online && <IoBeer />}</span>
-                  </OverlayTrigger>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={renderTooltip("Offline")}
-                  >
-                    <span>{!member.online && <IoBicycle />}</span>
-                  </OverlayTrigger>
-                </Col>
+          {Object.keys(roomMembers).length !== 0 &&
+              roomMembers.roomName === currentRoom?.roomName &&
+              roomMembers.users.map((member) => {
+                let currentUser: UserShowDto = {} as UserShowDto;
+                roomMembers.users.forEach((element) => {
+                  if (element.userId === user.userId) {
+                    currentUser = element;
+                  }
+                });
+                if (!currentUser) {
+                  return null;
+                }
+                return (
+                  <ListGroup.Item key={member.userId} style={{ cursor: "pointer" }}>
+                    <Row className="align-items-center">
+                      <Col xs={2} className="member-status">
+                        <img
+                          alt="user-avatar"
+                          src={`http://${host}:3001/avatar/${member.userId}`}
+                          className="member-status-img"
+                        />
+                      </Col>
+                      <Col xs={6}>
+                        {member.userName}
+                        {member.userId === user.userId && " (You)"}
+                      </Col>
+                      <Col xs={2}>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Room Owner")}
+                        >
+                          <span>{member.isOwner && <IoPizza />}</span>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Admin")}
+                        >
+                          <span>{member.isAdmin && <IoWalk />}</span>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Muted")}
+                        >
+                          <span>{member.isMuted && <IoVolumeMute />}</span>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Banned")}
+                        >
+                          <span>{member.isBanned && <IoSad />}</span>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Online")}
+                        >
+                          <span>{member.online && <IoBeer />}</span>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Offline")}
+                        >
+                          <span>{!member.online && <IoBicycle />}</span>
+                        </OverlayTrigger>
+                      </Col>
 
-                <Col xs={3}>
-                  <span className="gradient-badge">
-                    <Dropdown>
-                      <Dropdown.Toggle variant="Secondary" id="dropdown-basic">
+                      <Col xs={2}>
+                          <Dropdown className="dropdown-wrapper">
+                            <Dropdown.Toggle variant="Secondary" id={`dropdown-${member.userId}`}  className="p-0">
+                              ...
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu className="dropdown-menu-right">
+                              {userDropDown(member)}
+                              {adminDropDown(currentUser, member)}
+                            </Dropdown.Menu>
+                          </Dropdown>
+                      </Col>
+                    </Row>
+                  </ListGroup.Item>
+                )
+              })
+            }
+          </ListGroup>
+        )}
+      </div>
+
+    <div className="sidebar-section">
+      <h4 className="sidebar-heading">
+        Users
+          <Button
+            onClick={() => setUsersToggle(!usersToggle)}
+            className="sidebar-toggle-button"
+          >
+             {usersToggle ? <IoEyeOutline /> : <IoEyeOffOutline />}
+          </Button>
+        </h4>
+        {usersToggle && (
+          <ListGroup>
+            {members.map((member) => (
+              <ListGroup.Item
+                key={member.userId}
+                active={directMsg?.userId === member.userId}
+                style={{
+                  cursor: "pointer",
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Row>
+                  <Col xs={2} className="member-status">
+                    <img
+                      alt="user-avatar"
+                      src={`http://${host}:3001/avatar/${member.userId}`}
+                      className="member-status-img"
+                    />
+                    {member.online === true ? (
+                      <i className="fas fa-circle sidebar-online-status"></i>
+                    ) : (
+                      <i className="fas fa-circle sidebar-offline-status"></i>
+                    )}
+                  </Col>
+                  <Col xs={5} onClick={() => joinDirectRoom(member)}>
+                    {member.userName}
+                    {member.userId === user?.userId && " (You)"}
+                    {currentRoom?.roomName !== chatId(member.userId) && (
+                      <span className="badge rounded-pill bg-primary">
+                        {
+                          notifications.find(
+                            (notification) =>
+                              notification.roomName === chatId(member.userId)
+                          )?.count
+                        }
+                      </span>
+                    )}
+                  </Col>
+                  <Col xs={4}>
+                    <Dropdown className="dropdown-wrapper">
+                      <Dropdown.Toggle variant="Secondary" id={`dropdown-${member.userId}`}>
                         ...
                       </Dropdown.Toggle>
 
-                      <Dropdown.Menu className="min-width-0">
+                      <Dropdown.Menu className="dropdown-menu-right">
                         {userDropDown(member)}
-                        {adminDropDown(currentUser, member)}
                       </Dropdown.Menu>
                     </Dropdown>
-                  </span>
-                </Col>
-              </Row>
-            </ListGroup.Item>
-          );
-        })}
-      <h4 className="mt-5">
-        Users
-        {usersToggle ? (
-          <Button className="ms-3" onClick={() => setUsersToggle(!usersToggle)}
-            style={{
-              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-              border: "none",
-              borderRadius: "30px",
-              padding: "5px 15px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <IoEyeOutline />
-          </Button>
-        ) : (
-          <Button className="ms-3" onClick={() => setUsersToggle(!usersToggle)}
-            style={{
-              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-              border: "none",
-              borderRadius: "30px",
-              padding: "5px 15px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}>
-            <IoEyeOffOutline />
-          </Button>
+                  </Col>
+                </Row>
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
         )}
-      </h4>{" "}
-      {usersToggle &&
-        members.map((member) => (
-          <ListGroup.Item
-            key={member.userId}
-            active={directMsg?.userId === member.userId}
-            style={{
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <Row>
-              <Col xs={2} className="member-status">
-                <img
-                  alt="user-avatar"
-                  src={`http://${host}:3001/avatar/${member.userId}`}
-                  className="member-status-img"
-                />
-                {member.online === true ? (
-                  <i className="fas fa-circle sidebar-online-status"></i>
-                ) : (
-                  <i className="fas fa-circle sidebar-offline-status"></i>
-                )}
-              </Col>
-              <Col xs={5} onClick={() => joinDirectRoom(member)}>
-                {member.userName}
-                {member.userId === user?.userId && " (You)"}
-                {currentRoom?.roomName !== chatId(member.userId) && (
-                  <span className="badge rounded-pill bg-primary">
-                    {
-                      notifications.find(
-                        (notification) =>
-                          notification.roomName === chatId(member.userId)
-                      )?.count
-                    }
-                  </span>
-                )}
-              </Col>
-              <Col xs={4}>
-                <Dropdown>
-                  <Dropdown.Toggle variant="Secondary" id="dropdown-basic">
-                    ...
-                  </Dropdown.Toggle>
+        <GameInvitation
+          userToInvite={userToInvite} 
+          onInvitationSent={handleInvitationSent} />
+      </div>
 
-                  <Dropdown.Menu className="min-width-0">
-                    {userDropDown(member)}
-                  </Dropdown.Menu>
-                </Dropdown>
-              </Col>
-            </Row>
-          </ListGroup.Item>
-        ))}
-      <h2 className="mt-5">Game Invite </h2>
-      {Object.keys(gameInvite).length !== 0 && "type" in gameInvite && (
-        <ListGroup.Item
-          key={gameInvite.user.userId}
-          style={{ cursor: "pointer" }}
-        >
-          <Row>
-            <Col xs={6}>{gameInvite.user.userName}</Col>
-          </Row>
-        </ListGroup.Item>
-      )}
-      {Object.keys(gameInvite).length !== 0 &&
-        "type" in gameInvite &&
-        gameInvite.type === "invitation" && (
-          <>
-            <Button variant="success" onClick={() => {
-  gameInvitation(gameInvite.user, GameInvitationtype.ACCEPT);
-}}
-              style={{
-                background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-                border: "none",
-                borderRadius: "30px",
-                padding: "5px 15px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}>
-              Accept
-            </Button>
-            <Button variant="danger" onClick={() =>gameInvitation(gameInvite.user, GameInvitationtype.DECLINE)}
-              style={{
-                background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-                border: "none",
-                borderRadius: "30px",
-                padding: "5px 15px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}>
-              Decline
-            </Button>
-          </>
-        )}
-      {Object.keys(gameInvite).length !== 0 &&
-        "type" in gameInvite &&
-        gameInvite.type === "host" && (
-          <Button variant="danger" onClick={() => gameInvitation(gameInvite.user, GameInvitationtype.DECLINE)}
-            style={{
-              background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-              border: "none",
-              borderRadius: "30px",
-              padding: "5px 15px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}>
-            Decline
-          </Button>
-        )}
-      {Object.keys(gameInvite).length !== 0 &&
-        "type" in gameInvite &&
-        gameInvite.type === "start the game" && (
-          <Link to="/game" className="btn btn-info">
-            Go to Game
-          </Link>
-        )}
-      <ToastContainer
-        className="p-3"
-        style={{
-          position: "fixed",
-          top: "80px", // Adjust this value to position the toast below your navbar
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 9999,
-        }}
-      >
+      <ToastContainer className="p-3 sidebar-toast-container">
         <Toast
           onClose={() => setToast({ ...toast, show: false })}
           show={toast.show}
           delay={3000}
           autohide
-          style={{
-            minWidth: "250px",
-          }}
+          style={{minWidth: "250px",}}
         >
           <Toast.Header>
             <strong className="me-auto">Notification</strong>
           </Toast.Header>
           <Toast.Body>{toast.message}</Toast.Body>
-        </Toast>
+          </Toast>
       </ToastContainer>
-    </>
+    </div>
   );
 }
 export default Sidebar;

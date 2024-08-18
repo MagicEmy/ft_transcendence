@@ -1,11 +1,10 @@
 import React, { useContext, useState } from "react";
-import { Col, Container, Form, Row, Button } from "react-bootstrap";
+import { Form, Button, Dropdown } from "react-bootstrap";
 import { ChatContext } from "../../context/ChatContext";
-import Dropdown from "react-bootstrap/Dropdown";
-import DropdownButton from "react-bootstrap/DropdownButton";
 import { ChatContextType, UserDto } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./CreateChatRoom.css"; // We'll create this CSS file for custom styles
 
 function CreateChatRoom() {
   const [userIdStorage] = useStorage<string>("userId", "");
@@ -17,7 +16,7 @@ function CreateChatRoom() {
   const [password, setPassword] = useState("");
   const { socket } = context as ChatContextType;
 
-  const handleChatType = (eventKey: string | null, event: Object) => {
+  const handleChatType = (eventKey: string | null) => {
     if (eventKey) {
       setChatType(eventKey);
     }
@@ -45,75 +44,58 @@ function CreateChatRoom() {
     setRoomName("");
     setPassword("");
   }
+
   return (
-    <div style={{ marginLeft: "-20px" }}>
-      <Container>
-        <h3 className="mt-5">Create a Chat Room</h3>
-        <Row>
-          <Col
-            md={7}
-            className="d-flex align-items-center justify-content-left flex-direction-column"
+    <div className="create-chat-room">
+      <h5 className="mb-3">Create a Chat Room</h5>
+      <Form onSubmit={handleRoomCreation}>
+        <div className="d-flex align-items-center mb-3">
+          <Form.Label className="me-2 mb-0">Chat Name</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Enter chat room name"
+            onChange={(e) => setRoomName(e.target.value)}
+            value={roomName}
+            required
+            className="flex-grow-1"
+          />
+        </div>
+        <div className="d-flex align-items-center mb-3">
+          <Form.Label className="me-2 mb-0">Room Type</Form.Label>
+          <Dropdown onSelect={handleChatType} className="flex-grow-1">
+            <Dropdown.Toggle variant="outline-secondary" id="dropdown-basic">
+              {chatType}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item eventKey="Public">Public</Dropdown.Item>
+              <Dropdown.Item eventKey="Exclusive">Exclusive</Dropdown.Item>
+              <Dropdown.Item eventKey="Password">Password</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+          <Button
+            variant="primary"
+            type="submit"
+            className="ms-2 create-button"
           >
-            <Form onSubmit={handleRoomCreation}>
-              <Form.Group className="mb-3" controlId="formBasicEmail">
-                <Form.Label>Chat Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter chat room name"
-                  onChange={(e) => setRoomName(e.target.value)}
-                  value={roomName}
-                  required
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Room Type</Form.Label>
-                <DropdownButton
-                  id="dropdown-basic-button"
-                  title={chatType}
-                  onSelect={handleChatType}
-                  variant=""
-                >
-                  <Dropdown.Item href="#/action-1" eventKey="Public">
-                    Public
-                  </Dropdown.Item>
-                  <Dropdown.Item href="#/action-2" eventKey="Exclusive">
-                    Exclusive
-                  </Dropdown.Item>
-                  <Dropdown.Item href="#/action-3" eventKey="Password">
-                    Password
-                  </Dropdown.Item>
-                </DropdownButton>
-              </Form.Group>
-              {chatType === "Password" && (
-                <Form.Group className="mb-3" controlId="formBasicPassword">
-                  <Form.Label>Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    placeholder="Password"
-                    onChange={(e) => setPassword(e.target.value)}
-                    value={password}
-                    required
-                  />
-                </Form.Group>
-              )}
-              <Button
-                variant="primary"
-                type="submit"
-                style={{
-                  background:
-                  "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-                  border: "none",
-                  borderRadius: "30px",
-                }}
-              >
-                {"Create"}
-              </Button>
-            </Form>
-          </Col>
-        </Row>
-      </Container>
+            Create
+          </Button>
+        </div>
+        {chatType === "Password" && (
+          <Form.Group className="mb-3" controlId="formBasicPassword">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="Password"
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
+              required
+            />
+          </Form.Group>
+        )}
+      </Form>
     </div>
   );
 }
 
 export default CreateChatRoom;
+

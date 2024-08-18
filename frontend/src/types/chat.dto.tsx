@@ -153,6 +153,7 @@ export interface KickDto {
 
 export interface ChatContextType {
   socket: Socket;
+  user: UserDto; 
   currentRoom: RoomDto | null;
   setCurrentRoom: React.Dispatch<React.SetStateAction<RoomDto | null>>;
   members: ChatUserDto[];
@@ -167,6 +168,8 @@ export interface ChatContextType {
   setRooms: React.Dispatch<React.SetStateAction<RoomShowDto[]>>;
   myRooms: RoomShowDto[];
   setMyRooms: React.Dispatch<React.SetStateAction<RoomShowDto[]>>;
+  gameInvite: GameDto | {};
+  setGameInvite: React.Dispatch<React.SetStateAction<GameDto | {}>>;
 }
 
 export interface Notification {

@@ -16,7 +16,7 @@ export class GameInvitation {
   async sendGameInvitation(inviter: User, receiver: User | undefined): Promise<ResponseDto> {
     let response: ResponseDto = { success: false, message: '' };
     if (!receiver) {
-      response.message = 'User not found';
+      response.message = `User ${receiver.userId} not found`;
       this.logger.log(`Receiver not found`)
       return response
     }
@@ -61,7 +61,7 @@ export class GameInvitation {
   async acceptGameInvitation(accepter: User , inviter: User | undefined): Promise<ResponseDto> {
     let response: ResponseDto = { success: false, message: '' };
     if (!inviter) {
-      this.logger.log(`Inviter not found`)
+      this.logger.log(`Inviter ${inviter.userId} not found`)
       this.userService.setGame(accepter.userId, '')
       response.message = 'User not found';
       return response
@@ -116,7 +116,7 @@ export class GameInvitation {
   async declineGameInvitation(decliner: User, declined: User | undefined): Promise <ResponseDto> {
     let response: ResponseDto = { success: false, message: '' };
     if (!declined) {
-      this.logger.log(`Declined not found`)
+      this.logger.log(`Declined ${declined} not found`)
       this.userService.setGame(decliner.userId, '')
       response.message = 'User not found';
       return response
