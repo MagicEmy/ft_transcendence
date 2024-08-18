@@ -23,7 +23,6 @@ export class GamePlayer
 
 	private constructPlayer(client: Socket, id: string): void
 	{
-		// console.log("Creating player");
 		this.client = client;
 		this.id = id;
 		this.button = {};
@@ -43,12 +42,6 @@ export class GamePlayer
 		this.id = "Bot";
 		this.button = {};
 		this.name = "Ponginator"
-		// const bot: IPlayerInfo = {
-		// 	playerID:	"Bot",
-		// 	playerName:	"Bot",
-		// 	// playerRank:	0,
-		// }
-		// GameManager.getInstance().kafkaEmit(PlayerInfo.REPLY, JSON.stringify(bot));
 	}
 
 	private handlerPlayGame(message: string): void

@@ -33,7 +33,7 @@ export class GamePong implements IGame
 	private static gameFlag: string = FLAGS.FLAG;
 	private gameState: GameState;
 	private oldState: GameState;
-	private mode: string;
+	private mode: MatchTypes;
 	private theme: string;
 	private player1: IPlayer;
 	private player2: IPlayer;
@@ -52,7 +52,8 @@ export class GamePong implements IGame
 	constructor(data: string[], players: string[])
 	{
 		console.log(`Pong: Creating new game ${data}/${players}`);
-		this.mode = data[0];
+		this.SetMode(data[0]);
+		// this.mode = data[0];
 		this.theme = data[1];
 		if (this.theme === undefined)
 			this.theme = "retro";
@@ -86,6 +87,23 @@ export class GamePong implements IGame
 		this.ImageFullHandelers = new Map<Socket, (client: Socket) => void>();
 		this.DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
 		this.interval = setInterval(this.GameLoop.bind(this), 16);
+	}
+
+	private SetMode(mode: string): void
+	{
+		switch (mode)
+		{
+			case MatchTypes.SOLO:
+				this.mode = MatchTypes.SOLO;	return;
+			case MatchTypes.LOCAL:
+				this.mode = MatchTypes.LOCAL;	return;
+			case MatchTypes.PAIR:
+				this.mode = MatchTypes.PAIR;	return;
+			case MatchTypes.MATCH:
+				this.mode = MatchTypes.MATCH;	return;
+			default:
+				this.mode = undefined;	return;
+		}
 	}
 
 	private ConstructPlayer(playerId: any, posX: number): IPlayer
@@ -189,11 +207,13 @@ export class GamePong implements IGame
 			client.removeAllListeners(SocketCommunication.GameImage.REQUEST);
 			this.ImageHandlers.delete(client);
 		});
+
 		this.ImageFullHandelers.forEach((handler, client) =>
 		{
 			client.removeAllListeners(SocketCommunication.GameImage.REQUESTFULL);
 			this.ImageHandlers.delete(client);
 		});
+		
 		this.DisconnectHandlers.forEach((handler, client) =>
 		{
 			client.off("disconnect", handler)
@@ -295,7 +315,7 @@ export class GamePong implements IGame
 
 	private GetHUDDataPlayer(player: IPlayer): SocketCommunication.GameImage.IPongHUDPlayer
 	{
-		let name: string = (player.player !== null) ? player.player.name : "Bot";
+		let name: string = (player.player !== null) ? player.player.name : "";
 	
 		return (
 		{
@@ -843,7 +863,7 @@ export class GamePong implements IGame
 	private EventPlayerScored(player: IPlayer): void
 	{
 		++player.score;
-		if (player.score >= 11)//set to 11
+		if (player.score >= 1)//set to 11
 			this.SetGameState(GameState.GAMEOVER);
 		else
 			this.SetGameState(GameState.NEWBALL);
@@ -885,7 +905,7 @@ export class GamePong implements IGame
 		console.error("Matchtypes hardcoded");
 		return ({
 			gameType:	GameTypes.PONG,
-			matchType:	MatchTypes.LOCAL,
+			matchType:	this.mode,
 			status:		status,
 			duration:	Date.now() - this.timerGame,
 			player1ID:	this.player1.id,
