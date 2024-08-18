@@ -14,7 +14,7 @@ export const FriendsList = ({ userId }: FriendsListProps) => {
   return (
     <div className="item">
       {loading ? (
-        <p>Loading friends...</p>
+        <p className="title">Loading friends...</p>
       ) : (
         <div>
           <h4 className="title">Friends</h4>

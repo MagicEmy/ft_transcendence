@@ -23,17 +23,13 @@
   margin-top: 3em;
   padding: 100px;
   margin-bottom: 20em;
-  background-color: #2386a220;
-  box-shadow: 1px 2px 2px hsl(193deg 64% 39% / 0.125),
-    2px 4px 4px hsl(193deg 64% 39% / 0.125),
-    4px 8px 8px hsl(193deg 64% 39% / 0.125),
-    8px 16px 16px hsl(193deg 64% 39% / 0.125),
-    16px 32px 32px hsl(193deg 64% 39% / 0.125);
+  /* background-color: #2386a220; */
+  background-color: white;
+  box-shadow: 0px 2.2px 5.8px rgba(35, 134, 162, 0.15),
+    0px 6.1px 16.3px rgba(35, 134, 162, 0.095),
+    0px 14.8px 38.4px rgba(35, 134, 162, 0.071),
+    0px 49px 125px rgba(35, 134, 162, 0.047);
 }
-
-/* NEW SHADE
-	background-color: hsla(193, 64%, 39%, 0.125); /* NEW SHADE
-    /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
 
 #leadProfile .flex {
   display: flex;
@@ -48,11 +44,9 @@
   width: 1000px;
   align-items: center;
   gap: 3em;
-  border: 2px solid #2386a2;
-  box-shadow: 1px 2px 2px hsl(193deg 64% 39% / 0.125),
-    2px 4px 4px hsl(193deg 64% 39% / 0.125),
-    4px 8px 8px hsl(193deg 64% 39% / 0.125),
-    8px 16px 16px hsl(193deg 64% 39% / 0.125);
+  box-shadow: 0px 2.2px 5.8px rgba(35, 134, 162, 0.15),
+    0px 6.1px 16.3px rgba(35, 134, 162, 0.095),
+    0px 49px 125px rgba(35, 134, 162, 0.047);
   padding: 10px;
 }
 
@@ -104,15 +98,13 @@
   justify-content: center;
   width: 50px;
   align-items: center;
-  border: 2px solid #2386a2;
   padding: 50px;
   font-size: 1.2em;
   font-weight: bold;
   color: #09467f;
-  box-shadow: 1px 2px 2px hsl(193deg 64% 39% / 0.125),
-    2px 4px 4px hsl(193deg 64% 39% / 0.125),
-    4px 8px 8px hsl(193deg 64% 39% / 0.125),
-    8px 16px 16px hsl(193deg 64% 39% / 0.125);
+  box-shadow: 0px 2.2px 5.8px rgba(35, 134, 162, 0.15),
+    0px 6.1px 16.3px rgba(35, 134, 162, 0.095),
+    0px 49px 125px rgba(35, 134, 162, 0.047);
 }
 
 .stats .stat {
@@ -129,8 +121,6 @@
   color: #2386a2;
   margin-top: 10px;
   margin-bottom: 20px;
-  /* text-decoration: underline; */
-  /* text-underline-offset: 10px; */
   font-size: 1.2em;
   font-weight: bold;
   margin-right: 25px;

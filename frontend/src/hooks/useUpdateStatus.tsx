@@ -1,5 +1,4 @@
 import { useEffect, useContext } from 'react';
-// import { updateStatus } from '../utils/profileUtils';
 import { STATUS } from '../utils/constants';
 import UserContext, { IUserContext } from '../context/UserContext';
 
@@ -27,7 +26,7 @@ export const useUpdateStatus = () => {
         body: body,
       });
       if (!response.ok) {
-        console.log('Failed to update user status');
+        console.error('Failed to update user status');
       }
       return;
     };

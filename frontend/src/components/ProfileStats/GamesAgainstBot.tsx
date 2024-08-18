@@ -34,7 +34,6 @@ const GamesAgainstBotStats = ({ profile }: GamesAgainstBotStatsProps) => {
   const { totalPlayedGames, wins, losses, draws, maxScore, totalTimePlayed } =
     profile.gamesAgainstBot;
   const { weeks, days, hours, minutes, seconds } = totalTimePlayed;
-
   return (
     <>
       <div className="stat-column">

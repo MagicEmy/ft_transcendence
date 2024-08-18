@@ -23,7 +23,8 @@ const Leaderboard = () => {
           if (response.status === 400 && retry > 0) {
             return fetchDbBoard(retry - 1);
           } else {
-            throw new Error('Failed to fetch leaderboard data.');
+            console.error('Error fetching user data:');
+            setLeaderboard([]);
           }
         }
         const leaderboardDB: LeaderboardStats[] = await response.json();

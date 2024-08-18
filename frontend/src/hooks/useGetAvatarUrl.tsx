@@ -12,7 +12,6 @@ export const useGetAvatarUrl = (userId: string) => {
     const fetchAvatar = async () => {
       try {
         const url = await loadProfileAvatar(userId);
-
         if (url) {
           setAvatar(url);
         }

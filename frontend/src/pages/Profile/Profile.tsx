@@ -15,8 +15,9 @@ import { UserStats } from '../../components/ProfileStats/ProfileStats';
 import { AddFriendButton } from '../../components/AddFriendButton';
 import UserContext, { IUserContext } from '../../context/UserContext';
 import defaultAvatar from '../../assets/defaultAvatar.png';
-// import useStorage from "../../hooks/useStorage";
 import './Profile.css';
+
+// import useStorage from "../../hooks/useStorage";
 
 export const Profile = () => {
   const { userId } = useParams<{ userId?: string }>();
@@ -109,7 +110,7 @@ export const Profile = () => {
                 <span
                   className={`status-indicator ${userStatusIndicator}`}
                 ></span>
-                <span>{userStatusIndicator}</span>
+                <span className="text">{userStatusIndicator}</span>
               </div>
               {userId && userId !== userIdContext && (
                 <AddFriendButton
