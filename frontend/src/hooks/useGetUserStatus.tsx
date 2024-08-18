@@ -1,31 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { STATUS } from '../utils/constants';
 import { UserStatus } from '../types/shared';
 
-export const useGetUserStatus = (userId: string) => {
+export const useGetUserStatus = (userId: string, pollingInterval = 5000) => {
   const [isLoading, setIsLoading] = useState(false);
   const [userStatus, setUserStatus] = useState<UserStatus>();
   const [error, setError] = useState<string>();
 
-  useEffect(() => {
-    const fetchUserStatus = async () => {
-      setIsLoading(true);
+  const fetchUserStatus = useCallback(async () => {
+    setIsLoading(true);
+    try {
       const response = await fetch(`${STATUS}/${userId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
       });
-      setIsLoading(false);
+
       if (!response.ok) {
         setError(`Error: ${response.status}`);
+        console.error(`Error: ${response.status}`);
         return;
       }
-      const userStatus = await response.json();
-      setUserStatus(userStatus);
-    };
-
-    fetchUserStatus();
+      const newUserStatus = await response.json();
+      setUserStatus(newUserStatus);
+    } catch (err) {
+      console.error(`'An error occurred': ${err}`);
+    } finally {
+      setIsLoading(false);
+    }
   }, [userId]);
+
+  useEffect(() => {
+    fetchUserStatus();
+
+    const intervalId = setInterval(fetchUserStatus, pollingInterval);
+
+    return () => clearInterval(intervalId);
+  }, [userId, pollingInterval, fetchUserStatus]);
 
   return { userStatus, isLoading, error };
 };
