@@ -50,8 +50,8 @@ export class GameInvitation {
       response.message = `You blocked ${inviter.userName}`;
       return response
     }
-    await this.userService.setGame(receiver.userId, inviter.userId)
-    await this.userService.setGame(inviter.userId, receiver.userId)
+    await this.userService.setGame(receiver.userId, inviter.userId, false);
+    await this.userService.setGame(inviter.userId, receiver.userId, true);
     response.success = true;
     response.message = 'Game invitation sent';
     return response
@@ -61,19 +61,19 @@ export class GameInvitation {
   async acceptGameInvitation(accepter: User , inviter: User | undefined): Promise<ResponseDto> {
     let response: ResponseDto = { success: false, message: '' };
     if (!inviter) {
-      this.logger.log(`Inviter ${inviter.userId} not found`)
-      this.userService.setGame(accepter.userId, '')
+      this.logger.log(`Inviter ${inviter.userId} not found`);
+      this.userService.setGame(accepter.userId, '', false);
       response.message = 'User not found';
       return response
     }
     if (accepter.game !== inviter.userId) {
-      this.userService.setGame(accepter.userId, '')
+      this.userService.setGame(accepter.userId, '', false)
       this.logger.log(`accepter: ${accepter.game} !== Inviter ${inviter.userId}`)
       response.message = 'You are not invited to this game';
       return response
     }
     if (inviter.socketId === '') {
-      this.userService.setGame(accepter.userId, '')
+      this.userService.setGame(accepter.userId, '', false)
       this.logger.log(`inviter: ${inviter.userId} is offline`)
       response.message = 'Your opponent is not online';
       return response
@@ -83,16 +83,16 @@ export class GameInvitation {
       accepter.userId,
     )
     if (blocked !== 'Not Blocked') {
-      this.userService.setGame(accepter.userId, '')
-      this.userService.setGame(inviter.userId, '')
+      this.userService.setGame(accepter.userId, '', false)
+      this.userService.setGame(inviter.userId, '', false)
       this.logger.log(`Inviter: ${inviter.userId} blocked: ${accepter.userId}`)
       response.message = `You are blocked by ${inviter.userName}`;
       return
     }
     const blockedBy: string = await this.userService.checkBlockedUser(accepter, inviter.userId)
     if (blockedBy !== 'Not Blocked') {
-      this.userService.setGame(accepter.userId, '')
-      this.userService.setGame(inviter.userId, '')
+      this.userService.setGame(accepter.userId, '', false)
+      this.userService.setGame(inviter.userId, '', false)
       this.logger.log(`Accepter: ${accepter.userId} blocked: ${inviter.userId}`)
       response.message = `You blocked ${inviter.userName}`;
       return response
@@ -106,8 +106,8 @@ export class GameInvitation {
       player2ID: accepter.userId,
     }) // DM added
 
-    await this.userService.setGame(accepter.userId, '')
-    await this.userService.setGame(inviter.userId, '')
+    // await this.userService.setGame(accepter.userId, '', false) // will come from kafka
+    // await this.userService.setGame(inviter.userId, '', false)
     response.success = true;
     response.message = 'Game started';
     return response
@@ -117,18 +117,18 @@ export class GameInvitation {
     let response: ResponseDto = { success: false, message: '' };
     if (!declined) {
       this.logger.log(`Declined ${declined} not found`)
-      this.userService.setGame(decliner.userId, '')
+      this.userService.setGame(decliner.userId, '', false)
       response.message = 'User not found';
       return response
     }
     if (decliner.game !== declined.userId) {
       response.message = 'You are not invited to this game';
-      this.userService.setGame(decliner.userId, '')
+      this.userService.setGame(decliner.userId, '', false)
       this.logger.log(`Decliner: ${decliner.game} !== Declined: ${declined.userId}`)
       return response
     }
-    this.userService.setGame(decliner.userId, '')
-    this.userService.setGame(declined.userId, '')
+    this.userService.setGame(decliner.userId, '', false)
+    this.userService.setGame(declined.userId, '', false)
     response.success = true;
     response.message = 'Game invitation declined';
     return response

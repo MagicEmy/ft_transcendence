@@ -8,7 +8,7 @@ import { UserIdNameDto } from 'src/kafka/dto/kafka-dto';
 
 @Injectable()
 export class UserService {
-  constructor( 
+  constructor(
     @InjectRepository(UserRepository)
     private readonly userRepository: UserRepository,
     @InjectRepository(BlockedUserRepository)
@@ -23,6 +23,7 @@ export class UserService {
       socketId,
       online: true,
       game: '',
+      isGameHost: false,
     });
   }
 
@@ -140,7 +141,22 @@ export class UserService {
     return 'Not Blocked';
   }
 
-  async setGame(userId: string, game: string): Promise<string> {
-    return this.userRepository.setGame(userId, game);
+  async setGame(
+    userId: string,
+    game: string,
+    isGameHost: boolean,
+  ): Promise<string> {
+    return this.userRepository.setGame(userId, game, isGameHost);
+  }
+
+  async removeGameFromDB(player1ID: string, player2ID: string): Promise<void> {
+    const user1: User = await this.getUserById(player1ID);
+    if (user1 && user1.game == player2ID) {
+      this.userRepository.setGame(player1ID, '', false);
+    }
+    const user2: User = await this.getUserById(player2ID);
+    if (user2 && user2.game == player1ID) {
+      this.userRepository.setGame(player2ID, '', false);
+    }
   }
 }

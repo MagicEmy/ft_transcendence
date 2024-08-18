@@ -7,6 +7,7 @@ import {
 } from '@nestjs/microservices';
 import { KafkaTopic } from './kafka.enum';
 import { UserIdNameDto, UserIdNameLoginDto } from './dto/kafka-dto';
+import { IGameStatus } from './kafka.interface';
 
 @Controller()
 export class KafkaController {
@@ -26,5 +27,11 @@ export class KafkaController {
   @EventPattern(KafkaTopic.USERNAME_CHANGE)
   changeUserName(data: UserIdNameDto): void {
     this.kafkaConsumerService.changeUsername(data);
+  }
+
+  @EventPattern(KafkaTopic.GAME_END)
+  handleGameEnd(data: IGameStatus) {
+    const { player1ID, player2ID } = data;
+    this.kafkaConsumerService.removeGameFromDB(player1ID, player2ID);
   }
 }

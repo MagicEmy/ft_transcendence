@@ -5,8 +5,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from 'src/dto/chat.dto';
 import { User } from 'src/entities/user.entity';
-import { StatusChangeDto } from 'src/kafka/dto/kafka-dto';
-import { UserStatusEnum } from 'src/kafka/kafka.enum';
 import { Repository } from 'typeorm';
 
 export class UserRepository extends Repository<User> {
@@ -84,10 +82,15 @@ export class UserRepository extends Repository<User> {
     return user;
   }
 
-  async setGame(userId: string, game: string): Promise<string> {
+  async setGame(
+    userId: string,
+    game: string,
+    isGameHost: boolean,
+  ): Promise<string> {
     const user = await this.getUserById(userId);
     if (user) {
       user.game = game;
+      user.isGameHost = isGameHost;
       try {
         this.save(user);
         return game;
