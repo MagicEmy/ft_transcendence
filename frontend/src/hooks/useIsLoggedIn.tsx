@@ -13,11 +13,11 @@ export const useIsLoggedIn = () => {
           method: 'GET',
           credentials: 'include',
         });
-        console.log('useIsLoggedIn: response:', response);
         if (!response.ok) {
-          setError(`Error: ${response.status}`);
+					setError(`Error: ${response.status}`);
           setIsLoggedin(false);
           setLoading(false);
+					console.error('useIsLoggedIn: response:', response.status);
           return;
         }
         const isJwtValid = await response.json();

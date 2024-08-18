@@ -8,14 +8,11 @@ interface FriendsListProps {
 }
 
 export const FriendsList = ({ userId }: FriendsListProps) => {
-  const { friends, loading } = useGetFriends(userId, '', 5000); // Poll every 5 seconds
+  const { friends } = useGetFriends(userId, '', 5000); // Poll every 5 seconds
   const navigate = useNavigate();
 
   return (
     <div className="item">
-      {loading ? (
-        <p className="title">Loading friends...</p>
-      ) : (
         <div>
           <h4 className="title">Friends</h4>
           {friends && friends.length > 0 ? (
@@ -47,7 +44,6 @@ export const FriendsList = ({ userId }: FriendsListProps) => {
             </div>
           )}
         </div>
-      )}
     </div>
   );
 };

@@ -101,7 +101,7 @@ export const TwoFaEnable = () => {
             userId: userIdStorage,
           }),
         });
-        console.log('response Disable', response);
+        console.error('response Disable', response);
         if (!response.ok) {
           setError(response.statusText);
           return false;

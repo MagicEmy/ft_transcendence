@@ -1,17 +1,18 @@
 :root {
   --background-color: #e6e6e6;
   --dark-blue-gray: #09467f;
-  --dark-blue-gray: rgb(9, 71, 129);
-  --orange: #f57112;
+  --dark-blue-gray-two: rgb(9, 71, 129);
+  --dark-blue-gray-three: rgba(20, 28, 36, 1);
+  --orange: rgb(245, 113, 18);
   --light-orange: #f39d60;
+  --bright-orange: rgb(255, 126, 66, 1);
+  --teal-one: rgba(64, 224, 208, 1);
   --teal: #2386a2;
   --turquiose: #11a8b6;
   --highlight: #ffffff;
 }
 
 .profile {
-  /* border: 2px solid #09467f; */
-  /* border-radius: 30px; */
   height: auto;
   margin-top: 3em;
   padding: 30px;
@@ -301,4 +302,14 @@
 .separator {
   margin: 0 15px;
   font-weight: bold;
+}
+
+.error-message {
+  margin-bottom: 1em;
+  color: #09467f;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+	gap: 5rem;
 }

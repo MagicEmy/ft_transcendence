@@ -12,23 +12,28 @@ export const useUpdateStatus = () => {
       return;
     }
     const changeStatus = async () => {
-      const bodyStatus = {
-        userId: userIdContext,
-        newStatus: statusOnline,
-      };
-      const body = JSON.stringify(bodyStatus);
-      const response = await fetch(STATUS, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: body,
-      });
-      if (!response.ok) {
-        console.error('Failed to update user status');
+      try {
+        const bodyStatus = {
+          userId: userIdContext,
+          newStatus: statusOnline,
+        };
+        const body = JSON.stringify(bodyStatus);
+        const response = await fetch(STATUS, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: body,
+        });
+
+        if (!response.ok) {
+          console.error('Failed to update user status');
+        }
+        return;
+      } catch (err) {
+        console.error('An error occurred:', err);
       }
-      return;
     };
 
     changeStatus();
