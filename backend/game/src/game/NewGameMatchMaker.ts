@@ -1,3 +1,5 @@
+import { Socket } from 'socket.io';
+
 import { GameManager } from "./NewGameManager";
 import { GamePlayer } from "./GamePlayer";
 import { IGame } from "./IGame";
@@ -9,13 +11,21 @@ export class MatchMaker implements IGame
 {
 	private static instance: MatchMaker | undefined;
 
+	private static LeaveHandlers: Map<Socket, (client: Socket) => void>;
+	private static DisconnectHandlers: Map<Socket, (client: Socket) => void>;
+
 	private static gameFlag: string = "MATCH";
-	private static matchQueue: IPlayerRanked[] = [];
+	private static matchQueue: IPlayerRanked[];
 	private static matchInterval: any;
-	private static timeInterval: number = 1000;
+	private static timeInterval: number;
 
 	private constructor()
-	{}
+	{
+		MatchMaker.matchQueue = [];
+		MatchMaker.timeInterval = 1000;
+		MatchMaker.LeaveHandlers = new Map<Socket, (client: Socket) => void>();
+		MatchMaker.DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
+	}
 
 	public static GetInstance(): MatchMaker
 	{
@@ -24,24 +34,31 @@ export class MatchMaker implements IGame
 		return (MatchMaker.instance);
 	}
 
+/* ************************************************************************** *\
+
+	Add and Remove Player
+
+\* ************************************************************************** */
+
 	public AddPlayer(player: GamePlayer): boolean
 	{
 		var id: any = player.getId()
 		var rank: number = player.rank? player.rank : -1;
 		if (MatchMaker.matchQueue.findIndex(playerQueue => playerQueue.id === id) === -1)
 		{
-			let newPlayer: IPlayerRanked = {
-				player: player,
-				id:		id,
-				rank:	rank,
-				time:	0,
-			};
-			MatchMaker.matchQueue.push(newPlayer);
-			// MatchMaker.matchQueue.push({player: undefined, id: id, rank: 5, time: 0});
+			MatchMaker.AddPlayerToQueue(player);
+			MatchMaker.AddHandlers(player.getClient(), player.getId());
 			MatchMaker.matchQueue.sort((a, b) => a.rank - b.rank);
-			// MatchMaker.PrintMatchList();
-		}
 
+			// let newPlayer: IPlayerRanked = {
+			// 	player: player,
+			// 	id:		id,
+			// 	rank:	rank,
+			// 	time:	0,
+			// };
+			// MatchMaker.matchQueue.push(newPlayer);
+			// MatchMaker.matchQueue.sort((a, b) => a.rank - b.rank);
+		}
 		else
 			console.error(`Error: Player [${player.getId()}] is already in MatchMaker.`);
 
@@ -51,43 +68,119 @@ export class MatchMaker implements IGame
 		return (true);
 	}
 
-	public static UpdatePlayer(player: KafkaCommunication.PlayerInfo.IPlayerInfo): void
+	private static AddPlayerToQueue(player: GamePlayer): void
 	{
-		if (player.playerRank)
-			for (let i: number = 0; i < MatchMaker.matchQueue.length; ++i)
-				if (MatchMaker.matchQueue[i].id === player.playerID)
-					MatchMaker.matchQueue[i].rank = player.playerRank;
+		const id: any = player.getId();
+		const newPlayer: IPlayerRanked = 
+		{
+			player:	player,
+			id:		player.getId(),
+			rank:	player.rank ? player.rank : -1,
+			time:	0,
+		};
+		MatchMaker.matchQueue.push(newPlayer);
+		// MatchMaker.matchQueue.sort((a, b) => a.rank - b.rank);
 	}
 
-	private static PrintMatchList(): void
+/* ************************************************************************** *\
+
+	Socket.io
+
+\* ************************************************************************** */
+
+	private static AddHandlers(client: Socket, playerID: any): void
 	{
-		for (let i: number = 0; i < MatchMaker.matchQueue.length; ++i)
-			console.log(i, MatchMaker.matchQueue[i].id, MatchMaker.matchQueue[i].rank, MatchMaker.matchQueue[i].time);
+		var handler: any;
+		
+		handler = () => MatchMaker.HandlerLeaveMatchmaker(client, playerID);
+		MatchMaker.LeaveHandlers.set(client, handler);
+		client.on(SocketCommunication.LeaveMatchMaker.TOPIC, handler);
+
+		handler = () => MatchMaker.HandlerDisconnect(client, playerID);
+		MatchMaker.DisconnectHandlers.set(client, handler);
+		client.on("disconnect", handler);
 	}
 
-	public PlayerIsInGame(player: GamePlayer): boolean
+	private static HandlerDisconnect(client: Socket, playerID: any): void
 	{
-		// const id: any = player.getId();
-		// if (MatchMaker.matchQueue.findIndex(playerQueue => playerQueue.id === id) === -1)
-		// 	return (false);
-		return (true);
+		MatchMaker.RemoveListeners(client);
+		MatchMaker.RemovePlayer(playerID);
 	}
 
-	public static RemovePlayer(playerID: string)
+	private static HandlerLeaveMatchmaker(client: Socket, playerID: any): void
+	{
+		MatchMaker.RemoveListeners(client);
+		MatchMaker.RemovePlayer(playerID);
+	}
+
+	private static RemoveListeners(client: Socket): void
+	{
+		var handler: any;
+
+		handler = MatchMaker.LeaveHandlers.get(client);
+		if (handler)
+		{
+			client.off(SocketCommunication.LeaveMatchMaker.TOPIC, handler);
+			MatchMaker.LeaveHandlers.delete(client);
+		}
+
+		handler = MatchMaker.DisconnectHandlers.get(client);
+		if (handler)
+		{
+			client.off("disconnect", handler);
+			MatchMaker.DisconnectHandlers.delete(client);
+		}
+	}
+
+	private static RemoveAllListeners(): void
+	{
+		MatchMaker.LeaveHandlers.forEach((handler, client) =>
+		{
+			client.removeAllListeners(SocketCommunication.LeaveMatchMaker.TOPIC);
+			MatchMaker.LeaveHandlers.delete(client);
+		});
+
+		MatchMaker.DisconnectHandlers.forEach((handler, client) =>
+		{
+			client.off("disconnect", handler);
+			MatchMaker.DisconnectHandlers.delete(client);
+		});
+	}
+
+	// public static UpdatePlayer(player: KafkaCommunication.PlayerInfo.IPlayerInfo): void
+	// {
+	// 	if (player.playerRank)
+	// 		for (let i: number = 0; i < MatchMaker.matchQueue.length; ++i)
+	// 			if (MatchMaker.matchQueue[i].id === player.playerID)
+	// 				MatchMaker.matchQueue[i].rank = player.playerRank;
+	// }
+
+	public static RemovePlayer(playerID: string): void
 	{
 		let index: number;
+
+		MatchMaker.PrintMatchList();
 		while ((index = MatchMaker.matchQueue.findIndex(id => id.id === playerID)) !== -1)
 			MatchMaker.matchQueue.splice(index, 1)[0];
 
 		if (MatchMaker.matchQueue.length < 1)
 			clearInterval(MatchMaker.matchInterval);
+		MatchMaker.PrintMatchList();
 	}
 
 	ClearGame(): void
 	{
 		MatchMaker.matchQueue = [];
+		MatchMaker.RemoveAllListeners();
 		clearInterval(MatchMaker.matchInterval);
 	}
+
+
+/* ************************************************************************** *\
+
+	MatchLoop
+
+\* ************************************************************************** */
 
 	private static MatchLoop()
 	{
@@ -148,6 +241,33 @@ export class MatchMaker implements IGame
 		}
 	}
 
+/* ************************************************************************** *\
+
+	Util
+
+\* ************************************************************************** */
+
+private static PrintMatchList(): void
+{
+	console.log(`Matchlist[${MatchMaker.matchQueue.length}]`);
+	for (let i: number = 0; i < MatchMaker.matchQueue.length; ++i)
+		console.log(i, MatchMaker.matchQueue[i].id, MatchMaker.matchQueue[i].rank, MatchMaker.matchQueue[i].time);
+}
+
+public PlayerIsInGame(player: GamePlayer): boolean
+{
+	const id: any = player.getId();
+	if (MatchMaker.matchQueue.findIndex(playerQueue => playerQueue.id === id) === -1)
+		return (false);
+	return (true);
+}
+
+/* ************************************************************************** *\
+
+	Menu
+
+\* ************************************************************************** */
+	
 	public static GetFlag(): string { return (MatchMaker.gameFlag); }
 
 	public static GetMenuRowJson(): any
