@@ -16,16 +16,16 @@ import { AddFriendButton } from '../../components/AddFriendButton';
 import UserContext, { IUserContext } from '../../context/UserContext';
 import defaultAvatar from '../../assets/defaultAvatar.png';
 import './Profile.css';
-
-// import useStorage from "../../hooks/useStorage";
+import PrivateRoute from '../../components/PrivateRoute';
 
 export const Profile = () => {
   const { userId } = useParams<{ userId?: string }>();
   const { userIdContext } = useContext<IUserContext>(UserContext);
   const [userIdOrMe, setUserIdOrMe] = useState(userId || userIdContext);
+  useUpdateStatus();
 
-  const { profile } = useGetProfile(userIdOrMe);
-  const { userStatus } = useGetUserStatus(userIdOrMe);
+  const { profile, error } = useGetProfile(userIdOrMe);
+  const { userStatus } = useGetUserStatus(userIdOrMe, 5000);
   const { avatar: avatarUrl } = useGetAvatarUrl(userIdOrMe);
   const { friends: loggedUserFriends } = useGetFriends(
     userIdContext,
@@ -33,13 +33,19 @@ export const Profile = () => {
   );
   const { friends: userProfileFriends } = useGetFriends(userIdOrMe, userIdOrMe);
   const [isFriend, setIsFriend] = useState<boolean>(false);
-  const [error] = useState<string>('');
-  const [currentStatus, setCurrentStatus] = useState<string>('');
-
   const [, setFriends] = useState<Friends[]>([]);
   const profileName = profile?.userInfo?.userName;
-  const userStatusIndicator = currentStatus;
-  useUpdateStatus();
+  const [currentStatus, setCurrentStatus] = useState<string>(
+    profile?.userInfo?.status || '',
+  );
+	
+	if (error && (error === 500 || error === 404)) {
+    return (
+      <PrivateRoute>
+        <h4 className="profile-text">Redirecting...</h4>
+      </PrivateRoute>
+    );
+  }	
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -107,10 +113,8 @@ export const Profile = () => {
               )}
               <h4 className="profile-text">{profileName}</h4>
               <div className="status">
-                <span
-                  className={`status-indicator ${userStatusIndicator}`}
-                ></span>
-                <span className="text">{userStatusIndicator}</span>
+                <span className={`status-indicator ${currentStatus}`}></span>
+                <span className="text">{currentStatus}</span>
               </div>
               {userId && userId !== userIdContext && (
                 <AddFriendButton
