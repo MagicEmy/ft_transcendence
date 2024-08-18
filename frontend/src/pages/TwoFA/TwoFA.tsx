@@ -1,23 +1,17 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useStorage from '../../hooks/useStorage';
 import { TFA_VALIDATE } from '../../utils/constants';
 
 import './TwoFa.css';
 
 export const TwoFA = () => {
-  const [userIdStorage] = useStorage<string>('userId', '');
-
   const [tfaCode, setTfaCode] = useState('');
   const [showError, setShowError] = useState(false);
   const [errorName, setErrorName] = useState('');
   const navigate = useNavigate();
 
-  console.log('userIdStorage', userIdStorage);
-
   async function handleSubmit(event: FormEvent) {
     event?.preventDefault();
-    console.log('userIdStorage', userIdStorage, 'tfaCode', tfaCode);
     const RESPONSE = await fetch(TFA_VALIDATE, {
       method: 'POST',
       credentials: 'include',

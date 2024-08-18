@@ -6,7 +6,6 @@ export const useGetProfile = (userId: string) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<number | null>(null);
-
   const fetchDbProfile = useCallback(
     async (retry = 2) => {
       setIsLoading(true);
@@ -23,10 +22,11 @@ export const useGetProfile = (userId: string) => {
           if (response.status === 401 && retry > 0) {
             return fetchDbProfile(retry - 1);
           } else {
-            throw new Error(`${response.status}`);
+            setError(response.status);
           }
         }
-
+				        setError(500);
+				
         const profileData: UserProfile = await response.json();
         setProfile(profileData);
       } catch (e) {

@@ -95,15 +95,14 @@ export const Profile = () => {
 
   if (error && (error === 500 || error === 404)) {
     return (
-      <div className="main">
+      <div className="profile">
         <h1 className="page-title">Error</h1>
-        <h4 className="profile-text">
+        <h4 className="error-message">
           You must be logged in to view this page
-        </h4>
-        <p className="error">You must be logged in to view this page</p>
         <button className="button-profile" onClick={() => navigate('/')}>
           Back to login
         </button>
+        </h4>
       </div>
     );
   }

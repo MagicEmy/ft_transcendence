@@ -10,11 +10,11 @@ export const mangeSocket = (userId: string) => {
     });
 
     socket.on('connect', () => {
-      console.log('Socket connected');
+      // console.log('Socket connected');
     });
 
     socket.on('disconnect', () => {
-      console.log('Socket disconnected');
+      // console.log('Socket disconnected');
     });
   }
 };

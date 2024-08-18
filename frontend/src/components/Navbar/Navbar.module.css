@@ -37,7 +37,7 @@ body {
 .name {
   position: relative;
   font-family: 'Orbitron', sans-serif;
-  color: orange;
+  color: rgb(255, 165, 0);
   text-shadow: 1px 1px 3px black;
   /* margin-left: 1rem; */
 }
@@ -57,7 +57,7 @@ ul {
 .list button {
   margin-top: 5px;
   width: 135px;
-  background-color: orange;
+  background-color: #ffa500;
   border: none;
   border-radius: 30px;
   color: #09467f;
@@ -96,7 +96,6 @@ ul {
   font-family: 'Orbitron', sans-serif;
   font-size: 16px;
   cursor: pointer;
-  /* margin-top: -10px; */
   margin-right: 50px;
   margin-left: -30px;
   flex-wrap: wrap;
@@ -111,8 +110,6 @@ ul {
 }
 
 .quote {
-  /* position: relative; */
-  /* flex-wrap: wrap; */
   margin-top: -30px;
   margin-left: -30px;
   margin-right: 50px;

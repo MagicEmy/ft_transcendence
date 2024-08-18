@@ -21,7 +21,6 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
         credentials: 'include',
       });
       if (response.ok) {
-        console.log('User logged out');
         removeUserIdStorage();
         removeUserNameStorage();
         navigate('/', { replace: true });
@@ -29,7 +28,7 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
         throw new Error('Failed to log out');
       }
     } catch (error) {
-      console.log('Error logging out:', error);
+      console.error('Error logging out:', error);
       removeUserIdStorage();
       removeUserNameStorage();
       navigate('/', { replace: true });

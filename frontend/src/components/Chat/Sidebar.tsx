@@ -540,57 +540,65 @@ function Sidebar() {
                 key={idx}
                 active={isActive}
                 style={{
-                  cursor: "pointer",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                   backgroundColor: getRoomBackgroundColor(room, isActive),
                   color: '#ffffff',
                   border: 'none',
                   margin: '5px 0',
                   borderRadius: '5px',
                   padding: '10px 15px',
-                  transition: 'background-color 0.3s ease'
-              }}
-            > <span onClick={() => joinRoom(room)} style={{ flex: 1 }}>
-            {room.roomName}
-            {isMyRoom && " (My Room)"}
-            </span>
-              <span>
-                <OverlayTrigger
-                  placement="top"
-                  overlay={renderTooltip("Exclusive Room")}
-                >
-                  <span>{room.exclusive && <IoDiamond />}</span>
-                </OverlayTrigger>
-                <OverlayTrigger
-                  placement="top"
-                  overlay={renderTooltip("Password Protected")}
-                >
-                  <span>{room.password && <IoLockClosed />}</span>
-                </OverlayTrigger>
-              </span>
-              {!isActive && (
-                <span className="badge rounded-pill bg-primary">
-                    {notifications.find(notification => notification.roomName === room.roomName)?.count}
+                  transition: 'background-color 0.3s ease',
+                }}
+              >
+                {' '}
+                <span onClick={() => joinRoom(room)} style={{ flex: 1 }}>
+                  {room.roomName}
+                  {isMyRoom && ' (My Room)'}
                 </span>
-              )}
-              {isMyRoom && (
+                <span>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={renderTooltip('Exclusive Room')}
+                  >
+                    <span>{room.exclusive && <IoDiamond />}</span>
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={renderTooltip('Password Protected')}
+                  >
+                    <span>{room.password && <IoLockClosed />}</span>
+                  </OverlayTrigger>
+                </span>
+                {!isActive && (
+                  <span className="badge rounded-pill bg-primary">
+                    {
+                      notifications.find(
+                        (notification) =>
+                          notification.roomName === room.roomName,
+                      )?.count
+                    }
+                  </span>
+                )}
+                {isMyRoom && (
                   <>
                     {ownerDropDown(room)}
-                    {room.roomName !== "general" && (
+                    {room.roomName !== 'general' && (
                       <Button
                         variant="warning"
                         onClick={leaveRoom(room.roomName)}
                         style={{
-                          background: "linear-gradient(in oklab, #f57112 10%, #f39d60 90%)",
-                          border: "none",
-                          borderRadius: "30px",
-                          padding: "5px 15px",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          marginLeft: "10px",
+                          background: '#ffa500',
+                          border: 'none',
+                          borderRadius: '30px',
+                          padding: '5px 15px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginLeft: '10px',
+                          color: '#09467f',
                         }}
                       >
                         Leave

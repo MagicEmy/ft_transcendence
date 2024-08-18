@@ -15,13 +15,13 @@ export const loadFriends = async (
       credentials: 'include',
     });
     if (!response.ok) {
-      // console.log('IN LOADFRIENDS response not ok', response.status);
-      throw new Error(`Error loading friends: ${response.statusText}`);
+      console.error('IN LOADFRIENDS response not ok', response.status);
+      // throw new Error(`Error loading friends: ${response.statusText}`);
     }
     const friends: Friends[] = await response.json();
     return friends;
   } catch (error) {
-    // console.error('Error loading friends json:', error);
+    console.error('Error loading friends json:', error);
     throw error;
   }
 };

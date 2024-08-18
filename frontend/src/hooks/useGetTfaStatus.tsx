@@ -17,7 +17,7 @@ export const useGetTfaStatus = (userId: string) => {
           if (response.status === 401 && retry > 0) {
             return fetchTfaStatus(retry - 1);
           }
-          console.log('Error fetching TFA status:', response.statusText);
+          console.error('Error fetching TFA status:', response.statusText);
           return;
         }
 
