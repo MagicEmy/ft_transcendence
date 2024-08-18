@@ -28,7 +28,7 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
     );
   }
   if (!isLoggedin) {
-    console.log('PrivateRoute: No user logged in');
+    console.error('PrivateRoute: No user logged in');
     return (
       <PageContent title="Error">
         <p className="error">You must be logged in to view this page</p>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { addFriend, deleteFriend } from '../../utils/friendsUtils';
 import { Friends } from '../../types/shared';
 import {
@@ -16,9 +17,9 @@ import { AddFriendButton } from '../../components/AddFriendButton';
 import UserContext, { IUserContext } from '../../context/UserContext';
 import defaultAvatar from '../../assets/defaultAvatar.png';
 import './Profile.css';
-import PrivateRoute from '../../components/PrivateRoute';
 
 export const Profile = () => {
+  const navigate = useNavigate();
   const { userId } = useParams<{ userId?: string }>();
   const { userIdContext } = useContext<IUserContext>(UserContext);
   const [userIdOrMe, setUserIdOrMe] = useState(userId || userIdContext);
@@ -38,14 +39,7 @@ export const Profile = () => {
   const [currentStatus, setCurrentStatus] = useState<string>(
     profile?.userInfo?.status || '',
   );
-	
-	if (error && (error === 500 || error === 404)) {
-    return (
-      <PrivateRoute>
-        <h4 className="profile-text">Redirecting...</h4>
-      </PrivateRoute>
-    );
-  }	
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -98,6 +92,21 @@ export const Profile = () => {
       setCurrentStatus(userStatus.status);
     }
   }, [userStatus]);
+
+  if (error && (error === 500 || error === 404)) {
+    return (
+      <div className="main">
+        <h1 className="page-title">Error</h1>
+        <h4 className="profile-text">
+          You must be logged in to view this page
+        </h4>
+        <p className="error">You must be logged in to view this page</p>
+        <button className="button-profile" onClick={() => navigate('/')}>
+          Back to login
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="main">
