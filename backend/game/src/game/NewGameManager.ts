@@ -8,54 +8,6 @@ import { GamePong } from './NewGamePong';
 import { MatchMaker } from './NewGameMatchMaker';
 import { SocketCommunication, KafkaCommunication  } from './GamePong.communication';
 
-// class GameMenu
-// {
-// 	public name:	string;
-// 	public flag:	string;
-// 	public active:	boolean;
-// 	public up:	GameMenu | null;
-// 	public down:	GameMenu | null;
-// 	public left:	GameMenu | null;
-// 	public right:	GameMenu | null;
-
-// 	private constructor(name: string, flag: string)
-// 	{
-// 		this.name = name;
-// 		this.flag = flag;
-// 		this.active = false;
-// 		this.up = null;
-// 		this.down = null;
-// 		this.left = null;
-// 		this.right = null;
-// 	}
-
-// 	public ToJson(): string
-// 	{
-// 		const nodes: any[] = [];
-// 		let current: GameMenu | null = this;
-// 		console.log("Creating nodes");
-// 		while (current)
-// 		{
-// 			for (let row: any; row; row = row.down)
-// 			{
-// 				nodes.push(
-// 				{
-// 					name:	row.name,
-// 					flag:	row.flag,
-// 					active:	row.active,
-// 					up:		row.up,
-// 					down:	row.down,
-// 					left:	row.left,
-// 					right:	row.right,
-// 				});
-// 				console.log("added node");
-// 			}
-// 			current = current.right;
-// 		}
-// 		return JSON.stringify(nodes);
-// 	}
-// }
-
 @WebSocketGateway({ cors: true })
 export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -205,22 +157,15 @@ Socket.io
 	handlerUserPack(client: Socket, message: string): void
 	{
 		const msg: SocketCommunication.UserPack.IUserPack = JSON.parse(message);
-		// const msg: any = JSON.parse(message);
 		let player: GamePlayer = new GamePlayer(client, msg.playerID);
 		this.players.push(player);
 		player.name = msg.playerName;
 
 		const game: IGame | null = this.FindExistingGame(player);
 		if (game)
-		{
 			game.AddPlayer(player);
-			console.log(`Existing game found ${game}`);
-		}
 		else
-		{
-			console.log("No game found");
 			this.EmitMenu(client);
-		}
 	}
 
 	@SubscribeMessage(SocketCommunication.RequestMenu.TOPIC)
@@ -228,16 +173,6 @@ Socket.io
 	{
 		this.EmitMenu(client);
 	}
-
-	// @SubscribeMessage(SocketCommunication.LeaveMatchMaker.TOPIC)
-	// handerLeaveMatchMaker(client: Socket, message: string): void
-	// {
-	// 	const msg: SocketCommunication.LeaveMatchMaker.ILeaveMatchMaker = JSON.parse(message);
-	// 	// const msg: any = JSON.parse(message);
-
-	// 	MatchMaker.RemovePlayer(msg.playerID);
-	// 	this.EmitMenu(client);
-	// }
 
 /* ************************************************************************** *\
 
@@ -253,6 +188,54 @@ Socket.io
 		menuJson.rows.push(MatchMaker.GetMenuRowJson());
 		client.emit(SocketCommunication.RequestMenu.REPLY, JSON.stringify(menuJson));
 	}
+
+// class GameMenu
+// {
+// 	public name:	string;
+// 	public flag:	string;
+// 	public active:	boolean;
+// 	public up:	GameMenu | null;
+// 	public down:	GameMenu | null;
+// 	public left:	GameMenu | null;
+// 	public right:	GameMenu | null;
+
+// 	private constructor(name: string, flag: string)
+// 	{
+// 		this.name = name;
+// 		this.flag = flag;
+// 		this.active = false;
+// 		this.up = null;
+// 		this.down = null;
+// 		this.left = null;
+// 		this.right = null;
+// 	}
+
+// 	public ToJson(): string
+// 	{
+// 		const nodes: any[] = [];
+// 		let current: GameMenu | null = this;
+// 		console.log("Creating nodes");
+// 		while (current)
+// 		{
+// 			for (let row: any; row; row = row.down)
+// 			{
+// 				nodes.push(
+// 				{
+// 					name:	row.name,
+// 					flag:	row.flag,
+// 					active:	row.active,
+// 					up:		row.up,
+// 					down:	row.down,
+// 					left:	row.left,
+// 					right:	row.right,
+// 				});
+// 				console.log("added node");
+// 			}
+// 			current = current.right;
+// 		}
+// 		return JSON.stringify(nodes);
+// 	}
+// }
 
 /* ************************************************************************** *\
 
@@ -270,9 +253,7 @@ Socket.io
 			switch (game.toUpperCase())
 			{
 				case GamePong.GetFlag().toUpperCase():
-					console.log(`gameinstance before ${game}`);
 					gameInstance = new GamePong(data, players);
-					console.log(`gameinstance after ${game}`);
 
 					break ;
 				case MatchMaker.GetFlag().toUpperCase():
@@ -309,8 +290,6 @@ Socket.io
 		const index: number = this.games.findIndex(game => game === gameToRemove);
 		if (index  != -1)
 			this.games.splice(index, 1)[0];
-		// this.games.filter
-		// console.log(`There are ${this.games.length} games running`);
 	}
 
 /* ************************************************************************** *\
