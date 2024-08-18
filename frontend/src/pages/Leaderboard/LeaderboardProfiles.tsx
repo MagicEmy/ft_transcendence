@@ -9,7 +9,7 @@ interface LeaderboardProfilesProps {
 
 const LeaderboardProfiles = ({ leaderboard }: LeaderboardProfilesProps) => {
   if (!leaderboard || !Array.isArray(leaderboard))
-    return <p>Refresh for loading new data</p>;
+    return <p className='text'>Refresh for loading new data</p>;
 
   return (
     <div id="leadProfile">
@@ -37,9 +37,6 @@ const Item = ({ user }: ItemProps) => {
           alt="profile picture"
         />
         <div className="info">
-          {/* <NavLink to={`/profile/${user.userId}`}>
-            <h3 className="text">{user.userName}</h3>
-          </NavLink> */}
           <div
             onClick={() => {
               navigate(`/profile/${user.userId}`);

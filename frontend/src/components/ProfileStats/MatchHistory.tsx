@@ -30,7 +30,7 @@ export const MatchHistory = ({ userId }: { userId: string }) => {
           </ul>
         ) : (
           <div className="gameHistory">
-            <span>No games played yet</span>
+            <span className="player-info">No games played yet</span>
           </div>
         )}
       </div>

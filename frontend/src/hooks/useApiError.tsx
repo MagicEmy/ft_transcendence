@@ -22,7 +22,6 @@ export const useApiError = () => {
         message: 'No response received from the server',
       });
     } else {
-      // Something else caused the error
       setApiError({
         status: 500,
         message: error.message || 'An unknown error occurred',

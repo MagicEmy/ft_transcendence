@@ -9,9 +9,13 @@
 }
 
 .tfa-title {
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 20px;
+  margin-bottom: 1em;
+  color: #09467f;
+  font-size: 2.5em;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .tfa-form {
@@ -37,25 +41,18 @@
 }
 
 .twoFaButton {
-  width: 300px;
-  border: none;
+ border: none;
   border-radius: 30px;
-  padding: 15px 30px;
-  background: linear-gradient(
-    138deg,
-    rgb(113, 153, 247) 36.7%,
-    rgb(10, 4, 173) 84.4%
-  );
+  padding: 5px 20px;
+  background: linear-gradient(in oklab, #09467f 10%, #2386a2 90%);
   color: #fff;
-  font-size: 1rem;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
 }
 
 .twoFaButton:hover {
-  box-shadow: rgba(113, 153, 247, 0.2) 0 3px 15px inset,
-    rgba(10, 4, 173, 0.91) 0 3px 5px, rgba(10, 4, 173, 0.91) 0 10px 13px;
+   box-shadow: rgba(35, 174, 212, 0.3) 0 3px 15px inset,
+    rgba(35, 174, 212, 0.6) 0 3px 5px, rgba(35, 174, 212, 0.5) 0 10px 13px;
   transform: scale(1.05);
 }
 

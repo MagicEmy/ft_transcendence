@@ -1,20 +1,18 @@
 .main {
   height: 100vh;
   margin-bottom: 20em;
-  padding: 50px;
+  padding: 3rem;
 }
 
 .settings {
-  /* border : 2px solid #09467f; */
-  /* border-radius: 30px; */
   margin-top: 3em;
   padding: 30px;
   margin-bottom: 20em;
-  background-color: #2386a220;
-  box-shadow: 1px 2px 2px hsl(193deg 64% 39% / 0.125),
-    2px 4px 4px hsl(193deg 64% 39% / 0.125),
-    4px 8px 8px hsl(193deg 64% 39% / 0.125),
-    8px 16px 16px hsl(193deg 64% 39% / 0.125);
+  background-color: white;
+  box-shadow: 0px 2.2px 5.8px rgba(35, 134, 162, 0.15),
+    0px 6.1px 16.3px rgba(35, 134, 162, 0.095),
+    0px 14.8px 38.4px rgba(35, 134, 162, 0.071),
+    0px 49px 125px rgba(35, 134, 162, 0.047);
 }
 
 .title {
@@ -39,11 +37,10 @@
   margin-top: 20px;
   align-items: center;
   gap: 2em;
-  border: 2px solid #2386a2;
-  box-shadow: 1px 2px 2px hsl(193deg 64% 39% / 0.125),
-    2px 4px 4px hsl(193deg 64% 39% / 0.125),
-    4px 8px 8px hsl(193deg 64% 39% / 0.125),
-    8px 16px 16px hsl(193deg 64% 39% / 0.125);
+  box-shadow: 0px 2.2px 5.8px rgba(35, 134, 162, 0.15),
+    0px 6.1px 16.3px rgba(35, 134, 162, 0.095),
+    0px 49px 125px
+      rgba(35, 134, 162, 0.047);
   padding: 10px;
 }
 
@@ -54,11 +51,8 @@
 }
 .text {
   color: #09467f;
-  /* border: 2px solid #2386a2; */
-  /* box-shadow: 12px 5px 2px 1px rgba(0, 0, 255, .2); */
   margin-top: 10px;
   margin-bottom: 10px;
-  /* font-size: 1.1em; */
   padding: 10px;
 }
 
@@ -80,7 +74,7 @@ input[type='file'] {
   margin-top: 10px;
   margin-bottom: 10px;
 }
-input#file-upload-button {
+input.file-input[type='button'] {
   background: linear-gradient(in oklab, #09467f 10%, #2386a2 90%);
 }
 
@@ -99,10 +93,6 @@ input[type='text'] {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.file-input {
-  /* flex-grow: 1; */
 }
 
 .settings-button {
@@ -145,7 +135,6 @@ input[type='text'] {
   border: none;
   border-radius: 30px;
   padding: 5px 20px;
-  /* background: linear-gradient(138deg, #3686fe 38%, blue 84.4%); */
   background: linear-gradient(in oklab, #09467f 10%, #2386a2 90%);
   color: #fff;
   cursor: pointer;
@@ -158,12 +147,10 @@ input[type='text'] {
   transform: scale(1.05);
 }
 
-/* width: 220px; */
-/* height: 55px; */
 .TwoFA {
   display: flex;
-  align-items: center;
-  justify-content: center;
+	flex-direction: column;
+	align-items: center;
   border: none;
   border-radius: 30px;
   padding: 5px 20px;

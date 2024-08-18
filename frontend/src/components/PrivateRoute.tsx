@@ -27,7 +27,6 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
       </PageContent>
     );
   }
-  console.log('PrivateRoute: isLoggedin?:', isLoggedin);
   if (!isLoggedin) {
     console.log('PrivateRoute: No user logged in');
     return (

@@ -80,9 +80,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     fetchAvatar();
   }, [userIdStorage]);
 
-  //   console.log("userIdContext: ", userIdContext);
-  //   console.log("userIdStorage: ", userIdStorage);
-
   return (
     <UserContext.Provider
       value={{

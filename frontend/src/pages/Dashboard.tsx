@@ -1,5 +1,5 @@
 import PageContent from '../components/PageContent';
-import smash from '../assets/DataSunBig.png';
+import pongaris from '../assets/DataSunBig.png';
 import { useUpdateStatus } from '../hooks';
 
 export const Dashboard = () => {
@@ -19,8 +19,8 @@ export const Dashboard = () => {
         </p>
         <p> the world of a Pong master: the PONGINATOR </p>
         <img
-          src={smash}
-          alt="Logo"
+          src={pongaris}
+          alt="Landscapes of Pongaris"
           style={{
             opacity: 0.2,
             position: 'absolute',
