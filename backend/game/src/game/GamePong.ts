@@ -902,7 +902,6 @@ export class GamePong implements IGame
 
 	private GenerateEndData(status: SharedCommunication.PongStatus.Status): SharedCommunication.PongStatus.IPongStatus
 	{
-		console.error("Matchtypes hardcoded");
 		return ({
 			gameType:	GameTypes.PONG,
 			matchType:	this.mode,
