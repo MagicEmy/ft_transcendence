@@ -81,7 +81,6 @@ export class RoomModerationService {
       this.logger.error('Already User')
       return 'Already User'
     }
-
     rooms[roomIndex].users.push(exclusiveUser)
     return 'Success'
   }

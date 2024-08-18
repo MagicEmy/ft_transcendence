@@ -228,13 +228,12 @@ function Sidebar() {
     }
     console.log("Sending moderate_room event with data:", toDoUser);
     socket.emit("moderate_room", toDoUser);
+    socket
+      .off("moderate_room_response")
+      .on("moderate_room_response", (message: string) => {
+        showToast(message);
+      });
   }
-
-  socket
-  .off("moderate_room_response")
-  .on("moderate_room_response", (message: string) => {
-    showToast(message);
-  });
 
   socket.off("moderate_room_action").on("moderate_room_action", (message: RoomMessageDto) => {
     if (message.roomName === currentRoom?.roomName) {
