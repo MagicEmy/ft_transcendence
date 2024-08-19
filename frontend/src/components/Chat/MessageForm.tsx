@@ -81,15 +81,14 @@ function MessageForm(): JSX.Element {
   }
   return (
     <>
-      <div className="messages-output">
-        <div style={{ width: "900px", float: "left" }}>
-          {user && !directMsg && currentRoom && (
-            <div className="alert alert-info">
-              You are in the {currentRoom.roomName} room
-            </div>
-          )}
-        </div>
-        {user && directMsg?.userId && (
+    <div className="messages-output">
+      <div style={{ width: "100%", float: "left" }}>
+        {user && !directMsg && currentRoom && (
+          <div className="alert alert-info">
+            You are in the {currentRoom.roomName} room
+          </div>
+        )}
+        {user && directMsg && (
           <div className="alert alert-info conversation-info">
             <div>
               Your conversation with {directMsg.userName}{" "}
@@ -102,107 +101,97 @@ function MessageForm(): JSX.Element {
           </div>
         )}
         {!user && <div className="alert alert-danger">Please login</div>}
-        {user &&
-          messages.map((mes: MessageRoomDto, index: number) => {
-            const sender = mes.user;
-            const message: string = mes.message;
-            const currentDate: string = getFormattedDate(mes.timesent);
-            const previousMessage = index > 0 ? messages[index - 1] : null;
-            const showDate: boolean = !previousMessage || currentDate !== getFormattedDate(previousMessage.timesent);
-            const time: string = getFormattedTime(mes.timesent);
-            let show: boolean = true;
-            mes.user.blockedUsers.forEach((userId: string) => {
-              if (userId === user.userId) {
-                show = false;
-              }
-            });
-            mes.user.blockedBy.forEach((userId: string) => {
-              if (userId === user.userId) {
-                show = false;
-              }
-            });
-            if (!show) {
-              return null;
-            }
+      </div>
+      {user &&
+        messages.map((mes: MessageRoomDto, index: number) => {
+          const sender = mes.user;
+          const currentDate: string = getFormattedDate(mes.timesent);
+          const previousMessage = index > 0 ? messages[index - 1] : null;
+          const showDate: boolean = !previousMessage || currentDate !== getFormattedDate(previousMessage.timesent);
+          const time: string = getFormattedTime(mes.timesent);
+          
+          const isBlocked = sender.blockedUsers.includes(user.userId) || sender.blockedBy.includes(user.userId);
+          if (isBlocked) {
+            return null;
+          }
 
-            return (
-              <div key={index}>
-                {showDate && (
-                  <p className="alert alert-info text-center message-date-indicator">
-                    {currentDate}
-                  </p>
-                )}
-                <div
-                  className={
-                    sender?.userId === user?.userId
-                      ? "message"
-                      : "incoming-message"
-                  }
-                  key={index}
-                >
-                  <div className="message-inner">
-                    <div className="d-flex align-items-center mb-3">
-                      <img
-                        alt="profile-pic"
-                        src={sender.userId ? `http://${host}:3001/avatar/${sender.userId}` : ""}
-                        style={{
-                          width: 35,
-                          height: 35,
-                          objectFit: "cover",
-                          borderRadius: "50%",
-                          marginRight: 10,
-                        }}
-                      />
-                      <p className="message-sender">
-                        {sender.userId === user.userId
-                          ? "You"
-                          : sender.userName}
-                      </p>
-                    </div>
-                    <p className="message-content">{message}</p>
-                    <p className="message-timestamp-left">{time}</p>
+          return (
+            <div key={index}>
+              {showDate && (
+                <p className="alert alert-info text-center message-date-indicator">
+                  {currentDate}
+                </p>
+              )}
+              <div
+                className={
+                  sender?.userId === user?.userId
+                    ? "message"
+                    : "incoming-message"
+                }
+              >
+                <div className="message-inner">
+                  <div className="d-flex align-items-center mb-3">
+                    <img
+                      alt="profile-pic"
+                      src={sender.userId ? `http://${host}:3001/avatar/${sender.userId}` : ""}
+                      style={{
+                        width: 35,
+                        height: 35,
+                        objectFit: "cover",
+                        borderRadius: "50%",
+                        marginRight: 10,
+                      }}
+                    />
+                    <p className="message-sender">
+                      {sender.userId === user.userId
+                        ? "You"
+                        : sender.userName}
+                    </p>
                   </div>
+                  <p className="message-content">{message}</p>
+                  <p className="message-timestamp-left">{time}</p>
                 </div>
               </div>
-            );
-          })}
-        <div ref={messageEndRef} />
-      </div>
-      <Form onSubmit={handleSubmit}>
-        <Row style={{ alignItems: 'center' }}>
-          <Col md={11}>
-            <Form.Group>
-              <Form.Control
-                type="text"
-                placeholder="Your message"
-                disabled={!user}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              ></Form.Control>
-            </Form.Group>
-          </Col>
-          <Col md={1}>
-            <Button
-              variant="primary"
-              type="submit"
-              style={{
-				background: "linear-gradient(in oklab, #f57112 10%, #f39d60 90%)",
-				border: "none",
-				borderRadius: "30px",
-				padding: "15px 20px",
-				display: "inline-flex",
-				alignItems: "center",
-				justifyContent: "center",
-			  }}
+            </div>
+          );
+        })}
+      <div ref={messageEndRef} />
+    </div>
+    <Form onSubmit={handleSubmit}>
+      <Row style={{ alignItems: 'center' }}>
+        <Col md={11}>
+          <Form.Group>
+            <Form.Control
+              type="text"
+              placeholder="Your message"
               disabled={!user}
-            >
-              <IoBowlingBallOutline size={15} />
-            </Button>
-          </Col>
-        </Row>
-      </Form>
-    </>
-  );
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            ></Form.Control>
+          </Form.Group>
+        </Col>
+        <Col md={1}>
+          <Button
+            variant="primary"
+            type="submit"
+            style={{
+              background: "linear-gradient(in oklab, #f57112 10%, #f39d60 90%)",
+              border: "none",
+              borderRadius: "30px",
+              padding: "15px 20px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              }}
+            disabled={!user}
+          >
+            <IoBowlingBallOutline size={15} />
+          </Button>
+        </Col>
+      </Row>
+    </Form>
+  </>
+);
 }
 
 export default MessageForm;

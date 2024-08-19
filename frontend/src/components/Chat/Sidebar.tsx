@@ -70,8 +70,6 @@ function Sidebar() {
     setMyRooms,
     myRooms,
     setMessages,
-    gameInvite,
-    setGameInvite,
   } = useContext(ChatContext) as ChatContextType;
 
 
@@ -348,117 +346,6 @@ function Sidebar() {
       });
   }
 
-  function adminDropDown(currentUser: UserShowDto, member: UserShowDto) {
-    if (
-      member.userId !== currentUser.userId &&
-      currentUser.isAdmin &&
-      !member.isOwner
-    ) {
-      return (
-        <>
-          <Dropdown.Item
-            onClick={() =>
-              member.isAdmin ? handleModRoomAction(member.userId, ModerationType.REMOVEADMIN) : handleModRoomAction(member.userId, ModerationType.MAKEADMIN)
-            }
-          >
-            {member.isAdmin ? "Remove Admin" : "Make Admin"}
-          </Dropdown.Item>
-          <Dropdown.Item
-            onClick={() =>
-              member.isMuted ? handleModRoomAction(member.userId, ModerationType.UNMUTE) : handleModRoomAction(member.userId, ModerationType.MUTE)
-            }
-          >
-            {member.isMuted ? "Unmute User" : "Mute User"}
-          </Dropdown.Item>
-          <Dropdown.Item
-            onClick={() =>
-              member.isBanned ? handleModRoomAction(member.userId, ModerationType.UNBAN) : handleModRoomAction(member.userId, ModerationType.BAN)
-            }
-          >
-            {member.isBanned ? "Unban User" : "Ban User"}
-          </Dropdown.Item>
-          <Dropdown.Item onClick={() => handleModRoomAction(member.userId, ModerationType.KICK)}>
-            {"kick User"}
-          </Dropdown.Item>
-        </>
-      );
-    }
-  }
-
-  function ownerDropDown(room: RoomShowDto) {
-    if (room.owner !== user.userId) {
-      return true;
-    }
-    let change_password: JSX.Element | string = "";
-    if (room.password) {
-      change_password = (
-        <Dropdown.Item onClick={() => setPassword(room, true)}>
-          {"Change Password"}
-        </Dropdown.Item>
-      );
-    }
-
-    return (
-      <Dropdown>
-        <Dropdown.Toggle
-          variant="Secondary"
-          id="dropdown-basic"
-        ></Dropdown.Toggle>
-        <Dropdown.Menu className="min-width-0">
-          <Dropdown.Item
-            onClick={() =>
-              room.exclusive
-                ? setExclusive(room, false)
-                : setExclusive(room, true)
-            }
-          >
-            {room.exclusive ? "Make Public" : "Make Exclusive"}
-          </Dropdown.Item>
-          <Dropdown.Item
-            onClick={() =>
-              room.password ? setPassword(room, false) : setPassword(room, true)
-            }
-          >
-            {room.password ? "Remove Password" : "Add Password"}
-          </Dropdown.Item>
-          {change_password}
-        </Dropdown.Menu>
-      </Dropdown>
-    );
-  }
-
-  function userDropDown(member: UserShowDto | ChatUserDto) {
-    if (member.userId !== user.userId) {
-      let isBlock: boolean = false;
-      member.userBeenBlocked.forEach((element) => {
-        if (element === user.userId) {
-          isBlock = true;
-        }
-      });
-      return (
-        <>
-          <Dropdown.Item as={Link} to={`/profile/${member.userId}`}>
-            View Profile
-          </Dropdown.Item>
-          <Dropdown.Item
-            onClick={() => (isBlock ? unBlockUser(member) : blockUser(member))}
-          >
-            {isBlock ? "unblock User" : "block User"}
-          </Dropdown.Item>
-          <Dropdown.Item onClick={() => setUserToInvite(member)}>
-            {"invite game"}
-          </Dropdown.Item>
-        </>
-      );
-    } else {
-      return (
-        <Dropdown.Item as={Link} to={`/profile/${user.userId}`}>
-          View Profile
-        </Dropdown.Item>
-      );
-    }
-  }
-
   const handleInvitationSent = () => {
     setUserToInvite(null);
   };
@@ -471,6 +358,7 @@ function Sidebar() {
       user: user,
       password: "",
     });
+    setDirectMsg(null);
     socket.emit("chat_rooms", user);
     socket.emit("my_rooms", user);
     socket.emit("game", user);
@@ -488,6 +376,9 @@ function Sidebar() {
   });
   socket.off("room_users").on("room_users", (payload: RoomUserDto) => {
     setRoomMembers(payload);
+  });
+  socket.off("game_invitation_response").on("game_invitation_response", (message: string) => {
+    showToast(message);
   });
   socket.off("notifications").on("notifications", (room: string) => {
     console.log("Notification received for room:", room);
@@ -514,8 +405,107 @@ function Sidebar() {
     });
   });
 
+  
+  function adminDropDown(currentUser: UserShowDto, member: UserShowDto) {
+    if ( member.userId !== currentUser.userId && currentUser.isAdmin && !member.isOwner) {
+      return (
+        <>
+          <Dropdown.Item
+            onClick={() =>
+              member.isAdmin ? handleModRoomAction(member.userId, ModerationType.REMOVEADMIN) : handleModRoomAction(member.userId, ModerationType.MAKEADMIN)
+            }
+          >
+            {member.isAdmin ? "Remove Admin" : "Make Admin"}
+          </Dropdown.Item>
+          <Dropdown.Item
+            onClick={() =>
+              member.isMuted ? handleModRoomAction(member.userId, ModerationType.UNMUTE) : handleModRoomAction(member.userId, ModerationType.MUTE)
+            }
+          >
+            {member.isMuted ? "Unmute User" : "Mute User"}
+          </Dropdown.Item>
+          <Dropdown.Item
+            onClick={() =>
+              member.isBanned ? handleModRoomAction(member.userId, ModerationType.UNBAN) : handleModRoomAction(member.userId, ModerationType.BAN)
+            }
+          >
+            {member.isBanned ? "Unban User" : "Ban User"}
+          </Dropdown.Item>
+          <Dropdown.Item onClick={() => handleModRoomAction(member.userId, ModerationType.KICK)}>
+            kick User
+          </Dropdown.Item>
+        </>
+      );
+    }
+    return null;
+  }
+
+  function ownerDropDown(room: RoomShowDto) {
+    if (room.owner !== user.userId) {
+      return null;
+    }
+    let change_password: JSX.Element | string = "";
+    if (room.password) {
+      change_password = (
+        <Dropdown.Item onClick={() => setPassword(room, true)}>
+          {"Change Password"}
+        </Dropdown.Item>
+      );
+    }
+
+    return (
+      <Dropdown>
+        <Dropdown.Toggle variant="Secondary" id="dropdown-basic"></Dropdown.Toggle>
+        <Dropdown.Menu className="min-width-0">
+          <Dropdown.Item
+            onClick={() => setExclusive(room, !room.exclusive)}
+          >
+            {room.exclusive ? "Make Public" : "Make Exclusive"}
+          </Dropdown.Item>
+          <Dropdown.Item
+            onClick={() => setPassword(room, !room.password)}
+          >
+            {room.password ? "Remove Password" : "Add Password"}
+          </Dropdown.Item>
+          {room.password && (
+            <Dropdown.Item onClick={() => setPassword(room, true)}>
+              Change Password
+            </Dropdown.Item>
+          )}
+        </Dropdown.Menu>
+      </Dropdown>
+    );
+  }
+
+  function userDropDown(member: UserShowDto | ChatUserDto) {
+    if (member.userId !== user.userId) {
+      const isBlock = member.userBeenBlocked.includes(user.userId);
+      return (
+        <>
+          <Dropdown.Item as={Link} to={`/profile/${member.userId}`}>
+            View Profile
+          </Dropdown.Item>
+          <Dropdown.Item
+            onClick={() => (isBlock ? unBlockUser(member) : blockUser(member))}
+          >
+            {isBlock ? "unblock User" : "block User"}
+          </Dropdown.Item>
+          <Dropdown.Item onClick={() => setUserToInvite(member)}>
+            Invite to Game
+          </Dropdown.Item>
+        </>
+      );
+    } else {
+      return (
+        <Dropdown.Item as={Link} to={`/profile/${user.userId}`}>
+          View Profile
+        </Dropdown.Item>
+      );
+    }
+  }
+
   if (!user) {
-    return <></>;
+    return null;
   }
 
   return (
@@ -574,12 +564,9 @@ function Sidebar() {
                 </span>
                 {!isActive && (
                   <span className="badge rounded-pill bg-primary">
-                    {
-                      notifications.find(
-                        (notification) =>
-                          notification.roomName === room.roomName,
-                      )?.count
-                    }
+                    {notifications.find(
+                        (notification) => notification.roomName === room.roomName,
+                      )?.count || 0}
                   </span>
                 )}
                 {isMyRoom && (
@@ -628,53 +615,48 @@ function Sidebar() {
             {Object.keys(roomMembers).length !== 0 &&
               roomMembers.roomName === currentRoom?.roomName &&
               roomMembers.users.map((member) => {
-              if (member.userId === user.userId && member.isAdmin) {
-              return (
-                <React.Fragment key={member.userId}>
-                  <DropdownButton
-                    id="dropdown-basic-button"
-                    title={selectedUserId ? members.find(m => m.userId === selectedUserId)?.userName || "Select User" : "Select User"}
-                    variant=""
-                    className="d-inline-block"
-                  >
-                    {members.map((member) => {
-                      if (member.userId !== user.userId) {
-                        return (
-                          <Dropdown.Item
-                            key={member.userId}
-                            onClick={() => handleUserSelect(member.userId)}
-                          >
-                            {member.userName}
-                          </Dropdown.Item>
-                        );
-                      } else return null;
-                    })}
-                  </DropdownButton>
-                  <Button variant="outline-dark" onClick={handleAddUser}
-                    style={{
-                      background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
-                      border: "none",
-                      borderRadius: "30px",
-                      padding: "5px 15px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}>
-                    + Add
-                  </Button>
-                </React.Fragment>
-              );
-            } else return null;
-          })}
-          {Object.keys(roomMembers).length !== 0 &&
+                if (member.userId === user.userId && member.isAdmin) {
+                  return (
+                    <React.Fragment key={member.userId}>
+                      <DropdownButton
+                        id="dropdown-basic-button"
+                        title={selectedUserId ? members.find(m => m.userId === selectedUserId)?.userName || "Select User" : "Select User"}
+                        variant=""
+                        className="d-inline-block"
+                      >
+                        {members.map((member) => {
+                          if (member.userId !== user.userId) {
+                            return (
+                              <Dropdown.Item
+                                key={member.userId}
+                                onClick={() => handleUserSelect(member.userId)}
+                              >
+                                {member.userName}
+                              </Dropdown.Item>
+                            );
+                          } else return null;
+                        })}
+                      </DropdownButton>
+                      <Button variant="outline-dark" onClick={handleAddUser}
+                        style={{
+                          background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+                          border: "none",
+                          borderRadius: "30px",
+                          padding: "5px 15px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}>
+                        + Add
+                      </Button>
+                    </React.Fragment>
+                  );
+                } else return null;
+              })}
+            {Object.keys(roomMembers).length !== 0 &&
               roomMembers.roomName === currentRoom?.roomName &&
               roomMembers.users.map((member) => {
-                let currentUser: UserShowDto = {} as UserShowDto;
-                roomMembers.users.forEach((element) => {
-                  if (element.userId === user.userId) {
-                    currentUser = element;
-                  }
-                });
+                const currentUser = roomMembers.users.find((member) => member.userId === user.userId);
                 if (!currentUser) {
                   return null;
                 }
@@ -758,7 +740,7 @@ function Sidebar() {
             onClick={() => toggleSection("users")}
             className="sidebar-toggle-button"
           >
-             {openSection === "users" ? <IoEyeOutline /> : <IoEyeOffOutline />}
+            {openSection === "users" ? <IoEyeOutline /> : <IoEyeOffOutline />}
           </Button>
         </h4>
         {openSection === "users" && (
@@ -791,12 +773,10 @@ function Sidebar() {
                     {member.userId === user?.userId && " (You)"}
                     {currentRoom?.roomName !== chatId(member.userId) && (
                       <span className="badge rounded-pill bg-primary">
-                        {
-                          notifications.find(
+                        {notifications.find(
                             (notification) =>
                               notification.roomName === chatId(member.userId)
-                          )?.count
-                        }
+                          )?.count || 0}
                       </span>
                     )}
                   </Col>
@@ -805,7 +785,6 @@ function Sidebar() {
                       <Dropdown.Toggle variant="Secondary" id={`dropdown-${member.userId}`}>
                         ...
                       </Dropdown.Toggle>
-
                       <Dropdown.Menu className="dropdown-menu-right">
                         {userDropDown(member)}
                       </Dropdown.Menu>
@@ -818,7 +797,8 @@ function Sidebar() {
         )}
         <GameInvitation
           userToInvite={userToInvite} 
-          onInvitationSent={handleInvitationSent} />
+          onInvitationSent={handleInvitationSent}
+        />
       </div>
 
       <div className="sidebar-section">
@@ -841,5 +821,5 @@ function Sidebar() {
       </ToastContainer>
     </div>
   );
-}
-export default Sidebar;
+  }
+  export default Sidebar;

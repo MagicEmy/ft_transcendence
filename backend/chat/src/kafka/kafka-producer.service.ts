@@ -15,4 +15,5 @@ export class KafkaProducerService {
   announceChangeOfStatus(statusChangeDto: StatusChangeDto) {
     this.kafkaProducerService.emit(KafkaTopic.STATUS_CHANGE, statusChangeDto);
   }
+
 }

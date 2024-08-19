@@ -113,7 +113,6 @@ export class RoomManagementService {
   }
 
   async getRooms(): Promise<Room[]> {
-    this.logger.log('get rooms')
     return this.rooms
   }
 

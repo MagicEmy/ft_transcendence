@@ -6,8 +6,8 @@ import {
   RpcException,
 } from '@nestjs/microservices';
 import { KafkaTopic } from './kafka.enum';
-import { UserIdNameDto, UserIdNameLoginDto } from './dto/kafka-dto';
-import { IGameStatus } from './kafka.interface';
+import { UserIdNameDto, UserIdNameLoginDto,} from './dto/kafka-dto';
+import { IGameStatus, IGameForUser } from './kafka.interface';
 
 @Controller()
 export class KafkaController {
@@ -33,5 +33,11 @@ export class KafkaController {
   handleGameEnd(data: IGameStatus) {
     const { player1ID, player2ID } = data;
     this.kafkaConsumerService.removeGameFromDB(player1ID, player2ID);
+  }
+
+  @EventPattern(KafkaTopic.GAME_FOR_USER)
+  handleGameForUser(data: IGameForUser) {
+    const { playerID } = data;
+    this.kafkaConsumerService.addGameForUser(playerID);
   }
 }

@@ -15,51 +15,62 @@ export class GameInvitation {
 
   async sendGameInvitation(inviter: User, receiver: User | undefined): Promise<ResponseDto> {
     let response: ResponseDto = { success: false, message: '' };
-    if (!receiver) {
-      response.message = `User ${receiver.userId} not found`;
-      this.logger.log(`Receiver not found`)
+    if (inviter.game === inviter.userId) {
+      await this.userService.setGame(inviter.userId, '', false)
+      if (!receiver) {
+        response.message = `User ${receiver.userId} not found`;
+        this.logger.log(`Receiver not found`)
+        return response
+      }
+      if (inviter.userId === receiver.userId) {
+        response.message = 'You cannot invite yourself';
+        this.logger.log(`Inviter: ${inviter.userId} invited himself`)
+        return response
+      }
+      if (inviter.game !== '') {
+        this.logger.log(`Inviter: ${inviter.userId} is already in a game`)
+        response.message = 'You are already in a game, decline the previus one';
+        return response
+      }
+      if (receiver.game !== '') {
+        this.logger.log(`Receiver: ${receiver.userId} is already in a game`)
+        response.message = 'Your invitee is already in a game';
+        return response
+      }
+      if (receiver.socketId === '') {
+        this.logger.log(`Receiver: ${receiver.userId} is offline`)
+        response.message = 'Your invitee is offline';
+        return response
+      }
+      const blocked: string = await this.userService.checkBlockedUser(
+        inviter,
+        receiver.userId,
+      )
+      if (blocked !== 'Not Blocked') {
+        this.logger.log(`Inviter: ${inviter.userId} blocked: ${receiver.userId}`)
+        response.message = `You are blocked by ${inviter.userName}`;
+        return response
+      }
+      const blockedBy: string = await this.userService.checkBlockedUser(receiver, inviter.userId)
+      if (blockedBy !== 'Not Blocked') {
+        this.logger.log(`Receiver: ${receiver.userId} blocked: ${inviter.userId}`)
+        response.message = `You blocked ${inviter.userName}`;
+        return response
+      }
+      await this.userService.setGame(receiver.userId, inviter.userId, false);
+      await this.userService.setGame(inviter.userId, receiver.userId, true);
+      response.success = true;
+      response.message = 'Game invitation sent';
       return response
     }
-    if (inviter.game !== '') {
-      this.logger.log(`Inviter: ${inviter.userId} is already in a game`)
-      response.message = 'You are already in a game, decline the previus one';
-      return response
-    }
-    if (receiver.game !== '') {
-      this.logger.log(`Receiver: ${receiver.userId} is already in a game`)
-      response.message = 'Your invitee is already in a game';
-      return response
-    }
-    if (receiver.socketId === '') {
-      this.logger.log(`Receiver: ${receiver.userId} is offline`)
-      response.message = 'Your invitee is offline';
-      return response
-    }
-    const blocked: string = await this.userService.checkBlockedUser(
-      inviter,
-      receiver.userId,
-    )
-    if (blocked !== 'Not Blocked') {
-      this.logger.log(`Inviter: ${inviter.userId} blocked: ${receiver.userId}`)
-      response.message = `You are blocked by ${inviter.userName}`;
-      return response
-    }
-    const blockedBy: string = await this.userService.checkBlockedUser(receiver, inviter.userId)
-    if (blockedBy !== 'Not Blocked') {
-      this.logger.log(`Receiver: ${receiver.userId} blocked: ${inviter.userId}`)
-      response.message = `You blocked ${inviter.userName}`;
-      return response
-    }
-    await this.userService.setGame(receiver.userId, inviter.userId, false);
-    await this.userService.setGame(inviter.userId, receiver.userId, true);
-    response.success = true;
-    response.message = 'Game invitation sent';
-    return response
-      
   }
 
   async acceptGameInvitation(accepter: User , inviter: User | undefined): Promise<ResponseDto> {
     let response: ResponseDto = { success: false, message: '' };
+    if (accepter.game === accepter.userId) {
+      this.userService.setGame(accepter.userId, '', false)
+      return response
+    }
     if (!inviter) {
       this.logger.log(`Inviter ${inviter.userId} not found`);
       this.userService.setGame(accepter.userId, '', false);
@@ -106,8 +117,6 @@ export class GameInvitation {
       player2ID: accepter.userId,
     }) // DM added
 
-    // await this.userService.setGame(accepter.userId, '', false) // will come from kafka
-    // await this.userService.setGame(inviter.userId, '', false)
     response.success = true;
     response.message = 'Game started';
     return response
@@ -115,8 +124,12 @@ export class GameInvitation {
 
   async declineGameInvitation(decliner: User, declined: User | undefined): Promise <ResponseDto> {
     let response: ResponseDto = { success: false, message: '' };
+    if (decliner.game === decliner.userId) {
+      this.userService.setGame(decliner.userId, '', false)
+      return response
+    }
     if (!declined) {
-      this.logger.log(`Declined ${declined} not found`)
+      this.logger.log(`Declined ${declined.userId} not found`)
       this.userService.setGame(decliner.userId, '', false)
       response.message = 'User not found';
       return response
@@ -127,10 +140,27 @@ export class GameInvitation {
       this.logger.log(`Decliner: ${decliner.game} !== Declined: ${declined.userId}`)
       return response
     }
+    if (decliner.isGameHost)
+      response.message = 'Game invitation canceled';
+    else
+      response.message = 'Game invitation declined';
     this.userService.setGame(decliner.userId, '', false)
     this.userService.setGame(declined.userId, '', false)
     response.success = true;
-    response.message = 'Game invitation declined';
+    
     return response
+  }
+
+  async getGameIvitation(user: User): Promise < boolean | {}>{
+    
+    if (user.game === '' || user.game === user.userId) {
+      return false
+    }
+    if (user.isGameHost === true) {
+      return  { type : 'host', user: user.game };
+    }
+    return { type : 'invitation', user: user.game };
+
+  
   }
 }

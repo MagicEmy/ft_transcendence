@@ -351,7 +351,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.sender.userId,
     )
     const remove = {
-      type: 'Remove the game',
+      type: 'Remove',
     }
     if (!user)
       throw new Error('User not found');
@@ -371,8 +371,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.server.to(receiver.socketId).emit('game_invitation', invitation)
         this.server.to(client.id).emit('game_invitation', host)
       }
-      else
-        this.server.to(client.id).emit('game_invitation', remove)
       this.server.to(client.id).emit('game_invitation_response', response.message)
     }
     else if (payload.type === GameInvitationtype.ACCEPT) {
@@ -393,21 +391,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     else if (payload.type === GameInvitationtype.DECLINE) {
       response = await this.gameInvitation.declineGameInvitation(user, receiver);
       if (response.success) {
-        const decline = {
-          type: 'decline the game',
-        }
-        this.server.to(receiver.socketId).emit('game_invitation', decline)
-        this.server.to(client.id).emit('game_invitation', decline)
-      }
-      else {
         this.server.to(client.id).emit('game_invitation', remove)
-        this.server.to(client.id).emit('game_invitation_response', response.message)
+        this.server.to(receiver.socketId).emit('game_invitation', remove)
+        this.server.to(receiver.socketId).emit('game_invitation_response', `${user.userName} declined the game invitation`)
       }
-      return
+      else 
+        this.server.to(client.id).emit('game_invitation', remove)
+      this.server.to(client.id).emit('game_invitation_response', response.message)
     }
   }
-    
-
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('leave_room')
@@ -446,6 +438,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.userService.addUser(user, client.id)
     await this.userService.setUserSocketStatus(user, client.id, true)
     this.updateUsers()
+    const userIn: User | undefined = await this.userService.getUserById(user.userId)
+    if (userIn === undefined) return
+    const userGame: boolean | {} = await this.gameInvitation.getGameIvitation(userIn)
+    if (userGame !== false) {
+      this.server.to(client.id).emit('game_invitation', userGame)
+    }
   }
 
   @UsePipes(new ValidationPipe())

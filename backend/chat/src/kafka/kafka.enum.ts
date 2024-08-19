@@ -11,6 +11,7 @@ export enum KafkaTopic {
   USERNAME_CHANGE = 'username_change',
   STATUS_CHANGE = 'status_change',
   GAME_END = 'game_end',
+  GAME_FOR_USER = 'game_for_user',
 }
 
 export interface INewGame {

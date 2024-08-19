@@ -26,4 +26,9 @@ export class KafkaConsumerService {
   removeGameFromDB(player1ID: string, player2ID: string) {
     this.userService.removeGameFromDB(player1ID, player2ID);
   }
+
+  addGameForUser(playerID: string) {
+    this.userService.setGame(playerID, playerID, true);
+  }
+
 }

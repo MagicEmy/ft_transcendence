@@ -18,7 +18,6 @@ export class RoomPermissionService {
         roomIndex: number,
         userId: UserDto['userId'],
     ): Promise<boolean> {
-        this.logger.log('Checking if user is banned')
         const rooms: Room[] = await this.roomManagementService.getRooms()
         const bannedList: User[] = rooms[roomIndex].banned
         if (bannedList.length === 0) return false
@@ -34,7 +33,6 @@ export class RoomPermissionService {
         roomIndex: number,
         userId: UserDto['userId'],
       ): Promise<boolean> {
-        this.logger.log('Checking if user is admin')
         const rooms: Room[] = await this.roomManagementService.getRooms()
         const adminList: User[] = rooms[roomIndex].admins
         if (adminList.length === 0) return false
@@ -57,7 +55,6 @@ export class RoomPermissionService {
       }
     
     async isMuted(roomIndex: number, user: User): Promise<boolean> {
-        this.logger.log('Checking if user is muted')
         const rooms: Room[] = await this.roomManagementService.getRooms()
         const mutedList: MutedDto[] = rooms[roomIndex].muteds
         if (mutedList.length === 0) return false
@@ -72,7 +69,6 @@ export class RoomPermissionService {
       }
     
     async isUser (roomIndex: number, userId: UserDto['userId']): Promise<boolean> {
-        this.logger.log('Checking if user is in the room')
         const rooms: Room[] = await this.roomManagementService.getRooms()
         const userList: User[] = rooms[roomIndex].users
         let isMember: boolean = false
@@ -87,7 +83,6 @@ export class RoomPermissionService {
         roomIndex: number,
         userId: UserDto['userId'],
     ): Promise<boolean> {
-        this.logger.log('Checking if user is owner')
         const rooms: Room[] = await this.roomManagementService.getRooms()
         if (rooms[roomIndex].roomName === 'general' || rooms[roomIndex].direct)
           return false

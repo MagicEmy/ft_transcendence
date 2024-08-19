@@ -10,3 +10,7 @@ export interface IGameStatus {
   player2Score: number;
   duration: number;
 }
+
+export interface IGameForUser {
+  playerID: string;
+}

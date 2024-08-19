@@ -3,9 +3,9 @@ import { Container, Row, Col } from "react-bootstrap";
 import Sidebar from "../../components/Chat/Sidebar";
 import MessageForm from "../../components/Chat/MessageForm";
 
-function ChatPage() {
+const ChatPage: React.FC = () => {
   return (
-    <Container>
+    <Container fluid>
       <Row>
         <Col md={4}>
           <Sidebar />

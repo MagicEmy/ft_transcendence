@@ -33,18 +33,10 @@ function GameInvitation({ userToInvite, onInvitationSent }: GameInvitationProps)
   }, [userToInvite]);
 
   const handleGameInvitation = (payload: GameDto) => {
-    if (payload.type === "Remove the game") {
-      setGameInvite({});
-    } else if (payload.type === "decline the game") {
-      setGameInvite({});
-      alert("Game invitation declined");
+    if (payload.type === "Remove") {
+      setGameInvite({}); 
     } else {
       setGameInvite(payload);
-      if (payload.type === "start the game" && payload.user.userId === user.userId) {
-        alert("Game invitation accepted");
-      } else if (payload.type === "invitation") {
-        alert("You were invited to a game by " + payload.user.userName);
-      }
     }
   };
 
