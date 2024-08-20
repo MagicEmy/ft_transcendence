@@ -345,9 +345,6 @@ function Sidebar() {
       socket.on("room_users", (payload: RoomUserDto) => {
         setRoomMembers(payload);
       });
-      socket.on("game_invitation_response", (message: string) => {
-        showToast(message);
-      });
       socket.on("response", (message: string) => {
         showToast(message);
       });
@@ -391,7 +388,6 @@ function Sidebar() {
         socket.off("chat_rooms");
         socket.off("my_rooms");
         socket.off("room_users");
-        socket.off("game_invitation_response");
         socket.off("response");
         socket.off("moderate_room_action");
         socket.off("notifications");
