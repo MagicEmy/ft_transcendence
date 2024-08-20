@@ -66,5 +66,3 @@ export const Navbar = () => {
 };
 
 export default Navbar;
-
-//window.location  in console!!

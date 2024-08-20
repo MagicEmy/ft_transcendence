@@ -27,7 +27,7 @@ export const TwoFaEnable = () => {
     }, 5000);
   };
 
-  return (
+	return (
     <div className="settings-container">
       <div className="item">
         <div className="text">

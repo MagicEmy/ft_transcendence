@@ -5,7 +5,8 @@ import { USER } from '../utils/constants';
 export const useGetProfile = (userId: string) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<number | null>(null);
+	const [error, setError] = useState<number | null>(null);
+
   const fetchDbProfile = useCallback(
     async (retry = 2) => {
       setIsLoading(true);

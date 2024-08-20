@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import useStorage from '../../hooks/useStorage';
 import { TFA_QR } from '../../utils/constants';
 

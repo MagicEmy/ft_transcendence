@@ -36,7 +36,7 @@ export const useGetFriends = (
         getFriends(userId);
       }, pollingInterval);
 
-      //clear the interval when the component unmounts
+      //clearing the interval when the component unmounts
       return () => clearInterval(intervalId);
     }
   }, [userId, userIdorMe, pollingInterval]);

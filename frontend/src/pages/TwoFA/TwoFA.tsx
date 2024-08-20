@@ -6,13 +6,17 @@ import './TwoFa.css';
 
 export const TwoFA = () => {
   const [tfaCode, setTfaCode] = useState('');
-  const [showError, setShowError] = useState(false);
-  const [errorName, setErrorName] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const clearFeedbackError = () => {
+    setTimeout(() => {
+      setError('');
+    }, 5000);
+  };
   async function handleSubmit(event: FormEvent) {
     event?.preventDefault();
-    const RESPONSE = await fetch(TFA_VALIDATE, {
+    const response = await fetch(TFA_VALIDATE, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -22,13 +26,20 @@ export const TwoFA = () => {
         code: tfaCode,
       }),
     });
-    if (!RESPONSE.ok) {
-      setErrorName(RESPONSE.statusText);
-      setShowError(true);
+    if (!response.ok) {
+      const errorData = await response.json();
+      if (response.status === 401) {
+        setError('Incorrect authentication code. Please try again.');
+      } else {
+        setError(
+          errorData.message || 'An error occurred. Please try again later.',
+        );
+      }
+      clearFeedbackError();
+
       return false;
     }
-    if (RESPONSE.status === 200) navigate('/dashboard');
-    setShowError(false);
+    if (response.status === 200) navigate('/dashboard');
   }
 
   return (
@@ -46,9 +57,9 @@ export const TwoFA = () => {
           Submit Code
         </button>
       </form>
-      {showError && (
+      {error && (
         <div className="error-bar">
-          <p className="errortext">{errorName}</p>
+          <p className="errortext">{error}</p>
         </div>
       )}
     </div>

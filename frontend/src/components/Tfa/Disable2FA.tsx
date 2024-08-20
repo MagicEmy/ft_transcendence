@@ -25,11 +25,12 @@ export const Disable2FA = ({
           }),
         });
         if (!response.ok) {
-          setError(response.statusText);
+					setError(response.statusText);
+					setFeedback('Error disabling 2FA');
           return false;
         } else {
           onSuccess();
-          setFeedback('Two Factor Authentication disabled successfully.');
+          setFeedback('Two Factor Authentication disabled successfully');
         }
       } catch (error) {
         setError('Error disabling 2FA: ' + error);

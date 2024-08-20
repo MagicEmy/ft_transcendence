@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
 import { addFriend, deleteFriend } from '../../utils/friendsUtils';
 import { Friends } from '../../types/shared';
 import {
@@ -10,6 +9,7 @@ import {
   useGetAvatarUrl,
   useUpdateStatus,
 } from '../../hooks';
+import  Error from '../Error/Error';
 import { MatchHistory } from '../../components/ProfileStats/MatchHistory';
 import { FriendsList } from '../../components/FriendsList';
 import { UserStats } from '../../components/ProfileStats/ProfileStats';
@@ -19,7 +19,6 @@ import defaultAvatar from '../../assets/defaultAvatar.png';
 import './Profile.css';
 
 export const Profile = () => {
-  const navigate = useNavigate();
   const { userId } = useParams<{ userId?: string }>();
   const { userIdContext } = useContext<IUserContext>(UserContext);
   const [userIdOrMe, setUserIdOrMe] = useState(userId || userIdContext);
@@ -93,20 +92,9 @@ export const Profile = () => {
     }
   }, [userStatus]);
 
-  if (error && (error === 500 || error === 404)) {
-    return (
-      <div className="profile">
-        <h1 className="page-title">Error</h1>
-        <h4 className="error-message">
-          You must be logged in to view this page
-        <button className="button-profile" onClick={() => navigate('/')}>
-          Back to login
-        </button>
-        </h4>
-      </div>
-    );
+	if (error) {
+    return <Error status={error} />;
   }
-
   return (
     <div className="main">
       <h1 className="page-title">Profile</h1>
@@ -140,11 +128,6 @@ export const Profile = () => {
           </div>
           <MatchHistory userId={userIdOrMe} />
         </div>
-        {error && (
-          <div className="error-bar">
-            <p className="errortext">{error}</p>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -32,11 +32,11 @@ export const Enable2FA = ({
         if (response.ok) {
           onSuccess();
           setQrCodeUrl(null);
-          setFeedback('Two Factor Authentication enabled successfully.');
+          setFeedback('Two Factor Authentication enabled successfully');
         } else {
-          const errorData = await response.json();
+					const errorData = await response.json();
           setError(`Error enabling 2FA: ${errorData.message}`);
-          throw new Error(errorData.message || 'Invalid authentication code');
+          setFeedback('An error occurred enabling 2FA, please try again, check your code, or the account in the authenticator app');
         }
       } catch (error) {
         setError(`Failed to enable Two Factor Authentication. ${error}`);
@@ -46,7 +46,7 @@ export const Enable2FA = ({
         clearFeedbackError();
       }
     } else {
-      setError('Invalid authentication code');
+      setFeedback('Invalid authentication code');
       clearFeedbackError();
     }
   };
@@ -67,7 +67,7 @@ export const Enable2FA = ({
           className="settings-button"
           onClick={handleEnable2FA}
         >
-          Confirm 2FA
+          Confirm 2FA code
         </button>
       </div>
     )
