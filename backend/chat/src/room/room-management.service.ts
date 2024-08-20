@@ -195,14 +195,25 @@ export class RoomManagementService {
     this.roomPermissionService.validateRoomForAction(this.rooms[roomIndex]);
     if (!(await this.roomPermissionService.isOwner(roomIndex, hostUser.userId)))
       return 'Not Authorized User'
+    let response: string = ''
     if (updatePassword) {
+      
       this.rooms[roomIndex].password = newPassword
+    
       this.rooms[roomIndex].exclusive = false
+      if (this.rooms[roomIndex].password === '') {
+        response = 'Success Room is Now Protected'
+      } else if (newPassword === '') {
+        response = 'Success Room is Now Public'
+      } else {
+        response = 'Success Password Updated'
+      }
     } else {
       this.rooms[roomIndex].exclusive = updateExclusive
       this.rooms[roomIndex].password = ''
+      response = 'Success Room is Now Exclusive'
     }
-    return 'Success'
+    return response
   }
   async removeRoom (roomName: Room['roomName']): Promise<string> {
     const room: number = await this.getRoomIndexByName(roomName)

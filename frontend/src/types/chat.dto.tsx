@@ -1,3 +1,4 @@
+import React from 'react';
 import { Socket } from 'socket.io-client';
 
 export interface UserDto {
@@ -152,8 +153,11 @@ export interface KickDto {
 }
 
 export interface ChatContextType {
-  socket: Socket;
-  user: UserDto; 
+  socket: Socket | null;
+  isConnected: boolean;
+  connectSocket: () => void;
+  disconnectSocket: () => void;
+  user: UserDto ;
   currentRoom: RoomDto | null;
   setCurrentRoom: React.Dispatch<React.SetStateAction<RoomDto | null>>;
   members: ChatUserDto[];
@@ -162,8 +166,8 @@ export interface ChatContextType {
   setRoomMembers: React.Dispatch<React.SetStateAction<RoomUserDto>>;
   messages: MessageRoomDto[];
   setMessages: React.Dispatch<React.SetStateAction<MessageRoomDto[]>>;
-  directMsg: UserDto | null;
-  setDirectMsg: React.Dispatch<React.SetStateAction<UserDto | null>>;
+  directMsg: UserDto | null ;
+  setDirectMsg: React.Dispatch<React.SetStateAction<UserDto | null >>;
   rooms: RoomShowDto[];
   setRooms: React.Dispatch<React.SetStateAction<RoomShowDto[]>>;
   myRooms: RoomShowDto[];

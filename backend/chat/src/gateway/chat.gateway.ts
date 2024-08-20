@@ -99,9 +99,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const message: MessageRoomDto[] | string =
       await this.roomMessageService.broadcastMessage(payload)
     if (typeof message === 'string') {
-      this.server.to(client.id).emit('chat_response', message)
+      this.server.to(client.id).emit('response', message)
     } else {
-      this.server.to(client.id).emit('chat_response', 'Success')
       this.logger.log(message)
       this.server.to(payload.roomName).emit('chat', message)
       this.server.emit('notifications', payload.roomName)
@@ -125,13 +124,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (payload.roomName.indexOf('#') !== -1) {
       this.server
         .to(client.id)
-        .emit('create_room_response', 'Room name cannot contain #')
+        .emit('response', 'Room name cannot contain #')
       return
     }
     await this.userService.addUser(payload.user, client.id)
     const response: string = await this.roomManagementService.addRoom(payload)
     if (response !== 'Success') {
-      this.server.to(client.id).emit('create_room_response', response)
+      this.server.to(client.id).emit('response', response)
       this.logger.log(`${payload.user.userId} error ${response}`)
       return
     }
@@ -141,6 +140,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.emit('chat_rooms', roomList)
     const myRoomList: RoomShowDto[] = await this.roomManagementService.getMyRooms( payload.user.userId)
     this.server.to(client.id).emit('my_rooms', myRoomList)
+    this.server.to(client.id).emit('response', `Success! ${payload.roomName} created`)
     this.updateUsers()
   }
 
@@ -157,19 +157,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (payload.roomName.indexOf('#') !== -1) {
       this.server
         .to(client.id)
-        .emit('update_room_response', 'Direct room cannot be changed')
+        .emit('response', 'Direct room cannot be changed')
       return
     }
     await this.userService.addUser(payload.user, client.id)
     const response: string = await this.roomManagementService.updateRoom(
       payload,
     )
-    this.server.to(client.id).emit('update_room_response', response)
-    if (response !== 'Success') {
-      this.logger.log(`${payload.user.userId} error ${response}`)
-      return
-    }
-    this.logger.log(`${payload.user.userId} updated ${payload.roomName}`)
+    this.server.to(client.id).emit('response', response)
     const roomList: RoomShowDto[] =
       await this.roomManagementService.getRoomsAvailable()
     this.server.emit('chat_rooms', roomList)
@@ -292,21 +287,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (payload.user.userId === payload.toDoUser) {
       this.server
         .to(client.id)
-        .emit('block_user_response', 'You cannot block yourself')
+        .emit('response', 'You cannot block yourself')
       return
     }
     const response: string = await this.userService.blockUser({
       blockingUserId: payload.user.userId,
       blockedUserId: payload.toDoUser,
     })
-    this.server.to(client.id).emit('block_user_response', response)
-    if (response === 'Already Blocked') {
-      this.logger.log(
-        `${payload.user.userId} already blocked ${payload.toDoUser}`,
-      )
-      return
-    }
-    this.logger.log(`${payload.user.userId} blocked ${payload.toDoUser}`)
+    this.server.to(client.id).emit('response', response)
+    if (response === 'Already Blocked') 
+      this.logger.log(`${payload.user.userId} already blocked ${payload.toDoUser}`,)
+    else 
+      this.logger.log(`${payload.user.userId} blocked ${payload.toDoUser}`)
     this.updateUsers()
   }
 
@@ -325,14 +317,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       blockingUserId: payload.user.userId,
       blockedUserId: payload.toDoUser,
     })
-    this.server.to(client.id).emit('unblock_user_response', response)
-    if (response === 'Not Blocked') {
-      this.logger.log(
-        `${payload.user.userId} is not blocked ${payload.toDoUser}`,
-      )
-      return
-    }
-    this.logger.log(`${payload.user.userId} unblocked ${payload.toDoUser}`)
+    this.server.to(client.id).emit('response', response)
+    if (response === 'Not Blocked') 
+      this.logger.log(`${payload.user.userId} is not blocked ${payload.toDoUser}`)
+    else
+      this.logger.log(`${payload.user.userId} unblocked ${payload.toDoUser}`)
     this.updateUsers()
   }
 
@@ -371,7 +360,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.server.to(receiver.socketId).emit('game_invitation', invitation)
         this.server.to(client.id).emit('game_invitation', host)
       }
-      this.server.to(client.id).emit('game_invitation_response', response.message)
     }
     else if (payload.type === GameInvitationtype.ACCEPT) {
       response = await this.gameInvitation.acceptGameInvitation(user, receiver);
@@ -385,20 +373,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
       else
         this.server.to(client.id).emit('game_invitation', remove)
-      this.server.to(client.id).emit('game_invitation_response', response.message)
-      return
     }
     else if (payload.type === GameInvitationtype.DECLINE) {
       response = await this.gameInvitation.declineGameInvitation(user, receiver);
       if (response.success) {
         this.server.to(client.id).emit('game_invitation', remove)
         this.server.to(receiver.socketId).emit('game_invitation', remove)
-        this.server.to(receiver.socketId).emit('game_invitation_response', `${user.userName} declined the game invitation`)
+        this.server.to(receiver.socketId).emit('response', `${user.userName} declined the game invitation`)
       }
       else 
         this.server.to(client.id).emit('game_invitation', remove)
-      this.server.to(client.id).emit('game_invitation_response', response.message)
     }
+    this.server.to(client.id).emit('response', response.message)
   }
 
   @UsePipes(new ValidationPipe())
@@ -424,6 +410,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const roomList: RoomShowDto[] =
       await this.roomManagementService.getRoomsAvailable()
     this.server.emit('chat_rooms', roomList)
+    this.server.to(client.id).emit('response', `Success! ${payload.roomName} left`)
   }
 
   @UsePipes(new ValidationPipe())
@@ -475,12 +462,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       payload.toDoUser,
     )
     if (toDoUser === undefined) {
-      this.server.to(client.id).emit('moderate_room_response', 'User not found');
+      this.server.to(client.id).emit('response', 'User not found');
       return;
     }
     let response: ModerateResponseDto = await this.roomRouterService.handleModeration(payload);
     if (response.success) {
-      this.server.to(client.id).emit('moderate_room_response', toDoUser.userName + " " + response.user_response);
+      this.server.to(client.id).emit('response', toDoUser.userName + " " + response.user_response);
       if (toDoUser.socketId !== '') {
         this.server.to(toDoUser.socketId).emit('moderate_room_action', response.user_response);
         if (payload.type === 'add') {
@@ -488,6 +475,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           this.server.to(toDoUser.socketId).emit('my_rooms', myRoomList)
         }
       }
+    }
+    else {
+      this.server.to(client.id).emit('response', response.user_response);
     }
     this.updateUsers()
   }
