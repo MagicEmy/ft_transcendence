@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, {useEffect, useState } from 'react';
 import { Button, ListGroup } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { ChatContext } from '../../context/ChatContext';
-import { ChatContextType, GameDto, GameInvitationDto, GameInvitationtype, UserDto } from '../../types/chat.dto';
+import { useChat } from '../../context/ChatContext';
+import {  GameDto, GameInvitationDto, GameInvitationtype, UserDto } from '../../types/chat.dto';
 import useStorage from '../../hooks/useStorage';
 import './GameInvitation.css';
 
@@ -15,15 +15,16 @@ function GameInvitation({ userToInvite, onInvitationSent }: GameInvitationProps)
   const [userIdStorage] = useStorage<string>("userId", "");
   const [userNameStorage] = useStorage<string>("userName", "");
   const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
-  const context = useContext(ChatContext) as ChatContextType;
-  const { socket } = context;
+  const { socket } = useChat();
   const [gameInvite, setGameInvite] = useState<GameDto | {}>({});
 
   useEffect(() => {
-    socket.on("game_invitation", handleGameInvitation);
-    return () => {
-      socket.off("game_invitation", handleGameInvitation);
-    };
+    if (socket) {
+      socket.on("game_invitation", handleGameInvitation);
+      return () => {
+        socket.off("game_invitation", handleGameInvitation);
+      };
+    }
   }, [socket]);
 
   useEffect(() => {
@@ -41,6 +42,7 @@ function GameInvitation({ userToInvite, onInvitationSent }: GameInvitationProps)
   };
 
   const handleSendInvitation = () => {
+    if(!socket) return;
     if (!userToInvite) return;
     const gameInvitationDto: GameInvitationDto = {
       sender: user,
@@ -52,6 +54,7 @@ function GameInvitation({ userToInvite, onInvitationSent }: GameInvitationProps)
   };
 
   const gameInvitation = (type: GameInvitationtype) => {
+    if(!socket) return;
     if (!('user' in gameInvite)) return;
     const gameInvitationDto: GameInvitationDto = {
       sender: user,
@@ -108,7 +111,7 @@ function GameInvitation({ userToInvite, onInvitationSent }: GameInvitationProps)
           )}
         </ListGroup.Item>
       </ListGroup>
-    </div>
+      </div>
   );
 }
 

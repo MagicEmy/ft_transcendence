@@ -1,6 +1,6 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button, Col, Form, Row } from "react-bootstrap";
-import { ChatContext } from "../../context/ChatContext";
+import { useChat } from "../../context/ChatContext";
 import "./MessageForm.css";
 import { MessageRoomDto, UserDto } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
@@ -11,26 +11,17 @@ import { host } from '../../utils/ApiRoutes';
 function MessageForm(): JSX.Element {
   const [userIdStorage] = useStorage<string>('userId', '');
   const [userNameStorage] = useStorage<string>('userName', '');
-  const context = useContext(ChatContext);
+  const { socket, currentRoom, setMessages, messages, directMsg } = useChat();
   const [message, setMessage] = useState("");
   const messageEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (context && context.messages) {
-      scrollToBottom();
-    }
-  }, [context, context?.messages]);
-
-  if (!context) return null;
-  const {
-    socket,
-    currentRoom,
-    setMessages,
-    messages,
-    directMsg,
-  } = context;
   const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
 
+  useEffect(() => {
+    if (messages) {
+      scrollToBottom();
+    }
+  }, [messages]);
+  
   function scrollToBottom(): void {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }
@@ -56,15 +47,24 @@ function MessageForm(): JSX.Element {
 
     return hours + ":" + minutes;
   }
+  useEffect(() => {
+    if (socket) {
+      socket.on("chat", (roomMessages: MessageRoomDto[]) => {
+        roomMessages.forEach((messag) => {
+          setMessages((oldMessages: MessageRoomDto[]) => [...oldMessages, messag]);
+        });
+        setMessage("");
+      });
+      return () => {
+        socket.off("chat");
+      }
+    }
+  }, [socket]);
 
-  socket.off("chat").on("chat", (roomMessages: MessageRoomDto[]) => {
-    roomMessages.forEach((messag) => {
-      setMessages((oldMessages: MessageRoomDto[]) => [...oldMessages, messag]);
-    });
-    setMessage("");
-  });
+    
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    if (!socket) return;
     event.preventDefault();
     if (!message || !currentRoom) return;
     const send_message = {
@@ -73,11 +73,6 @@ function MessageForm(): JSX.Element {
       message: message,
     };
     socket.emit("chat", send_message);
-    socket.off("chat_response").on("chat_response", (messages: string) => {
-      if (messages !== "Success") {
-        alert(messages);
-      }
-    });
   }
   return (
     <>

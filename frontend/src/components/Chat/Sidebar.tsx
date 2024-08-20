@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Col,
@@ -10,7 +10,7 @@ import {
   ToastContainer,
 } from "react-bootstrap";
 import Dropdown from "react-bootstrap/Dropdown";
-import { ChatContext } from "../../context/ChatContext";
+import { useChat } from "../../context/ChatContext";
 import "./Sidebar.css";
 import {
   IoWalk,
@@ -38,7 +38,6 @@ import {
   RoomUserDto,
   ChatUserDto,
   UpdateRoomDto,
-  ChatContextType,
   Notification,
   ToDoUserRoomDto,
   ModerationType,
@@ -57,6 +56,7 @@ function Sidebar() {
   const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
   const {
     socket,
+    isConnected,
     setMembers,
     members,
     setRoomMembers,
@@ -70,7 +70,7 @@ function Sidebar() {
     setMyRooms,
     myRooms,
     setMessages,
-  } = useContext(ChatContext) as ChatContextType;
+  } = useChat();
 
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -79,6 +79,25 @@ function Sidebar() {
   const [openSection, setOpenSection] = useState<string>("rooms")
   const navigate = useNavigate();
   const [userToInvite, setUserToInvite] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    if (isConnected && socket && !isInitialized) {
+      console.log("Initializing Sidebar");
+      setCurrentRoom({ roomName: "general", password: false });
+      socket.emit("chat_users", user);
+      socket.emit("join_room", {
+        roomName: "general",
+        user: user,
+        password: "",
+      });
+      setDirectMsg(null);
+      socket.emit("chat_rooms", user);
+      socket.emit("my_rooms", user);
+      socket.emit("game", user);
+      setIsInitialized(true);
+    }
+  }, [isConnected, socket, user, setCurrentRoom, setDirectMsg, isInitialized]);
 
   const showToast = (message: string) => {
     setToast({ show: true, message });
@@ -124,7 +143,10 @@ function Sidebar() {
   }
 
   function joinRoom(room: RoomDto) {
+    if (!socket) return;
     let password: string | null = "";
+    if (room.roomName === currentRoom?.roomName)
+      return
     if (room.password) {
       password = prompt("Please Enter a password");
       if (!password) {
@@ -162,6 +184,7 @@ function Sidebar() {
   }
 
   const leaveRoom = (roomName: string) => () => {
+    if (!socket) return;
     const leaveRoom: LeaveRoomDto = {
       roomName: roomName,
       user: user,
@@ -175,6 +198,9 @@ function Sidebar() {
   };
 
   function joinDirectRoom(member: UserDto) {
+    if (!socket) return;
+    if (chatId(member.userId) === currentRoom?.roomName) 
+      return
     const members: DoWithUserDto = {
       userCreator: user,
       userReceiver: {
@@ -212,6 +238,7 @@ function Sidebar() {
 
 
   function handleModRoomAction(userId: string, type: ModerationType) {
+    if (!socket) return;
     if (!currentRoom) return;
     let toDoUser: ToDoUserRoomDto = {
       roomName: currentRoom.roomName,
@@ -227,30 +254,9 @@ function Sidebar() {
       }
       toDoUser.timer = parseInt(seconds ?? "0", 10);
     }
-    console.log("Sending moderate_room event with data:", toDoUser);
     socket.emit("moderate_room", toDoUser);
-    socket
-      .off("moderate_room_response")
-      .on("moderate_room_response", (message: string) => {
-        showToast(message);
-      });
   }
 
-  socket.off("moderate_room_action").on("moderate_room_action", (message: RoomMessageDto) => {
-    if (message.roomName === currentRoom?.roomName) {
-      if (message.message === "Kicked") {
-        showToast("You have been kicked from the room");
-        joinRoom({ roomName: "general", password: false });
-      }
-      else if (message.message === "Banned") {
-        showToast("You have been banned from the room");
-        joinRoom({ roomName: "general", password: false });
-      }
-      else {
-        showToast(message.message);
-      }
-    }
-  });
 
   function handleAddUser(event: React.FormEvent) {
     event.preventDefault();
@@ -259,6 +265,7 @@ function Sidebar() {
   }
 
   function blockUser(member: UserShowDto | ChatUserDto) {
+    if(!socket) return;
     if (!currentRoom) return;
     const blockUser:ToDoUserRoomDto = {
       roomName: currentRoom.roomName,
@@ -268,16 +275,10 @@ function Sidebar() {
       timer: 0,
     };
     socket.emit("block_user", blockUser);
-    socket
-      .off("block_user_response")
-      .on("block_user_response", (message: string) => {
-        if (message !== "Success") {
-          showToast(message);
-        }
-      });
   }
 
   function unBlockUser(member: UserShowDto | ChatUserDto) {
+    if(!socket) return;
     if (!currentRoom) return;
     const blockUser: ToDoUserRoomDto = {
       roomName: currentRoom.roomName,
@@ -296,6 +297,7 @@ function Sidebar() {
   }
 
   function setPassword(room: RoomShowDto, isPassword: boolean) {
+    if(!socket) return;
     let password: string | null = "";
     if (isPassword) {
       password = prompt(`Enter the new password for the room ${room.roomName}`);
@@ -311,20 +313,10 @@ function Sidebar() {
       updateExclusive: room.exclusive,
     };
     socket.emit("update_room", updateRoom);
-    socket
-      .off("update_room_response")
-      .on("update_room_response", (message: string) => {
-        if (message !== "Success") {
-          showToast(message);
-        } else if (isPassword) {
-          showToast("Room Password Updated");
-        } else {
-          showToast("Room Password Removed");
-        }
-      });
   }
 
   function setExclusive(room: RoomShowDto, isExclusive: boolean) {
+    if(!socket) return;
     const updateRoom: UpdateRoomDto = {
       user: user,
       roomName: room.roomName,
@@ -333,17 +325,6 @@ function Sidebar() {
       updateExclusive: isExclusive,
     };
     socket.emit("update_room", updateRoom);
-    socket
-      .off("update_room_response")
-      .on("update_room_response", (message: string) => {
-        if (message !== "Success") {
-          showToast(message);
-        } else if (isExclusive) {
-          showToast("Room set as Exclusive");
-        } else {
-          showToast("Room set as Public");
-        }
-      });
   }
 
   const handleInvitationSent = () => {
@@ -351,59 +332,68 @@ function Sidebar() {
   };
 
   useEffect(() => {
-    setCurrentRoom({ roomName: "general", password: false });
-    socket.emit("chat_users", user);
-    socket.emit("join_room", {
-      roomName: "general",
-      user: user,
-      password: "",
-    });
-    setDirectMsg(null);
-    socket.emit("chat_rooms", user);
-    socket.emit("my_rooms", user);
-    socket.emit("game", user);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  socket.off("chat_users").on("chat_users", (payload: ChatUserDto[]) => {
-    setMembers(payload);
-  });
-  socket.off("chat_rooms").on("chat_rooms", (payload: RoomShowDto[]) => {
-    setRooms(payload);
-  });
-  socket.off("my_rooms").on("my_rooms", (payload: RoomShowDto[]) => {
-    setMyRooms(payload);
-  });
-  socket.off("room_users").on("room_users", (payload: RoomUserDto) => {
-    setRoomMembers(payload);
-  });
-  socket.off("game_invitation_response").on("game_invitation_response", (message: string) => {
-    showToast(message);
-  });
-  socket.off("notifications").on("notifications", (room: string) => {
-    console.log("Notification received for room:", room);
-    setNotifications((notifications) => {
-      console.log("Current notifications:", notifications);
-      // Check if notification for the room already exists
-      const existingNotificationIndex = notifications.findIndex(
-        (n) => n.roomName === room
-      );
-      if (existingNotificationIndex !== -1) {
-        // If exists, create a new array with updated count for that notification
-        return notifications.map((notification, index) => {
-          if (index === existingNotificationIndex) {
-            return { ...notification, count: notification.count + 1 };
+    if (socket) {
+      socket.on("chat_users", (payload: ChatUserDto[]) => {
+        setMembers(payload);
+      });
+      socket.on("chat_rooms", (payload: RoomShowDto[]) => {
+        setRooms(payload);
+      });
+      socket.on("my_rooms", (payload: RoomShowDto[]) => {
+        setMyRooms(payload);
+      });
+      socket.on("room_users", (payload: RoomUserDto) => {
+        setRoomMembers(payload);
+      });
+      socket.on("response", (message: string) => {
+        showToast(message);
+      });
+      socket.on("moderate_room_action", (message: RoomMessageDto) => {
+        if (message.roomName === currentRoom?.roomName) {
+          if (message.message === "Kicked") {
+            showToast("You have been kicked from the room");
+            joinRoom({ roomName: "general", password: false });
           }
-          return notification;
+          else if (message.message === "Banned") {
+            showToast("You have been banned from the room");
+            joinRoom({ roomName: "general", password: false });
+          }
+          else {
+            showToast(message.message);
+          }
+        }
+      });
+      socket.on("notifications", (room: string) => {
+        console.log("Notification received for room:", room);
+        setNotifications((notifications) => {
+          const existingNotificationIndex = notifications.findIndex(
+            (n) => n.roomName === room
+          );
+          if (existingNotificationIndex !== -1) {
+            return notifications.map((notification, index) => {
+              if (index === existingNotificationIndex) {
+                return { ...notification, count: notification.count + 1 };
+              }
+              return notification;
+            });
+          } else {
+            const newNotification = { roomName: room, count: 1 };
+            console.log("Adding new notification:", newNotification);
+            return [...notifications, newNotification];
+          }
         });
-      } else {
-        // If not, add a new notification
-        const newNotification = { roomName: room, count: 1 };
-        console.log("Adding new notification:", newNotification);
-        return [...notifications, newNotification];
-      }
-    });
-  });
+      });
+      return () => {
+        socket.off("chat_users");
+        socket.off("chat_rooms");
+        socket.off("my_rooms");
+        socket.off("room_users");
+        socket.off("response");
+        socket.off("moderate_room_action");
+        socket.off("notifications");
+      };
+    }
+  }, [socket]);
 
   
   function adminDropDown(currentUser: UserShowDto, member: UserShowDto) {
@@ -444,15 +434,6 @@ function Sidebar() {
     if (room.owner !== user.userId) {
       return null;
     }
-    let change_password: JSX.Element | string = "";
-    if (room.password) {
-      change_password = (
-        <Dropdown.Item onClick={() => setPassword(room, true)}>
-          {"Change Password"}
-        </Dropdown.Item>
-      );
-    }
-
     return (
       <Dropdown>
         <Dropdown.Toggle variant="Secondary" id="dropdown-basic"></Dropdown.Toggle>

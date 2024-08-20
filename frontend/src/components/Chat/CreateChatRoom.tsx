@@ -1,7 +1,7 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { Form, Button, Dropdown } from "react-bootstrap";
-import { ChatContext } from "../../context/ChatContext";
-import { ChatContextType, UserDto } from "../../types/chat.dto";
+import { useChat } from "../../context/ChatContext";
+import {  UserDto } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./CreateChatRoom.css"; // We'll create this CSS file for custom styles
@@ -10,11 +10,10 @@ function CreateChatRoom() {
   const [userIdStorage] = useStorage<string>("userId", "");
   const [userNameStorage] = useStorage<string>("userName", "");
   const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
-  const context = useContext(ChatContext);
   const [roomName, setRoomName] = useState("");
   const [chatType, setChatType] = useState("Public");
   const [password, setPassword] = useState("");
-  const { socket } = context as ChatContextType;
+  const { socket } = useChat();
 
   const handleChatType = (eventKey: string | null) => {
     if (eventKey) {
@@ -23,6 +22,7 @@ function CreateChatRoom() {
   };
 
   async function handleRoomCreation(event: React.FormEvent<HTMLFormElement>) {
+    if(!socket) return;
     event.preventDefault();
     socket.emit("create_room", {
       roomName: roomName,
@@ -30,15 +30,6 @@ function CreateChatRoom() {
       exclusive: chatType === "Exclusive",
       password: password,
     });
-    socket
-      .off("create_room_response")
-      .on("create_room_response", (message: string) => {
-        if (message !== "Success") {
-          alert(message);
-        } else {
-          alert("Room Created Successfully: " + roomName);
-        }
-      });
     // Clear state
     setChatType("Public");
     setRoomName("");
