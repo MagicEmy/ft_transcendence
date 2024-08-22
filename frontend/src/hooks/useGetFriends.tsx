@@ -9,20 +9,21 @@ export const useGetFriends = (
 ) => {
   const [friends, setFriends] = useState<Array<Friends> | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+	const [error, setError] = useState<number | null>(null);
 
   const getFriends = async (userId: string, retry = 2) => {
     try {
       setLoading(true);
       const listFriends = await loadFriends(userId);
-      setLoading(false);
-      listFriends && setFriends(listFriends);
+			setLoading(false);
+			listFriends && setFriends(listFriends);
     } catch (err: any) {
       if (retry > 0 && err.message.includes('Unauthorized')) {
         return getFriends(userId, retry - 1);
       } else {
-        setLoading(false);
-        setError(err.message || 'Failed to load friends');
+				setLoading(false);
+        const errorStatus = err instanceof Error ? parseInt(err.message) : 500;
+        setError(errorStatus);
         console.log('Error handled in useEffect:', err.message);
       }
     }
@@ -31,15 +32,19 @@ export const useGetFriends = (
   useEffect(() => {
     if (userId) {
       getFriends(userId);
+    }
+  }, [userId, userIdorMe]);
 
+  useEffect(() => {
+    if (friends && friends.length > 0) {
       const intervalId = setInterval(() => {
         getFriends(userId);
       }, pollingInterval);
 
-      //clearing the interval when the component unmounts
+      // clearing the interval when the component unmounts or when the condition changes
       return () => clearInterval(intervalId);
     }
-  }, [userId, userIdorMe, pollingInterval]);
+  }, [friends, userId, pollingInterval]);
 
   return { friends, loading, error };
 };

@@ -6,6 +6,7 @@ import UserContext, { IUserContext } from '../context/UserContext';
 export const ChangeName = () => {
   const { userIdContext, userNameContext, setUserNameContext } =
     useContext<IUserContext>(UserContext);
+  const [userIdStorage] = useStorage<string>('userId', '');
   const [, setUserNameStorage] = useStorage<string>('userName', '');
   const [newUserName, setNewUserName] = useState<string>('');
   const [feedback, setFeedback] = useState<string>('');
@@ -42,7 +43,7 @@ export const ChangeName = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            userId: userIdContext,
+            userId: userIdStorage,
             userName: newUserName,
           }),
           credentials: 'include',
@@ -55,8 +56,8 @@ export const ChangeName = () => {
           setNewUserName('');
         } else {
           const message = await response.json();
-          setFeedback('Error updating username.');
-          throw new Error(message.message);
+					setFeedback('Error updating username.');
+					console.error('Error updating username:', message.message);
         }
       } catch (error) {
         console.error('Error updating user data:', error);

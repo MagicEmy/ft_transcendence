@@ -7,52 +7,74 @@ import {
 import NavbarError from './NavbarError';
 import PageContent from '../../components/PageContent';
 
-const Error = ({ status }: { status?: number; }) => {
-	const routerError = useRouteError();
-  const navigate = useNavigate();
-  let error = status || routerError;
-  let title = 'Error';
-  let message = 'An unexpected anomaly occurred in the space-time continuum';
+interface ErrorProps {
+  status?: number;
+}
 
-  if (isRouteErrorResponse(error)) {
-    if (error.status === 404) {
-      title = 'Error 404 - World Not Found';
+const Error: React.FC<ErrorProps> = ({ status }) => {
+  const routerError = useRouteError();
+  const navigate = useNavigate();
+
+  let errorStatus = status;
+  let errorMessage = '';
+			console.log('ErrorStatus before:', errorStatus);
+
+	if (isRouteErrorResponse(routerError)) {
+    errorStatus = routerError.status;
+		errorMessage = routerError.data?.message || routerError.statusText;
+		console.log('errorMessage:', errorMessage);
+  } else if (routerError && typeof routerError === 'object' && 'message' in routerError) {
+    errorMessage = String(routerError.message);
+  } else if (typeof routerError === 'string') {
+    errorMessage = routerError;
+  } else {
+    errorMessage = 'An unknown error occurred';
+  }
+	console.log('Error:', errorStatus);
+  let title = 'Uncharted Territory';
+  let message = 'We have encountered an anomaly in the space-time continuum';
+
+  switch (errorStatus) {
+    case 400:
+      title = 'Cosmic Communication Malfunction';
       message =
-        'The world you are looking for seems to have drifted into the void';
-    } else if (error.status === 403 || error.status === 401) {
-      title = 'Error 403 - Access Denied risk of Wormhole';
+        "Your request was lost in translation. The universal translator couldn't decode your space signals";
+      break;
+    case 401:
+    case 403:
+      title = 'Access Denied - Risk of Wormhole';
       message =
         'Your credentials are not authorized to access this parallel universe';
-    } else if (error.status === 500) {
-      title = 'Error 500  - Black Hole Detected';
+      break;
+    case 404:
+      title = 'World Not Found';
+      message =
+        'The world you are looking for seems to have drifted into the void';
+      break;
+    case 500:
+      title = 'Black Hole Detected';
       message =
         'Something went wrong, and we are working to stabilize the system';
-      try {
-        const parsedMessage = JSON.parse(error.data.message).message;
-        if (parsedMessage) {
-          message = parsedMessage;
+      if (errorMessage) {
+        try {
+          const parsedMessage = JSON.parse(errorMessage).message;
+          if (parsedMessage) {
+            message = parsedMessage;
+          }
+        } catch (e) {
+          console.error('Error parsing error message', e);
         }
-      } catch (e) {
-        console.error('Error parsing error message', e);
       }
-    } else {
-      title = 'Uncharted Territory';
-      message = 'We have encountered an anomaly in the space-time continuum';
-    }
+      break;
   }
 
   return (
     <>
-			{!status && <NavbarError />}
-      <PageContent title={title}>
-        <p className="errror"> {message}</p>
-        <button
-          className="button-profile"
-          onClick={() => {
-            navigate('/');
-          }}
-        >
-          Navigate Back to login galaxy
+      {!status && <NavbarError />}
+      <PageContent title={`Error ${errorStatus} - ${title}`}>
+        <p className="error">{message}</p>
+        <button className="button-profile" onClick={() => navigate('/')}>
+          Navigate Back to Login Galaxy
         </button>
       </PageContent>
     </>
