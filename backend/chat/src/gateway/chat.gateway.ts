@@ -95,7 +95,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(
       `${payload.user.userId} is trying to send a message in ${payload.roomName}`,
     )
-    await this.userService.addUser(payload.user, client.id)
+    await this.userService.setUserSocketStatus(payload.user, client.id, true)
     const message: MessageRoomDto[] | string =
       await this.roomMessageService.broadcastMessage(payload)
     if (typeof message === 'string') {
@@ -127,7 +127,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .emit('response', 'Room name cannot contain #')
       return
     }
-    await this.userService.addUser(payload.user, client.id)
+    await this.userService.setUserSocketStatus(payload.user, client.id, true)
     const response: string = await this.roomManagementService.addRoom(payload)
     if (response !== 'Success') {
       this.server.to(client.id).emit('response', response)
@@ -160,7 +160,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .emit('response', 'Direct room cannot be changed')
       return
     }
-    await this.userService.addUser(payload.user, client.id)
+    await this.userService.setUserSocketStatus(payload.user, client.id, true)
     const response: string = await this.roomManagementService.updateRoom(
       payload,
     )
@@ -193,7 +193,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     //guard for avoid user using more than one socket
     await this.disconnetOldSocket(user, client.id)
 
-    await this.userService.addUser(payload.user, client.id)
+    await this.userService.setUserSocketStatus(payload.user, client.id, true)
     const response: string =
       await this.roomUserManagementService.addNewUserToRoom(
         payload.roomName,
@@ -240,7 +240,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `${payload.userCreator.userId} is trying to create a direct room`,
     )
 
-    await this.userService.addUser(payload.userCreator, client.id)
+    await this.userService.setUserSocketStatus(payload.userCreator, client.id, true)
     const response: string = await this.roomManagementService.addDirectRoom(
       payload,
     )
@@ -280,7 +280,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     payload: ToDoUserRoomDto,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    await this.userService.addUser(payload.user, client.id)
+    await this.userService.setUserSocketStatus(payload.user, client.id, true)
     this.logger.log(
       `${payload.user.userId} is trying to block ${payload.toDoUser}`,
     )
@@ -312,7 +312,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(
       `${payload.user.userId} is trying to unblock ${payload.toDoUser}`,
     )
-    await this.userService.addUser(payload.user, client.id)
+    await this.userService.setUserSocketStatus(payload.user, client.id, true)
     const response: string = await this.userService.unblockUser({
       blockingUserId: payload.user.userId,
       blockedUserId: payload.toDoUser,
@@ -332,7 +332,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     payload: GameInvitationDto,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    await this.userService.addUser(payload.sender, client.id)
+    await this.userService.setUserSocketStatus(payload.sender, client.id, true)
     const receiver: User | undefined = await this.userService.getUserById(
       payload.receiver.userId,
     )
@@ -422,7 +422,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ): Promise<void> {
     this.logger.log(`${user.userName} joined the chat`)
     //guard for avoid user using more than one socket
-    await this.userService.addUser(user, client.id)
     await this.userService.setUserSocketStatus(user, client.id, true)
     this.updateUsers()
     const userIn: User | undefined = await this.userService.getUserById(user.userId)
@@ -440,7 +439,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     user: UserDto,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    await this.userService.addUser(user, client.id)
+    await this.userService.setUserSocketStatus(user, client.id, true)
     const roomList: RoomShowDto[] =
       await this.roomManagementService.getRoomsAvailable()
     const myRoomlist: RoomShowDto[] =
@@ -457,7 +456,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
 
-    await this.userService.addUser(payload.user, client.id)
+    await this.userService.setUserSocketStatus(payload.user, client.id, true)
     const toDoUser: User | undefined = await this.userService.getUserById(
       payload.toDoUser,
     )
