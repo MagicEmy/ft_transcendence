@@ -53,7 +53,7 @@ export class UserStatusRepository extends Repository<UserStatus> {
   ): Promise<UserStatus> {
     const { userId, newStatus } = statusChangeDto;
     let statusEntry = await this.findOneBy({ user_id: userId });
-    if (statusEntry) {
+    if (statusEntry && statusEntry.status != newStatus) {
       statusEntry.status = newStatus;
       try {
         this.save(statusEntry);
@@ -69,7 +69,7 @@ export class UserStatusRepository extends Repository<UserStatus> {
           ),
         );
       }
-    } else {
+    } else if (!statusEntry) {
       // create status
       try {
         statusEntry = await this.createStatusEntry({
