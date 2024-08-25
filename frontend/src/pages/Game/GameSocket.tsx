@@ -100,7 +100,7 @@ class GameSocket
 
 	public static createInstance(userIdContext: any, userNameContext: any): GameSocket | null
 	{
-		if (!GameSocket.instance?.socket)
+		if (!GameSocket.instance?.socket?.connected)
 		{
 			try
 			{
@@ -121,9 +121,13 @@ class GameSocket
 				GameSocket.instance = null;
 			}
 		}
-		console.log(this.instance.socket);
 		return (GameSocket.instance);
 	}
+
+	// public getStatus()
+	// {
+	// 	console.log(this.socket);
+	// }
 
 	private static setUser(UserContext: any)
 	{

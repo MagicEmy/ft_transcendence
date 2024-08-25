@@ -84,6 +84,7 @@ export class GamePong implements IGame
 				throw (`Unknown game mode ${this.mode}`);
 		}
 		this.player1 = this.ConstructPlayer(player1, 1/23);
+		// console.log(this.player1);
 		this.player2 = this.ConstructPlayer(player2, 22/23);
 		this.ball = null;
 		this.SetGameState(GameState.WAITING);
@@ -135,6 +136,7 @@ export class GamePong implements IGame
 		console.log(`Pong: Adding player ${playerPos?.player?.name}[${playerPos?.id}]`);
 		if (playerPos === undefined)
 			return (false);
+		
 		playerPos.player = playerToAdd;
 		this.AddListerners(playerPos, playerToAdd.getClient());
 		playerPos.status = PlayerStatus.WAITING;
@@ -157,9 +159,9 @@ export class GamePong implements IGame
 
 	public ClearGame(): void
 	{
-		if (this.player1.player.getClient())
+		if (this.player1.player?.getClient())
 			this.RemoveListeners(this.player1.player.getClient());
-		if (this.player2.player.getClient())
+		if (this.player2.player?.getClient())
 			this.RemoveListeners(this.player2.player.getClient());
 	}
 
@@ -237,7 +239,7 @@ export class GamePong implements IGame
 	{
 		console.log(`Pong: Disconnect: ${client.id}`);
 
-		this.player1.status = this.player1.player.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
+		this.player1.status = this.player1.player?.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
 		this.player2.status = this.player2.player?.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
 
 		this.SetGameState(GameState.PAUSED);
@@ -283,7 +285,7 @@ export class GamePong implements IGame
 		const P2: SocketCommunication.GameImage.IPlayer = this.GetImageDataPlayer(this.player2);
 		const ball: SocketCommunication.GameImage.IBall | null = this.GetImageDataBall();
 
-		if (this.player1.player.getClient() === client)
+		if (this.player1.player?.getClient() === client)
 			imageData = { Game: GamePong.gameFlag, Theme: this.theme,
 							Player1: P1, Player2: P2, Ball: ball};
 		else
@@ -435,6 +437,7 @@ export class GamePong implements IGame
 				this.player2.status = PlayerStatus.NOTREADY;
 				this.timerGame = Date.now();
 				break ;
+
 			case GameState.NEWBALL:
 				this.player1.status = PlayerStatus.PLAYING;
 				this.player2.status = PlayerStatus.PLAYING;
@@ -442,11 +445,13 @@ export class GamePong implements IGame
 			case GameState.PLAYING:
 				break ;
 			case GameState.PAUSED:
-				if (this.gameState !== GameState.PAUSED)
+				console.log(`pause ${this.gameState}/${this.oldState}`);
+				if (this.gameState !== GameState.PAUSED && this.gameState !== GameState.UNPAUSE)
 					this.oldState = this.gameState;
 				this.timerEvent = Date.now();
 				break ;
 			case GameState.UNPAUSE:
+				console.log(`unpause ${this.gameState}/${this.oldState}`);
 				this.player1.status = PlayerStatus.NOTREADY;
 				this.player2.status = PlayerStatus.NOTREADY;
 				this.timerEvent = Date.now();
@@ -920,8 +925,10 @@ export class GamePong implements IGame
 		//send to players
 		this.SendToPlayer(this.player1, SharedCommunication.PongStatus.TOPIC, message);
 		this.SendToPlayer(this.player2, SharedCommunication.PongStatus.TOPIC, message);
-		this.player1.player.button = [];
-		this.player2.player.button = [];
+		if (this.player1.player)
+			this.player1.player.button = [];
+		if (this.player2.player)
+			this.player2.player.button = [];
 
 		//remove handlers
 		this.RemoveAllListeners();

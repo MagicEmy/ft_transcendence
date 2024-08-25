@@ -162,6 +162,7 @@ Socket.io
 	handlerUserPack(client: Socket, message: string): void
 	{
 		const msg: SocketCommunication.UserPack.IUserPack = JSON.parse(message);
+		console.log(`user: ${client.id}/${msg.playerID}`);
 		let player: GamePlayer = new GamePlayer(client, msg.playerID);
 		this.players.push(player);
 		player.name = msg.playerName;

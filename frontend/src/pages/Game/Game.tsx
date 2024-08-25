@@ -23,6 +23,7 @@ const Game: React.FC = () => {
 	  const menuRef = useRef<HTMLCanvasElement>(null);
 
 	useEffect(() => {
+		// console.log(socket.current);
 		if (socket.current === null)
 			socket.current = GameSocket.createInstance(userIdStorage, userNameStorage);
 		if (logic.current === null)
@@ -39,7 +40,10 @@ const Game: React.FC = () => {
 
 		return () => {
 			if (socket.current)
+			{
 				socket.current.disconnect();
+				socket.current = null;
+			}
 			if (events.current)
 				events.current.stopListening();
 		};
