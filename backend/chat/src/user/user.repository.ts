@@ -21,7 +21,7 @@ export class UserRepository extends Repository<User> {
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const newUser = this.create(createUserDto);
     try {
-      this.save(newUser);
+      await this.save(newUser);
       console.log(`User ${newUser.userName} created.`);
     } catch (error) {
       if (error.code !== '23505') {
