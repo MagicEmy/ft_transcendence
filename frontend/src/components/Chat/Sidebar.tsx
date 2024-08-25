@@ -757,7 +757,7 @@ function Sidebar() {
                         {notifications.find(
                             (notification) =>
                               notification.roomName === chatId(member.userId)
-                          )?.count || 0}
+                          )?.count}
                       </span>
                     )}
                   </Col>

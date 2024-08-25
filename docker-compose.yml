@@ -84,7 +84,6 @@ services:
       kafka:
         condition: service_healthy
   
-
   stats_service:
     container_name: stats_service
     env_file:
@@ -130,7 +129,6 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
-
 
   auth_service:
     container_name: auth_service
