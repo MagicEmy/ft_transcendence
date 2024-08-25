@@ -12,7 +12,7 @@ function MessageForm(): JSX.Element {
   const [userIdStorage] = useStorage<string>('userId', '');
   const [userNameStorage] = useStorage<string>('userName', '');
   const { socket, currentRoom, setMessages, messages, directMsg } = useChat();
-  const [message, setMessage] = useState("");
+  const [locMessage, setLocMessage] = useState("");
   const messageEndRef = useRef<HTMLDivElement>(null);
   const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
 
@@ -47,13 +47,13 @@ function MessageForm(): JSX.Element {
 
     return hours + ":" + minutes;
   }
+
   useEffect(() => {
     if (socket) {
       socket.on("chat", (roomMessages: MessageRoomDto[]) => {
         roomMessages.forEach((messag) => {
           setMessages((oldMessages: MessageRoomDto[]) => [...oldMessages, messag]);
         });
-        setMessage("");
       });
       return () => {
         socket.off("chat");
@@ -61,18 +61,17 @@ function MessageForm(): JSX.Element {
     }
   }, [socket]);
 
-    
-
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     if (!socket) return;
     event.preventDefault();
-    if (!message || !currentRoom) return;
+    if (!locMessage || !currentRoom) return;
     const send_message = {
       roomName: currentRoom.roomName,
       user: user,
-      message: message,
+      message: locMessage,
     };
     socket.emit("chat", send_message);
+    setLocMessage("");
   }
   return (
     <>
@@ -104,7 +103,7 @@ function MessageForm(): JSX.Element {
           const previousMessage = index > 0 ? messages[index - 1] : null;
           const showDate: boolean = !previousMessage || currentDate !== getFormattedDate(previousMessage.timesent);
           const time: string = getFormattedTime(mes.timesent);
-          
+          const message: string = mes.message;
           const isBlocked = sender.blockedUsers.includes(user.userId) || sender.blockedBy.includes(user.userId);
           if (isBlocked) {
             return null;
@@ -160,8 +159,8 @@ function MessageForm(): JSX.Element {
               type="text"
               placeholder="Your message"
               disabled={!user}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              value={locMessage}
+              onChange={(e) => setLocMessage(e.target.value)}
             ></Form.Control>
           </Form.Group>
         </Col>

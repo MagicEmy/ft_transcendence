@@ -547,7 +547,7 @@ function Sidebar() {
                   <span className="badge rounded-pill bg-primary">
                     {notifications.find(
                         (notification) => notification.roomName === room.roomName,
-                      )?.count || 0}
+                      )?.count}
                   </span>
                 )}
                 {isMyRoom && (
