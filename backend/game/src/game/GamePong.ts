@@ -7,7 +7,7 @@ import { GameTypes, MatchTypes, SocketCommunication, SharedCommunication, KafkaC
 import { Button, GameState, PlayerStatus } from "./GamePong.enums";
 import { IPlayer, IPaddle, IBall } from "./GamePong.interfaces";
 
-const maxScore: number = 3;
+const maxScore: number = 11;
 const connectionTime: number = 60000; // 1 minute
 const disconnectTime: number = 300000; // 5 minutes
 
@@ -84,7 +84,6 @@ export class GamePong implements IGame
 				throw (`Unknown game mode ${this.mode}`);
 		}
 		this.player1 = this.ConstructPlayer(player1, 1/23);
-		// console.log(this.player1);
 		this.player2 = this.ConstructPlayer(player2, 22/23);
 		this.ball = null;
 		this.SetGameState(GameState.WAITING);
@@ -141,15 +140,8 @@ export class GamePong implements IGame
 		this.AddListerners(playerPos, playerToAdd.getClient());
 		playerPos.status = PlayerStatus.WAITING;
 		this.SendGameInfo(playerPos);
-		// this.SendHUD();
-//TODOKAFKA: add kafka to inform player is playing
 		return (true);
 	}
-
-	// public PlayerIsInGame(player: GamePlayer): boolean
-	// {
-	// 	return (this.PlayerIDIsInGame(player.getId()));
-	// }
 
 	public PlayerIDIsInGame(playerID: any): boolean
 	{
@@ -343,8 +335,6 @@ export class GamePong implements IGame
 		this.SendToPlayer(this.player2, SocketCommunication.GameImage.TOPICHUD, JSON.stringify({game: GameTypes.PONG, P1: P2, P2: P1}));
 	}
 
-
-
 	private GetHUDDataPlayer(player: IPlayer): SocketCommunication.GameImage.IPongHUDPlayer
 	{
 		let name: string = (player.player !== null) ? player.player.name : "";
@@ -437,7 +427,6 @@ export class GamePong implements IGame
 				this.player2.status = PlayerStatus.NOTREADY;
 				this.timerGame = Date.now();
 				break ;
-
 			case GameState.NEWBALL:
 				this.player1.status = PlayerStatus.PLAYING;
 				this.player2.status = PlayerStatus.PLAYING;
@@ -445,13 +434,11 @@ export class GamePong implements IGame
 			case GameState.PLAYING:
 				break ;
 			case GameState.PAUSED:
-				console.log(`pause ${this.gameState}/${this.oldState}`);
 				if (this.gameState !== GameState.PAUSED && this.gameState !== GameState.UNPAUSE)
 					this.oldState = this.gameState;
 				this.timerEvent = Date.now();
 				break ;
 			case GameState.UNPAUSE:
-				console.log(`unpause ${this.gameState}/${this.oldState}`);
 				this.player1.status = PlayerStatus.NOTREADY;
 				this.player2.status = PlayerStatus.NOTREADY;
 				this.timerEvent = Date.now();
