@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classes from './Navbar.module.css';
 import LogoutButton from '../LogoutButton';
@@ -8,32 +8,25 @@ import useStorage from '../../hooks/useStorage';
 import { Avatar } from '../Avatar';
 
 export const Navbar = () => {
-  const { userNameContext, setUserNameContext } = useContext<IUserContext>(UserContext);
-  const [userNameStorage] = useStorage<string>('userName', '');
-  const navigate = useNavigate();
-  
-	useEffect(() => {
-    const updateContextFromStorage = () => {
-      console.log('NAV userNameStorage:', userNameStorage);
-      if (userNameStorage && userNameStorage !== userNameContext) {
-        setUserNameContext(userNameStorage);
-      }
-    };
+   const { userNameContext, setUserNameContext } = useContext<IUserContext>(UserContext);
+   const [userNameStorage] = useStorage<string>('userName', '');
+   const navigate = useNavigate();
 
-    updateContextFromStorage();
+   useEffect(() => {
+     const checkStorageAndUpdateContext = () => {
+       let storedName = localStorage.getItem('userName');
+			 storedName = storedName ? storedName.replace(/^"|"$/g, '') : null;
+       if (storedName && storedName !== userNameContext) {
+         setUserNameContext(storedName);
+       }
+     };
+     checkStorageAndUpdateContext();
 
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'userName') {
-        updateContextFromStorage();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [userNameStorage, userNameContext, setUserNameContext]);
+     window.addEventListener('storage', checkStorageAndUpdateContext);
+     return () => {
+       window.removeEventListener('storage', checkStorageAndUpdateContext);
+     };
+   }, [userNameContext, userNameStorage, setUserNameContext]);
 
 	
   return (

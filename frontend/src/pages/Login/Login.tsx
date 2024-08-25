@@ -1,9 +1,16 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { LOGIN_AUTH0 } from '../../utils/constants';
+import useStorage from '../../hooks/useStorage';
 import './Login.css';
 
 const Login: React.FC = () => {
   const [textArray, setTextArray] = useState<string[]>([]);
+	const [ , setUserNameStorage] = useStorage<string>('userName', '');
+
+	useEffect(() => {
+		setUserNameStorage('');
+	});
+
 
   useEffect(() => {
     const text = 'Enter the Pongverse';

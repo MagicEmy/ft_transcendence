@@ -4,7 +4,7 @@ import useStorage from '../hooks/useStorage';
 import UserContext, { IUserContext } from '../context/UserContext';
 
 export const ChangeName = () => {
-  const { userIdContext, userNameContext, setUserNameContext } =
+  const { userNameContext, setUserNameContext } =
     useContext<IUserContext>(UserContext);
   const [userIdStorage] = useStorage<string>('userId', '');
   const [, setUserNameStorage] = useStorage<string>('userName', '');

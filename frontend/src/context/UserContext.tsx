@@ -61,7 +61,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     if (userIdContext && userIdStorage && userIdContext !== userIdStorage) {
       setUserIdStorage(userIdContext);
     }
-  }, [userIdContext, userIdStorage, setUserIdStorage]);
+  }, []);
 
   useEffect(() => {
     const fetchAvatar = async () => {

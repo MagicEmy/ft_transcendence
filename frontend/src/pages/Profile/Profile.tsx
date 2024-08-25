@@ -40,7 +40,7 @@ export const Profile: React.FC = () => {
   );
 
   const [isFriend, setIsFriend] = useState<boolean>(false);
-  const [friends, setFriends] = useState<Friends[]>([]);
+  const [ , setFriends] = useState<Friends[]>([]);
   const [currentStatus, setCurrentStatus] = useState<string>(
     profile?.userInfo?.status || '',
   );
