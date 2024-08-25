@@ -45,10 +45,10 @@ import {
 } from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { host } from "../../utils/ApiRoutes";
 import { useNavigate } from "react-router-dom";
 import GameInvitation from "./GameInvitation";
-import  CreateChatRoom  from "./CreateChatRoom";
+import CreateChatRoom from "./CreateChatRoom";
+import UserAvatarChat  from "./UserAvatarChat";
 
 function Sidebar() {
   const [userIdStorage] = useStorage<string>("userId", "");
@@ -80,6 +80,7 @@ function Sidebar() {
   const navigate = useNavigate();
   const [userToInvite, setUserToInvite] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [userDataUpdate, setUserDataUpdate] = useState(0);
 
   useEffect(() => {
     if (isConnected && socket && !isInitialized) {
@@ -335,6 +336,7 @@ function Sidebar() {
     if (socket) {
       socket.on("chat_users", (payload: ChatUserDto[]) => {
         setMembers(payload);
+        setUserDataUpdate(prev => prev + 1);
       });
       socket.on("chat_rooms", (payload: RoomShowDto[]) => {
         setRooms(payload);
@@ -645,10 +647,10 @@ function Sidebar() {
                   <ListGroup.Item key={member.userId} style={{ cursor: "pointer" }}>
                     <Row className="align-items-center">
                       <Col xs={2} className="member-status">
-                        <img
-                          alt="user-avatar"
-                          src={`http://${host}:3001/avatar/${member.userId}`}
-                          className="member-status-img"
+                      <UserAvatarChat
+                        userId={member.userId} 
+                        className="member-status-img" 
+                        updateTrigger={userDataUpdate}
                         />
                       </Col>
                       <Col xs={6}>
@@ -738,10 +740,10 @@ function Sidebar() {
               >
                 <Row>
                   <Col xs={2} className="member-status">
-                    <img
-                      alt="user-avatar"
-                      src={`http://${host}:3001/avatar/${member.userId}`}
-                      className="member-status-img"
+                  <UserAvatarChat
+                      userId={member.userId} 
+                      className="member-status-img" 
+                      updateTrigger={userDataUpdate}
                     />
                     {member.online === true ? (
                       <i className="fas fa-circle sidebar-online-status"></i>
