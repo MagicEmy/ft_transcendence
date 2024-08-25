@@ -73,8 +73,11 @@ const Error: React.FC<ErrorProps> = ({ status }) => {
       {!status && <NavbarError />}
       <PageContent title={`Error ${errorStatus} - ${title}`}>
         <p className="error">{message}</p>
+				<br />
+        <p className="error">To return to safety, use the teleporter below</p>
+				<br />
         <button className="button-profile" onClick={() => navigate('/')}>
-          Navigate Back to Login Galaxy
+          Activate Teleporter
         </button>
       </PageContent>
     </>
