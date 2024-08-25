@@ -11,21 +11,30 @@ export const Navbar = () => {
   const { userNameContext, setUserNameContext } = useContext<IUserContext>(UserContext);
   const [userNameStorage] = useStorage<string>('userName', '');
   const navigate = useNavigate();
-  useEffect(() => {
-    const checkStorageAndUpdateContext = () => {
-			const storedName = localStorage.getItem('userName');
-			console.log('NAV storedName:', storedName);
-      if (storedName && storedName !== userNameContext) {
-        setUserNameContext(storedName);
+  
+	useEffect(() => {
+    const updateContextFromStorage = () => {
+      console.log('NAV userNameStorage:', userNameStorage);
+      if (userNameStorage && userNameStorage !== userNameContext) {
+        setUserNameContext(userNameStorage);
       }
     };
-    checkStorageAndUpdateContext();
 
-    window.addEventListener('storage', checkStorageAndUpdateContext);
-    return () => {
-      window.removeEventListener('storage', checkStorageAndUpdateContext);
+    updateContextFromStorage();
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'userName') {
+        updateContextFromStorage();
+      }
     };
-  }, [userNameContext, userNameStorage, setUserNameContext]);
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [userNameStorage, userNameContext, setUserNameContext]);
+
 	
   return (
     <header className={classes.header}>
