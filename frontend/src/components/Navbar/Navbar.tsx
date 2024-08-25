@@ -1,15 +1,32 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classes from './Navbar.module.css';
 import LogoutButton from '../LogoutButton';
 import UserContext, { IUserContext } from '../../context/UserContext';
 import { NavigationButton } from './NavigationButton';
+import useStorage from '../../hooks/useStorage';
 import { Avatar } from '../Avatar';
 
 export const Navbar = () => {
-  const { userNameContext } = useContext<IUserContext>(UserContext);
+  const { userNameContext, setUserNameContext } = useContext<IUserContext>(UserContext);
+  const [userNameStorage] = useStorage<string>('userName', '');
   const navigate = useNavigate();
+  useEffect(() => {
+    const checkStorageAndUpdateContext = () => {
+			const storedName = localStorage.getItem('userName');
+			console.log('NAV storedName:', storedName);
+      if (storedName && storedName !== userNameContext) {
+        setUserNameContext(storedName);
+      }
+    };
+    checkStorageAndUpdateContext();
 
+    window.addEventListener('storage', checkStorageAndUpdateContext);
+    return () => {
+      window.removeEventListener('storage', checkStorageAndUpdateContext);
+    };
+  }, [userNameContext, userNameStorage, setUserNameContext]);
+	
   return (
     <header className={classes.header}>
       <div className={classes.avatar}>

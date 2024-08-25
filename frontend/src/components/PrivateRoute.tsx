@@ -11,7 +11,7 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
   if (loading) {
     return (
       <PageContent title="Loading data">
-        <p className="error">Loading...</p>
+        <p className="content">Loading...</p>
       </PageContent>
     );
   }
@@ -19,21 +19,26 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
   if (error) {
     console.error('PrivateRoute error:', error);
     return (
-      <PageContent title="Error">
-        <p className="error">You must be logged in to view this page</p>
+      <PageContent title="Access Denied - Risk of Wormhole">
+        <br />
+        <p className="content">
+          Your credentials are not authorized to access this parallel universe
+        </p>
+        <br />
         <button className={classes.backButton} onClick={() => navigate('/')}>
-          Back to login
+          Navigate Back to Login Galaxy
         </button>
       </PageContent>
     );
   }
   if (!isLoggedin) {
-    console.error('PrivateRoute: No user logged in');
     return (
-      <PageContent title="Error">
-        <p className="error">You must be logged in to view this page</p>
+      <PageContent title="Access Denied - Risk of Wormhole">
+        <p className="content">
+          Your credentials are not authorized to access this parallel universe
+        </p>
         <button className={classes.backButton} onClick={() => navigate('/')}>
-          Back to login
+          Navigate Back to Login Galaxy
         </button>
       </PageContent>
     );

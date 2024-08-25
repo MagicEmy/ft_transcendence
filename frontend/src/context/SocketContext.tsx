@@ -10,7 +10,7 @@ export const SocketProvider = ({ children }: { children: any }) => {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    if (!socketRef.current) {
+    if (!socketRef.current && userIdContext) {
       socketRef.current = io(SOCKET_URL, {
         query: { userIdContext },
       });

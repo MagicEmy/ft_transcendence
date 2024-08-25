@@ -54,7 +54,6 @@ export const ChangeAvatar = () => {
       }
       if (response.ok) {
         const localUrl = URL.createObjectURL(file);
-        console.log('avatar change response.ok ');
         setAvatarContext(localUrl);
         setFeedback('Avatar updated successfully.');
       }

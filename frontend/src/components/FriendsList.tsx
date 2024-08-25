@@ -8,7 +8,7 @@ interface FriendsListProps {
 }
 
 export const FriendsList = ({ userId }: FriendsListProps) => {
-  const { friends } = useGetFriends(userId, '', 5000); // Poll every 5 seconds
+  const { friends } = useGetFriends(userId, '', 10000); // Poll every 5 seconds
   const navigate = useNavigate();
 
   return (

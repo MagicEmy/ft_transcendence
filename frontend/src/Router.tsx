@@ -8,7 +8,7 @@ import Leaderboard from './pages/Leaderboard/Leaderboard';
 import Settings from './pages/Settings/Settings';
 import Game from './pages/Game/Game';
 import Error from './pages/Error/Error';
-import ErrorBoundary from './pages/Error/ErrorBoundary';
+// import ErrorBoundary from './pages/Error/ErrorBoundary';
 import PrivateRoute from './components/PrivateRoute';
 import { UserProvider } from './context/UserContext';
 import { SocketProvider } from './context/SocketContext';
@@ -74,13 +74,13 @@ const router = createBrowserRouter([
     path: '/',
     element: (
       <UserProvider>
-        <ErrorBoundary>
+        {/* <ErrorBoundary> */}
           <SocketProvider>
             <PrivateRoute>
               <Layout />
             </PrivateRoute>
           </SocketProvider>
-        </ErrorBoundary>
+        {/* </ErrorBoundary> */}
       </UserProvider>
     ),
     children: privateRoutes,
