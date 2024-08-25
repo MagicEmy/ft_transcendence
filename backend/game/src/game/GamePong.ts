@@ -7,7 +7,7 @@ import { GameTypes, MatchTypes, SocketCommunication, SharedCommunication, KafkaC
 import { Button, GameState, PlayerStatus } from "./GamePong.enums";
 import { IPlayer, IPaddle, IBall } from "./GamePong.interfaces";
 
-const maxScore: number = 11;
+const maxScore: number = 3;
 const connectionTime: number = 60000; // 1 minute
 const disconnectTime: number = 300000; // 5 minutes
 
