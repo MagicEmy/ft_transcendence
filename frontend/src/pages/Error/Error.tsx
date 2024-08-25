@@ -71,7 +71,7 @@ const Error: React.FC<ErrorProps> = ({ status }) => {
   return (
     <>
       {!status && <NavbarError />}
-      <PageContent title={`Error ${errorStatus} - ${title}`}>
+      <PageContent title={`Error - ${title}`}>
         <p className="error">{message}</p>
 				<br />
         <p className="error">To return to safety, use the teleporter below</p>
