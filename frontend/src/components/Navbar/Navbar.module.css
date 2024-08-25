@@ -62,7 +62,7 @@ ul {
   border-radius: 30px;
   color: #09467f;
   padding: 10px;
-  margin-right: 50px;
+  margin-right: 4rem;
   cursor: pointer;
 }
 
@@ -74,7 +74,7 @@ ul {
     rgba(202, 89, 3, 0.91) 0 3px 5px, rgba(202, 89, 3, 0.91) 0 10px 13px;
   border-radius: 30px;
   padding: 10px;
-  margin-right: 50px;
+  margin-right: 4rem;
   cursor: pointer;
   transform: scale(1.05);
 }
@@ -96,8 +96,8 @@ ul {
   font-family: 'Orbitron', sans-serif;
   font-size: 16px;
   cursor: pointer;
-  margin-right: 50px;
-  margin-left: -30px;
+  margin-right: 3rem;
+  margin-left: -3rem;
   flex-wrap: wrap;
 }
 
@@ -110,9 +110,9 @@ ul {
 }
 
 .quote {
-  margin-top: -30px;
-  margin-left: -30px;
-  margin-right: 50px;
+  margin-top: -40px;
+    margin-right: 3rem;
+  margin-left: -3rem;
   font-family: 'Orbitron', sans-serif;
   font-size: 1rem;
   color: orange;

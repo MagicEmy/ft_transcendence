@@ -26,8 +26,11 @@ export const useGetProfile = (userId: string) => {
             setError(response.status);
           }
         }
-        const profileData: UserProfile = await response.json();
-        setProfile(profileData);
+				const profileData: UserProfile = await response.json();
+				if (!profileData && retry > 0) {
+					return fetchDbProfile(retry - 1);
+				}
+				setProfile(profileData);
       } catch (e) {
         const errorStatus = e instanceof Error ? parseInt(e.message) : 500;
         setError(errorStatus);
