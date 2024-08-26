@@ -23,12 +23,11 @@ export const useGetUserStatus = (userId: string, pollingInterval: number ) => {
       }
       const newUserStatus = await response.json();
 
-      // Only update the state if the status has changed
       if (JSON.stringify(newUserStatus) !== JSON.stringify(userStatus)) {
         setUserStatus(newUserStatus);
       }
     } catch (e) {
-      const errorStatus = e instanceof Error ? parseInt(e.message) : 500;
+      const errorStatus = e instanceof Error ? parseInt(e.message) : 400;
       setError(errorStatus);
     } finally {
       setIsLoading(false);

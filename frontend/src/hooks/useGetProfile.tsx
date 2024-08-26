@@ -32,7 +32,7 @@ export const useGetProfile = (userId: string) => {
 				}
 				setProfile(profileData);
       } catch (e) {
-        const errorStatus = e instanceof Error ? parseInt(e.message) : 500;
+        const errorStatus = e instanceof Error ? parseInt(e.message) : 400;
         setError(errorStatus);
       } finally {
         setIsLoading(false);

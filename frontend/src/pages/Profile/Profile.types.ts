@@ -1,5 +1,3 @@
-// src/components/Profile/Profile.types.ts
-
 import { UserProfile, Friends } from '../../types/shared';
 
 export type ProfileState = {

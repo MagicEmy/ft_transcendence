@@ -15,8 +15,7 @@ export const loadFriends = async (
       credentials: 'include',
     });
     if (!response.ok) {
-      console.error('IN LOADFRIENDS response not ok', response.status);
-      // throw new Error(`Error loading friends: ${response.statusText}`);
+      console.error('response not ok loading friends', response.status);
     }
     const friends: Friends[] = await response.json();
     return friends;

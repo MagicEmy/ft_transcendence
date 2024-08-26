@@ -56,8 +56,8 @@ export const ChangeName = () => {
           setNewUserName('');
         } else {
           const message = await response.json();
-					setFeedback('Error updating username.');
-					console.error('Error updating username:', message.message);
+          setFeedback('Error updating username.');
+          console.error('Error updating username:', message.message);
         }
       } catch (error) {
         console.error('Error updating user data:', error);

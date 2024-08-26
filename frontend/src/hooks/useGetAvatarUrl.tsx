@@ -7,7 +7,7 @@ export const useGetAvatarUrl = (userId: string) => {
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    let active = true; // Flag to manage the effect lifecycle
+    let active = true;
 
     const fetchAvatar = async () => {
       try {

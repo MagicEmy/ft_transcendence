@@ -8,7 +8,6 @@ import Leaderboard from './pages/Leaderboard/Leaderboard';
 import Settings from './pages/Settings/Settings';
 import Game from './pages/Game/Game';
 import Error from './pages/Error/Error';
-// import ErrorBoundary from './pages/Error/ErrorBoundary';
 import PrivateRoute from './components/PrivateRoute';
 import { UserProvider } from './context/UserContext';
 import { SocketProvider } from './context/SocketContext';
@@ -35,16 +34,16 @@ const privateRoutes: RouteObject[] = [
     element: <Dashboard />,
   },
   {
-    path: 'profile',
-    element: <Profile />,
+    path: 'profile/:userId/*',
+    element: <Error />,
   },
   {
     path: 'profile/:userId',
     element: <Profile />,
   },
   {
-    path: 'profile/:userId/*',
-    element: <Error />,
+    path: 'profile',
+    element: <Profile />,
   },
   {
     path: 'leaderboard',
@@ -74,13 +73,11 @@ const router = createBrowserRouter([
     path: '/',
     element: (
       <UserProvider>
-        {/* <ErrorBoundary> */}
           <SocketProvider>
             <PrivateRoute>
               <Layout />
             </PrivateRoute>
           </SocketProvider>
-        {/* </ErrorBoundary> */}
       </UserProvider>
     ),
     children: privateRoutes,

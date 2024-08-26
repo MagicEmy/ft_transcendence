@@ -22,7 +22,7 @@ export const useGetFriends = (
         return getFriends(userId, retry - 1);
       } else {
 				setLoading(false);
-        const errorStatus = err instanceof Error ? parseInt(err.message) : 500;
+        const errorStatus = err instanceof Error ? parseInt(err.message) : 400;
         setError(errorStatus);
         console.log('Error handled in useEffect:', err.message);
       }

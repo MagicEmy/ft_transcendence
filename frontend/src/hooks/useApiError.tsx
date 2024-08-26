@@ -16,7 +16,7 @@ export const useApiError = () => {
         message: error.response.data.message || 'An error occurred',
       });
     } else if (error.request) {
-      // Request was made but no response was received
+      // no response 
       setApiError({
         status: 500,
         message: 'No response received from the server',

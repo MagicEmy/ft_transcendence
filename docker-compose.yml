@@ -6,6 +6,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - REACT_APP_HOST=${REACT_APP_HOST}
     image: frontend
     restart: unless-stopped
     networks:

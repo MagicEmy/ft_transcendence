@@ -8,8 +8,8 @@ interface LogoutButtonProps {
 
 const LogoutButton = ({ className }: LogoutButtonProps) => {
   const [, , removeUserIdStorage] = useStorage('userId', '');
-	const [, , removeUserNameStorage] = useStorage<string>('userName', '');
-	const [, , removeAvatarStorage] = useStorage<string>('avatar', '');
+  const [, , removeUserNameStorage] = useStorage<string>('userName', '');
+  const [, , removeAvatarStorage] = useStorage<string>('avatar', '');
   const navigate = useNavigate();
 
   async function userLogout() {
@@ -23,8 +23,8 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
       });
       if (response.ok) {
         removeUserIdStorage();
-				removeUserNameStorage();
-				removeAvatarStorage();
+        removeUserNameStorage();
+        removeAvatarStorage();
         navigate('/', { replace: true });
       } else {
         throw new Error('Failed to log out');
@@ -32,8 +32,8 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
     } catch (error) {
       console.error('Error logging out:', error);
       removeUserIdStorage();
-			removeUserNameStorage();
-			removeAvatarStorage();
+      removeUserNameStorage();
+      removeAvatarStorage();
       navigate('/', { replace: true });
     }
   }

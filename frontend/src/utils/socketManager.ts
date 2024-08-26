@@ -4,7 +4,7 @@ import { SOCKET_URL } from './constants';
 let socket: Socket | null = null;
 
 export const mangeSocket = (userId: string) => {
-  if (!socket) {
+  if (!socket && userId) {
     socket = io(SOCKET_URL, {
       query: { userId },
     });

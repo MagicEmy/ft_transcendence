@@ -34,9 +34,11 @@ export const Enable2FA = ({
           setQrCodeUrl(null);
           setFeedback('Two Factor Authentication enabled successfully');
         } else {
-					const errorData = await response.json();
+          const errorData = await response.json();
           setError(`Error enabling 2FA: ${errorData.message}`);
-          setFeedback('An error occurred enabling 2FA, please try again, check your code, or the account in the authenticator app');
+          setFeedback(
+            'An error occurred enabling 2FA, please try again, check your code, or the account in the authenticator app',
+          );
         }
       } catch (error) {
         setError(`Failed to enable Two Factor Authentication. ${error}`);
