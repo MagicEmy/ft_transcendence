@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { host } from '../../utils/ApiRoutes';
+import { loadProfileAvatar } from '../../utils/profileUtils';
 
 const UserAvatarChat = ({ userId, className, updateTrigger }) => {
-  const [avatarVersion, setAvatarVersion] = useState(Date.now());
+  const [avatarUrl, setAvatarUrl] = useState('/assets/defaultAvatar.png');
 
   useEffect(() => {
-    setAvatarVersion(Date.now());
-  }, [userId, updateTrigger]);
-
-  const avatarUrl = `http://${host}:3001/avatar/${userId}?v=${avatarVersion}`;
+    const fetchAvatar = async () => {
+      try {
+        const url = await loadProfileAvatar(userId);
+        setAvatarUrl(url);
+      } catch (error) {
+        setAvatarUrl('/assets/defaultAvatar.png');
+      }
+    };
+    fetchAvatar();
+  });
 
   return (
     <img
       src={avatarUrl}
       alt="User Avatar"
       className={className}
-      onError={() => setAvatarVersion(Date.now())} 
     />
   );
 };
