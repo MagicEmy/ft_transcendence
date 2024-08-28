@@ -27,7 +27,7 @@ export const Profile: React.FC = () => {
   const { profile, error: errorProfile } = useGetProfile(userIdOrMe);
   const { userStatus, error: errorStatus } = useGetUserStatus(
     userIdOrMe,
-    10000,
+    5000,
   );
   const { avatar: avatarUrl } = useGetAvatarUrl(userIdOrMe);
   const { friends: loggedUserFriends, error: errorFriend } = useGetFriends(
