@@ -39,7 +39,7 @@ export class UserService {
     try {
       const user = await this.getUserById(userId);
       const status =
-        (requestingUserId && userId == requestingUserId)
+        userId == requestingUserId
           ? UserStatusEnum.ONLINE
           : (await this.getUserStatus(userId)).status;
       return {

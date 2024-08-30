@@ -4,12 +4,12 @@ import {
   Logger,
   createParamDecorator,
 } from '@nestjs/common';
+import { JwtPayloadDto } from 'src/dto/jwt-payload-dto';
 
-export function extractUserIdFromCookies(
+export function extractValueFromCookies(
   cookies: string,
   cookieName: string,
 ): string {
-  const logger: Logger = new Logger(extractUserIdFromCookies.name);
   if (cookies) {
     for (const cookie of cookies.toString().split(';')) {
       const [name, value] = cookie.trim().split('=');
@@ -18,13 +18,28 @@ export function extractUserIdFromCookies(
       }
     }
   }
-  logger.error(`No userId found in cookie ${cookies}`);
   throw new BadRequestException(`No userId found in cookies`);
 }
 
 export const GetUserId = createParamDecorator(
   async (data: unknown, context: ExecutionContext): Promise<string> => {
-    const cookies = context.switchToHttp().getRequest().get('cookie');
-    return extractUserIdFromCookies(cookies, 'userId');
-  },
+  const logger: Logger = new Logger(extractValueFromCookies.name);
+  const cookies = context.switchToHttp().getRequest().get('cookie');
+    let userId;
+    try {
+      userId = extractValueFromCookies(cookies, 'userId');
+    } catch (error) {
+      try {
+        const token = extractValueFromCookies(cookies, 'Refresh');
+        const base64Payload = token.split(".")[1];    
+        const payloadBuffer = Buffer.from(base64Payload, "base64");
+        const user: JwtPayloadDto = JSON.parse(payloadBuffer.toString()) as JwtPayloadDto;
+        userId = user.sub;
+      } catch (error) {
+          logger.error(`User could not be identified`);
+          return null;
+      }
+    }
+    return userId;
+  }
 );
