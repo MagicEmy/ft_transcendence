@@ -276,35 +276,35 @@ export class AppController {
 
   // SIMULATIONS
 
-  @ApiTags('simulation')
-  @Get('/create_users/:no')
-  createMockUsers(@Param('no', ParseIntPipe) no: number): Observable<string[]> {
-    return this.authService.createMockUsers(no);
-  }
+//   @ApiTags('simulation')
+//   @Get('/create_users/:no')
+//   createMockUsers(@Param('no', ParseIntPipe) no: number): Observable<string[]> {
+//     return this.authService.createMockUsers(no);
+//   }
 
-  @ApiTags('simulation')
-  @Get('/simulate')
-  simulateGames(): Observable<void> {
-    return this.appService.getAllUserIds().pipe(
-      defaultIfEmpty([]),
-      mergeMap((allUserIds: string[]) =>
-        this.appService.simulateGames(allUserIds).pipe(defaultIfEmpty([])),
-      ),
-      mergeMap((games: IGameStatus[]) => {
-        if (games.length > 0) {
-          return from(games).pipe(
-            defaultIfEmpty([]),
-            concatMap((game: IGameStatus) =>
-              of(game).pipe(
-                delay(200),
-                map((game) => this.appService.createGameAndUpdateStats(game)),
-              ),
-            ),
-          );
-        } else {
-          return of(undefined);
-        }
-      }),
-    );
-  }
+//   @ApiTags('simulation')
+//   @Get('/simulate')
+//   simulateGames(): Observable<void> {
+//     return this.appService.getAllUserIds().pipe(
+//       defaultIfEmpty([]),
+//       mergeMap((allUserIds: string[]) =>
+//         this.appService.simulateGames(allUserIds).pipe(defaultIfEmpty([])),
+//       ),
+//       mergeMap((games: IGameStatus[]) => {
+//         if (games.length > 0) {
+//           return from(games).pipe(
+//             defaultIfEmpty([]),
+//             concatMap((game: IGameStatus) =>
+//               of(game).pipe(
+//                 delay(200),
+//                 map((game) => this.appService.createGameAndUpdateStats(game)),
+//               ),
+//             ),
+//           );
+//         } else {
+//           return of(undefined);
+//         }
+//       }),
+//     );
+//   }
 }

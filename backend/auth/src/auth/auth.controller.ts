@@ -33,28 +33,28 @@ export class AuthController {
       return resp.redirect(302, this.configService.get('2FA_URL'));
     } else {
       // set jwt tokens in cookies and redirect to dashboard
-      this.authService.addCookiesToResponse(resp, req.user);
+      resp = this.authService.addCookiesToResponse(resp, req.user);
       return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
     }
   }
 
   // FOR TESTING ONLY
-  // Logs in a TestUser. This route '...:3003/auth/testuser' is not protected by the 42 AuthGuard.
+  // Logs in as a TestUser. This route '...:3003/auth/testuser' is not protected by the 42 AuthGuard.
   // This allows one person to be testing with two users (the TestUser and own 42 account) on two computers / in two browsers
-  @Get('/testuser')
-  async loginTestUser(@Res() resp: Response) {
-    const user = await this.authService.validateUserOrAddNewOne({
-      intraLogin: 'TestUser',
-      avatarUrl: 'default',
-    });
-    if (user) {
-      resp = this.authService.addCookiesToResponse(resp, user);
-      return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
-    } else {
-      console.log('Something went wrong with logging in the TestUser');
-      resp.status(500).send();
-    }
-  }
+  // @Get('/testuser')
+  // async loginTestUser(@Res() resp: Response) {
+  //   const user = await this.authService.validateUserOrAddNewOne({
+  //     intraLogin: 'TestUser',
+  //     avatarUrl: 'default',
+  //   });
+  //   if (user) {
+  //     resp = this.authService.addCookiesToResponse(resp, user);
+  //     return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
+  //   } else {
+  //     console.log('Something went wrong with logging in the TestUser');
+  //     resp.status(500).send();
+  //   }
+  // }
 
   @UseGuards(TfaAuthGuard)
   @Post('tfa/authenticate')

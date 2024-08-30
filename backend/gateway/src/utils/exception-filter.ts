@@ -5,7 +5,7 @@ import { RpcException } from '@nestjs/microservices';
 export class RpcToHttpExceptionFilter implements ExceptionFilter {
   private logger: Logger = new Logger(RpcToHttpExceptionFilter.name);
   catch(exception: RpcException, host: ArgumentsHost) {
-    this.logger.debug(`Exception caught: `, exception);
+    // this.logger.debug(`Exception caught: `, exception);
     const error: any = exception.getError();
     const response = host.switchToHttp().getResponse();
     response

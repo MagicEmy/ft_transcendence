@@ -28,7 +28,7 @@ export class AuthService {
     const payload = jwtPayloadDto;
     return this.authService.send<TokensDto>(pattern, payload).pipe(
       catchError((error) => {
-        this.logger.error(`caught: `, error);
+        // this.logger.error(`caught: `, error);
         return throwError(
           () => new RpcException(error.response || 'An unknown error occurred'),
         );
@@ -53,7 +53,7 @@ export class AuthService {
     const payload = refreshToken;
     return this.authService.send<UserIdNameLoginDto>(pattern, payload).pipe(
       catchError((error) => {
-        this.logger.error(`caught: `, error);
+        // this.logger.error(`caught: `, error);
         return throwError(
           () => new RpcException(error.response || 'An unknown error occurred'),
         );
