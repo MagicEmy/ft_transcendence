@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "baseUrl": "./",
+    "paths": {
+      "*": ["node_modules/*"],
+    },
+    "typeRoots": ["./node_modules/@types", "./node_modules/react-icons"]
+  },
+  "include": [
+    "src/**/*"
+  ]
+}
+
+//   "ignore": ["src/pages/Chat/**/*.tsx", "src/pages/Chat/*.tsx", "src/components/Chat/*.tsx", "src/components/chat/*.tsx"],

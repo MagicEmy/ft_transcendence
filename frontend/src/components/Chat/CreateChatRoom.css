@@ -1,0 +1,56 @@
+.create-chat-room {
+  width: 100%; /* Take full width of its container */
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px; /* Add some space between user chat and this component */
+}
+
+.create-chat-room h5 {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+}
+
+.create-chat-room .form-label {
+  min-width: 80px;
+}
+
+.create-chat-room .form-control,
+.create-chat-room .dropdown-toggle {
+  font-size: 0.9rem;
+}
+
+.create-button {
+  background: linear-gradient(in oklab, #09467f 10%, #2386a2 90%);
+  border: none;
+  border-radius: 30px;
+  padding: 5px 15px;
+  font-size: 0.9rem;
+  color: white;
+}
+
+.create-button:hover {
+  background: linear-gradient(in oklab, #09467f 30%, #2386a2 70%);
+}
+
+.create-chat-room .dropdown {
+  flex-grow: 1;
+}
+
+.create-chat-room .dropdown-toggle {
+  width: 100%;
+  text-align: left;
+}
+
+.create-chat-room .dropdown-menu {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .create-chat-room {
+    margin-top: 10px;
+  }
+}

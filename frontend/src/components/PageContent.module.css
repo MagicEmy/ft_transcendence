@@ -1,0 +1,28 @@
+.content {
+  margin: 3em auto;
+  text-align: center;
+  color: #09467f;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.title {
+  font-size: 2em;
+  color: #09467f;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.backButton {
+  border: none;
+  border-radius: 30px;
+  padding: 5px 20px;
+  background: linear-gradient(in oklab, #09467f 10%, #2386a2 90%);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.backButton:hover {
+  box-shadow: rgba(35, 174, 212, 0.3) 0 3px 15px inset,
+    rgba(35, 174, 212, 0.6) 0 3px 5px, rgba(35, 174, 212, 0.5) 0 10px 13px;
+  transform: scale(1.05);
+}

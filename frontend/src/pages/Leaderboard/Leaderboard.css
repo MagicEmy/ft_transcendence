@@ -1,0 +1,130 @@
+#main {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  height: auto;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.board {
+  text-align: center;
+  width: 70%;
+  margin-top: 2em;
+}
+
+.board .leaderboard {
+  margin-bottom: 1em;
+  color: #09467f;
+  font-size: 2.5em;
+}
+
+#leadProfile {
+  margin-top: 3em;
+  padding: 100px;
+  margin-bottom: 20em;
+  /* background-color: #2386a220; */
+  background-color: white;
+  box-shadow: 0px 2.2px 5.8px rgba(35, 134, 162, 0.15),
+    0px 6.1px 16.3px rgba(35, 134, 162, 0.095),
+    0px 14.8px 38.4px rgba(35, 134, 162, 0.071),
+    0px 49px 125px rgba(35, 134, 162, 0.047);
+}
+
+#leadProfile .flex {
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+  text-align: left;
+  margin-bottom: 2em;
+}
+
+#leadProfile .flex .item {
+  display: flex;
+  width: 1000px;
+  align-items: center;
+  gap: 3em;
+  box-shadow: 0px 2.2px 5.8px rgba(35, 134, 162, 0.15),
+    0px 6.1px 16.3px rgba(35, 134, 162, 0.095),
+    0px 49px 125px rgba(35, 134, 162, 0.047);
+  padding: 10px;
+}
+
+#leadProfile .flex img {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 1px 2px 2px hsl(209deg 87% 27% / 0.125),
+    2px 4px 4px hsl(209deg 87% 27% / 0.125),
+    4px 8px 8px hsl(209deg 87% 27% / 0.125),
+    8px 16px 16px hsl(209deg 87% 27% / 0.125),
+    16px 32px 32px hsl(209deg 87% 27% / 0.125);
+}
+
+#leadProfile .text {
+  color: #09467f;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 1.3em;
+  background-color: #c3d8f7;
+}
+
+.text-dark {
+  color: #09467f;
+}
+
+.info .total-points {
+  display: block;
+  margin-bottom: 8px;
+  margin-right: 15px;
+  color: #09467f;
+}
+
+.info .points {
+  display: inline-block;
+  margin-bottom: 8px;
+  margin-left: 10px;
+  color: #09467f;
+}
+
+.rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  align-items: center;
+  padding: 50px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #09467f;
+  box-shadow: 0px 2.2px 5.8px rgba(35, 134, 162, 0.15),
+    0px 6.1px 16.3px rgba(35, 134, 162, 0.095),
+    0px 49px 125px rgba(35, 134, 162, 0.047);
+}
+
+.stats .stat {
+  display: inline-block;
+  margin-right: 15px;
+  color: #09467f;
+}
+
+.stat strong {
+  margin-left: 5px;
+}
+
+.opponents {
+  color: #2386a2;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-right: 25px;
+  cursor: pointer;
+}
+
+.opponents:hover {
+  color: #30b8de;
+  text-decoration: underline;
+  text-underline-offset: 10px;
+}
