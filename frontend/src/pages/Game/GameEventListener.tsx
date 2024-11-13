@@ -1,5 +1,7 @@
+import { SocketCommunication } from "./Game.communication";
 import GameGraphics from "./GameGraphics";
 import GameLogic from "./GameLogic";
+import GameSocket from "./GameSocket";
 
 class GameEventListener
 {
@@ -21,7 +23,7 @@ class GameEventListener
 		GameEventListener.documentEventHandlers.forEach(({event, handler}) =>
 			document.addEventListener(event, handler));
 	}
-	
+
 	public stopListening(): void
 	{
 		console.log("Stopping event listeners...");
@@ -33,8 +35,9 @@ class GameEventListener
 
 	private static handleResizeEvent(event: Event): void
 	{
-		GameGraphics.getInstance()?.resizeElements();
+		GameGraphics.getInstance()?.ResetSize();
 		GameLogic.getInstance()?.UpdateGraphics();
+		GameSocket.getInstance()?.emit(SocketCommunication.GameImage.REQUESTFULL);
 	}
 
 	private static handleKeyEvent(event: KeyboardEvent): void

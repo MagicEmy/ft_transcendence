@@ -13,17 +13,17 @@ async function bootstrap() {
     },
   });
 
-    app.connectMicroservice<MicroserviceOptions>({
-      transport: Transport.KAFKA,
-      options: {
-        client: {
-          brokers: ['kafka:29092'],
-        },
-        consumer: {
-          groupId: 'game-service-consumer',
-        },
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.KAFKA,
+    options: {
+      client: {
+        brokers: ['kafka:29092'],
       },
-    });
+      consumer: {
+        groupId: 'game-service-consumer',
+      },
+    },
+  });
 
   await app.startAllMicroservices();
   app.init();

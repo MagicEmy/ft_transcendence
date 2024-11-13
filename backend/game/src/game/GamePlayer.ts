@@ -1,17 +1,19 @@
-import { IPlayerInfo, PlayerInfo, SockEventNames } from "./GamePong.communication";
+import { Socket } from 'socket.io';
+
+import { GameManager } from "./GameManager";
 import { IGame } from "./IGame";
-import { GameManager } from "./NewGameManager";
+import { KafkaCommunication, SocketCommunication } from "./GamePong.communication";
 
 export class GamePlayer
 {
-	private client: any | null;
+	private client: Socket | null;
 	private id:	string;
 	public name: string;
 	public rank: number;
 	public status: string;
 	public button: {[key: number]: boolean};
 
-	constructor(client: any, id: string | null)
+	constructor(client: Socket, id: string | null)
 	{
 		if (typeof(id) === "string")
 			this.constructPlayer(client, id);
@@ -19,19 +21,19 @@ export class GamePlayer
 			this.ConstructBot();
 	}
 
-	private constructPlayer(client: any, id: string)
+	private constructPlayer(client: Socket, id: string): void
 	{
-		// console.log("Creating player");
 		this.client = client;
 		this.id = id;
 		this.button = {};
-	
-		client.on("PlayGame", (message: string) => { this.handlerPlayGame(message); });
-		client.on(SockEventNames.BUTTON, (data: string) => { this.handlerButtonEvent(data); });
-		const player: IPlayerInfo = {
+
+		client.on(SocketCommunication.PlayGame.TOPIC, (message: string) => { this.handlerPlayGame(message); });
+		client.on(SocketCommunication.Button.TOPIC, (data: string) => { this.handlerButtonEvent(data); });
+		const player: KafkaCommunication.PlayerInfo.IPlayerInfo = {
 			playerID:	id,
 		}
-		GameManager.getInstance().kafkaEmit(PlayerInfo.TOPIC, JSON.stringify(player));
+		client.on("disconnect", () => { this.handlerDisconnect() ;});
+		GameManager.getInstance().kafkaEmit(KafkaCommunication.PlayerInfo.TOPIC, JSON.stringify(player));
 	}
 
 	private ConstructBot(): void
@@ -39,16 +41,10 @@ export class GamePlayer
 		this.client = null;
 		this.id = "Bot";
 		this.button = {};
-		this.name = "Ponginator"
-		// const bot: IPlayerInfo = {
-		// 	playerID:	"Bot",
-		// 	playerName:	"Bot",
-		// 	// playerRank:	0,
-		// }
-		// GameManager.getInstance().kafkaEmit(PlayerInfo.REPLY, JSON.stringify(bot));
+		this.name = "Ponginator";
 	}
 
-	private handlerPlayGame(message: string)
+	private handlerPlayGame(message: string): void
 	{
 		const msg: string[] = JSON.parse(message);
 		console.log(`msg: ${msg[0]}/${msg}`);
@@ -66,10 +62,16 @@ export class GamePlayer
 		}
 	}
 
-	private handlerButtonEvent(data: string)
+	private handlerButtonEvent(data: string): void
 	{
-		const key: any = JSON.parse(data);
+		const key: SocketCommunication.Button.IButton = JSON.parse(data);
 		this.button[key.code] = (key.event === "keydown");
+		// console.log(`${this.status}\t${key.code} ${key.event}`);
+	}
+
+	private handlerDisconnect(): void
+	{
+		this.client?.removeAllListeners();
 	}
 
 	public getClient(): any {return this.client}

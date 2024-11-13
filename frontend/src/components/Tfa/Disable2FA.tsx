@@ -2,7 +2,12 @@ import { TFA_DISABLE } from '../../utils/constants';
 import useStorage from '../../hooks/useStorage';
 import { useGetTfaStatus } from '../../hooks/useGetTfaStatus';
 
-export const Disable2FA = ({ setFeedback, setError, clearFeedbackError }) => {
+export const Disable2FA = ({
+  setFeedback,
+  setError,
+  clearFeedbackError,
+  onSuccess,
+}) => {
   const [userIdStorage] = useStorage<string>('userId', '');
   const { refetch: refetchTfaStatus } = useGetTfaStatus(userIdStorage);
 
@@ -17,13 +22,15 @@ export const Disable2FA = ({ setFeedback, setError, clearFeedbackError }) => {
           credentials: 'include',
           body: JSON.stringify({
             userId: userIdStorage,
-          })
+          }),
         });
         if (!response.ok) {
-          setError(response.statusText);
+					setError(response.statusText);
+					setFeedback('Error disabling 2FA');
           return false;
         } else {
-          setFeedback("Two Factor Authentication disabled successfully.");
+          onSuccess();
+          setFeedback('Two Factor Authentication disabled successfully');
         }
       } catch (error) {
         setError('Error disabling 2FA: ' + error);
@@ -38,7 +45,7 @@ export const Disable2FA = ({ setFeedback, setError, clearFeedbackError }) => {
   return (
     <button type="button" className="TwoFA" onClick={handleDisable2FA}>
       <i className="bi bi-qr-code-scan fs-1"></i>
-      <h4>Disable 2FA</h4>
+      <h6>Disable 2FA</h6>
     </button>
   );
 };

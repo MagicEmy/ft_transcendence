@@ -23,6 +23,7 @@ import {
 import { AppService } from './app.service';
 import {
   Observable,
+  catchError,
   concatMap,
   defaultIfEmpty,
   delay,
@@ -31,7 +32,7 @@ import {
   map,
   mergeMap,
   of,
-  switchMap,
+  throwError,
 } from 'rxjs';
 import { LeaderboardStatsDto } from './dto/leaderboard-stats-dto';
 import { ProfileDto, UserIdNameStatusDto } from './dto/profile-dto';
@@ -48,6 +49,9 @@ import { UserIdNameDto } from './dto/user-id-name-dto';
 import { UploadFileDto } from './dto/upload-file-dto';
 import { Opponent } from './enum/opponent.enum';
 import { GameHistoryDto } from './dto/game-history-dto';
+import { extractTokenFromCookies } from './utils/cookie-utils';
+import { GetUserId } from './utils/get-user-id.decorator';
+import { UserStatusEnum } from './enum/kafka.enum';
 
 @UseFilters()
 @Controller()
@@ -57,41 +61,26 @@ export class AppController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
+  // DASHBOARD & SETTINGS - add something for status - TBD
 
   // AUTH
 
   @ApiTags('logout')
-  @UseGuards(JwtAuthGuard)
   @Post('logout')
   logout(@Req() req, @Res() resp: Response): void {
-    this.authService
-      .extractTokenFromCookies({
-        cookie: req.get('cookie'),
-        cookieName: this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
-      })
-      .pipe(
-        switchMap((refreshToken: string) => {
-          this.authService.deleteRefreshTokenFromDB({
-            refreshToken: refreshToken,
-          });
-          return of(undefined);
-        }),
-      )
-      .subscribe({
-        next: () => {
-          resp.clearCookie(
-            this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'),
-          );
-          resp.clearCookie(
-            this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
-          );
-          return resp.sendStatus(200);
-        },
-        error: (err) => {
-          console.log('error when logging out:', err);
-          return resp.sendStatus(200);
-        },
+    const refreshToken = extractTokenFromCookies({
+      cookie: req.get('cookie'),
+      cookieName: this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'),
+    });
+    if (refreshToken) {
+      this.authService.deleteRefreshTokenFromDB({
+        refreshToken: refreshToken,
       });
+    }
+    resp.clearCookie(this.configService.get('JWT_ACCESS_TOKEN_COOKIE_NAME'));
+    resp.clearCookie(this.configService.get('JWT_REFRESH_TOKEN_COOKIE_NAME'));
+    resp.clearCookie('userId');
+    resp.sendStatus(200);
   }
 
   @ApiTags('auth')
@@ -103,7 +92,7 @@ export class AppController {
 
   @ApiTags('profile')
   @UseGuards(JwtAuthGuard)
-  @Get('profile')
+  @Get('/profile')
   getUserInfo(@Req() req): Observable<UserIdNameDto> {
     return this.authService.getUserIdName(req.headers.cookie);
   }
@@ -113,11 +102,12 @@ export class AppController {
   @ApiTags('profile')
   @UseGuards(JwtAuthGuard)
   @Get('/profile/:id')
-  getProfile(
+  async getProfile(
     @Param('id', ParseUUIDPipe) userId: string,
-  ): Observable<ProfileDto> {
+    @GetUserId() requestingUserId: string,
+  ): Promise<Observable<ProfileDto>> {
     return forkJoin({
-      userInfo: this.appService.getUserIdNameStatus(userId),
+      userInfo: this.appService.getUserIdNameStatus(userId, requestingUserId),
       leaderboard: this.appService.getLeaderboardPositionAndTotalPoints(userId),
       totalPlayers: this.appService.getTotalNoOfUsers(),
       gamesAgainstHuman: this.appService.getGamesAgainst({
@@ -141,32 +131,12 @@ export class AppController {
     );
   }
 
-  //   @Get('/mfo/:id')
-  //   getMostFrequentOpponent(
-  //     @Param('id') userId: string,
-  //   ): Observable<MostFrequentOpponentDto[]> {
-  //     return this.appService.getMostFrequentOpponent(userId);
-  //   }
-
-  // @Get('/gamesagainst')
-  // getGamesAgainst(
-  //   @Query('id', ParseUUIDPipe) userId: string,
-  //   @Query('opponent') opponent: Opponent,
-  // ) {
-  //   return this.appService.getGamesAgainst({ userId, opponent });
-  // }
-
-  //   @Get('userInfo')
-  //   getUserInfo(@Body('userId') userId: string): Observable<UserIdNameStatusDto> {
-  //     return this.appService.getUserIdNameStatus(userId);
-  //   }
-
   // LEADERBOARD
 
   @ApiTags('leaderboard')
   @UseGuards(JwtAuthGuard)
   @Get('/leaderboard')
-  getLeaderboard(): Observable<LeaderboardStatsDto[]> {
+  async getLeaderboard(): Promise<Observable<LeaderboardStatsDto[]>> {
     return this.appService.getLeaderboard();
   }
 
@@ -208,13 +178,15 @@ export class AppController {
     return this.appService.getUserStatus(userId);
   }
 
-  //   @Patch('status')
-  //   changeStatus(
-  //     @Body('id') userId: string,
-  //     @Body('status') status: UserStatusEnum,
-  //   ) {
-  //     this.appService.updateStatus({ userId, status });
-  //   }
+  @ApiTags('status')
+  @UseGuards(JwtAuthGuard)
+  @Patch('/status')
+  setUserStatus(
+    @Body('userId', ParseUUIDPipe) userId: string,
+    @Body('newStatus') newStatus: UserStatusEnum,
+  ): void {
+    this.appService.setUserStatus(userId, newStatus);
+  }
 
   @ApiTags('user')
   @UseGuards(JwtAuthGuard)
@@ -265,18 +237,23 @@ export class AppController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 500000 }), // 500 kB
+          new MaxFileSizeValidator({ maxSize: 500 * 1024 }), // 500 kB
           new FileTypeValidator({ fileType: /(jpg|jpeg|png)$/ }),
         ],
       }),
     )
     image: Express.Multer.File,
   ): Observable<string> {
-    return this.appService.setAvatar({
-      userId: userId,
-      avatar: image.buffer,
-      mimeType: image.mimetype,
-    });
+    try {
+      const avatar = this.appService.setAvatar({
+        userId: userId,
+        avatar: image.buffer,
+        mimeType: image.mimetype,
+      });
+      return avatar;
+    } catch (error) {
+      throw error;
+    }
   }
 
   @ApiTags('avatar')
@@ -287,6 +264,7 @@ export class AppController {
     @Res({ passthrough: true }) res: Response,
   ): Observable<StreamableFile> {
     return this.appService.getAvatar(userId).pipe(
+      catchError((error) => throwError(() => error)),
       map((avatarDto: AvatarDto) => {
         res.set({
           'Content-Type': `${avatarDto.mimeType}`,
@@ -298,49 +276,35 @@ export class AppController {
 
   // SIMULATIONS
 
-  @ApiTags('simulation')
-  @Get('/create_users/:no')
-  createMockUsers(@Param('no', ParseIntPipe) no: number): Observable<string[]> {
-    return this.authService.createMockUsers(no);
-  }
+//   @ApiTags('simulation')
+//   @Get('/create_users/:no')
+//   createMockUsers(@Param('no', ParseIntPipe) no: number): Observable<string[]> {
+//     return this.authService.createMockUsers(no);
+//   }
 
-  @ApiTags('simulation')
-  @Get('/simulate')
-  simulateGames(): Observable<void> {
-    return this.appService.getAllUserIds().pipe(
-      defaultIfEmpty([]),
-      mergeMap((allUserIds: string[]) =>
-        this.appService.simulateGames(allUserIds).pipe(defaultIfEmpty([])),
-      ),
-      mergeMap((games: IGameStatus[]) => {
-        if (games.length > 0) {
-          return from(games).pipe(
-            defaultIfEmpty([]),
-            concatMap((game: IGameStatus) =>
-              of(game).pipe(
-                delay(200),
-                map((game) => this.appService.createGameAndUpdateStats(game)),
-              ),
-            ),
-          );
-        } else {
-          return of(undefined);
-        }
-      }),
-    );
-  }
-
-  //   @Get('/playerinfo/:id')
-  //   handlePlayerInfoRequest(
-  //     @Param('id')
-  //     playerID: string,
-  //   ) {
-  //     return this.appService.statsService
-  //       .send('requestPlayerInfo', {
-  //         playerID,
-  //       })
-  //       .pipe(catchError((error) =>
-  // 		throwError(() => new RpcException(error.response)),
-  // 	  ),);
-  //   }
+//   @ApiTags('simulation')
+//   @Get('/simulate')
+//   simulateGames(): Observable<void> {
+//     return this.appService.getAllUserIds().pipe(
+//       defaultIfEmpty([]),
+//       mergeMap((allUserIds: string[]) =>
+//         this.appService.simulateGames(allUserIds).pipe(defaultIfEmpty([])),
+//       ),
+//       mergeMap((games: IGameStatus[]) => {
+//         if (games.length > 0) {
+//           return from(games).pipe(
+//             defaultIfEmpty([]),
+//             concatMap((game: IGameStatus) =>
+//               of(game).pipe(
+//                 delay(200),
+//                 map((game) => this.appService.createGameAndUpdateStats(game)),
+//               ),
+//             ),
+//           );
+//         } else {
+//           return of(undefined);
+//         }
+//       }),
+//     );
+//   }
 }

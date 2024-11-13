@@ -18,14 +18,6 @@ export class UserController {
     return this.userService.createUser(createUserDto);
   }
 
-  //   @Get()
-  //   createAvatarRecord(
-  //     @Query('user_id') userId: string,
-  //     @Query('avatar_url') avatarUrl: string,
-  //   ): Promise<string> {
-  //     return this.userService.createAvatarRecord(userId, avatarUrl);
-  //   }
-
   //   FOR TESTING PURPOSES ONLY:
   @MessagePattern('createUsers')
   async createManyUsers(no: number) {

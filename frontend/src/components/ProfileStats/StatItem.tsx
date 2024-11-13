@@ -7,7 +7,11 @@ interface StatItemProps {
 }
 
 const StatItem = ({ label, value }: StatItemProps) => {
-  return value && value > 0 ? <span className="stat"><strong>{value}</strong> {label}</span> : null;
+  return (
+    <span className="stat">
+      <strong>{value}</strong> {label}
+    </span>
+  );
 };
 
 export default StatItem;

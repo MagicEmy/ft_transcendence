@@ -1,22 +1,38 @@
-// import React, { useEffect, useState } from 'react';
-import logo from '../../assets/control-alt-delete-keys.png';
+import React, { useEffect, useState, useMemo } from 'react';
 import { LOGIN_AUTH0 } from '../../utils/constants';
+import useStorage from '../../hooks/useStorage';
 import './Login.css';
 
-const Login = () => {
-  // const [showError, setShowError] = useState(false)
-	// const [errorName, setErrorName] = useState('')
+const Login: React.FC = () => {
+  const [textArray, setTextArray] = useState<string[]>([]);
+	const [ , setUserNameStorage] = useStorage<string>('userName', '');
 
-//   useEffect(() => {
-//     const urlParams = new URLSearchParams(window.location.search);
-//     const status = urlParams.get('status');
+	useEffect(() => {
+		setUserNameStorage('');
+	});
 
-//     if (status) {
-//       setErrorName('invalid username or password');
-//       setShowError(true);
-//       window.history.pushState({}, '', window.location.pathname);
-//     }
-//   }, []);
+
+  useEffect(() => {
+    const text = 'Enter the Pongverse';
+    setTextArray(text.split(''));
+  }, []);
+
+  const animatedText = useMemo(
+    () =>
+      textArray.map((char, index) => (
+        <span
+          key={`char_${index}`}
+          className="animate-text"
+          style={{
+            animationDelay: `${index * 0.1}s`,
+            display: char === ' ' ? 'inline-block' : 'inline',
+          }}
+        >
+          {char === ' ' ? '\u00A0' : char}
+        </span>
+      )),
+    [textArray],
+  );
 
   const handleLogin = async (): Promise<void> => {
     window.location.href = LOGIN_AUTH0;
@@ -24,19 +40,15 @@ const Login = () => {
 
   return (
     <div className="login-container">
-       {/* {showError && (
-			<div className="error-bar">
-			  <p className="errortext">{errorName}</p>
-			</div>
-		  )} */}
-    <main className="login-main">
-      <img className="login-img" src={logo} alt="Logo" />
-      <button className="button-login" onClick={handleLogin}>
-        LOGIN
-      </button>
-      <div className="loader"></div>
-    </main>
-  </div>
+      <main className="login-main">
+        <p className="pongverse-text" aria-label="Enter the Pongverse">
+          {animatedText}
+        </p>
+        <button className="button-login" onClick={handleLogin}>
+          LOGIN
+        </button>
+      </main>
+    </div>
   );
 };
 

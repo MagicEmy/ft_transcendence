@@ -4,11 +4,11 @@ import { UserDto, ChatUserDto, BlockedUserDto } from 'src/dto/chat.dto';
 import { User } from 'src/entities/user.entity';
 import { UserRepository } from './user.repository';
 import { BlockedUserRepository } from './blocked-user.repository';
-import { StatusChangeDto, UserIdNameDto } from 'src/kafka/dto/kafka-dto';
+import { UserIdNameDto } from 'src/kafka/dto/kafka-dto';
 
 @Injectable()
 export class UserService {
-  constructor( 
+  constructor(
     @InjectRepository(UserRepository)
     private readonly userRepository: UserRepository,
     @InjectRepository(BlockedUserRepository)
@@ -23,6 +23,7 @@ export class UserService {
       socketId,
       online: true,
       game: '',
+      isGameHost: false,
     });
   }
 
@@ -81,7 +82,8 @@ export class UserService {
     user: UserDto,
     socketId: string,
     status: boolean,
-  ): Promise<StatusChangeDto> {
+  ): Promise<void> {
+    console.log(`Setting user ${user.userId} socket status to ${status}`);
     return this.userRepository.setUserSocketStatus(
       user.userId,
       socketId,
@@ -137,5 +139,24 @@ export class UserService {
       return 'The User Blocked You';
     }
     return 'Not Blocked';
+  }
+
+  async setGame(
+    userId: string,
+    game: string,
+    isGameHost: boolean,
+  ): Promise<string> {
+    return this.userRepository.setGame(userId, game, isGameHost);
+  }
+
+  async removeGameFromDB(player1ID: string, player2ID: string): Promise<void> {
+    const user1: User = await this.getUserById(player1ID);
+    if (user1 && user1.game == player2ID) {
+      this.userRepository.setGame(player1ID, '', false);
+    }
+    const user2: User = await this.getUserById(player2ID);
+    if (user2 && user2.game == player1ID) {
+      this.userRepository.setGame(player2ID, '', false);
+    }
   }
 }

@@ -3,7 +3,7 @@ import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { Observable, of } from 'rxjs';
 import { GameService } from './game/game.service';
 import { GameHistoryDto } from './game/dto/game-history-dto';
-import { GameStatus } from './game/enum/kafka.enum';
+import { GameStatus, KafkaTopic, MatchTypes } from './game/enum/kafka.enum';
 import { IGameStatus } from './game/interface/kafka.interface';
 import { Game } from './game/game.entity';
 import { GamesAgainstUserIdDto } from './game/dto/games-against-userid-dto';
@@ -14,9 +14,12 @@ export class AppController {
 
   // Kafka-related methods
 
-  @EventPattern(GameStatus.TOPIC) // CHECKED
-  handleGameEnd(data: any): Promise<Game> {
-    return this.gameService.createGame(data);
+  @EventPattern(KafkaTopic.GAME_END) // CHECKED
+  handleGameEnd(data: IGameStatus): void {
+    if (data.matchType != MatchTypes.LOCAL) {
+      // local games are not being saved in the database, as it is not clear who the opponent was
+      this.gameService.createGame(data);
+    }
   }
 
   // Gateway-related methods

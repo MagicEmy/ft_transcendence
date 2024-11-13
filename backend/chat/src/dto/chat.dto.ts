@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsString, IsBoolean, IsInt, IsUUID } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsBoolean,
+  IsInt,
+  IsEnum,
+  IsUUID,
+} from 'class-validator';
 
 export class UserDto {
   @IsNotEmpty()
@@ -15,6 +22,7 @@ export class CreateUserDto {
   socketId: string;
   online: boolean;
   game: string;
+  isGameHost: boolean;
 }
 
 export class RoomDto {
@@ -59,10 +67,24 @@ export class JoinRoomDto {
   password: string;
 }
 
+export enum ModerationType {
+  MUTE = 'mute',
+  UNMUTE = 'unmute',
+  BAN = 'ban',
+  UNBAN = 'unban',
+  ADD = 'add',
+  KICK = 'kick',
+  MAKEADMIN = 'makeadmin',
+  REMOVEADMIN = 'removeadmin',
+}
+
 export class ToDoUserRoomDto {
   @IsNotEmpty()
   @IsString()
   roomName: string;
+  @IsNotEmpty()
+  @IsEnum(ModerationType)
+  type: ModerationType;
   @IsNotEmpty()
   user: UserDto;
   @IsNotEmpty()
@@ -159,4 +181,19 @@ export class MessageRoomDto {
   message: string;
   timesent: Date;
   user: MessageUserDto;
+}
+export class RoomMessageDto {
+  roomName: string;
+  message: string;
+}
+
+export class ModerateResponseDto {
+  success: boolean;
+  user_response: string;
+  toDoUser_message: RoomMessageDto;
+}
+
+export class ResponseDto {
+  success: boolean;
+  message: string;
 }

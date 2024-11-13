@@ -1,274 +1,47 @@
-import { WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
-import { Server } from 'socket.io';
-import { Consumer, Kafka, Producer, logLevel } from 'kafkajs';
+import { Socket } from 'socket.io';
+import { WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage } from '@nestjs/websockets';
+import { Consumer, Kafka, Producer, } from 'kafkajs';
 
-import { GamePong } from './GamePong';
-import { PlayerStatus } from './GamePong.enums';
-import { PlayerRanked } from './GamePong.interfaces';
-
-import { SockEventNames, PlayerInfo, IPlayerInfo, ISockConnectGame, MatchTypes, ISockRemoveMatch, GameTypes, GameStatus, NewGame } from './GamePong.communication';
 import { GamePlayer } from './GamePlayer';
+import { IGame } from "./IGame"
+import { GamePong } from './GamePong';
+import { MatchMaker } from './GameMatchMaker';
+import { SocketCommunication, KafkaCommunication  } from './GamePong.communication';
 
 @WebSocketGateway({ cors: true })
 export class GameManager implements OnGatewayConnection, OnGatewayDisconnect
 {
-	private games: GamePong[];
-	private players: GamePlayer[];
+	private static instance: GameManager | null = null;
 
-	private matchQueue: PlayerRanked[];
-	private matchInterval: any;
+	private games: IGame[];
+	private players: GamePlayer[];
 
 	private kafka: Kafka;
 	private producer: Producer;
 	private consumer: Consumer;
 	private kafkaReady: Boolean = false;
 
-	// @WebSocketServer() server: Server;
-
-	constructor()
+	public constructor()
 	{
-		console.log("Setting up Games storage");
+		console.log("Setting up Games storage...");
 		this.games = [];
+		console.log("Setting up Player storage...");
 		this.players = [];
-		this.matchQueue = [];
-
-		console.log("Connecting to Kafka");
-		this.setupKafka().then(() =>
+		console.log("Connecting to Kafka...");
+		this.kafkaSetup().then(() =>
 		{
 			console.log("Connected to Kafka");
 			this.kafkaReady = true;
-			// console.log("Creating test game");
-			// this.producer.send(
-			// {
-			// 	topic:	NewGame.TOPIC,
-			// 	messages:	[{ value: JSON.stringify(
-			// 	{
-			// 		gameType:	"pong",
-			// 		name1:		"localhost",
-			// 		name2:		"10.10.2.9",
-			// 	}),}]
-			// });
 		});
+		GameManager.instance = this;
 	}
 
-	private async setupKafka()
+	public static getInstance(): GameManager | null
 	{
-		this.kafka = new Kafka(
-		{
-			clientId:	'GameManager',
-			brokers:		['kafka:29092'],
-			logLevel:	logLevel.ERROR,
-		});
-		this.producer = this.kafka.producer();
-		await this.producer.connect();
-		this.consumer = this.kafka.consumer( { groupId: 'game-consumer' });
-		await this.consumer.connect();
-
-		await this.consumer.subscribe({ topic: "connectionCheck" });
-		await this.consumer.subscribe({ topic: NewGame.TOPIC });
-		await this.consumer.subscribe({ topic: GameStatus.TOPIC });
-
-
-		await this.consumer.subscribe({ topic: PlayerInfo.TOPIC, fromBeginning: true });
-		await this.consumer.subscribe({ topic: PlayerInfo.REPLY });
-
-		await this.consumer.run(
-		{
-			eachMessage: async({ topic, partition, message }) =>
-			{
-				// console.log("Manager Kafka consumed:", topic, message.value.toString());
-				switch (topic)
-				{
-					case NewGame.TOPIC:
-						this.createNewGame(message.value.toString());
-						break ;
-					// case PlayerInfo.TOPIC://fake API
-					// 	let msg = JSON.parse(message.value.toString());
-					// 	let data: IPlayerInv2/clusters.phpfo;
-
-					// 	data.playerID = msg.playerID;
-					// 	data.playerName = msg.playerID;
-					// 	if (msg.playerID === "localhost")
-					// 		data.playerRank = 10;
-					// 	else if (msg.playerID = "10.11.1.6")
-					// 		data.playerRank = 4;
-					// 	else
-					// 		data.playerRank = 23;
-					// 	this.producer.send(
-					// 	{
-					// 		topic:	PlayerInfo.REPLY,
-					// 		messages:	[{ value: JSON.stringify(data),}],
-					// 	});
-					// 	break ;
-					case PlayerInfo.REPLY:
-						this.setPlayerInfo(message.value.toString());
-						// this.setPlayerName(message.value.toString());
-						// this.setPlayerRank(message.value.toString());
-						break ;
-					case GameStatus.TOPIC:
-						// console.log("trying to end the game!");
-						this.removeGame(message.value.toString());
-						break ;
-					default:
-						console.error("Unknown topic:", topic);
-						break ;
-				}
-			}
-		});
+		if (GameManager.instance === null)
+			GameManager.instance = new GameManager();
+		return (GameManager.instance);
 	}
-
-/* ************************************************************************** *\
-
-	Socket.io
-
-\* ************************************************************************** */
-
-handleConnection(client: any, ...args: any[])
-{
-	console.log("Client connecting: ", client.id);
-	this.sendConnectionConfirmation(client);
-}
-
-sendConnectionConfirmation(client: any)
-{
-	if (client.connected)
-	{
-		if (this.kafkaReady)
-		{
-			if (client.emit)
-				client.emit(SockEventNames.SERVERREADY, 'Connected to WebSocket server');
-			else
-				console.error("Error: socket.io.emit to client.id: ", client.id);
-		}
-		else
-			setTimeout(() => this.sendConnectionConfirmation(client), 1000);
-	}
-	else
-		console.error("Error Client ", client.id, "not connected.");
-	return ;
-}
-
-handleDisconnect(client: any)
-{
-	console.log("Client disconnecting: ", client.id);
-	this.setPlayerToDisconnect(client.id);
-	this.rmPlayerFromMatchMaking(client.id);
-	// let game: GamePong = this.findGameByClientId(client.id);
-	// if (game)
-	// {
-	// 	let player:	any;
-	// 	if (game.player1.client === client)
-	// 		player = game.player1;
-	// 	else if (game.player2.client === client)
-	// 		player = game.player2;
-	// 	else
-	// 		return ;
-	// 	player.client = undefined;
-	// 	player.status = PlayerStatus.DISCONNECTED;
-	// 	// game.sendHUDUpdate();
-	// }
-	// else
-	// 	console.log("game not found");
-}
-
-@SubscribeMessage(SockEventNames.CONNECTGAME)
-handleConnectGame(client: object, message: string): boolean
-{
-	const msg: ISockConnectGame = JSON.parse(message)
-
-	let gameID: GamePong = this.findGameByPlayerId(msg.playerID);
-	if (gameID)
-	{
-		gameID.connectPlayer(msg.playerID, client);
-		return (true);
-	}
-	else if (msg.matchType !== undefined)
-	{
-		switch (msg.matchType)
-		{
-			case MatchTypes.SOLO:
-				gameID = new GamePong(msg.playerID, null, this.producer);
-				this.games.push(gameID);
-				gameID.connectPlayer(msg.playerID, client);
-				break ;
-			case MatchTypes.LOCAL:
-				console.error("requested unsupported game type");
-				break ;
-			case MatchTypes.PAIR:
-				// console.error("Error: pair not found for: ", msg.playerID);
-				return (false);
-			case MatchTypes.MATCH:
-				this.addPlayerToMatchMaking(msg.playerID, client);
-				return (true);
-			default:
-				console.error("ErrorL Unknown matchType", msg.matchType);
-				break ;
-		}
-	}
-	return (false);
-}
-
-@SubscribeMessage(SockEventNames.RMMATCH)
-handleRemoveFromMAtchMaking(client: object, message: string)
-{
-	const msg:	any = JSON.parse(message);
-	if (msg.id)
-		this.rmPlayerFromMatchMaking(msg.id);
-}
-
-@SubscribeMessage("UserPack")
-runthis(client: any, message: string)
-{
-	const msg: any = JSON.parse(message);
-	let player: GamePlayer = new GamePlayer(client, msg.playerID);
-	this.players.push(player);
-	player.name = msg.playerName;
-
-	client.emit("PlayerReady");
-}
-
-// @SubscribeMessage("findPongPaired")
-// handleFindPongPair(client: object, message: string): boolean
-// {
-// 	console.log("remove this function!");
-// 	return (false);
-// 		// console.log("paired game found");
-// 	// else
-// 	// 	console.log("no game found");
-// 	// console.log("find pair triggered!");
-// }
-
-// @SubscribeMessage("connectMSG")
-// handleUserPackage(client: any, message: string)
-// {
-// 	console.log("Received: ", message);
-// 	const msg = JSON.parse(message);
-// 	let gameID: GamePong = this.findGameByName(msg.id);
-// 	switch (msg.msgType)
-// 	{
-// 		case "pongSolo":
-// 			if (gameID)
-// 				gameID.connectPlayer(msg.id, client);
-// 			else
-// 			{
-// 				gameID = new GamePong(msg.id, null, this.producer, this.consumer); 
-// 				this.games.push(gameID);
-// 				gameID.connectPlayer(msg.id, client);
-// 			}
-// 			break ;
-// 		case "pongMatch":
-// 			this.findGameByClientId(client.id);
-// 			console.log("lets find a match at some point!");
-// 			break ;
-// 		case "pongPair":
-// 			console.log("lets find a pair at some point!");
-// 			break ;
-// 		default:
-// 			console.error("Error: unknown msgType: ", msg.msgType);
-// 			break ;
-// 	}
-// 	return ;
-// }
 
 /* ************************************************************************** *\
 
@@ -276,205 +49,283 @@ runthis(client: any, message: string)
 
 \* ************************************************************************** */
 
-	private setPlayerInfo(message: string)
+	private async kafkaSetup(): Promise<void>
 	{
-		const data: IPlayerInfo = JSON.parse(message);
-
-		if (!data.playerID)
-			return ;
-		if (data.playerName)
-			for (const game of this.games)
-			{
-				if (game.player1.id === data.playerID ||
-					game.player2.id === data.playerID)
-					game.setPlayerName(data.playerID, data.playerName);
-			}
-		if (data.playerRank)
-			for (let i: number = 0; i < this.matchQueue.length; ++i)
-				if (this.matchQueue[i].id === data.playerID)
-					this.matchQueue[i].rank = data.playerRank;
-	}
-
-/* ************************************************************************** *\
-
-	Match Making
-
-\* ************************************************************************** */
-
-	private addPlayerToMatchMaking(id: string, client: any)
-	{
-		if (this.matchQueue.findIndex(player => player.id === id) === -1)
+		this.kafka = new Kafka(
 		{
-			// let player: PlayerRanked = {
-			// 	client:	client,
-			// 	id:		id,
-			// 	rank:	0,
-			// 	time:	0,
-			// };
-			// this.matchQueue.push(player);
-			// this.matchupdateClient(player);
-		}
-
-		const data: IPlayerInfo = {playerID: id,};
-		this.producer.send(
-		{
-			topic:	PlayerInfo.TOPIC,
-			messages:	[{ value: JSON.stringify(data),}],
+			clientId:	KafkaCommunication.Settings.CLIENTID,
+			brokers:	[KafkaCommunication.Settings.BROKERS],
+			logLevel:	KafkaCommunication.Settings.LOGLEVEL,
 		});
-
-		if (this.matchQueue.length > 0 && 
-			(!this.matchInterval || this.matchInterval._idleTimeout === -1))
-			this.matchInterval = setInterval(this.matchLoop.bind(this), 1000);
-	}
-
-	private printMatchList()
-	{
-		for (let i: number = 0; i < this.matchQueue.length; ++i)
-			console.log(i, this.matchQueue[i].id, this.matchQueue[i].rank);
-	}
-
-	private matchLoop()
-	{
-		for (let i: number = 0; i < this.matchQueue.length - 1; ++i)
+		this.producer = this.kafka.producer();
+		await this.producer.connect();
+		this.consumer = this.kafka.consumer({ groupId: KafkaCommunication.Settings.GROUPID });
+		await this.consumer.connect();
+		await this.kafKaSubscribe();
+		await this.consumer.run(
 		{
-			// console.log(this.matchQueue[i].rank, "+", this.matchQueue[i].time, ">=", 
-			// 	this.matchQueue[i + 1].rank, "-", this.matchQueue[i + 1].time);
-			if (this.matchQueue[i].rank + this.matchQueue[i].time >= 
-				this.matchQueue[i + 1].rank - this.matchQueue[i + 1].time)
+			eachMessage: async({topic, partition, message}) =>
 			{
-				let gameID = new GamePong(this.matchQueue[i].id, this.matchQueue[i + 1].id, this.producer);
-				this.games.push(gameID);
-				// gameID.connectPlayer(this.matchQueue[i].id, this.matchQueue[i].client);
-				// gameID.connectPlayer(this.matchQueue[i + 1].id, this.matchQueue[i + 1].client);
-				this.rmPlayerFromMatchMaking(gameID.player1.id);
-				this.rmPlayerFromMatchMaking(gameID.player2.id);
-				break ;
+				this.kafkaListen(topic, partition, message);
 			}
 		}
-		for (let i: number = 0; i < this.matchQueue.length; ++i)
-		{
-			++this.matchQueue[i].time;
-			this.matchupdateClient(this.matchQueue[i]);
-		}
+		)
 	}
 
-	private matchupdateClient(player: PlayerRanked)
+	private async kafKaSubscribe(): Promise<void>
 	{
-		const data: ISockRemoveMatch = 
-		{
-			rank:	player.rank,
-			time:	player.time,
-		};
-		// player.client.emit("PongMatch", JSON.stringify(data));
+		await this.consumer.subscribe({ topic: KafkaCommunication.NewGame.TOPIC });
+		await this.consumer.subscribe({ topic: KafkaCommunication.PlayerInfo.REPLY });
 	}
 
-	private	rmPlayerFromMatchMaking(id: string)
+	private kafkaListen(topic: any, partition: any, message: any): void
 	{
-		let index:	number;
-
-		while ((index = this.matchQueue.findIndex(id => id === id)) !== -1)
+		console.log(`received ${topic}/${message.value}`);
+		switch (topic)
 		{
-			// console.log("removing", this.matchQueue[index].id);
-			this.matchQueue.splice(index, 1)[0];
-		}
-		if (this.matchQueue.length < 1)
-			clearInterval(this.matchInterval);
-
-		// const index: number = this.matchQueue.findIndex(id => id === id);
-		// console.log("removing ", this.matchQueue[index].id, " / ", id);
-		// if (index !== -1)
-		// 	this.matchQueue.splice(index, 1)[0];
-		// if (this.matchQueue.length <= 1)
-		// 	clearInterval(this.matchInterval);
-	}
-
-/* ************************************************************************** *\
-
-	Game Operations
-
-\* ************************************************************************** */
-
-	private createNewGame(message: string)
-	{
-		// console.log("new game request!");
-		const msg: any = JSON.parse(message);
-		switch(msg.gameType)
-		{
-			case GameTypes.PONG:
-				this.games.push(new GamePong(msg.name1, msg.name2, this.producer));
+			case KafkaCommunication.NewGame.TOPIC:
+				const newGame: KafkaCommunication.NewGame.INewGame = JSON.parse(message.value);
+				if (this.PlayerIDIsInAGame(newGame.player1ID))
+					console.error(`Kafka: Player1[${newGame.player1ID}] is already in a game!`);
+				else if (this.PlayerIDIsInAGame(newGame.player2ID))
+					console.error(`Kafka: Player2[${newGame.player2ID}] is already in a game!`);
+				else
+					this.CreateGame(undefined, newGame.gameType, [newGame.matchType], [newGame.player1ID, newGame.player2ID]);
+				break ;
+			case KafkaCommunication.PlayerInfo.REPLY:
+				this.SetPlayerInfo(JSON.parse(message.value));
 				break ;
 			default:
-				console.error("Unknown gametype: ", msg.gameType);
+				console.error(`Error: Unhandled Kafka topic '${topic}'`);
 				break ;
 		}
 	}
 
-	private	removeGame(message: string)
+	public kafkaEmit(topic: string, message: string | null): void
 	{
-		const msg:	any = JSON.parse(message);
-		// console.log(msg);
+		this.producer.send(
+		{
+			topic:		topic,
+			messages:	[{ value: message }],
+		});
+	}
 
-		let gameID: GamePong = this.findGameByPlayerId(msg.player1ID);
-		const index: number = this.games.findIndex(game => game === gameID);
-		if (index !== -1)
+	private SetPlayerInfo(info: KafkaCommunication.PlayerInfo.IPlayerInfo): void
+	{
+		this.players.forEach(player =>
+		{
+			if (player.getId() === info.playerID)
+			{
+				if (info.playerName)
+					player.name = info.playerName;
+				if (info.playerRank)
+					player.rank = info.playerRank;
+			}
+		});
+	}
+
+/* ************************************************************************** *\
+
+Socket.io
+
+\* ************************************************************************** */
+
+	public handleConnection(client: Socket, ...args: any[]): void
+	{
+		console.log("Client connecting:", client.id);
+		this.sendConnectionConfirmation(client);
+	}
+
+	private sendConnectionConfirmation(client: Socket): void
+	{
+		if (client.connected)
+			if (this.kafkaReady)
+			{
+				if (client.emit)
+					client.emit(SocketCommunication.ServerReady.TOPIC, "Connected to GameManager");
+				else
+					console.error("Error: can't socket.io.emit to client.id:", client.id);
+			}
+			else
+				setTimeout(() => this.sendConnectionConfirmation(client), 1000);
+		else
+			console.error("Error: Client no longer connected:", client.id);
+	}
+
+	public handleDisconnect(client: Socket): void
+	{
+		console.log("Client disconnected:", client.id);
+		this.removePlayer(this.FindPlayerObject(client));
+	}
+
+	@SubscribeMessage(SocketCommunication.UserPack.TOPIC)
+	handlerUserPack(client: Socket, message: string): void
+	{
+		const msg: SocketCommunication.UserPack.IUserPack = JSON.parse(message);
+		console.log(`user: ${client.id}/${msg.playerID}`);
+		let player: GamePlayer = new GamePlayer(client, msg.playerID);
+		this.players.push(player);
+		player.name = msg.playerName;
+
+		const game: IGame | null = this.FindExistingGame(player);
+		if (game)
+			game.AddPlayer(player);
+		else
+			this.EmitMenu(client);
+	}
+
+	@SubscribeMessage(SocketCommunication.RequestMenu.TOPIC)
+	handelerRequestMenu(client: Socket): void
+	{
+		this.EmitMenu(client);
+	}
+
+/* ************************************************************************** *\
+
+	Menu
+
+\* ************************************************************************** */
+
+	public EmitMenu(client: Socket): void
+	{
+		const menuJson = { rows: [] };
+
+		menuJson.rows.push(GamePong.GetMenuRowJson());
+		menuJson.rows.push(MatchMaker.GetMenuRowJson());
+		client.emit(SocketCommunication.RequestMenu.REPLY, JSON.stringify(menuJson));
+	}
+
+// class GameMenu
+// {
+// 	public name:	string;
+// 	public flag:	string;
+// 	public active:	boolean;
+// 	public up:	GameMenu | null;
+// 	public down:	GameMenu | null;
+// 	public left:	GameMenu | null;
+// 	public right:	GameMenu | null;
+
+// 	private constructor(name: string, flag: string)
+// 	{
+// 		this.name = name;
+// 		this.flag = flag;
+// 		this.active = false;
+// 		this.up = null;
+// 		this.down = null;
+// 		this.left = null;
+// 		this.right = null;
+// 	}
+
+// 	public ToJson(): string
+// 	{
+// 		const nodes: any[] = [];
+// 		let current: GameMenu | null = this;
+// 		console.log("Creating nodes");
+// 		while (current)
+// 		{
+// 			for (let row: any; row; row = row.down)
+// 			{
+// 				nodes.push(
+// 				{
+// 					name:	row.name,
+// 					flag:	row.flag,
+// 					active:	row.active,
+// 					up:		row.up,
+// 					down:	row.down,
+// 					left:	row.left,
+// 					right:	row.right,
+// 				});
+// 				console.log("added node");
+// 			}
+// 			current = current.right;
+// 		}
+// 		return JSON.stringify(nodes);
+// 	}
+// }
+
+/* ************************************************************************** *\
+
+	Games
+
+\* ************************************************************************** */
+
+	public CreateGame(player: GamePlayer, game: string, data: string[], players: string[]): IGame | null
+	{
+		console.log(`Trying to create ${game}`);
+		let gameInstance: IGame;
+
+		try
+		{
+			switch (game.toUpperCase())
+			{
+				case GamePong.GetFlag().toUpperCase():
+					gameInstance = new GamePong(data, players);
+
+					break ;
+				case MatchMaker.GetFlag().toUpperCase():
+					gameInstance = MatchMaker.GetInstance();
+					break ;
+				default:
+					console.error(`Error: Unknown target flag: ${game}`);
+					return (null);
+			}
+			this.games.push(gameInstance);
+			console.log(`Creating Game ${gameInstance} for ${game}`);
+			return (gameInstance);
+		}
+		catch (error)
+		{
+			console.error(`Error: Failed to create game: ${error.message}`);
+			return (null);
+		}
+	}
+
+	public FindExistingGame(player: GamePlayer): IGame | null
+	{
+		for (const game of this.games)
+			if (game.PlayerIDIsInGame(player.getId()))
+			{
+				return (game);
+			}
+		return (null);
+	}
+
+	private PlayerIDIsInAGame(playerID: any): boolean
+	{
+		for (const game of this.games)
+			if (game.PlayerIDIsInGame(playerID))
+				return (true);
+		return (false);
+	}
+
+	public removeGame(gameToRemove: IGame): void
+	{
+		gameToRemove.ClearGame();
+		const index: number = this.games.findIndex(game => game === gameToRemove);
+		if (index  != -1)
 			this.games.splice(index, 1)[0];
 	}
 
-	private findGameByClientId(id: string): GamePong | null
-	{
-		for (const game of this.games)
-			if ((game.player1.client && game.player1.client.id === id) ||
-				(game.player2.client && game.player2.client.id === id))
-				return (game);
-		return (null);
-	}
+/* ************************************************************************** *\
 
-	private findGameByPlayerId(id: any)
-	{
-		for (const game of this.games)
-			if (game.player1.id === id ||
-				game.player2.id === id)
-				return (game);
-		return (null);
-	}
+	Players
 
-	private setPlayerToDisconnect(id: string)
+\* ************************************************************************** */
+
+	private FindPlayerObject(client: Socket): GamePlayer | null
 	{
-		for (const game of this.games)
+		for (const player of this.players)
 		{
-			if (game.player1.client && game.player1.client.id === id)
-			{
-				game.player1.client = undefined;
-				game.player1.status = PlayerStatus.DISCONNECTED;
-			}
-			if (game.player2.client && game.player2.client.id === id)
-				{
-					game.player2.client = undefined;
-					game.player2.status = PlayerStatus.DISCONNECTED;
-				}
+			if (player.getId() === client.id)
+				return (player);
 		}
+		return (null);
 	}
 
-	// private findGameByName(name: string): GamePong | null
-	// {
-	// 	for (const game of this.games)
-	// 		if (game.player1.name === name ||
-	// 			game.player2.name === name)
-	// 		{
-	// 			return (game);
-	// 		}
-	// 	return (null);
-	// }
-
-	// private findGameByClient(client: any): GamePong | null
-	// {
-	// 	for (const game of this.games)
-	// 		if (game.player1.client === client ||
-	// 			game.player2.client === client)
-	// 		{
-	// 			return (game);
-	// 		}
-	// 	return (null);
-	// }
-
+	public removePlayer(playerToRemove: GamePlayer)
+	{
+		const index: number = this.players.findIndex(player => player === playerToRemove);
+		if (index != -1)
+			this.players.splice(index, 1)[0];
+	}
 }

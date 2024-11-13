@@ -1,19 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-/*
-* {
-  box-sizing: border-box;
-  overflow: hidden;
-} */
-
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
 
 
 :root {
-  font-family: "Roboto", sans-serif;
+  font-family: 'Orbitron', sans-serif;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
-  /* overflow: hidden; */
-
 }
 
 body {

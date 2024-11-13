@@ -1,11 +1,13 @@
-FROM node:20.10-alpine
+FROM node:20.17.0-alpine3.19
 
 WORKDIR /app
 
 COPY *.json .
 
-RUN npm ci
+RUN npm update && npm ci
 
 COPY . .
 
-CMD ["npm", "run", "start:dev"]
+RUN npm run build
+
+CMD ["npm", "run", "start:prod"]

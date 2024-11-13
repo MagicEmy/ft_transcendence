@@ -7,8 +7,6 @@ import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { JwtPayloadDto } from './dto/jwt-payload-dto';
 import { Observable, of } from 'rxjs';
 import { TokensDto } from './dto/tokens-dto';
-import { CookieTokenDto } from './dto/cookie-token-dto';
-import { CookieAndCookieNameDto } from './dto/cookie-and-cookie-name-dto';
 import { UserIdNameLoginDto } from 'src/user/dto/user-id-name-login-dto';
 import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
 import { TfaAuthGuard } from './utils/tfa-auth-guard';
@@ -28,11 +26,9 @@ export class AuthController {
   @UseGuards(FourtyTwoAuthGuard)
   @Get('42/redirect')
   async handleRedirect(@Req() req, @Res() resp: Response): Promise<void> {
-    resp.cookie('userId', req.user.user_id, {
-      httpOnly: true,
-      secure: true,
-    });
-    if (await this.authService.isTfaEnabled(req.user.user_id)) {
+	  if (await this.authService.isTfaEnabled(req.user.user_id)) {
+		const userIdCookie = `userId=${req.user.user_id}; Path=/; HttpOnly; Max-Age=${this.configService.get('JWT_REFRESH_EXPIRATION_TIME')}`; // do the lax thing
+		resp.setHeader('Set-Cookie', [userIdCookie]);
       // redirect for TFA
       return resp.redirect(302, this.configService.get('2FA_URL'));
     } else {
@@ -41,6 +37,24 @@ export class AuthController {
       return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
     }
   }
+
+  // FOR TESTING ONLY
+  // Logs in as a TestUser. This route '...:3003/auth/testuser' is not protected by the 42 AuthGuard.
+  // This allows one person to be testing with two users (the TestUser and own 42 account) on two computers / in two browsers
+  // @Get('/testuser')
+  // async loginTestUser(@Res() resp: Response) {
+  //   const user = await this.authService.validateUserOrAddNewOne({
+  //     intraLogin: 'TestUser',
+  //     avatarUrl: 'default',
+  //   });
+  //   if (user) {
+  //     resp = this.authService.addCookiesToResponse(resp, user);
+  //     return resp.redirect(302, this.configService.get('DASHBOARD_URL'));
+  //   } else {
+  //     console.log('Something went wrong with logging in the TestUser');
+  //     resp.status(500).send();
+  //   }
+  // }
 
   @UseGuards(TfaAuthGuard)
   @Post('tfa/authenticate')
@@ -60,29 +74,6 @@ export class AuthController {
   getTokens(jwtPayloadDto: JwtPayloadDto): Observable<TokensDto> {
     try {
       const result = this.authService.generateJwtTokens(jwtPayloadDto);
-      return of(result);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @MessagePattern('getCookie')
-  getCookieWithTokens(cookieTokenDto: CookieTokenDto): Observable<string> {
-    try {
-      const result = this.authService.getCookieWithTokens(cookieTokenDto);
-      return of(result);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @MessagePattern('getTokenFromCookies')
-  extractTokenFromCookies(
-    cookieAndCookieName: CookieAndCookieNameDto,
-  ): Observable<string> {
-    try {
-      const result =
-        this.authService.extractTokenFromCookies(cookieAndCookieName);
       return of(result);
     } catch (error) {
       throw error;

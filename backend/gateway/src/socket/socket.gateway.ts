@@ -11,7 +11,7 @@ import { KafkaTopic, UserStatusEnum } from 'src/enum/kafka.enum';
 
 @WebSocketGateway({ cors: true })
 export class StatusGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  private logger: Logger = new Logger();
+  private logger: Logger = new Logger(StatusGateway.name);
   constructor(
     @Inject('UserService') private readonly userService: ClientProxy,
   ) {}
@@ -25,14 +25,13 @@ export class StatusGateway implements OnGatewayConnection, OnGatewayDisconnect {
         ? socket.handshake.query.userIdContext
         : socket.handshake.query.userIdContext[0];
     if (!userId) {
-      this.logger.warn(`Socket ${socket.id} came without a userId`);
       socket.disconnect();
       return;
     }
     this.connectedUsers.set(socket.id, userId);
+    this.logger.log(`User ${userId} connected`);
     this.userService.emit(KafkaTopic.STATUS_CHANGE, {
       userId,
-      oldStatus: UserStatusEnum.OFFLINE,
       newStatus: UserStatusEnum.ONLINE,
     });
   }
@@ -41,9 +40,9 @@ export class StatusGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userId = this.connectedUsers.get(socket.id);
     if (userId) {
       this.connectedUsers.delete(socket.id);
+      this.logger.log(`User ${userId} disconnected`);
       this.userService.emit(KafkaTopic.STATUS_CHANGE, {
         userId,
-        oldStatus: UserStatusEnum.ONLINE,
         newStatus: UserStatusEnum.OFFLINE,
       });
     }

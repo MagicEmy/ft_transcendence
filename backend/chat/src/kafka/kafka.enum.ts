@@ -1,9 +1,8 @@
 export enum UserStatusEnum {
-  CHAT_ONLINE = 'chatting',
-  CHAT_OFFLINE = 'chat_offline',
-  ONLINE = 'online',
+  CHAT = 'chatting',
   GAME = 'playing',
   OFFLINE = 'offline',
+  ONLINE = 'online',
 }
 
 export enum KafkaTopic {
@@ -11,6 +10,8 @@ export enum KafkaTopic {
   NEW_USER = 'new_user',
   USERNAME_CHANGE = 'username_change',
   STATUS_CHANGE = 'status_change',
+  GAME_END = 'game_end',
+  GAME_FOR_USER = 'game_for_user',
 }
 
 export interface INewGame {
@@ -29,4 +30,11 @@ export enum MatchTypes {
   LOCAL = 'local',
   PAIR = 'pair',
   MATCH = 'match',
+}
+
+export enum GameStatus {
+  BADGAME = 'invalid_game',
+  NOCONNECT = 'missing_player',
+  INTERRUPTED = 'interrupted',
+  COMPLETED = 'completed',
 }

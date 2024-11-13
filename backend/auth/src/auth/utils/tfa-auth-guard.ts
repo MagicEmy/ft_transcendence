@@ -15,7 +15,7 @@ export class TfaAuthGuard extends AuthGuard('tfa') {
       const activate = (await super.canActivate(context)) as boolean;
       if (!activate) {
         const resp = context.switchToHttp().getResponse();
-        resp.setHeader('location', 'http://localhost:3000/?status=forbidden');
+        resp.setHeader('location', `http://${this.configService.get('REACT_APP_HOST')}:3000/?status=forbidden`);
         throw new FoundException('Redirecting you to login...');
       } else {
         return true;

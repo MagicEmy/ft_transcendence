@@ -1,15 +1,15 @@
-export interface Player
-{
-	client:	any | null;
-	id:		any;
-	name:	string;
-	paddle: Paddle;
-	status:	string;
-	score:	number;
-	button:	{[key: number]: boolean};
-}
+import { GamePlayer } from "./GamePlayer";
 
-export interface Paddle
+export interface IPlayer
+{
+	player:	GamePlayer | null;
+	id:		any;
+	paddle:	IPaddle;
+	status:	string;
+	score:	number
+};
+
+export interface IPaddle
 {
 	posX:	number;
 	posY:	number;
@@ -18,17 +18,20 @@ export interface Paddle
 	speed:	number;
 }
 
-export interface Ball
+export interface IBall
 {
 	posX:	number;
 	posY:	number;
+	posZ:	number;
 	rad:	number;
 	speed:	number;
 	maxSpeed:	number;
 	angle:	number;
+	lastHit:	IPaddle | null;
+	lastPaddle:	IPaddle | null;
 }
 
-export interface PlayerRanked
+export interface IPlayerRanked
 {
 	player: any,
 	// client:	any,

@@ -1,19 +1,19 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
 import useStorage from '../hooks/useStorage';
 import { loadProfileAvatar } from '../utils/profileUtils';
-import { Friends } from "../types/shared";
+import { Friends } from '../types/shared';
 import { USER } from '../utils/constants';
 import { IUserContext } from '../context/userContext.types';
 
 const defaultState: IUserContext = {
   userIdContext: '',
-  setUserIdContext: () => { },
+  setUserIdContext: () => {},
   userNameContext: '',
-  setUserNameContext: () => { },
+  setUserNameContext: () => {},
   avatarContext: null,
-  setAvatarContext: () => { },
+  setAvatarContext: () => {},
   friendsContext: [],
-  setFriendsContext: () => { },
+  setFriendsContext: () => {},
   isLoading: false,
 };
 
@@ -25,8 +25,8 @@ interface UserProviderProps {
 
 export const UserProvider = ({ children }: UserProviderProps) => {
   const [userIdContext, setUserIdContext] = useState<string>('');
-  const [userIdStorage, setUserIdStorage,] = useStorage<string>('userId', '');
-  const [, setUserNameStorage,] = useStorage<string>('userName', '');
+  const [userIdStorage, setUserIdStorage] = useStorage<string>('userId', '');
+  const [userNameStorage, setUserNameStorage] = useStorage<string>('userName', '');
   const [userNameContext, setUserNameContext] = useState<string>('');
   const [avatarContext, setAvatarContext] = useState<string | null>(null);
   const [friendsContext, setFriendsContext] = useState<Friends[]>([]);
@@ -37,8 +37,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       setIsLoading(true);
       try {
         const response = await fetch(USER, {
-          method: "GET",
-          credentials: "include",
+          method: 'GET',
+          credentials: 'include',
         });
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
@@ -46,32 +46,31 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         const profile = await response.json();
         setUserIdContext(profile.userId);
         if (profile.userId) setUserIdStorage(profile.userId);
-        if (profile.userName) setUserNameStorage(profile.userName);
+        if (profile.userName && !userNameStorage) setUserNameStorage(profile.userName);
         setUserNameContext(profile.userName);
       } catch (error) {
-        console.error("Error fetching user data: error caught: ", error);
+        console.error('Error fetching user data: error caught: ', error);
       } finally {
         setIsLoading(false);
       }
     };
     if (!userIdContext) fetchUser();
-
   }, []);
-
 
   useEffect(() => {
     if (userIdContext && userIdStorage && userIdContext !== userIdStorage) {
       setUserIdStorage(userIdContext);
     }
-  }, [userIdContext, userIdStorage, setUserIdStorage]);
+  }, []);
 
   useEffect(() => {
-
     const fetchAvatar = async () => {
       if (userIdStorage) {
         try {
           const url = await loadProfileAvatar(userIdStorage);
-          setAvatarContext(url || null);
+          if (url) {
+            setAvatarContext(url);
+          }
         } catch (error) {
           console.error('Error loading avatar:', error);
         }
@@ -79,11 +78,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     };
 
     fetchAvatar();
-
   }, [userIdStorage]);
-
-  console.log("userIdContext: ", userIdContext);
-  console.log("userIdStorage: ", userIdStorage);
 
   return (
     <UserContext.Provider

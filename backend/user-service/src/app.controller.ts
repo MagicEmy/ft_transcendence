@@ -1,23 +1,19 @@
 import { Controller } from '@nestjs/common';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
-import {
-  GameStatus,
-  KafkaTopic,
-  PlayerInfo,
-  UserStatusEnum,
-} from './user/enum/kafka.enum';
+import { KafkaTopic, PlayerInfo, UserStatusEnum } from './user/enum/kafka.enum';
 import { UserService } from './user/user.service';
 import { Observable, of } from 'rxjs';
 import { UserStatus } from './user/user-status.entity';
 import { UserIdNameDto } from './user/dto/user-id-name-dto';
 import { UserIdNameLoginDto } from './user/dto/user-id-name-login-dto';
 import { UserIdNameStatusDto } from './user/dto/user-id-name-status-dto';
-import { IGameStatus, IPlayerInfo } from './user/interface/kafka.interface';
+import { IPlayerInfo } from './user/interface/kafka.interface';
 import { AvatarDto } from './avatar/avatar-dto';
 import { FriendshipDto } from './friend/dto/friendship-dto';
 import { FriendService } from './friend/friend.service';
 import { User } from './user/user.entity';
 import { StatusChangeDto } from './user/dto/status-change-dto';
+import { UserIdRequestingUserIdDto } from './user/dto/userId-requestingUserId-dto';
 
 @Controller()
 export class AppController {
@@ -33,48 +29,26 @@ export class AppController {
     this.userService.createUserStatus(data.userId);
   }
 
-  @MessagePattern(PlayerInfo.TOPIC) //CHECKED
-  async handlePlayerInfoRequest(data: any): Promise<Observable<IPlayerInfo>> {
+  @EventPattern(PlayerInfo.TOPIC) //CHECKED
+  async handlePlayerInfoRequest(data: any): Promise<void> {
     try {
-      console.log('in userService handlePlayerInfoRequest(), data is', data);
-
-      const player = {
+      const player: IPlayerInfo = {
         playerID: data.playerID,
         playerName: await this.userService.getUserName(data.playerID),
       };
       // change status to 'gaming'
       this.userService.changeUserStatus({
-        userId: data.playerId,
-        oldStatus: UserStatusEnum.ONLINE,
+        userId: data.playerID,
         newStatus: UserStatusEnum.GAME,
       });
-      return of(player);
+      this.userService.announcePlayerName(player);
     } catch (error) {
       throw error;
     }
   }
 
-  @EventPattern(GameStatus.TOPIC) // CHECKED
-  handleGameEnd(data: IGameStatus): void {
-    console.log('in userService handleGameEnd(), data is', data);
-    this.userService.changeUserStatus({
-      userId: data.player1ID,
-      oldStatus: UserStatusEnum.GAME,
-      newStatus: UserStatusEnum.ONLINE,
-    });
-    if (data.player2ID) {
-      this.userService.changeUserStatus({
-        userId: data.player2ID,
-        oldStatus: UserStatusEnum.GAME,
-        newStatus: UserStatusEnum.ONLINE,
-      });
-    }
-  }
-
   @EventPattern(KafkaTopic.STATUS_CHANGE) // CHECKED
   updateUserStatus(data: StatusChangeDto): void {
-    // more logic needs to come here!
-    console.log('in userService updateUserStatus(), data is', data);
     this.userService.changeUserStatus(data);
   }
 
@@ -102,10 +76,13 @@ export class AppController {
 
   @MessagePattern('getUserIdNameStatus')
   async getUserIdNameStatus(
-    userId: string,
+    data: UserIdRequestingUserIdDto,
   ): Promise<Observable<UserIdNameStatusDto>> {
     try {
-      const result = await this.userService.getUserIdNameStatus(userId);
+      const result = await this.userService.getUserIdNameStatus(
+        data.userId,
+        data.requestingUserId,
+      );
       return of(result);
     } catch (error) {
       throw error;
@@ -149,8 +126,7 @@ export class AppController {
         avatar: Buffer.from(avatarDto.avatar),
       });
     } catch (error) {
-      console.log('Error when uploading avatar:', error);
-      return of('Error');
+      throw error;
     }
     return of('OK');
   }

@@ -1,177 +1,321 @@
-import { Kafka, Consumer, Producer } from 'kafkajs';
+import { Socket } from 'socket.io';
 
-import { Player, Ball, Paddle } from './GamePong.interfaces';
-import { GameState, PlayerStatus, Button } from './GamePong.enums';
-import { PlayerInfo, IPlayerInfo, SockEventNames, ISockPongImage, ISockPongImagePlayer, ISockPongImageBall, ISockPongHudPlayer, GameTypes, IGameStatus, MatchTypes, GameStatus } from './GamePong.communication';
+import { IGame } from "./IGame";
+import { GamePlayer } from "./GamePlayer";
+import { GameManager } from "./GameManager";
+import { GameTypes, MatchTypes, SocketCommunication, SharedCommunication, KafkaCommunication } from './GamePong.communication';
+import { Button, GameState, PlayerStatus } from "./GamePong.enums";
+import { IPlayer, IPaddle, IBall } from "./GamePong.interfaces";
 
-export class GamePong
+const maxScore: number = 3;
+const connectionTime: number = 60000; // 1 minute
+const disconnectTime: number = 300000; // 5 minutes
+
+const FLAGS =
 {
-	private	MatchType:	MatchTypes;
-	private	GameState:	GameState;
-	private	oldState:	GameState;
-	private loopInterval:	any;
-	private producer:	Producer;
-
-	player1:	Player;
-	player2:	Player;
-	ball:		Ball | null;
-	private loopCount:	number;
-
-	constructor(player1ID: string, player2ID: string | null, producer: Producer)
+	NAME:	"Pong",
+	FLAG:	"PONG",
+	SOLO:
 	{
-		this.producer = producer;
-		this.player1 = this.setPlayer(player1ID, "player1", 1/23);
-		this.player2 = this.setPlayer(player2ID, "player2", 22/23);
-		this.MatchType = MatchTypes.LOCAL;
-		this.GameState = GameState.WAITING;
-		this.ball = null;
+		NAME: "Solo",
+		FLAG: "solo"
+	},
+	LOCAL:
+	{
+		NAME: "Local",
+		FLAG: "local"
+	},
+	MATCH:
+	{
+		NAME: "Match",
+		FLAG: "pair"
+	}
+} as const;
 
-		if (this.validateGame())
+export class GamePong implements IGame
+{
+	private static gameFlag: string = FLAGS.FLAG;
+	private gameState: GameState;
+	private oldState: GameState;
+	private mode: MatchTypes;
+	private theme: string;
+	private player1: IPlayer;
+	private player2: IPlayer;
+	private ball: IBall | null;
+
+	private interval: any;
+	private ImageHandlers: Map<Socket, (client: Socket) => void>;
+	private DisconnectHandlers: Map<Socket, (client: Socket) => void>;
+	private ImageFullHandelers: Map<Socket, (client: Socket) => void>;
+
+	// private id: string = Math.random().toString(36).substr(2, 9);
+
+	private timerGame: number;
+	private timerEvent: number;
+
+	constructor(data: string[], players: string[])
+	{
+		console.log(`Pong: Creating new game ${data}/${players}`);
+		this.SetMode(data[0]);
+		// this.mode = data[0];
+		this.theme = data[1];
+		if (this.theme === undefined)
+			this.theme = "retro";
+		let player1: string;
+		let player2: string | null = null;
+
+		player1 = players[0];
+		switch (this.mode)
 		{
-			this.loopCount = 0;
-			this.loopInterval = setInterval(this.gameLoop.bind(this), 16);
-			console.log("Created New Pong game: ", this.player1.id, " vs ", this.player2.id);
+			case FLAGS.SOLO.FLAG:
+				if (players.length != 1)
+					throw ("Wrong amount of players");
+				break ;
+			case FLAGS.LOCAL.FLAG:
+				if (players.length != 1)
+					throw ("Wrong amount of players");
+				break ;
+			case FLAGS.MATCH.FLAG:
+				if (players.length != 2)
+					throw ("Wrong amount of players");
+				player2 = players[1];
+				break;
+			default:
+				throw (`Unknown game mode ${this.mode}`);
+		}
+		this.player1 = this.ConstructPlayer(player1, 1/23);
+		this.player2 = this.ConstructPlayer(player2, 22/23);
+		this.ball = null;
+		this.SetGameState(GameState.WAITING);
+		this.ImageHandlers = new Map<Socket, (client: Socket) => void>();
+		this.ImageFullHandelers = new Map<Socket, (client: Socket) => void>();
+		this.DisconnectHandlers = new Map<Socket, (client: Socket) => void>();
+		this.interval = setInterval(this.GameLoop.bind(this), 16);
+	}
+
+	private SetMode(mode: string): void
+	{
+		switch (mode)
+		{
+			case MatchTypes.SOLO:
+				this.mode = MatchTypes.SOLO;	return;
+			case MatchTypes.LOCAL:
+				this.mode = MatchTypes.LOCAL;	return;
+			case MatchTypes.PAIR:
+				this.mode = MatchTypes.PAIR;	return;
+			case MatchTypes.MATCH:
+				this.mode = MatchTypes.MATCH;	return;
+			default:
+				this.mode = undefined;	return;
 		}
 	}
 
-	private setPlayer(id: string | null, name: string, posX: number): Player
+	private ConstructPlayer(playerId: any, posX: number): IPlayer
 	{
-		const player: Player = 
+		const player: IPlayer =
 		{
-			client:	(id === null) ? null : undefined,
-			id:		id,
-			name:	(id === null) ? "Bot" : name,
+			player:	(playerId !== null) ? null : new GamePlayer(null, null),
+			id:		(playerId !== null) ? playerId : null,
 			paddle:	{posX: posX, posY: 0.5, width: 0.01, height: 0.1, speed: 0.005},
-			status:	(id === null) ? PlayerStatus.WAITING : PlayerStatus.CONNECTING,
+			status:	(playerId !== null) ? PlayerStatus.CONNECTING : PlayerStatus.WAITING,
 			score:	0,
-			button:	{},
 		}
-		if (player.id !== null)
-			this.requestPlayerName(player.id);
+		if (player.id)
+			GameManager.getInstance().kafkaEmit(KafkaCommunication.GameForUser.TOPIC, JSON.stringify({playerID: player.id}));
 		return (player);
 	}
 
-	private validateGame(): boolean
+	public AddPlayer(playerToAdd: GamePlayer): boolean
 	{
-		if (this.player1.id === null &&
-			this.player2.id === null)
-		{
-			this.sendEndGame(GameStatus.BADGAME);
+		let playerPos: IPlayer;
+		if (playerToAdd?.getId() === this.player1.id)
+			playerPos = this.player1;
+		else if (playerToAdd?.getId() === this.player2.id)
+			playerPos = this.player2;
+		console.log(`Pong: Adding player ${playerPos?.player?.name}[${playerPos?.id}]`);
+		if (playerPos === undefined)
 			return (false);
-		}
+		
+		playerPos.player = playerToAdd;
+		this.AddListerners(playerPos, playerToAdd.getClient());
+		playerPos.status = PlayerStatus.WAITING;
+		this.SendGameInfo(playerPos);
 		return (true);
+	}
+
+	public PlayerIDIsInGame(playerID: any): boolean
+	{
+		return (this.player1.id == playerID ||
+				this.player2.id == playerID);
+	}
+
+	public ClearGame(): void
+	{
+		if (this.player1.player?.getClient())
+			this.RemoveListeners(this.player1.player.getClient());
+		if (this.player2.player?.getClient())
+			this.RemoveListeners(this.player2.player.getClient());
 	}
 
 /* ************************************************************************** *\
 
-	Communication
+	Socket Listeners
 
 \* ************************************************************************** */
 
-	connectPlayer(id: string, client: any): boolean
+	private AddListerners(player: IPlayer, client: Socket): void
 	{
-		let player: Player;
-		if (this.player1.id === id && !this.player1.client)
-			player = this.player1;
-		else if (this.player2.id === id && !this.player2.client)
-			player = this.player2;
-		else
-			return (false);
-		player.client = client;
-		this.setToListen(player);
-		player.status = PlayerStatus.WAITING;
-		this.sendHUDUpdate();
-		return (true);
+		var handler: any;
+
+		handler = () => this.HandlerImage(client);
+		this.ImageHandlers.set(client, handler);
+		client.on(SocketCommunication.GameImage.REQUEST, handler);
+
+		handler = () => this.HandlerImageFull(client);
+		this.ImageFullHandelers.set(client, handler);
+		client.on(SocketCommunication.GameImage.REQUESTFULL, handler);
+
+		handler = () => this.HandlerDisconnect(client);
+		this.DisconnectHandlers.set(client, handler);
+		client.on("disconnect", handler);
 	}
 
-	disconnectPlayer(player: Player)
+	private RemoveListeners(client: Socket): void
 	{
-		this.oldState = this.GameState;
-		this.GameState = GameState.PAUSED;
-		player.status = PlayerStatus.DISCONNECTED;
-		player.client = undefined;
-		if (this.player1.client != player.client)
-			this.player1.status = PlayerStatus.WAITING;
-		if (this.player2.client != player.client)
-			this.player2.status = PlayerStatus.WAITING;
-		this.sendHUDUpdate();
-	}
+		var handler: any;
 
-	private setToListen(player: Player)
-	{
-		player.client.on("test", () =>
+		handler = this.ImageHandlers.get(client);
+		if (handler)
 		{
-			console.log("I received directly!!!! test");
-		});
-		player.client.on("disconnect", () =>
+			client.off(SocketCommunication.GameImage.REQUEST, handler);
+			this.ImageHandlers.delete(client);
+		}
+
+		handler = this.ImageFullHandelers.get(client);
+		if (handler)
 		{
-			this.disconnectPlayer(player);
-			console.log("I received directly!!!! disconnect");
+			client.off(SocketCommunication.GameImage.REQUESTFULL, handler);
+			this.ImageFullHandelers.delete(client);
+		}
+
+		handler = this.DisconnectHandlers.get(client);
+		if (handler)
+		{
+			client.off("disconnect", handler);
+			this.DisconnectHandlers.delete(client);
+		}
+	}
+
+	private RemoveAllListeners(): void
+	{
+		this.ImageHandlers.forEach((handler, client) =>
+		{
+			client.removeAllListeners(SocketCommunication.GameImage.REQUEST);
+			this.ImageHandlers.delete(client);
 		});
-		player.client.on(SockEventNames.BUTTON, (data: string) => { this.handlerButtonEvent(player, data); });
-		player.client.on(SockEventNames.PONGIMG, () => { this.handlerImage(player); });
+
+		this.ImageFullHandelers.forEach((handler, client) =>
+		{
+			client.removeAllListeners(SocketCommunication.GameImage.REQUESTFULL);
+			this.ImageHandlers.delete(client);
+		});
+		
+		this.DisconnectHandlers.forEach((handler, client) =>
+		{
+			client.off("disconnect", handler)
+			this.DisconnectHandlers.delete(client);
+		});
 	}
 
-	private handlerButtonEvent(player: Player, data: string)
+	private HandlerDisconnect(client: Socket): void
 	{
-		const key = JSON.parse(data);
+		console.log(`Pong: Disconnect: ${client.id}`);
 
-		if (key.press === "keydown")
-			player.button[key.code] = true;
+		this.player1.status = this.player1.player?.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
+		this.player2.status = this.player2.player?.getClient() === client ? PlayerStatus.DISCONNECTED : PlayerStatus.WAITING;
+
+		this.SetGameState(GameState.PAUSED);
+
+		this.RemoveListeners(client);
+	}
+
+	private HandlerImage(client: Socket): void
+	{
+		this.SendImage(client);
+	}
+
+	private HandlerImageFull(client: Socket): void
+	{
+		this.SendImage(client);
+		this.SendHUD();
+	}
+
+/* ************************************************************************** *\
+
+	Socket Emitters
+
+\* ************************************************************************** */
+
+	private SendGameInfo(player: IPlayer)
+	{
+		const data: SocketCommunication.NewGame.INewGame =
+		{
+			game: GameTypes.PONG,
+			theme:	this.theme,
+			mode:	this.mode,
+		};
+
+		player.player.getClient()?.emit(SocketCommunication.NewGame.TOPIC, JSON.stringify(data));
+		this.SendHUD();
+	}
+
+	private SendImage(client: any): void
+	{
+		let imageData: SocketCommunication.GameImage.IPong;
+
+		const P1: SocketCommunication.GameImage.IPlayer = this.GetImageDataPlayer(this.player1);
+		const P2: SocketCommunication.GameImage.IPlayer = this.GetImageDataPlayer(this.player2);
+		const ball: SocketCommunication.GameImage.IBall | null = this.GetImageDataBall();
+
+		if (this.player1.player?.getClient() === client)
+			imageData = { Game: GamePong.gameFlag, Theme: this.theme,
+							Player1: P1, Player2: P2, Ball: ball};
 		else
-			player.button[key.code] = false;
-		// console.log(player.name, "[", key.code, " ", key.name, "]\t", player.button[key.code]);
+		{
+			imageData = { Game: GamePong.gameFlag, Theme: this.theme,
+							Player1: P2, Player2: P1, Ball: ball};
+			this.MirrorImageDataXAxis(imageData);
+		}
+		if (client.emit)
+			client.emit(SocketCommunication.GameImage.TOPIC, JSON.stringify(imageData));
 	}
 
-	private handlerImage(player: Player)
+	private GetImageDataPlayer(player: IPlayer): SocketCommunication.GameImage.IPlayer
 	{
-		let imageData:	ISockPongImage;
-
-		const P1 = this.handlerImageGetPlayer(this.player1);
-		const P2 = this.handlerImageGetPlayer(this.player2);
-		const Ball = this.handlerImageGetBall();
-		// if (player.client === this.player1.client)
-		// 	imageData = { Player1: P1, Player2: P2, Ball: Ball};
-		// else
-		// {
-		// 	imageData = { Player1: P2, Player2: P1, Ball: Ball};
-		// 	this.handerImageMirrorXAxis(imageData);
-		// }
-		// if (player.client.emit)
-		// 	player.client.emit(SockEventNames.PONGIMG, JSON.stringify(imageData));
-	}
-
-	private handlerImageGetPlayer(player: Player): ISockPongImagePlayer
-	{
-		const PImg: ISockPongImagePlayer = 
+		return (
 		{
 			posX:	player.paddle.posX,
 			posY:	player.paddle.posY,
 			height:	player.paddle.height,
 			width:	player.paddle.width,
 			msg:	player.status,
-		};
-
-		return (PImg)
+		});
 	}
 
-	private handlerImageGetBall(): ISockPongImageBall | null
+	private GetImageDataBall(): SocketCommunication.GameImage.IBall | null
 	{
+		let ball: SocketCommunication.GameImage.IBall | null = null;
 		if (this.ball !== null)
-		{
-			const Bally: ISockPongImageBall = 
-			{
-				posX:	this.ball.posX,
-				posY:	this.ball.posY,
-				posZ:	0,
-				size:	this.ball.rad * 2,
-			};
-			return (Bally);
-		}
+			return({
+				posX: this.ball.posX,
+				posY: this.ball.posY,
+				posZ: this.ball.posZ,
+				size: this.ball.rad * 2,
+			});
 		return (null);
 	}
 
-	private handerImageMirrorXAxis(imageData: ISockPongImage)
+	private MirrorImageDataXAxis(imageData: SocketCommunication.GameImage.IPong): void
 	{
 		imageData.Player1.posX = 1 - imageData.Player1.posX;
 		imageData.Player2.posX = 1 - imageData.Player2.posX;
@@ -179,110 +323,66 @@ export class GamePong
 			imageData.Ball.posX = 1 - imageData.Ball.posX;
 	}
 
-	private sendHUDUpdate()
+	private SendHUD(): void
 	{
-		const P1 = this.sendHUDUpdateGetPlayer(this.player1);
-		const P2 = this.sendHUDUpdateGetPlayer(this.player2);
-		if (this.player1.client && this.player1.client.emit)
-		{
-			const HUD = {P1: P1, P2: P2};
-			this.player1.client.emit(SockEventNames.PONGHUD, JSON.stringify(HUD));
-		}
-		if (this.player2.client && this.player2.client.emit)
-		{
-			const HUD = {P1: P2, P2: P1};
-			this.player2.client.emit(SockEventNames.PONGHUD, JSON.stringify(HUD));
-		}
+		const P1: SocketCommunication.GameImage.IPongHUDPlayer = this.GetHUDDataPlayer(this.player1);
+		const P2: SocketCommunication.GameImage.IPongHUDPlayer = this.GetHUDDataPlayer(this.player2);
+
+		if (this.mode === "local")
+			P2.name = `${P1.name.split('').reverse().join('')}`;
+
+		this.SendToPlayer(this.player1, SocketCommunication.GameImage.TOPICHUD, JSON.stringify({game: GameTypes.PONG, P1: P1, P2: P2}));
+		this.SendToPlayer(this.player2, SocketCommunication.GameImage.TOPICHUD, JSON.stringify({game: GameTypes.PONG, P1: P2, P2: P1}));
 	}
 
-	private sendHUDUpdateGetPlayer(player: Player): ISockPongHudPlayer
+	private GetHUDDataPlayer(player: IPlayer): SocketCommunication.GameImage.IPongHUDPlayer
 	{
-		const	playerHUD:	ISockPongHudPlayer =
+		let name: string = (player.player !== null) ? player.player.name : "";
+	
+		return (
 		{
-			name:	player.name,
+			name:	name,
 			score:	player.score,
 			status:	player.status,
-		};
-		return (playerHUD);
-	}
-
-	private requestPlayerName(id: string | null)
-	{
-		// console.log("producing:", PlayerInfo.TOPIC, id);
-		// if (typeof(id) === "string")
-		// {
-		// 	const data: IPlayerInfo = {playerID: id};
-		// 	this.producer.send(
-		// 	{
-		// 		topic:	PlayerInfo.TOPIC,
-		// 		messages:	[{ value: JSON.stringify(data),}],
-		// 	});
-		// }
-		this.sendToKafka(PlayerInfo.TOPIC, {playerID: id});
-	}
-
-	setPlayerName(id: string, name: string)
-	{
-		if (this.player1.id === id)
-			this.player1.name = name;
-		if (this.player2.id === id)
-			this.player2.name = name;
-		this.sendHUDUpdate();
-	}
-
-	private	sendEndGame(status: GameStatus)
-	{
-		const endData: IGameStatus = 
-		{
-			gameType:	GameTypes.PONG,
-			matchType:	this.MatchType,
-			status:		status,
-			player1ID:		this.player1.id,
-			player1Score:	this.player1.score,
-			player2ID:		this.player2.id,
-			player2Score:	this.player2.score,
-		};
-
-		// if (this.producer)
-		// {
-		// 	this.producer.connect().then(() => {
-		// 	  console.log('Producer connected successfully');
-		// 	}).catch((error) => {
-		// 	  console.error('Error connecting producer:', error);
-		// 	});
-		// }
-		// else
-		// {
-		// 	console.error('Kafka producer is not properly initialized');
-		// }
-		
-		this.sendToKafka(GameStatus.TOPIC, endData);
-		clearInterval(this.loopInterval);
-		console.log("Ended Game: ", this.player1.id, " vs ", this.player2.id, "reason: ", endData.status);
-		if (this.player1.client && this.player1.client.emit)
-			this.player1.client.emit(SockEventNames.ENDGAME, JSON.stringify(endData));
-		if (this.player2.client && this.player2.client.emit)
-			this.player2.client.emit(SockEventNames.ENDGAME, JSON.stringify(endData));
-		// this.producer.send(
-		// {
-		// 	topic:	GameStatus.TOPIC,
-		// 	messages:	[{ value: JSON.stringify(endData),}],
-		// });
-	}
-
-	private sendToKafka(topic: GameStatus | string, data: any)
-	{
-		this.producer.send(
-			{
-				topic:	topic,
-				messages:	[{ value: JSON.stringify(data),}],
-			}).then(() =>
-		{
-			// console.log("Game Kafka produced:", topic, JSON.stringify(data));
-		}).catch((err: any) =>
-		{
-			console.error("Error: Kafka send() failed: ", err);
 		});
+	}
+
+	private SendToPlayer(player: IPlayer, flag: string, msg: string)
+	{
+		const client: any = player.player?.getClient();
+
+		if (client != null && client.emit)
+			client.emit(flag, msg);
+	}
+
+/* ************************************************************************** *\
+
+	Menu
+
+\* ************************************************************************** */
+
+	public static GetFlag(): string
+	{
+		return (GamePong.gameFlag);
+	}
+
+	public static GetMenuRowJson(): any
+	{
+		return {
+			name: FLAGS.NAME,
+			flag: GamePong.gameFlag,
+			options:
+			[
+				[
+					{ name: FLAGS.SOLO.NAME, flag: FLAGS.SOLO.FLAG },
+					{ name: FLAGS.LOCAL.NAME, flag: FLAGS.LOCAL.FLAG }
+				],
+				[
+					{ name: "Retro", flag: "retro" },
+					{ name: "Modern", flag: "modern" }
+				]
+			]
+		};
 	}
 
 /* ************************************************************************** *\
@@ -291,120 +391,165 @@ export class GamePong
 
 \* ************************************************************************** */
 
-	private gameLoop()
+	private GameLoop(): void
 	{
-		switch (this.GameState)
+		switch (this.gameState)
 		{
 			case GameState.WAITING:
-				this.waitForPlayers();
+				this.GameLoopWaiting();	break ;
+			case GameState.START:
+				this.GameLoopStart();	break ;
+			case GameState.NEWBALL:
+				this.GameLoopNewBall();	break ;
+			case GameState.PLAYING:
+				this.GameLoopPlaying();	break ;
+			case GameState.PAUSED:
+				this.GameLoopPaused();	break ;
+			case GameState.UNPAUSE:
+				this.GameLoopUnpause();	break ;
+			case GameState.GAMEOVER:
+				this.GameLoopGameOver();	break ;
+			default:
+				console.error(`Error: unknown GameState ${this.gameState}`);
+		}
+	}
+
+	private SetGameState(newState: GameState): void
+	{
+		switch (newState)
+		{
+			case GameState.WAITING:
+				this.timerGame = Date.now();
+				this.timerEvent = Date.now();
 				break ;
 			case GameState.START:
-				this.updatePaddles();
-				this.pressSpaceToStart();
-				this.startGame();
+				this.player1.status = PlayerStatus.NOTREADY;
+				this.player2.status = PlayerStatus.NOTREADY;
+				this.timerGame = Date.now();
 				break ;
 			case GameState.NEWBALL:
-				this.updatePaddles();
-				this.addBall();
+				this.player1.status = PlayerStatus.PLAYING;
+				this.player2.status = PlayerStatus.PLAYING;
 				break ;
 			case GameState.PLAYING:
-				this.updatePaddles();
-				const steps: number = 0.0001;
-				++this.loopCount;
-				for (let speed: number = this.ball.speed; speed > 0; speed -= steps)
-				{
-					this.updateBallPosition(steps);
-					this.checkEventBorder();
-					if (this.ball.posX <= 0.5)
-						this.checkEventPaddle(this.player1);
-					else
-						this.checkEventPaddle(this.player2);
-				}
-				this.checkEventScore();
 				break ;
 			case GameState.PAUSED:
-				this.pausedGame();
+				if (this.gameState !== GameState.PAUSED && this.gameState !== GameState.UNPAUSE)
+					this.oldState = this.gameState;
+				this.timerEvent = Date.now();
 				break ;
 			case GameState.UNPAUSE:
-				this.pressSpaceToStart();
-				this.unpauseGame();
+				this.player1.status = PlayerStatus.NOTREADY;
+				this.player2.status = PlayerStatus.NOTREADY;
+				this.timerEvent = Date.now();
 				break ;
 			case GameState.GAMEOVER:
-				// this.checkBotMove();
-				clearInterval(this.loopInterval);
-				this.sendEndGame(GameStatus.COMPLETED);
 				break ;
 			default:
-				break ;
+				console.error(`Error: unknown GameState ${this.gameState}`); return ;
 		}
+		this.gameState = newState;
+		this.SendHUD();
+
 	}
 
-	private waitForPlayers()
+/* ************************************************************************** *\
+	GameLoop - Waiting
+\* ************************************************************************** */
+
+	private GameLoopWaiting(): void
 	{
 		if (this.player1.status === PlayerStatus.WAITING &&
 			this.player2.status === PlayerStatus.WAITING)
 		{
-			this.player1.status = PlayerStatus.NOTREADY;
-			this.player2.status = PlayerStatus.NOTREADY;
-			this.GameState = GameState.START;
-			this.sendHUDUpdate();
+			this.SetGameState(GameState.START);
 		}
+		else if (this.timerEvent + connectionTime < Date.now())
+			this.EndGame(SharedCommunication.PongStatus.Status.NOCONNECT);
 	}
 
-	private pressSpaceToStart()
+/* ************************************************************************** *\
+	GameLoop - Start
+\* ************************************************************************** */
+
+	private GameLoopStart(): void
 	{
-		if (this.player1.status === PlayerStatus.NOTREADY &&
-			((this.player1.client !== null && 
-			this.player1.button[Button.SPACE]) || 
-			this.player1.client === null))
-		{
-			this.player1.status = PlayerStatus.READY;
-			this.sendHUDUpdate();
-		}
-
-		if (this.player2.status === PlayerStatus.NOTREADY &&
-			((this.player2.client !== null && 
-			this.player2.button[Button.SPACE]) || 
-			this.player2.client === null))
-		{
-			this.player2.status = PlayerStatus.READY;
-			this.sendHUDUpdate();
-		}
+		this.PressSpaceToStart(this.player1);
+		this.PressSpaceToStart(this.player2);
+		this.UpdatePaddles();
+		this.StartGame();
 	}
-	
-	private startGame()
+
+	private StartGame(): void
 	{
 		if (this.player1.status === PlayerStatus.READY &&
 			this.player2.status === PlayerStatus.READY)
 		{
-			this.player1.status = PlayerStatus.PLAYING;
-			this.player2.status = PlayerStatus.PLAYING;
-			this.GameState = GameState.NEWBALL;
-			this.sendHUDUpdate();
+			this.SetGameState(GameState.NEWBALL);
 		}
 	}
 
-	private	pausedGame()
+/* ************************************************************************** *\
+	GameLoop - NewBall
+\* ************************************************************************** */
+
+	private GameLoopNewBall(): void
 	{
-		// console.log("player1:\t", this.player1.status, "player2:\t", this.player2.status);
+		this.UpdatePaddles();
+		this.AddBall();
+	}
+
+/* ************************************************************************** *\
+	GameLoop - Playing
+\* ************************************************************************** */
+
+	private GameLoopPlaying(): void
+	{
+		this.UpdatePaddles();
+		this.UpdateBall();
+		this.CheckEventScore();
+	}
+
+/* ************************************************************************** *\
+	GameLoop - Paused
+\* ************************************************************************** */
+
+	private GameLoopPaused(): void
+	{
 		if (this.player1.status === PlayerStatus.WAITING &&
 			this.player2.status === PlayerStatus.WAITING)
 		{
-			this.player1.status = PlayerStatus.NOTREADY;
-			this.player2.status = PlayerStatus.NOTREADY;
-			this.GameState = GameState.UNPAUSE;
-			this.sendHUDUpdate();
+			this.SetGameState(GameState.UNPAUSE);
 		}
+		else if (this.timerEvent + 60000 < Date.now()) // 60 seconds
+			this.EndGame(SharedCommunication.PongStatus.Status.INTERRUPTED);
 	}
 
-	private unpauseGame()
+/* ************************************************************************** *\
+	GameLoop - Unpause
+\* ************************************************************************** */
+
+	private GameLoopUnpause(): void
 	{
+		this.PressSpaceToStart(this.player1);
+		this.PressSpaceToStart(this.player2);
+
 		if (this.player1.status === PlayerStatus.READY &&
 			this.player2.status === PlayerStatus.READY)
 		{
-			this.GameState = this.oldState;
-			this.sendHUDUpdate();
+			this.SetGameState(this.oldState);
 		}
+		else if (this.timerEvent + disconnectTime < Date.now())
+			this.EndGame(SharedCommunication.PongStatus.Status.INTERRUPTED);
+	}
+
+/* ************************************************************************** *\
+	GameLoop - Game Over
+\* ************************************************************************** */
+
+	private GameLoopGameOver(): void
+	{
+		this.EndGame(SharedCommunication.PongStatus.Status.COMPLETED);
 	}
 
 /* ************************************************************************** *\
@@ -413,84 +558,106 @@ export class GamePong
 
 \* ************************************************************************** */
 
-	private updatePaddles()
+	private PressSpaceToStart(player: IPlayer)
 	{
-		if (this.GameState === GameState.PAUSED ||
-			this.GameState === GameState.UNPAUSE ||
-			this.GameState === GameState.GAMEOVER)
-			return ;
-
-		if (this.player1.client === null)
-			this.botPressArrowKey(this.player1);
-		if (this.player2.client === null)
-			this.botPressArrowKey(this.player2);
-
-		if (this.player1.id === this.player2.id)
-			this.updatePaddleLocal();
-		else
+		if (player.status === PlayerStatus.NOTREADY &&
+			(player.player.button[Button.SPACE] ||
+			player.id === null))
 		{
-			this.updatePaddle(this.player1);
-			this.updatePaddle(this.player2);
+			player.status = PlayerStatus.READY;
+			this.SendHUD();
 		}
 	}
 
-	private botPressArrowKey(player: Player)
+	private UpdatePaddles(): void
 	{
-		let posY: number;
+		let dirP1: number = 0;
+		let dirP2: number = 0;
 
-		if (this.ball !== null)
-			posY = this.ball.posY;
-		else
-			posY = 0.5;
-		player.button[Button.ARROWUP] = posY < player.paddle.posY;
-		player.button[Button.ARROWDOWN] = posY > player.paddle.posY;
+		switch (this.mode)
+		{
+			case FLAGS.SOLO.FLAG:
+				this.BotKeyPress(this.player2);
+				dirP1 = this.GetKeyPress(this.player1.player.button, true, true, this.theme === "modern");
+				dirP2 = this.GetKeyPress(this.player2.player.button, false, true, false);
+				break ;
+			case FLAGS.LOCAL.FLAG:
+				dirP1 = this.GetKeyPress(this.player1.player.button, true, false, this.theme === "modern");
+				dirP2 = this.GetKeyPress(this.player1.player.button, false, true, this.theme === "modern");
+				break ;
+			default:
+				dirP1 = this.GetKeyPress(this.player1.player.button, true, true, this.theme === "modern");
+				dirP2 = this.GetKeyPress(this.player2.player.button, true, true, this.theme === "modern");
+				break ;
+		}
+
+		this.UpdatePaddle(this.player1.paddle, dirP1);
+		this.UpdatePaddle(this.player2.paddle, dirP2);
 	}
 
-	private	updatePaddle(player: Player)
+	private GetKeyPress(key: { [key: number]: boolean }, wasd: boolean, arrows: boolean, horizontal: boolean): number
 	{
-		let	moveY: number = 0;
+		let dir: number = 0;
 
-		if (player.button[Button.ARROWUP] || player.button[Button.w])
-			moveY -= player.paddle.speed;
-		if (player.button[Button.ARROWDOWN] || player.button[Button.s])
-			moveY += player.paddle.speed;
+		if (wasd)
+		{
+			if (horizontal)
+				dir += this.GetDir(key[Button.a], key[Button.d]);
+			else
+				dir += this.GetDir(key[Button.w], key[Button.s]);
+		}
+		if (arrows)
+		{
+			if (horizontal)
+				dir += this.GetDir(key[Button.ARROWLEFT], key[Button.ARROWRIGHT])
+			else
+				dir += this.GetDir(key[Button.ARROWUP], key[Button.ARROWDOWN]);
+		}
 
-		this.updatePaddlePos(player.paddle, moveY);
-
-		// if (newPos + player.paddle.height / 2 > 1)
-		// 	newPos = 1 - player.paddle.height / 2;
-		// else if (newPos - player.paddle.height / 2 < 0)
-		// 	newPos = player.paddle.height / 2;
-
-		// player.paddle.posY = newPos;
+		return (dir);
 	}
 
-	private updatePaddleLocal()
+	private GetDir(up: boolean, down: boolean): number
 	{
-		let moveY = 0;
+		let dir: number = 0;
 
-		if (this.player1.button[Button.w])
-			moveY += this.player1.paddle.speed;
-		if (this.player1.button[Button.s])
-			moveY -= this.player1.paddle.speed;
-		this.updatePaddlePos(this.player1.paddle, moveY);
-
-		moveY = 0;
-		if (this.player2.button[Button.ARROWUP])
-			moveY += this.player2.paddle.speed;
-		if (this.player2.button[Button.ARROWDOWN])
-			moveY -= this.player2.paddle.speed;
-		this.updatePaddlePos(this.player2.paddle, moveY);
+		if (up)
+			dir -= 1;
+		if (down)
+			dir += 1;
+		return (dir);
 	}
 
-	private updatePaddlePos(paddle: Paddle, moveY: number)
+	private UpdatePaddle(paddle: IPaddle, dir: number): void
 	{
-		paddle.posY += moveY;
-
-		if (paddle.posY + paddle.height / 2 > 1)
-			paddle.posY = 1 - paddle.height / 2;
-		else if (paddle.posY - paddle.height / 2 < 0)
+		paddle.posY += dir * paddle.speed;
+	
+		if (paddle.posY - paddle.height / 2 < 0)
 			paddle.posY = paddle.height / 2;
+		else if (paddle.posY + paddle.height / 2 > 1)
+			paddle.posY = 1 - paddle.height / 2;
+
+	}
+
+	private BotKeyPress(bot: IPlayer): void
+	{
+		if (this.mode !== FLAGS.SOLO.FLAG)
+			return;
+
+		let posY: number = 0.5;
+		if (this.ball)
+		{
+			let paddleDistance: number = this.player2.paddle.posX - this.player1.paddle.posX;
+			let ratio: number = Math.abs(this.ball.posX - bot.paddle.posX);
+			if (this.ball?.lastPaddle === bot.paddle)
+				ratio = ratio;
+			else
+				ratio = (paddleDistance - ratio) + paddleDistance;
+			ratio = ratio / (paddleDistance * 2);
+			posY = this.ball.posY * ratio + 0.5 * (1 - ratio);
+		}
+		bot.player.button[Button.ARROWUP] = posY < bot.paddle.posY;
+		bot.player.button[Button.ARROWDOWN] = posY > bot.paddle.posY;
 	}
 
 /* ************************************************************************** *\
@@ -499,100 +666,163 @@ export class GamePong
 
 \* ************************************************************************** */
 
-	private addBall()
+	private AddBall(): void
 	{
-		if (this.ball === null)
-		{
-			let starter: number;
-			if (this.player1.score === this.player2.score)
-			{
-				if (this.player1.score === 0)
-					starter = 2;
-				else
-					starter = Math.round(Math.random());
-			}
-			else if (this.player1.score < this.player2.score)
-				starter = 0;
-			else
-				starter = 1;
+		if (this.ball !== null)
+			return ;
 
-			// console.log("starter\t", starter);
-			switch (starter)
-			{
-				case 0:
-					// console.log("case 0");
-					this.addBallRandom();
-					break ;
-				case 1:
-					// console.log("case 1");
-					this.addBallRandom();
-					break ;
-				case 2:
-					// console.log("case 2");
-					this.addBallRandom();
-					break ;
-				default:
-					return ;
-			}
-			this.GameState = GameState.PLAYING;
-		}
+		this.AddBallRandom();
+		this.SetGameState(GameState.PLAYING);
 	}
 
-	private addBallRandom()
+	private AddBallRandom(): void
 	{
-		// console.log("Addballrandom");
-		this.ball =
+		this.ball = 
 		{
 			posX:	0.5,
 			posY:	0.5,
+			posZ:	1,
 			rad:	0.0025,
 			speed:	0.002,
 			maxSpeed:	0.010,
-			angle:	0.5 * Math.PI,
+			angle:	0.5,
+			lastHit:	null,
+			lastPaddle:	null,
 		};
-
-		this.ball.speed = 0.0075;
 
 		this.ball.angle = Math.random() + 0.25;
 		if (this.ball.angle >= 0.75)
 			this.ball.angle += 0.5;
 		this.ball.angle *= Math.PI;
-
-		// this.ball.posX = 1/23;
-		// this.ball.posY = 0.75;
-		// this.ball.angle = 0.00 * Math.PI;
 	}
 
-	private	updateBallPosition(move: number)
+	private UpdateBall(): void
 	{
-		const	circle: number = Math.PI * 2;
-		if (this.ball.angle < 0)
-			this.ball.angle += circle;
-		if (this.ball.angle > circle)
-			this.ball.angle -= circle;
+		let move: number = this.ball.speed;
+		const stepSize: number = this.player1.paddle.width / 10;
+		while (move > 0)
+		{
+			if (move < stepSize)
+				move -= this.UpdateBallPosition(move);
+			else
+				move -= this.UpdateBallPosition(stepSize);
+			this.CheckEventBorder();
+			if (this.ball.posX < 0.5 && 
+				this.ball.lastHit !== this.player1.paddle)
+				this.CheckEventPaddle(this.player1.paddle);
+			if (this.ball.posX > 0.5 &&
+				this.ball.lastHit !== this.player2.paddle)
+				this.CheckEventPaddle(this.player2.paddle);
+		}
+		this.UpdateBallHeightZ();
+	}
+
+	private UpdateBallPosition(remaining: number): number
+	{
+		let move: number = this.CalculateNearestEvent(remaining);
+		if (move === remaining)
+			move -= this.ball.rad;
+		if (move <= 0)
+			move = this.player1.paddle.width / 10;
 		this.ball.posX += Math.sin(this.ball.angle) * move;
 		this.ball.posY -= Math.cos(this.ball.angle) * move;
+		return (move);
 	}
 
-	private adjustBallAngle(hit: string)
+	private CalculateNearestEvent(remaining: number): number
 	{
-		switch(hit)
+		let move: number = remaining;
+
+		//upper right border
+		if (this.ball.angle > 0 && this.ball.angle < Math.PI * 0.5)
+			move = (1 - this.ball.posY) / Math.sin(this.ball.angle);
+		//upper left border
+		else if (this.ball.angle > Math.PI * 1.5 && this.ball.angle < Math.PI * 2)
+			move = (1 - this.ball.posY) / Math.sin(Math.PI * 2 - this.ball.angle);
+		//lower right border
+		else if (this.ball.angle > Math.PI * 0.5 && this.ball.angle < Math.PI)
+			move = this.ball.posY / Math.sin(Math.PI - this.ball.angle);
+		//lower left border
+		else if (this.ball.angle > Math.PI && this.ball.angle < Math.PI * 1.5)
+			move = this.ball.posY / Math.sin(this.ball.angle - Math.PI);
+		if (move < remaining)
+			remaining = move;
+
+		let posX: number;
+		let posY: number;
+		//left paddle
+		posX = this.GetRelevantPaddleBorder(this.ball.posX, this.player1.paddle.posX, this.player1.paddle.width / 2);
+		posY = this.GetRelevantPaddleBorder(this.ball.posY, this.player1.paddle.posY, this.player1.paddle.width / 2);
+		move = Math.sqrt(Math.pow(this.ball.posX - posX, 2) + Math.pow(this.ball.posY - posY, 2));
+		if (move > 0 && move < remaining)
+			remaining = move;
+		//right paddle
+		posX = this.GetRelevantPaddleBorder(this.ball.posX, this.player2.paddle.posX, this.player2.paddle.width / 2);
+		posY = this.GetRelevantPaddleBorder(this.ball.posY, this.player2.paddle.posY, this.player2.paddle.width / 2);
+		move = Math.sqrt(Math.pow(this.ball.posX - posX, 2) + Math.pow(this.ball.posY - posY, 2));
+		if (move > 0 && move < remaining)
+			remaining = move;
+
+		return (remaining);
+	}
+
+	private AdjustBallAngle(direction: string)
+	{
+		switch(direction)
 		{
 			case "horizontal":
 				if (this.ball.angle <= Math.PI)
 					this.ball.angle = Math.PI - this.ball.angle;
 				else
 					this.ball.angle = Math.PI + (Math.PI * 2 - this.ball.angle);
+					this.FixBallRadial();
 				break ;
 			case "vertical":
 					this.ball.angle = Math.PI * 2 - this.ball.angle;
-					// if (this.ball.posX < 0.5)
-					// 	this.ball.posX = this.player1.paddle.posX + (this.player1.paddle.width * 2);
-					// else
-					// 	this.ball.posX = this.player2.paddle.posX - (this.player1.paddle.width * 2);
+					this.FixBallRadial();
+					this.KeepBallAngleReasonable();
 				break ;
-			default: console.error("adjustBallAngle has no case for", hit);
+			default:
+				console.error(`AdjustBallAngle() has no case for '${direction}`);
+				break ;
 		}
+
+	}
+
+	private FixBallRadial(): void
+	{
+		const circle: number = Math.PI * 2;
+
+		if (this.ball.angle < 0)
+			this.ball.angle += circle;
+		if (this.ball.angle > circle)
+			this.ball.angle -= circle;
+	}
+
+	private KeepBallAngleReasonable()
+	{
+		if (this.ball.angle < Math.PI * 0.125)
+			this.ball.angle = Math.PI * 0.125;
+		else if (this.ball.angle > Math.PI * 0.875 && this.ball.angle < Math.PI)
+			this.ball.angle = Math.PI * 0.875;
+		else if (this.ball.angle > Math.PI && this.ball.angle < Math.PI * 1.125)
+			this.ball.angle = Math.PI * 1.125;
+		else if (this.ball.angle > Math.PI * 1.875)
+			this.ball.angle = Math.PI * 1.875;
+	}
+
+	private UpdateBallHeightZ()
+	{
+		const diff: number = Math.abs(this.player2.paddle.posX - this.player1.paddle.posX);
+		let distance: number;
+		if (this.ball.lastPaddle)
+			distance = Math.abs(this.ball.lastPaddle.posX - this.ball.posX);
+		else
+			distance = Math.abs(0.5 - this.ball.posX) + diff / 2;
+		distance /= diff;
+
+		// height = -8/3x^2 + 2/3x + 1
+		this.ball.posZ = Math.abs(-8/3 * Math.pow(distance, 2) + 2/3 * distance + 1);
 	}
 
 /* ************************************************************************** *\
@@ -601,59 +831,39 @@ export class GamePong
 
 \* ************************************************************************** */
 
-	// private	checkBotMove()
-	// {
-	// 	if (this.player1.client === null)
-	// 		this.makeBotMovePlayer(this.player1)
-	// 	if (this.player2.client === null)
-	// 		this.makeBotMovePlayer(this.player2)
-	// }
-
-	// private makeBotMovePlayer(player: Player)
-	// {
-	// 	let posY: number;
-
-	// 	if (this.ball !== null)
-	// 		posY = this.ball.posY;
-	// 	else
-	// 		posY = 0.5;
-	// 	player.button[Button.ARROWUP] = posY < player.paddle.posY;
-	// 	player.button[Button.ARROWDOWN] = posY > player.paddle.posY;
-	// }
-
-	private checkEventBorder()
+	private CheckEventBorder(): void
 	{
 		if (this.ball.posY - this.ball.rad < 0 ||
 			this.ball.posY + this.ball.rad > 1)
-			this.adjustBallAngle("horizontal");
+		{
+			this.ball.speed = this.ball.speed * 0.975 + this.ball.maxSpeed * 0.025;
+			this.AdjustBallAngle("horizontal");
+			this.ball.lastHit = null;
+		}
 	}
 
-	private checkEventPaddle(player: Player)
+	private CheckEventPaddle(paddle: IPaddle): void
 	{
-		let checkX: number = this.checkEventCheckPoint(this.ball.posX, player.paddle.posX, player.paddle.width / 2);
-		let checkY: number = this.checkEventCheckPoint(this.ball.posY, player.paddle.posY, player.paddle.height / 2);
+		let checkX: number = this.GetRelevantPaddleBorder(this.ball.posX, paddle.posX, paddle.width / 2);
+		let checkY: number = this.GetRelevantPaddleBorder(this.ball.posY, paddle.posY, paddle.height / 2);
 		let distance = Math.sqrt(Math.pow(this.ball.posX - checkX, 2) + Math.pow(this.ball.posY - checkY, 2));
 		if (distance <= this.ball.rad)
 		{
 			if (checkX != this.ball.posX)
 			{
-				if (this.loopCount)
-				{
-					this.adjustBallAngle("vertical");
-					this.ball.angle += Math.atan((checkY - player.paddle.posY) /
-												(checkX - player.paddle.posX)) / 3;
-					this.ball.speed = this.ball.speed * 0.95 + this.ball.maxSpeed * 0.05;
-					this.loopCount = 0;
-				}
+					this.AdjustBallAngle("vertical");
+					this.ball.angle += Math.atan((checkY - paddle.posY) /
+												(checkX - paddle.posX)) / 3;
+					this.ball.speed = this.ball.speed * 0.90 + this.ball.maxSpeed * 0.10;
 			}
 			else
-			{
-				this.adjustBallAngle("horizontal");
-			}
+				this.AdjustBallAngle("horizontal");
+			this.ball.lastHit = paddle;
+			this.ball.lastPaddle = paddle;
 		}
 	}
 
-	private checkEventCheckPoint(ballPos: number, paddlePos: number, paddleSize: number): number
+	private GetRelevantPaddleBorder(ballPos: number, paddlePos: number, paddleSize: number): number
 	{
 		let checkPos: number = ballPos;
 
@@ -664,30 +874,67 @@ export class GamePong
 		return (checkPos);
 	}
 
-	private	checkEventScore()
+	private CheckEventScore(): void
 	{
-		let score:	boolean = false;
-
 		if (this.ball.posX < 0)
-		{
-			++this.player2.score;
-			score = true;
-		}
+			this.EventPlayerScored(this.player2);
 		else if (this.ball.posX > 1)
-		{
-			++this.player1.score;
-			score = true;
-		}
+			this.EventPlayerScored(this.player1);
+	}
 
-		if (score)
-		{
-			this.ball = null;
-			if (this.player1.score >= 1 ||
-				this.player2.score >= 1)
-				this.GameState = GameState.GAMEOVER;
-			else
-				this.GameState = GameState.NEWBALL;
-			this.sendHUDUpdate();
-		}
+	private EventPlayerScored(player: IPlayer): void
+	{
+		++player.score;
+		if (player.score >= maxScore)
+			this.SetGameState(GameState.GAMEOVER);
+		else
+			this.SetGameState(GameState.NEWBALL);
+		this.ball = null;
+	}
+
+/* ************************************************************************** *\
+
+	Events
+
+\* ************************************************************************** */
+
+	private EndGame(status: SharedCommunication.PongStatus.Status): void
+	{
+		console.log(`Pong: Game over for ${this.player1.id} / ${this.player2.id} / ${status}}`);
+
+		clearInterval(this.interval);
+		const data: SharedCommunication.PongStatus.IPongStatus = this.GenerateEndData(status);
+		const message: string = JSON.stringify(data);
+
+		//send to Kafka
+		GameManager.getInstance().kafkaEmit(SharedCommunication.PongStatus.TOPIC, message);
+
+		//send to players
+		this.SendToPlayer(this.player1, SharedCommunication.PongStatus.TOPIC, message);
+		this.SendToPlayer(this.player2, SharedCommunication.PongStatus.TOPIC, message);
+		if (this.player1.player)
+			this.player1.player.button = [];
+		if (this.player2.player)
+			this.player2.player.button = [];
+
+		//remove handlers
+		this.RemoveAllListeners();
+
+		//delete game
+		GameManager.getInstance().removeGame(this);
+	}
+
+	private GenerateEndData(status: SharedCommunication.PongStatus.Status): SharedCommunication.PongStatus.IPongStatus
+	{
+		return ({
+			gameType:	GameTypes.PONG,
+			matchType:	this.mode,
+			status:		status,
+			duration:	Date.now() - this.timerGame,
+			player1ID:	this.player1.id,
+			player1Score:	this.player1.score,
+			player2ID:	this.player2.id,
+			player2Score:	this.player2.score,
+		});
 	}
 }

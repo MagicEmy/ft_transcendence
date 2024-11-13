@@ -5,8 +5,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from 'src/dto/chat.dto';
 import { User } from 'src/entities/user.entity';
-import { StatusChangeDto } from 'src/kafka/dto/kafka-dto';
-import { UserStatusEnum } from 'src/kafka/kafka.enum';
 import { Repository } from 'typeorm';
 
 export class UserRepository extends Repository<User> {
@@ -23,7 +21,7 @@ export class UserRepository extends Repository<User> {
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const newUser = this.create(createUserDto);
     try {
-      this.save(newUser);
+      await this.save(newUser);
       console.log(`User ${newUser.userName} created.`);
     } catch (error) {
       if (error.code !== '23505') {
@@ -61,9 +59,8 @@ export class UserRepository extends Repository<User> {
     userId: string,
     socketId: string,
     status: boolean,
-  ): Promise<StatusChangeDto> {
+  ): Promise<void> {
     const user = await this.getUserById(userId);
-    const oldStatus = user.online;
     user.socketId = socketId;
     user.online = status;
     try {
@@ -71,15 +68,6 @@ export class UserRepository extends Repository<User> {
       console.log(
         `SocketId of user ${user.userName} set to ${user.socketId} and online is ${status}.`,
       );
-      return {
-        userId: user.userId,
-        oldStatus: oldStatus
-          ? UserStatusEnum.CHAT_ONLINE
-          : UserStatusEnum.CHAT_OFFLINE,
-        newStatus: user.online
-          ? UserStatusEnum.CHAT_ONLINE
-          : UserStatusEnum.CHAT_OFFLINE,
-      };
     } catch (error) {
       console.log('ERROR in setUserSocketStatus()');
       console.log(error);
@@ -92,5 +80,25 @@ export class UserRepository extends Repository<User> {
     this.save(user);
     console.log(`User name of user ${user.userId} set to ${user.userName}.`);
     return user;
+  }
+
+  async setGame(
+    userId: string,
+    game: string,
+    isGameHost: boolean,
+  ): Promise<string> {
+    const user = await this.getUserById(userId);
+    if (user) {
+      user.game = game;
+      user.isGameHost = isGameHost;
+      try {
+        this.save(user);
+        return game;
+      } catch (error) {
+        console.log('ERROR in setGame() saving to repo');
+        console.log(error);
+      }
+    }
+    return '';
   }
 }

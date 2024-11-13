@@ -6,12 +6,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - REACT_APP_HOST=${REACT_APP_HOST}
     image: frontend
     restart: unless-stopped
     networks:
       - backend
     volumes:
-      - "./frontend:/app" #only for developement
       - "/app/node_modules"
     ports:
       - "3000:3000"
@@ -30,7 +31,6 @@ services:
       dockerfile: Dockerfile
     image: gateway
     volumes:
-    - "./backend/gateway:/app" #only for developement
     - "/app/node_modules"
     networks:
     - backend
@@ -48,13 +48,12 @@ services:
       dockerfile: Dockerfile
     image: game_service
     volumes:
-      - "./backend/game-service:/app" #only for developement
       - "/app/node_modules"
     restart: unless-stopped
     networks:
       - backend
     ports:
-      - "3007:3000" #only for testing porposes
+      - "3007:3000" 
     depends_on:
       profile_db:
         condition: service_healthy
@@ -71,20 +70,18 @@ services:
       dockerfile: Dockerfile
     image: user_service
     volumes:
-      - "./backend/user-service:/app" #only for developement
       - "/app/node_modules"
     restart: unless-stopped
     networks:
       - backend
     ports:
-      - "3008:3000" #only for testing porposes
+      - "3008:3000" 
     depends_on:
       profile_db:
         condition: service_healthy
       kafka:
         condition: service_healthy
   
-
   stats_service:
     container_name: stats_service
     env_file:
@@ -95,13 +92,12 @@ services:
       dockerfile: Dockerfile
     image: stats_service
     volumes:
-      - "./backend/stats-service:/app" #only for developement
       - "/app/node_modules"
     restart: unless-stopped
     networks:
       - backend
     ports:
-      - "3009:3000" #only for testing porposes
+      - "3009:3000" 
     depends_on:
       profile_db:
         condition: service_healthy
@@ -118,11 +114,10 @@ services:
       dockerfile: Dockerfile
     image: chat
     volumes:
-      - "./backend/chat:/app" # for development only
       - "/app/node_modules"
     restart: unless-stopped
     ports:
-      - "3005:3000" # only for testing purposes
+      - "3005:3000"
     networks:
       - backend
     depends_on:
@@ -130,7 +125,6 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
-
 
   auth_service:
     container_name: auth_service
@@ -142,13 +136,12 @@ services:
       dockerfile: Dockerfile
     image: auth_service
     volumes:
-    - "./backend/auth:/app" # only for development
     - "/app/node_modules"
     restart: unless-stopped
     networks:
       - backend
     ports:
-      - "3003:3000" # only for testing purposes
+      - "3003:3000"
     depends_on:
       profile_db:
         condition: service_healthy
@@ -163,10 +156,9 @@ services:
       dockerfile: Dockerfile
     image: game
     volumes:
-      - "./backend/game:/app" #only for developement
       - "/app/node_modules"
     ports:
-      - "3006:3000" #only for testing porposes
+      - "3006:3000"
     restart: unless-stopped
     networks:
       - backend
@@ -218,21 +210,8 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
-
-# kafka
-  kafdrop:
-    image: obsidiandynamics/kafdrop
-    container_name: kafdrop
-    restart: "no"
-    ports:
-      - "9000:9000"
-    networks:
-      - backend
-    environment:
-      KAFKA_BROKERCONNECT: "kafka:29092"
     depends_on:
-      kafka:
-        condition: service_healthy
+      - profile_db
 
   kafka:
     image: obsidiandynamics/kafka
@@ -243,6 +222,7 @@ services:
     ports:
       - "2181:2181"
       - "9092:9092"
+      - "29092:29092"
     volumes:
       - ./log4j.properties:/opt/kafka/config/log4j.properties
       - ./kafka-health-check.sh:/kafka-health-check.sh
@@ -251,7 +231,7 @@ services:
       KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
       KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
-      KAFKA_ZOOKEEPER_SESSION_TIMEOUT: "6000"
+      KAFKA_ZOOKEEPER_SESSION_TIMEOUT: "18000"
       KAFKA_RESTART_ATTEMPTS: "10"
       KAFKA_RESTART_DELAY: "5"
       ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"

@@ -1,8 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,11 +8,12 @@ import { UserStatusRepository } from './user-status.repository';
 import { UserStatus } from './user-status.entity';
 import { UserIdNameStatusDto } from './dto/user-id-name-status-dto';
 import { UserIdNameDto } from './dto/user-id-name-dto';
-import { KafkaTopic, UserStatusEnum } from './enum/kafka.enum';
-import { ClientKafka, RpcException } from '@nestjs/microservices';
+import { KafkaTopic, PlayerInfo, UserStatusEnum } from './enum/kafka.enum';
+import { ClientKafka } from '@nestjs/microservices';
 import { AvatarRepository } from '../avatar/avatar.repository';
 import { AvatarDto } from '../avatar/avatar-dto';
 import { StatusChangeDto } from './dto/status-change-dto';
+import { IPlayerInfo } from './interface/kafka.interface';
 
 @Injectable()
 export class UserService {
@@ -35,14 +32,20 @@ export class UserService {
 
   //   USER
 
-  async getUserIdNameStatus(userId: string): Promise<UserIdNameStatusDto> {
+  async getUserIdNameStatus(
+    userId: string,
+    requestingUserId: string,
+  ): Promise<UserIdNameStatusDto> {
     try {
       const user = await this.getUserById(userId);
-      const status = await this.getUserStatus(userId);
+      const status =
+        userId == requestingUserId
+          ? UserStatusEnum.ONLINE
+          : (await this.getUserStatus(userId)).status;
       return {
         userId,
         userName: user.user_name,
-        status: status.status,
+        status: status,
       };
     } catch (error) {
       throw error;
@@ -85,6 +88,10 @@ export class UserService {
     return userName;
   }
 
+  announcePlayerName(playerInfo: IPlayerInfo) {
+    this.usernameClient.emit(PlayerInfo.REPLY, playerInfo);
+  }
+
   //   STATUS
 
   async createUserStatus(userId: string): Promise<UserStatus> {
@@ -108,11 +115,7 @@ export class UserService {
       try {
         status = await this.createUserStatus(userId);
       } catch (error) {
-        throw new RpcException(
-          new InternalServerErrorException(
-            `Error when adding status of user ${userId} to database`,
-          ),
-        );
+        throw error;
       }
     }
     return status;

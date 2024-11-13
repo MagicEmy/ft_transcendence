@@ -10,23 +10,24 @@ export const useIsLoggedIn = () => {
     const fetchUser = async () => {
       try {
         const response = await fetch(JWT_CHECK, {
-          method: "GET",
-          credentials: "include",
+          method: 'GET',
+          credentials: 'include',
         });
         if (!response.ok) {
-          setError(`Error: ${response.status}`);
+					setError(`Error: ${response.status}`);
           setIsLoggedin(false);
-          setLoading(false); // Update this line
+          setLoading(false);
+					console.error('useIsLoggedIn: response:', response.status);
           return;
         }
         const isJwtValid = await response.json();
         setIsLoggedin(isJwtValid);
       } catch (error) {
-        console.error("Error fetching Jwt-check: ", error);
-        setError("Error fetching Jwt-check");
+        console.error('Error fetching Jwt-check: ', error);
+        setError('Error fetching Jwt-check');
         setIsLoggedin(false);
       } finally {
-        setLoading(false); // Ensure loading is set to false in both success and error cases
+        setLoading(false);
       }
     };
     fetchUser();

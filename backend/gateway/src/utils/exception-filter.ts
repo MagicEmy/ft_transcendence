@@ -1,13 +1,21 @@
-import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 
 @Catch(RpcException)
 export class RpcToHttpExceptionFilter implements ExceptionFilter {
+  private logger: Logger = new Logger(RpcToHttpExceptionFilter.name);
   catch(exception: RpcException, host: ArgumentsHost) {
-    console.log('RpcToHttp filter triggered');
-	console.log('exception is', exception);
+    // this.logger.debug(`Exception caught: `, exception);
     const error: any = exception.getError();
     const response = host.switchToHttp().getResponse();
-    response.status(error?.statusCode || error?.status || 500).json(error);
+    response
+      .status(
+        error?.statusCode ||
+          error?.status ||
+          error.toString().includes('ENOTFOUND')
+          ? 404
+          : 500,
+      )
+      .json(error);
   }
 }

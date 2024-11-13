@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import useStorage from '../hooks/useStorage';
 import { LOGOUT } from '../utils/constants';
 
@@ -9,6 +9,7 @@ interface LogoutButtonProps {
 const LogoutButton = ({ className }: LogoutButtonProps) => {
   const [, , removeUserIdStorage] = useStorage('userId', '');
   const [, , removeUserNameStorage] = useStorage<string>('userName', '');
+  const [, , removeAvatarStorage] = useStorage<string>('avatar', '');
   const navigate = useNavigate();
 
   async function userLogout() {
@@ -16,22 +17,23 @@ const LogoutButton = ({ className }: LogoutButtonProps) => {
       const response = await fetch(LOGOUT, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         credentials: 'include',
       });
       if (response.ok) {
-        console.log('User logged out');
         removeUserIdStorage();
         removeUserNameStorage();
+        removeAvatarStorage();
         navigate('/', { replace: true });
       } else {
         throw new Error('Failed to log out');
       }
     } catch (error) {
-      console.log('Error logging out:', error);
+      console.error('Error logging out:', error);
       removeUserIdStorage();
       removeUserNameStorage();
+      removeAvatarStorage();
       navigate('/', { replace: true });
     }
   }

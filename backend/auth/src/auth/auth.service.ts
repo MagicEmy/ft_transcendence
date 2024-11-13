@@ -16,7 +16,6 @@ import { TokensDto } from './dto/tokens-dto';
 import { Token } from 'src/user/token-entity';
 import { DeleteRefreshTokenDto } from './dto/delete-refresh-token-dto';
 import { CookieTokenDto } from './dto/cookie-token-dto';
-import { CookieAndCookieNameDto } from './dto/cookie-and-cookie-name-dto';
 import { UserIdNameLoginDto } from 'src/user/dto/user-id-name-login-dto';
 import { TwoFactorAuthService } from 'src/tfa/two-factor-auth.service';
 import { Response } from 'express';
@@ -44,7 +43,7 @@ export class AuthService {
     return user;
   }
 
-  private async validateUserOrAddNewOne(
+  async validateUserOrAddNewOne(
     validateUserDto: ValidateUserDto,
   ): Promise<User> {
     const { intraLogin, avatarUrl } = validateUserDto;
@@ -68,7 +67,7 @@ export class AuthService {
           error,
         );
         try {
-          this.userService.deleteUser(user.user_id); // this one also throws an error
+          this.userService.deleteUser(user.user_id);
         } catch (e) {
           this.logger.error(`Error deleting user ${intraLogin}`, e);
         }
@@ -154,7 +153,7 @@ export class AuthService {
   }
 
   getCookieWithTokens(cookieTokenDto: CookieTokenDto): string {
-    const cookie = `${cookieTokenDto.cookieName}=${cookieTokenDto.token}; Path=/; HttpOnly; Secure=true; Max-Age=${cookieTokenDto.expirationTime}`;
+    const cookie = `${cookieTokenDto.cookieName}=${cookieTokenDto.token}; Path=/; HttpOnly; Max-Age=${cookieTokenDto.expirationTime}`;
     return cookie;
   }
 
@@ -195,22 +194,6 @@ export class AuthService {
     }
   }
 
-  extractTokenFromCookies(cookieAndCookieName: CookieAndCookieNameDto): string {
-    let tokenValue = '';
-    if (cookieAndCookieName.cookie) {
-      cookieAndCookieName.cookie
-        .toString()
-        .split(';')
-        .forEach((cookie) => {
-          const [name, value] = cookie.trim().split('=');
-          if (name === cookieAndCookieName.cookieName) {
-            tokenValue = value;
-          }
-        });
-    }
-    return tokenValue;
-  }
-
   addCookiesToResponse(resp: Response, user: User): Response {
     const tokens = this.login(user);
     // setting the jwt tokens in cookies
@@ -224,7 +207,8 @@ export class AuthService {
       token: tokens.jwtRefreshToken,
       expirationTime: this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
     });
-    resp.setHeader('Set-Cookie', [accessCookie, refreshCookie]);
+	const userIdCookie = `userId=${user.user_id}; Path=/; HttpOnly; Max-Age=${this.configService.get('JWT_REFRESH_EXPIRATION_TIME')}`; // do the lax thing
+    resp.setHeader('Set-Cookie', [accessCookie, refreshCookie, userIdCookie]);
     return resp;
   }
 

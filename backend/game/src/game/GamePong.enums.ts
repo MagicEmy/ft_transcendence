@@ -1,9 +1,3 @@
-// export enum GameStatus
-// {
-// 	COMPLETED = 'completed',
-// 	INTERRUPTED = 'interrupted'
-// }
-
 export enum GameState
 {
 	WAITING,
@@ -28,8 +22,12 @@ export enum	PlayerStatus
 export enum Button
 {
 	SPACE = 32,
+	ARROWLEFT = 37,
 	ARROWUP = 38,
+	ARROWRIGHT = 39,
 	ARROWDOWN = 40,
+	a = 65,
+	d = 68,
 	s = 83,
 	w = 87,
 }

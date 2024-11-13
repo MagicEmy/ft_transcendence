@@ -1,25 +1,28 @@
 .content {
-	margin: 3em auto;
-	text-align: center;
-	color: #0a04ad;
-  }
+  margin: 3em auto;
+  text-align: center;
+  color: #09467f;
+  font-family: 'Orbitron', sans-serif;
+}
 
-  .title {
-	font-size: 2em;
-	color: #0a04ad;
-  }
+.title {
+  font-size: 2em;
+  color: #09467f;
+  font-family: 'Orbitron', sans-serif;
+}
 
-  .backButton {
-		width: 200px;
-		flex-direction: row;
-		align-items: center;
-		border: none;
-		border-radius: 30px;
-		padding: 5px 30px;
-		background: linear-gradient(138deg, rgb(113, 153, 247) 41.7%, rgb(66, 63, 157) 94.4%, rgb(255, 255, 255) 119.7%);
-  }
+.backButton {
+  border: none;
+  border-radius: 30px;
+  padding: 5px 20px;
+  background: linear-gradient(in oklab, #09467f 10%, #2386a2 90%);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
-  .backButton:hover {
-		box-shadow: rgba(113, 153, 247, .2) 0 3px 15px inset, rgba(10, 4, 173, .91) 0 3px 5px, rgba(10, 4, 173, .91) 0 10px 13px;
-		transform: scale(1.05);
-  }
+.backButton:hover {
+  box-shadow: rgba(35, 174, 212, 0.3) 0 3px 15px inset,
+    rgba(35, 174, 212, 0.6) 0 3px 5px, rgba(35, 174, 212, 0.5) 0 10px 13px;
+  transform: scale(1.05);
+}

@@ -1,78 +1,153 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Button, Col, ListGroup, Row, OverlayTrigger, Tooltip } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import {
+  Button,
+  Col,
+  ListGroup,
+  Row,
+  OverlayTrigger,
+  Tooltip,
+  Toast,
+  ToastContainer,
+} from "react-bootstrap";
 import Dropdown from "react-bootstrap/Dropdown";
-import { ChatContext } from "../../context/ChatContext";
+import { useChat } from "../../context/ChatContext";
 import "./Sidebar.css";
-import { IoWalk, IoPizza, IoVolumeMute, IoSad, IoBeer, IoBicycle, IoDiamond, IoLockClosed, IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
+import {
+  IoWalk,
+  IoPizza,
+  IoVolumeMute,
+  IoSad,
+  IoBeer,
+  IoBicycle,
+  IoDiamond,
+  IoLockClosed,
+  IoEyeOffOutline,
+  IoEyeOutline,
+} from "react-icons/io5";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import { Link } from "react-router-dom";
 import "./ListGroup.css";
-import { UserDto, DoWithUserDto, JoinRoomDto, RoomDto, LeaveRoomDto, toDoUserRoomDto, RoomShowDto, UserShowDto, RoomUserDto, ChatUserDto, UpdateRoomDto, GameDto, ChatContextType, Notification } from "../../types/chat.dto";
+import {
+  UserDto,
+  DoWithUserDto,
+  JoinRoomDto,
+  RoomDto,
+  LeaveRoomDto,
+  RoomShowDto,
+  UserShowDto,
+  RoomUserDto,
+  ChatUserDto,
+  UpdateRoomDto,
+  Notification,
+  ToDoUserRoomDto,
+  ModerationType,
+  RoomMessageDto,
+} from "../../types/chat.dto";
 import useStorage from "./../../hooks/useStorage";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { host } from '../../utils/ApiRoutes';
-
+import "bootstrap/dist/css/bootstrap.min.css";
+import { useNavigate } from "react-router-dom";
+import GameInvitation from "./GameInvitation";
+import CreateChatRoom from "./CreateChatRoom";
+import UserAvatarChat  from "./UserAvatarChat";
 
 function Sidebar() {
-  const [userIdStorage] = useStorage<string>('userId', '');
-  const [userNameStorage] = useStorage<string>('userName', '');
+  const [userIdStorage] = useStorage<string>("userId", "");
+  const [userNameStorage] = useStorage<string>("userName", "");
   const user: UserDto = { userId: userIdStorage, userName: userNameStorage };
   const {
     socket,
+    isConnected,
     setMembers,
     members,
     setRoomMembers,
     roomMembers,
     setCurrentRoom,
+    currentRoom,
     setRooms,
-    directMsg,
     rooms,
     setDirectMsg,
-    currentRoom,
+    directMsg,
     setMyRooms,
     myRooms,
     setMessages,
-  } = useContext(ChatContext) as ChatContextType;
+  } = useChat();
 
-  const [addUser, setAddUser] = useState<string>("Select User");
-  const [gameInvite, setGameInvite] = useState<GameDto | {}>({} as GameDto);
-  const [myroomsToggle, setMyRoomsToggle] = useState<boolean>(false);
-  const [roomsToggle, setRoomsToggle] = useState<boolean>(false);
-  const [roomUsersToggle, setRoomUsersToggle] = useState<boolean>(false);
-  const [usersToggle, setUsersToggle] = useState<boolean>(false);
+
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [toast, setToast] = useState({ show: false, message: "" });
+  const [openSection, setOpenSection] = useState<string>("rooms")
+  const navigate = useNavigate();
+  const [userToInvite, setUserToInvite] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [userDataUpdate, setUserDataUpdate] = useState(0);
+
+  useEffect(() => {
+    if (isConnected && socket && !isInitialized) {
+      console.log("Initializing Sidebar");
+      setCurrentRoom({ roomName: "general", password: false });
+      socket.emit("chat_users", user);
+      socket.emit("join_room", {
+        roomName: "general",
+        user: user,
+        password: "",
+      });
+      setDirectMsg(null);
+      socket.emit("chat_rooms", user);
+      socket.emit("my_rooms", user);
+      socket.emit("game", user);
+      setIsInitialized(true);
+    }
+  }, [isConnected, socket, user, setCurrentRoom, setDirectMsg, isInitialized]);
+
+  const showToast = (message: string) => {
+    setToast({ show: true, message });
+  };
 
   const renderTooltip = (message: string) => (
-    <Tooltip id={`tooltip-${message}`}>
-      {message}
-    </Tooltip>
+    <Tooltip id={`tooltip-${message}`}>{message}</Tooltip>
   );
 
-  function handleAddUser(event: React.FormEvent) {
-    event.preventDefault();
-    if (!currentRoom)
-      return;
-    const newUser = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: addUser,
-      timer: 0,
-    };
-    socket.emit("add_user", newUser);
-    socket.off("add_user_response").on("add_user_response", (messages: string) => {
-      alert(messages);
-    });
+  function handleUserSelect(userId: string): void {
+    setSelectedUserId(userId);
   }
 
-  function handleUserSelect(event: string | null): void {
-    if (event === null) {
-      return;
+  const combinedRooms = [...myRooms, ...rooms.filter(room => !myRooms.some(myRoom => myRoom.roomName === room.roomName))]
+  .sort((a, b) => {
+    // General room always first
+    if (a.roomName === "general") return -1;
+    if (b.roomName === "general") return 1;
+    
+    // Then sort my rooms
+    const aIsMyRoom = myRooms.some(room => room.roomName === a.roomName);
+    const bIsMyRoom = myRooms.some(room => room.roomName === b.roomName);
+    
+    if (aIsMyRoom && !bIsMyRoom) return -1;
+    if (!aIsMyRoom && bIsMyRoom) return 1;
+    
+    // If both are my rooms or both are public, sort alphabetically
+    return a.roomName.localeCompare(b.roomName);
+  });
+
+  const getRoomBackgroundColor = (room: RoomShowDto, isActive: boolean) => {
+    if (isActive) {
+      return '#2386a2'; // Active room color
     }
-    setAddUser(event);
+    if (myRooms.some(myRoom => myRoom.roomName === room.roomName)) {
+      return '#1a5f7a'; // My room color
+    }
+    return '#09467f'; // Public room color
+  };
+
+  const toggleSection = (section: string) => {
+    setOpenSection(openSection === section ? "" : section);
   }
 
   function joinRoom(room: RoomDto) {
+    if (!socket) return;
     let password: string | null = "";
+    if (room.roomName === currentRoom?.roomName)
+      return
     if (room.password) {
       password = prompt("Please Enter a password");
       if (!password) {
@@ -85,22 +160,32 @@ function Sidebar() {
       password: room.password ? password : "",
     };
     socket.emit("join_room", roomToJoin);
-    socket.off("join_chat_response").on("join_chat_response", (message: string) => {
-      if (message === "Success") {
-        setNotifications(notifications.filter(notification => notification.roomName === currentRoom?.roomName));
-        setMessages([]);
-        setCurrentRoom(room);
-        setNotifications(notifications.filter(notification => notification.roomName === room.roomName));
-
-        alert("Welcome in " + room.roomName);
-      } else {
-        return alert(message);
-      }
-      setDirectMsg(null);
-    });
+    socket
+      .off("join_chat_response")
+      .on("join_chat_response", (message: string) => {
+        if (message === "Success") {
+          setNotifications(
+            notifications.filter(
+              (notification) => notification.roomName === currentRoom?.roomName
+            )
+          );
+          setMessages([]);
+          setCurrentRoom(room);
+          setNotifications(
+            notifications.filter(
+              (notification) => notification.roomName === room.roomName
+            )
+          );
+          setDirectMsg(null);
+          showToast("Welcome in " + room.roomName);
+        } else {
+          return showToast(message);
+        }
+      });
   }
 
   const leaveRoom = (roomName: string) => () => {
+    if (!socket) return;
     const leaveRoom: LeaveRoomDto = {
       roomName: roomName,
       user: user,
@@ -110,10 +195,13 @@ function Sidebar() {
     if (currentRoom && currentRoom.roomName === roomName) {
       joinRoom({ roomName: "general", password: false });
     }
-    alert(`You have left the room ${roomName}`);
+    showToast(`You have left the room ${roomName}`);
   };
 
   function joinDirectRoom(member: UserDto) {
+    if (!socket) return;
+    if (chatId(member.userId) === currentRoom?.roomName) 
+      return
     const members: DoWithUserDto = {
       userCreator: user,
       userReceiver: {
@@ -126,205 +214,91 @@ function Sidebar() {
       .off("join_direct_room_response")
       .on("join_direct_room_response", (message: string) => {
         if (message.indexOf("#") === -1) {
-          return alert(message);
+          return showToast(message);
         }
-        const room = {
+        const room: RoomDto = {
           roomName: message,
           password: false,
         };
         setDirectMsg(member);
         setMessages([]);
-        setNotifications(notifications.filter(notification => notification.roomName === currentRoom?.roomName));
+        setNotifications(
+          notifications.filter(
+            (notification) => notification.roomName === currentRoom?.roomName
+          )
+        );
         setCurrentRoom(room);
-        setNotifications(notifications.filter(notification => notification.roomName === room.roomName));
-        alert("Welcome");
+        setNotifications(
+          notifications.filter(
+            (notification) => notification.roomName === room.roomName
+          )
+        );
+        showToast("Welcome private chat with " + member.userName);
       });
   }
 
-  function muteUser(member: UserShowDto) {
-    if (!currentRoom)
-      return;
-    const seconds = prompt("Enter the number of seconds to mute the user");
-    if (isNaN(Number(seconds))) {
-      return alert("Please enter a number");
-    } else {
-      const muteUser: toDoUserRoomDto = {
-        roomName: currentRoom.roomName,
-        user: user,
-        toDoUser: member.userId,
-        timer: parseInt(seconds ?? "0", 10),
-      };
-      socket.emit("mute_user", muteUser);
+
+  function handleModRoomAction(userId: string, type: ModerationType) {
+    if (!socket) return;
+    if (!currentRoom) return;
+    let toDoUser: ToDoUserRoomDto = {
+      roomName: currentRoom.roomName,
+      type: type,
+      user: user,
+      toDoUser: userId,
+      timer: 0,
+    };
+    if (type === ModerationType.MUTE) {
+      const seconds = prompt("Enter the number of seconds to mute the user");
+      if (isNaN(Number(seconds))) {
+        return showToast("Please enter a number");
+      }
+      toDoUser.timer = parseInt(seconds ?? "0", 10);
     }
+    socket.emit("moderate_room", toDoUser);
   }
 
-  function unMuteUser(member: UserShowDto) {
-    if (!currentRoom)
-      return;
-    const unmuteUser: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("unmute_user", unmuteUser);
-  }
 
-  function banUser(member: UserShowDto) {
-    if (!currentRoom)
-      return;
-    const banUser: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("ban_user", banUser);
-  }
-
-  function unBanUser(member: UserShowDto) {
-    if (!currentRoom)
-      return;
-    const unBanUser: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("unban_user", unBanUser);
-  }
-
-  function kickUser(member: UserShowDto) {
-    if (!currentRoom)
-      return;
-    const banUser: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("kick_user", banUser);
-    socket.off("kick_user_response").on("kick_user_response", (message: string) => {
-      if (message !== "Success") {
-        alert(message);
-      }
-      else {
-        alert("User Kicked:" + member.userName);
-      }
-    });
-  }
-
-  function makeAdmin(member: UserShowDto) {
-    if (!currentRoom)
-      return;
-    const makeAdmin: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("make_admin", makeAdmin);
-  }
-
-  function removeAdmin(member: UserShowDto) {
-    if (!currentRoom)
-      return;
-    const removeAdmin: toDoUserRoomDto = {
-      roomName: currentRoom.roomName,
-      user: user,
-      toDoUser: member.userId,
-      timer: 0,
-    };
-    socket.emit("remove_admin", removeAdmin);
+  function handleAddUser(event: React.FormEvent) {
+    event.preventDefault();
+    if (!currentRoom || !selectedUserId) return;
+    handleModRoomAction(selectedUserId, ModerationType.ADD);
   }
 
   function blockUser(member: UserShowDto | ChatUserDto) {
-    if (!currentRoom)
-      return;
-    const blockUser: toDoUserRoomDto = {
+    if(!socket) return;
+    if (!currentRoom) return;
+    const blockUser:ToDoUserRoomDto = {
       roomName: currentRoom.roomName,
+      type: ModerationType.BAN,
       user: user,
       toDoUser: member.userId,
       timer: 0,
     };
     socket.emit("block_user", blockUser);
-    socket.off("block_user_response").on("block_user_response", (message: string) => {
-      if (message !== "Success") {
-        alert(message);
-      }
-    });
   }
 
   function unBlockUser(member: UserShowDto | ChatUserDto) {
-    if (!currentRoom)
-      return;
-    const blockUser: toDoUserRoomDto = {
+    if(!socket) return;
+    if (!currentRoom) return;
+    const blockUser: ToDoUserRoomDto = {
       roomName: currentRoom.roomName,
+      type: ModerationType.UNBAN,
       user: user,
       toDoUser: member.userId,
       timer: 0,
     };
     socket.emit("unblock_user", blockUser);
   }
-
-  function inviteGame(member: UserShowDto | ChatUserDto) {
-    const inviteGame: DoWithUserDto = {
-      userCreator: user,
-      userReceiver: {
-        userId: member.userId,
-        userName: member.userName,
-      },
-    };
-    socket.emit("invite_game", inviteGame);
-    socket.off("invite_game_response").on("invite_game_response", (message: string) => {
-      if (message !== "Success") {
-        alert(message);
-      } else {
-        alert("Game Invite Sent to " + member.userName);
-      }
-    });
-  }
+ 
   function chatId(userId: string): string {
-    return userId < user.userId ? "#" + userId + user.userId : "#" + user.userId + userId;
+    return userId < user.userId
+      ? "#" + userId + user.userId
+      : "#" + user.userId + userId;
   }
 
-  function acceptGameInvite() {
-    if ('user' in gameInvite) {
-
-      const acceptGameInvite: DoWithUserDto = {
-        userCreator: gameInvite.user,
-        userReceiver: user,
-      };
-      socket.emit("accept_game", acceptGameInvite);
-      socket.off("accept_game_response").on("accept_game_response", (message: string) => {
-        if (message !== "Success") {
-          alert(message);
-        } else {
-          alert("Game Invite from" + gameInvite.user.userName + " Accepted");
-        }
-      });
-    }
-  }
-
-  function declineGameInvite() {
-    if ('user' in gameInvite) {
-      const declineGameInvite: DoWithUserDto = {
-        userCreator: gameInvite.user,
-        userReceiver: user,
-      };
-      socket.emit("decline_game", declineGameInvite);
-      socket
-        .off("decline_game_response")
-        .on("decline_game_response", (message: string) => {
-          if (message !== "Success") {
-            alert(message);
-          } else {
-            alert("Game Invite Declined");
-          }
-        });
-    }
-  }
   function setPassword(room: RoomShowDto, isPassword: boolean) {
+    if(!socket) return;
     let password: string | null = "";
     if (isPassword) {
       password = prompt(`Enter the new password for the room ${room.roomName}`);
@@ -340,18 +314,10 @@ function Sidebar() {
       updateExclusive: room.exclusive,
     };
     socket.emit("update_room", updateRoom);
-    socket.off("update_room_response").on("update_room_response", (message: string) => {
-      if (message !== "Success") {
-        alert(message);
-      } else if (isPassword) {
-        alert("Room Password Updated");
-      } else {
-        alert("Room Password Removed");
-      }
-    });
   }
 
   function setExclusive(room: RoomShowDto, isExclusive: boolean) {
+    if(!socket) return;
     const updateRoom: UpdateRoomDto = {
       user: user,
       roomName: room.roomName,
@@ -360,91 +326,135 @@ function Sidebar() {
       updateExclusive: isExclusive,
     };
     socket.emit("update_room", updateRoom);
-    socket.off("update_room_response").on("update_room_response", (message: string) => {
-      if (message !== "Success") {
-        alert(message);
-      } else if (isExclusive) {
-        alert("Room set as Exclusive");
-      } else {
-        alert("Room set as Public");
-      }
-    });
   }
 
+  const handleInvitationSent = () => {
+    setUserToInvite(null);
+  };
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("chat_users", (payload: ChatUserDto[]) => {
+        setMembers(payload);
+        setUserDataUpdate(prev => prev + 1);
+      });
+      socket.on("chat_rooms", (payload: RoomShowDto[]) => {
+        setRooms(payload);
+      });
+      socket.on("my_rooms", (payload: RoomShowDto[]) => {
+        setMyRooms(payload);
+      });
+      socket.on("room_users", (payload: RoomUserDto) => {
+        setRoomMembers(payload);
+      });
+      socket.on("response", (message: string) => {
+        showToast(message);
+      });
+      socket.on("moderate_room_action", (message: RoomMessageDto) => {
+        if (message.roomName === currentRoom?.roomName) {
+          if (message.message === "Kicked") {
+            showToast("You have been kicked from the room");
+            joinRoom({ roomName: "general", password: false });
+          }
+          else if (message.message === "Banned") {
+            showToast("You have been banned from the room");
+            joinRoom({ roomName: "general", password: false });
+          }
+          else {
+            showToast(message.message);
+          }
+        }
+      });
+      socket.on("notifications", (room: string) => {
+        console.log("Notification received for room:", room);
+        setNotifications((notifications) => {
+          const existingNotificationIndex = notifications.findIndex(
+            (n) => n.roomName === room
+          );
+          if (existingNotificationIndex !== -1) {
+            return notifications.map((notification, index) => {
+              if (index === existingNotificationIndex) {
+                return { ...notification, count: notification.count + 1 };
+              }
+              return notification;
+            });
+          } else {
+            const newNotification = { roomName: room, count: 1 };
+            console.log("Adding new notification:", newNotification);
+            return [...notifications, newNotification];
+          }
+        });
+      });
+      return () => {
+        socket.off("chat_users");
+        socket.off("chat_rooms");
+        socket.off("my_rooms");
+        socket.off("room_users");
+        socket.off("response");
+        socket.off("moderate_room_action");
+        socket.off("notifications");
+      };
+    }
+  }, [socket]);
+
+  
   function adminDropDown(currentUser: UserShowDto, member: UserShowDto) {
-    if (
-      member.userId !== currentUser.userId &&
-      currentUser.isAdmin &&
-      !member.isOwner
-    ) {
+    if ( member.userId !== currentUser.userId && currentUser.isAdmin && !member.isOwner) {
       return (
         <>
           <Dropdown.Item
             onClick={() =>
-              member.isAdmin ? removeAdmin(member) : makeAdmin(member)
+              member.isAdmin ? handleModRoomAction(member.userId, ModerationType.REMOVEADMIN) : handleModRoomAction(member.userId, ModerationType.MAKEADMIN)
             }
           >
             {member.isAdmin ? "Remove Admin" : "Make Admin"}
           </Dropdown.Item>
           <Dropdown.Item
             onClick={() =>
-              member.isMuted ? unMuteUser(member) : muteUser(member)
+              member.isMuted ? handleModRoomAction(member.userId, ModerationType.UNMUTE) : handleModRoomAction(member.userId, ModerationType.MUTE)
             }
           >
             {member.isMuted ? "Unmute User" : "Mute User"}
           </Dropdown.Item>
           <Dropdown.Item
             onClick={() =>
-              member.isBanned ? unBanUser(member) : banUser(member)
+              member.isBanned ? handleModRoomAction(member.userId, ModerationType.UNBAN) : handleModRoomAction(member.userId, ModerationType.BAN)
             }
           >
             {member.isBanned ? "Unban User" : "Ban User"}
           </Dropdown.Item>
-          <Dropdown.Item onClick={() => kickUser(member)}>
-            {"kick User"}
+          <Dropdown.Item onClick={() => handleModRoomAction(member.userId, ModerationType.KICK)}>
+            kick User
           </Dropdown.Item>
         </>
       );
     }
+    return null;
   }
 
   function ownerDropDown(room: RoomShowDto) {
     if (room.owner !== user.userId) {
-      return true;
+      return null;
     }
-    let change_password: JSX.Element | string = "";
-    if (room.password) {
-      change_password = (
-        <Dropdown.Item onClick={() => setPassword(room, true)}>
-          {"Change Password"}
-        </Dropdown.Item>
-      );
-    }
-
     return (
       <Dropdown>
-        <Dropdown.Toggle variant="Secondary" id="dropdown-basic">
-        </Dropdown.Toggle>
+        <Dropdown.Toggle variant="Secondary" id="dropdown-basic"></Dropdown.Toggle>
         <Dropdown.Menu className="min-width-0">
           <Dropdown.Item
-            onClick={() =>
-              room.exclusive
-                ? setExclusive(room, false)
-                : setExclusive(room, true)
-            }
+            onClick={() => setExclusive(room, !room.exclusive)}
           >
             {room.exclusive ? "Make Public" : "Make Exclusive"}
           </Dropdown.Item>
           <Dropdown.Item
-            onClick={() =>
-              room.password
-                ? setPassword(room, false)
-                : setPassword(room, true)
-            }
+            onClick={() => setPassword(room, !room.password)}
           >
             {room.password ? "Remove Password" : "Add Password"}
           </Dropdown.Item>
-          {change_password}
+          {room.password && (
+            <Dropdown.Item onClick={() => setPassword(room, true)}>
+              Change Password
+            </Dropdown.Item>
+          )}
         </Dropdown.Menu>
       </Dropdown>
     );
@@ -452,15 +462,10 @@ function Sidebar() {
 
   function userDropDown(member: UserShowDto | ChatUserDto) {
     if (member.userId !== user.userId) {
-      let isBlock: boolean = false;
-      member.userBeenBlocked.forEach((element) => {
-        if (element === user.userId) {
-          isBlock = true;
-        }
-      });
+      const isBlock = member.userBeenBlocked.includes(user.userId);
       return (
         <>
-          <Dropdown.Item href={"/profile"}>
+          <Dropdown.Item as={Link} to={`/profile/${member.userId}`}>
             View Profile
           </Dropdown.Item>
           <Dropdown.Item
@@ -468,391 +473,336 @@ function Sidebar() {
           >
             {isBlock ? "unblock User" : "block User"}
           </Dropdown.Item>
-          <Dropdown.Item onClick={() => inviteGame(member)}>
-            {"invite game"}
+          <Dropdown.Item onClick={() => setUserToInvite(member)}>
+            Invite to Game
           </Dropdown.Item>
         </>
       );
     } else {
       return (
-
-        <Dropdown.Item href={"/profile"}>
+        <Dropdown.Item as={Link} to={`/profile/${user.userId}`}>
           View Profile
         </Dropdown.Item>
       );
     }
   }
 
-  useEffect(() => {
-    setCurrentRoom({ roomName: "general", password: false });
-    socket.emit("chat_users", user);
-    socket.emit("join_room", {
-      roomName: "general",
-      user: user,
-      password: "",
-    });
-    socket.emit("chat_rooms", user);
-    socket.emit("my_rooms", user);
-    socket.emit("game", user);
-  }, []);
-
-
-  socket.off("chat_users").on("chat_users", (payload: ChatUserDto[]) => {
-    setMembers(payload);
-  });
-  socket.off("chat_rooms").on("chat_rooms", (payload: RoomShowDto[]) => {
-    setRooms(payload);
-  });
-  socket.off("my_rooms").on("my_rooms", (payload: RoomShowDto[]) => {
-    setMyRooms(payload);
-  });
-  socket.off("room_users").on("room_users", (payload: RoomUserDto) => {
-    setRoomMembers(payload);
-  });
-  socket.off("game").on("game", (payload: GameDto) => {
-    if (payload.type === "decline the game") {
-      setGameInvite({}); // clear the game invite
-    } else {
-      setGameInvite(payload);
-    }
-  });
-
-  socket.off("notifications").on("notifications", (room: string) => {
-    console.log("Notification received for room:", room);
-    setNotifications((notifications) => {
-      console.log("Current notifications:", notifications);
-      // Check if notification for the room already exists
-      const existingNotificationIndex = notifications.findIndex(n => n.roomName === room);
-      if (existingNotificationIndex !== -1) {
-        // If exists, create a new array with updated count for that notification
-        return notifications.map((notification, index) => {
-          if (index === existingNotificationIndex) {
-            return { ...notification, count: notification.count + 1 };
-          }
-          return notification;
-        });
-      } else {
-        // If not, add a new notification
-        const newNotification = { roomName: room, count: 1 };
-        console.log("Adding new notification:", newNotification);
-        return [...notifications, newNotification];
-      }
-    });
-  });
-
-
-
   if (!user) {
-    return <></>;
+    return null;
   }
+
   return (
-    <>
-      <h4 className="mt-5">Public Rooms
-        {roomsToggle ? (
-          <Button onClick={() => setRoomsToggle(!roomsToggle)}>
-            <IoEyeOutline />
+    <div className="sidebar-container">
+      <div className="sidebar-section">
+        <h4 className="sidebar-heading">
+          Rooms
+          <Button
+            className="sidebar-toggle-button"
+            onClick={() => toggleSection("rooms")}
+          >
+            {openSection === "rooms" ? <IoEyeOutline /> : <IoEyeOffOutline />}
           </Button>
-        ) : (
-          <Button onClick={() => setRoomsToggle(!roomsToggle)}>
-            <IoEyeOffOutline />
-          </Button>
-        )}
-      </h4>{" "}
-      {roomsToggle && (
+        </h4>
+      {openSection === "rooms" && (
         <ListGroup className="list-group">
-          {rooms.map((room, idx) => (
-            <ListGroup.Item
-              key={idx}
-              onClick={() => joinRoom(room)}
-              active={room.roomName === currentRoom?.roomName}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              {room.roomName} {currentRoom?.roomName !== room.roomName}
-              <span>
-                <OverlayTrigger
-                  placement="top"
-                  overlay={renderTooltip("Exclusive Room")}
-                >
-                  <span>{room.exclusive && <IoDiamond />}</span>
-                </OverlayTrigger>
-                <OverlayTrigger
-                  placement="top"
-                  overlay={renderTooltip("Password Protected")}
-                >
-                  <span>{room.password && <IoLockClosed />}</span>
-                </OverlayTrigger>
-              </span>
-              {currentRoom?.roomName !== room.roomName && (<span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === room.roomName)?.count}</span>)}
-
-            </ListGroup.Item>
-          ))}
-        </ListGroup>
-      )}
-      <h4 className="mt-5">My Rooms
-        {myroomsToggle ? (
-          <Button onClick={() => setMyRoomsToggle(!myroomsToggle)}>
-            <IoEyeOutline />
-          </Button>
-        ) : (
-          <Button onClick={() => setMyRoomsToggle(!myroomsToggle)}>
-            <IoEyeOffOutline />
-          </Button>
-        )}
-      </h4>{" "}
-      {myroomsToggle && (
-        <ListGroup className="list-group">
-          {myRooms.map((room, idx) => (
-            <ListGroup.Item
-              key={idx}
-              active={room.roomName === currentRoom?.roomName}
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <p onClick={() => joinRoom(room)}>{room.roomName} </p>
-              <span>
-                <OverlayTrigger
-                  placement="top"
-                  overlay={renderTooltip("Exclusive Room")}
-                >
-                  <span>{room.exclusive && <IoDiamond />}</span>
-                </OverlayTrigger>
-                <OverlayTrigger
-                  placement="top"
-                  overlay={renderTooltip("Password Protected")}
-                >
-                  <span>{room.password && <IoLockClosed />}</span>
-                </OverlayTrigger>
-              </span>
-              {currentRoom?.roomName !== room.roomName && (<span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === room.roomName)?.count}</span>)}
-              {ownerDropDown(room)}
-              {room.roomName !== "general" && (
-                <Button variant="warning" onClick={leaveRoom(room.roomName)}>
-                  Leave Room
-                </Button>
-              )}
-            </ListGroup.Item>
-          ))}
-        </ListGroup>
-      )}
-      <h4 className="mt-5">
-        Room Users{" "}
-        {roomUsersToggle ? (
-          <Button onClick={() => setRoomUsersToggle(!roomUsersToggle)}>
-            <IoEyeOutline />
-          </Button>
-        ) : (
-          <Button onClick={() => setRoomUsersToggle(!roomUsersToggle)}>
-            <IoEyeOffOutline />
-          </Button>
-        )}
-        {Object.keys(roomMembers).length !== 0 &&
-          roomMembers.users.map((member) => {
-            if (member.userId === user.userId && member.isAdmin) {
-              return (
-                <>
-                  <DropdownButton
-                    id="dropdown-basic-button"
-                    title={addUser}
-                    onSelect={handleUserSelect}
-                    variant=""
-                    className="d-inline-block"
-                  >
-                    {members.map((member) => {
-                      if (member.userId !== user.userId) {
-                        return (
-                          <Dropdown.Item
-                            key={member.userId}
-                            eventKey={member.userId}
-                          >
-                            {member.userName}
-                          </Dropdown.Item>
-                        );
-                      }
-                      else return null;
-                    })
-
-                    }
-                  </DropdownButton>
-                  <Button variant="outline-dark" onClick={handleAddUser}>
-                    + Add
-                  </Button>
-                </>
-              );
-            }
-            else return null;
-          }
-          )}
-
-      </h4>
-      {roomUsersToggle &&
-        Object.keys(roomMembers).length !== 0 &&
-        roomMembers.roomName === currentRoom?.roomName &&
-        roomMembers.users.map((member) => {
-          let currentUser: UserShowDto = {} as UserShowDto;
-          roomMembers.users.forEach((element) => {
-            if (element.userId === user.userId) {
-              currentUser = element;
-            }
-          });
-          if (!currentUser) {
-            return null;
-          }
-          return (
-            <ListGroup.Item key={member.userId} style={{ cursor: "pointer" }}>
-              <Row>
-                <Col xs={6}>
-                  {member.userName}
-                  <img
-                    alt='user-avatar'
-                    src={`http://${host}:3001/avatar/${member.userId}`}
-                    className="member-status-img"
-                  />
-                  {member.userId === user.userId && " (You)"}
-                </Col>
-                <Col>
-                <OverlayTrigger
+          {combinedRooms.map((room, idx) => {
+            const isMyRoom = myRooms.some(myRoom => myRoom.roomName === room.roomName);
+            const isActive = room.roomName === currentRoom?.roomName;
+            return (
+              <ListGroup.Item
+                key={idx}
+                active={isActive}
+                style={{
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  backgroundColor: getRoomBackgroundColor(room, isActive),
+                  color: '#ffffff',
+                  border: 'none',
+                  margin: '5px 0',
+                  borderRadius: '5px',
+                  padding: '10px 15px',
+                  transition: 'background-color 0.3s ease',
+                }}
+              >
+                {' '}
+                <span onClick={() => joinRoom(room)} style={{ flex: 1 }}>
+                  {room.roomName}
+                  {isMyRoom && ' (My Room)'}
+                </span>
+                <span>
+                  <OverlayTrigger
                     placement="top"
-                    overlay={renderTooltip("Room Owner")}
+                    overlay={renderTooltip('Exclusive Room')}
                   >
-                    <span>{member.isOwner && <IoPizza />}</span>
+                    <span>{room.exclusive && <IoDiamond />}</span>
                   </OverlayTrigger>
                   <OverlayTrigger
                     placement="top"
-                    overlay={renderTooltip("Admin")}
+                    overlay={renderTooltip('Password Protected')}
                   >
-                    <span>{member.isAdmin && <IoWalk />}</span>
+                    <span>{room.password && <IoLockClosed />}</span>
                   </OverlayTrigger>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={renderTooltip("Muted")}
-                  >
-                    <span>{member.isMuted && <IoVolumeMute />}</span>
-                  </OverlayTrigger>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={renderTooltip("Banned")}
-                  >
-                    <span>{member.isBanned && <IoSad />}</span>
-                  </OverlayTrigger>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={renderTooltip("Online")}
-                  >
-                    <span>{member.online && <IoBeer />}</span>
-                  </OverlayTrigger>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={renderTooltip("Offline")}
-                  >
-                    <span>{!member.online && <IoBicycle />}</span>
-                  </OverlayTrigger>
-                </Col>
-
-                <Col xs={3}>
+                </span>
+                {!isActive && (
                   <span className="badge rounded-pill bg-primary">
-                    <Dropdown>
-                      <Dropdown.Toggle variant="Secondary" id="dropdown-basic">
+                    {notifications.find(
+                        (notification) => notification.roomName === room.roomName,
+                      )?.count}
+                  </span>
+                )}
+                {isMyRoom && (
+                  <>
+                    {ownerDropDown(room)}
+                    {room.roomName !== 'general' && (
+                      <Button
+                        variant="warning"
+                        onClick={leaveRoom(room.roomName)}
+                        style={{
+                          background: '#ffa500',
+                          border: 'none',
+                          borderRadius: '30px',
+                          padding: '5px 15px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginLeft: '10px',
+                          color: '#09467f',
+                        }}
+                      >
+                        Leave
+                      </Button>
+                    )}
+                  </>
+                )}
+              </ListGroup.Item>
+            );
+          })}
+        </ListGroup>
+        )}
+      </div>
+    
+      <div className="sidebar-section">
+        <h4 className="sidebar-heading">
+          Room Users
+          <Button
+            onClick={() => toggleSection("roomUsers")}
+            className="sidebar-toggle-button"
+          >
+            {openSection === "roomUsers" ? <IoEyeOutline /> : <IoEyeOffOutline />}
+          </Button>
+        </h4>
+        {openSection === "roomUsers" && (
+          <ListGroup className="scrollable-list">
+            {Object.keys(roomMembers).length !== 0 &&
+              roomMembers.roomName === currentRoom?.roomName &&
+              roomMembers.users.map((member) => {
+                if (member.userId === user.userId && member.isAdmin) {
+                  return (
+                    <React.Fragment key={member.userId}>
+                      <DropdownButton
+                        id="dropdown-basic-button"
+                        title={selectedUserId ? members.find(m => m.userId === selectedUserId)?.userName || "Select User" : "Select User"}
+                        variant=""
+                        className="d-inline-block"
+                      >
+                        {members.map((member) => {
+                          if (member.userId !== user.userId) {
+                            return (
+                              <Dropdown.Item
+                                key={member.userId}
+                                onClick={() => handleUserSelect(member.userId)}
+                              >
+                                {member.userName}
+                              </Dropdown.Item>
+                            );
+                          } else return null;
+                        })}
+                      </DropdownButton>
+                      <Button variant="outline-dark" onClick={handleAddUser}
+                        style={{
+                          background: "linear-gradient(in oklab, #09467f 10%, #2386a2 90%)",
+                          border: "none",
+                          borderRadius: "30px",
+                          padding: "5px 15px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}>
+                        + Add
+                      </Button>
+                    </React.Fragment>
+                  );
+                } else return null;
+              })}
+            {Object.keys(roomMembers).length !== 0 &&
+              roomMembers.roomName === currentRoom?.roomName &&
+              roomMembers.users.map((member) => {
+                const currentUser = roomMembers.users.find((member) => member.userId === user.userId);
+                if (!currentUser) {
+                  return null;
+                }
+                return (
+                  <ListGroup.Item key={member.userId} style={{ cursor: "pointer" }}>
+                    <Row className="align-items-center">
+                      <Col xs={2} className="member-status">
+                      <UserAvatarChat
+                        userId={member.userId} 
+                        className="member-status-img" 
+                        updateTrigger={userDataUpdate}
+                        />
+                      </Col>
+                      <Col xs={6}>
+                        {member.userName}
+                        {member.userId === user.userId && " (You)"}
+                      </Col>
+                      <Col xs={2}>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Room Owner")}
+                        >
+                          <span>{member.isOwner && <IoPizza />}</span>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Admin")}
+                        >
+                          <span>{member.isAdmin && <IoWalk />}</span>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Muted")}
+                        >
+                          <span>{member.isMuted && <IoVolumeMute />}</span>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Banned")}
+                        >
+                          <span>{member.isBanned && <IoSad />}</span>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Online")}
+                        >
+                          <span>{member.online && <IoBeer />}</span>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={renderTooltip("Offline")}
+                        >
+                          <span>{!member.online && <IoBicycle />}</span>
+                        </OverlayTrigger>
+                      </Col>
+
+                      <Col xs={2}>
+                          <Dropdown className="dropdown-wrapper">
+                            <Dropdown.Toggle variant="Secondary" id={`dropdown-${member.userId}`}  className="p-0">
+                              ...
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu className="dropdown-menu-right">
+                              {userDropDown(member)}
+                              {adminDropDown(currentUser, member)}
+                            </Dropdown.Menu>
+                          </Dropdown>
+                      </Col>
+                    </Row>
+                  </ListGroup.Item>
+                )
+              })
+            }
+          </ListGroup>
+        )}
+      </div>
+
+    <div className="sidebar-section">
+      <h4 className="sidebar-heading">
+        Users
+          <Button
+            onClick={() => toggleSection("users")}
+            className="sidebar-toggle-button"
+          >
+            {openSection === "users" ? <IoEyeOutline /> : <IoEyeOffOutline />}
+          </Button>
+        </h4>
+        {openSection === "users" && (
+          <ListGroup>
+            {members.map((member) => (
+              <ListGroup.Item
+                key={member.userId}
+                active={directMsg?.userId === member.userId}
+                style={{
+                  cursor: "pointer",
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Row>
+                  <Col xs={2} className="member-status">
+                  <UserAvatarChat
+                      userId={member.userId} 
+                      className="member-status-img" 
+                      updateTrigger={userDataUpdate}
+                    />
+                    {member.online === true ? (
+                      <i className="fas fa-circle sidebar-online-status"></i>
+                    ) : (
+                      <i className="fas fa-circle sidebar-offline-status"></i>
+                    )}
+                  </Col>
+                  <Col xs={5} onClick={() => joinDirectRoom(member)}>
+                    {member.userName}
+                    {member.userId === user?.userId && " (You)"}
+                    {currentRoom?.roomName !== chatId(member.userId) && (
+                      <span className="badge rounded-pill bg-primary">
+                        {notifications.find(
+                            (notification) =>
+                              notification.roomName === chatId(member.userId)
+                          )?.count}
+                      </span>
+                    )}
+                  </Col>
+                  <Col xs={4}>
+                    <Dropdown className="dropdown-wrapper">
+                      <Dropdown.Toggle variant="Secondary" id={`dropdown-${member.userId}`}>
                         ...
                       </Dropdown.Toggle>
-
-                      <Dropdown.Menu className="min-width-0">
+                      <Dropdown.Menu className="dropdown-menu-right">
                         {userDropDown(member)}
-                        {adminDropDown(currentUser, member)}
                       </Dropdown.Menu>
                     </Dropdown>
-                  </span>
-                </Col>
-              </Row>
-            </ListGroup.Item>
-          );
-        })}
-      <h4 className="mt-5">Users
-        {usersToggle ? (
-          <Button onClick={() => setUsersToggle(!usersToggle)}>
-            <IoEyeOutline />
-          </Button>
-        ) : (
-          <Button onClick={() => setUsersToggle(!usersToggle)}>
-            <IoEyeOffOutline />
-          </Button>
+                  </Col>
+                </Row>
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
         )}
-      </h4>{" "}
-      {usersToggle &&
-        members.map((member) => (
-          <ListGroup.Item
-            key={member.userId}
-            style={{ cursor: "pointer" }}
-            active={directMsg?.userId === member?.userId}
-          >
-            <Row>
-              <Col xs={2} className="member-status">
-                <img
-                  alt="user-avatar"
-                  src={`http://${host}:3001/avatar/${member.userId}`}
-                  className="member-status-img"
-                />
-                {member.online === true ? (
-                  <i className="fas fa-circle sidebar-online-status"></i>
-                ) : (
-                  <i className="fas fa-circle sidebar-offline-status"></i>
-                )}
-              </Col>
-              <Col xs={5} onClick={() => joinDirectRoom(member)}>
-                {member.userName}
-                {member.userId === user?.userId && " (You)"}
-                {member.online === false && " (Offline)"}
-                <span className="badge rounded-pill bg-primary">{notifications.find(notification => notification.roomName === chatId(member.userId))?.count}</span>
-              </Col>
-              <Col xs={4}>
-                <Dropdown>
-                  <Dropdown.Toggle variant="Secondary" id="dropdown-basic">
-                    ...
-                  </Dropdown.Toggle>
+        <GameInvitation
+          userToInvite={userToInvite} 
+          onInvitationSent={handleInvitationSent}
+        />
+      </div>
 
-                  <Dropdown.Menu className="min-width-0">
-                    {userDropDown(member)}
-                  </Dropdown.Menu>
-                </Dropdown>
-              </Col>
-            </Row>
-          </ListGroup.Item>
-        ))}
-      <h2 className="mt-5">Game Invite </h2>
-      {Object.keys(gameInvite).length !== 0 && "type" in gameInvite && (
-        <ListGroup.Item
-          key={gameInvite.user.userId}
-          style={{ cursor: "pointer" }}
+      <div className="sidebar-section">
+        <CreateChatRoom />
+      </div>
+
+      <ToastContainer className="p-3 sidebar-toast-container">
+        <Toast
+          onClose={() => setToast({ ...toast, show: false })}
+          show={toast.show}
+          delay={3000}
+          autohide
+          style={{minWidth: "250px",}}
         >
-          <Row>
-            <Col xs={6}>{gameInvite.user.userName}</Col>
-          </Row>
-        </ListGroup.Item>
-      )}
-      {Object.keys(gameInvite).length !== 0 && "type" in gameInvite &&
-        gameInvite.type === "invitation" && (
-          <Button variant="success" onClick={acceptGameInvite}>
-            Accept
-          </Button>
-        )}
-      {Object.keys(gameInvite).length !== 0 && "type" in gameInvite && gameInvite.type === "host" && (
-        <Button variant="danger" onClick={declineGameInvite}>
-          Decline
-        </Button>
-      )}
-      {Object.keys(gameInvite).length !== 0 && "type" in gameInvite &&
-        gameInvite.type === "start the game" && (
-          <Link to="/game" className="btn btn-info">
-            Go to Game
-          </Link>
-        )}
-    </>
+          <Toast.Header>
+            <strong className="me-auto">Notification</strong>
+          </Toast.Header>
+          <Toast.Body>{toast.message}</Toast.Body>
+          </Toast>
+      </ToastContainer>
+    </div>
   );
-}
-export default Sidebar;
+  }
+  export default Sidebar;
