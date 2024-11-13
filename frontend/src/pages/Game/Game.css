@@ -1,0 +1,22 @@
+#game
+{
+	min-width: 100px;
+	width: 100%;
+
+	min-height: 75px;
+	max-height: 6000px;
+	--TsHeightAdjust: 0px; /* Set in GameGraphics.resizeElements() */
+	height: calc(100vh - var(--TsHeightAdjust));
+
+	position: relative;
+	display: flex;
+	justify-content: center;
+}
+
+#gameBackground,
+#gameCanvas,
+#gameHUD,
+#gameMenu
+{
+	position: absolute;
+}

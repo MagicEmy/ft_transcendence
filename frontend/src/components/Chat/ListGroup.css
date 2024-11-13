@@ -1,0 +1,10 @@
+.list-group{  
+    max-height: 200px;
+    margin-bottom: 10px;
+    overflow:scroll;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* .list-group-item{
+    width: 10%;;
+} */

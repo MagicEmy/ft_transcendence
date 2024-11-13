@@ -1,0 +1,120 @@
+body {
+  font-family: 'Orbitron', sans-serif;
+}
+
+.header {
+  max-width: 100%;
+  padding: 2rem;
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(in oklab, #09467f, #2386a2);
+  height: auto;
+  flex-wrap: wrap;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+}
+
+.avatarImage {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  cursor: pointer;
+  box-shadow: 1px 2px 2px hsl(209deg 87% 27% / 0.125),
+    2px 4px 4px hsl(209deg 87% 27% / 0.125),
+    4px 8px 8px hsl(209deg 87% 27% / 0.125),
+    8px 16px 16px hsl(209deg 87% 27% / 0.125),
+    16px 32px 32px hsl(209deg 87% 27% / 0.125);
+}
+
+.name {
+  position: relative;
+  font-family: 'Orbitron', sans-serif;
+  color: rgb(255, 165, 0);
+  text-shadow: 1px 1px 3px black;
+  /* margin-left: 1rem; */
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  margin-right: 2rem;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.list button {
+  margin-top: 5px;
+  width: 135px;
+  background-color: #ffa500;
+  border: none;
+  border-radius: 30px;
+  color: #09467f;
+  padding: 10px;
+  margin-right: 4rem;
+  cursor: pointer;
+}
+
+.list button:hover,
+.list button.active {
+  background-color: #fcc30a;
+  color: #2386a2;
+  box-shadow: rgba(246, 156, 82, 0.2) 0 3px 15px inset,
+    rgba(202, 89, 3, 0.91) 0 3px 5px, rgba(202, 89, 3, 0.91) 0 10px 13px;
+  border-radius: 30px;
+  padding: 10px;
+  margin-right: 4rem;
+  cursor: pointer;
+  transform: scale(1.05);
+}
+
+.logout {
+  display: flex;
+  align-items: center;
+  justify-items: center;
+  flex-direction: column;
+}
+
+.logoutButton {
+  width: 135px;
+  padding: 10px;
+  background-color: orange;
+  border: none;
+  color: #09467f;
+  border-radius: 30px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+  margin-right: 3rem;
+  margin-left: -3rem;
+  flex-wrap: wrap;
+}
+
+.logoutButton:hover {
+  background-color: #fcc30a;
+  color: #2386a2;
+  box-shadow: rgba(246, 156, 82, 0.2) 0 3px 15px inset,
+    rgba(202, 89, 3, 0.91) 0 3px 5px, rgba(202, 89, 3, 0.91) 0 10px 13px;
+  transform: scale(1.05);
+}
+
+.quote {
+  margin-top: -40px;
+  margin-right: 3rem;
+  margin-left: -3rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: orange;
+  text-shadow: 1px 1px 3px black;
+}

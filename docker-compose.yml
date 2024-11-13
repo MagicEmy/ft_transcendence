@@ -1,0 +1,254 @@
+services:
+
+  frontend:
+    container_name: frontend
+    env_file: .env
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_HOST=${REACT_APP_HOST}
+    image: frontend
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - "/app/node_modules"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth_service
+      - game_service
+      - stats_service
+      - user_service
+
+# backend
+  gateway:
+    container_name: gateway
+    env_file: .env
+    build:
+      context: ./backend/gateway
+      dockerfile: Dockerfile
+    image: gateway
+    volumes:
+    - "/app/node_modules"
+    networks:
+    - backend
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+
+  game_service:
+    container_name: game_service
+    env_file:
+    - .env
+    - .env.profile-db
+    build:
+      context: ./backend/game-service
+      dockerfile: Dockerfile
+    image: game_service
+    volumes:
+      - "/app/node_modules"
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - "3007:3000" 
+    depends_on:
+      profile_db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  user_service:
+    container_name: user_service
+    env_file:
+    - .env
+    - .env.profile-db
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    image: user_service
+    volumes:
+      - "/app/node_modules"
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - "3008:3000" 
+    depends_on:
+      profile_db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+  
+  stats_service:
+    container_name: stats_service
+    env_file:
+    - .env
+    - .env.profile-db
+    build:
+      context: ./backend/stats-service
+      dockerfile: Dockerfile
+    image: stats_service
+    volumes:
+      - "/app/node_modules"
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - "3009:3000" 
+    depends_on:
+      profile_db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  chat:
+    container_name: chat
+    env_file:
+    - .env
+    - .env.chat-db
+    build:
+      context: ./backend/chat
+      dockerfile: Dockerfile
+    image: chat
+    volumes:
+      - "/app/node_modules"
+    restart: unless-stopped
+    ports:
+      - "3005:3000"
+    networks:
+      - backend
+    depends_on:
+      chat_db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  auth_service:
+    container_name: auth_service
+    env_file:
+    - .env
+    - .env.profile-db
+    build:
+      context: ./backend/auth
+      dockerfile: Dockerfile
+    image: auth_service
+    volumes:
+    - "/app/node_modules"
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - "3003:3000"
+    depends_on:
+      profile_db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  game:
+    container_name: game
+    env_file: .env
+    build:
+      context: ./backend/game
+      dockerfile: Dockerfile
+    image: game
+    volumes:
+      - "/app/node_modules"
+    ports:
+      - "3006:3000"
+    restart: unless-stopped
+    networks:
+      - backend
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+# databases
+  profile_db:
+    container_name: profile_db
+    env_file:
+    - .env
+    - .env.profile-db
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    image: postgres
+    restart: always
+    volumes:
+      - "profile_db_volume:/var/lib/postgresql"
+    networks:
+      - backend
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+  chat_db:
+    container_name: chat_db
+    env_file:
+    - .env
+    - .env.chat-db
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    image: postgres
+    restart: always
+    volumes:
+      - "chat_db_volume:/var/lib/postgresql"
+    networks:
+      - backend
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - profile_db
+
+  kafka:
+    image: obsidiandynamics/kafka
+    container_name: kafka
+    restart: "no"
+    networks:
+      - backend
+    ports:
+      - "2181:2181"
+      - "9092:9092"
+      - "29092:29092"
+    volumes:
+      - ./log4j.properties:/opt/kafka/config/log4j.properties
+      - ./kafka-health-check.sh:/kafka-health-check.sh
+    environment:
+      KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+      KAFKA_ZOOKEEPER_SESSION_TIMEOUT: "18000"
+      KAFKA_RESTART_ATTEMPTS: "10"
+      KAFKA_RESTART_DELAY: "5"
+      ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
+      KAFKAJS_NO_PARTITIONER_WARNING: "1"
+      KAFKA_LOG4J_OPTS: "-Dlog4j.configuration=file:/opt/kafka/config/log4j.properties"
+    healthcheck:
+      test: ["CMD", "/bin/sh", "/kafka-health-check.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+networks:
+  backend:
+    name: backend
+    driver: bridge
+
+volumes:
+  profile_db_volume:
+  chat_db_volume:
