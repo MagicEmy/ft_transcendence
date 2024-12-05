@@ -1,14 +1,20 @@
 # ft_transcendence Project
 
-## Overview
-
-ft_transcendence is a web-based multiplayer gaming platform designed to provide an engaging experience for users by playing Pong, organizing tournaments, and exploring user-friendly features like matchmaking, chat integration, and customization. This project was collaboratively developed by a team of four contributors, implementing modular design principles with advanced technologies such as NestJS for the backend, React with TypeScript for the frontend, and Kafka for managing microservices communication. It operates as a single-page application (SPA).
+ft_transcendence is a web-based multiplayer gaming platform designed to provide an engaging experience for users by playing Pong and exploring user-friendly features like matchmaking, chat integration, and customization. This project was collaboratively developed by a team of four contributors, implementing modular design principles with advanced technologies such as NestJS for the backend, React with TypeScript for the frontend, and Kafka for managing microservices communication. It operates as a single-page application (SPA).
 
 ---
 
-## Features
+# Table of Contents
+- [Features](#features)
+- [Installation and Setup](#installation-and-setup)
+- [Technologies Used](#technologies-used)
+- [Authors](#authors)
 
-### 1. User Management
+---
+
+# Features
+
+## 1. User Management
 - **Authentication**: Secure user login and registration using Codam credentials, via Intra's OAuth API with passport-42.
 - **Profile Management**: Users can customize profiles, including avatars and display names.
 - **Match History**: Tracks and displays detailed statistics of previous games.
@@ -16,13 +22,13 @@ ft_transcendence is a web-based multiplayer gaming platform designed to provide 
 - **Friends Management**: Users can add friends, view their online status, and interact with them.
 - **Two-Factor Authentication (2FA)**: Adds an extra layer of security for user accounts.
 
-### 2. Game Functionality
+## 2. Game Functionality
 - **Pong Gameplay**: Classic Pong game recreated as a real-time multiplayer experience with the original visual style and dynamics.
 - **3D Version**: An enhanced version of the game featuring 3D graphics for a more immersive and modern gameplay experience.
-- **Tournament Mode**: Organize tournaments with multiple players.
-- **Matchmaking System**: Automatically pair players for games based on predefined rules.
+- **Matchmaking System**: Automatically pair players for games based on rank.
+- **Bot Mode**: Play against the AI.
 
-### 3. Chat Features
+## 3. Chat Features
 - **Chat Rooms**: Public (optionally with a password) or private chat rooms.
 - **Direct Messaging**: One-on-one communication between users.
 - **User Controls**: Chat owners and administrators can kick, ban, or mute users.
@@ -30,11 +36,11 @@ ft_transcendence is a web-based multiplayer gaming platform designed to provide 
 - **User Blocking**: Prevent unwanted communication.
 - **Profile Integration**: View other player profiles directly from the chat.
 
-### 4. Microservices Architecture
+## 4. Microservices Architecture
 - **Gateway Service**: Acts as a single entry point, routing requests to appropriate microservices.
 - **Kafka Integration**: Ensures asynchronous communication and scalability for microservices.
 
-### 5. Additional Modules
+## 5. Additional Modules
 - **Frontend**: Built with React to create a responsive and intuitive user interface.
 - **Backend**: Designed as a collection of microservices for scalability and maintainability. Each microservice focuses on a specific domain:
   - `user-service`: Handles user-related operations like authentication and profile management.
@@ -49,13 +55,13 @@ ft_transcendence is a web-based multiplayer gaming platform designed to provide 
 
 ---
 
-## Installation and Setup
+# Installation and Setup
 
-### Prerequisites
+## Prerequisites
 - Docker and Docker Compose installed on your system.
 - Node.js and npm installed (if running locally).
 
-### Setup Files
+## Setup Files
 This project relies on a `.env` file for configuration. To simplify management and enhance modularity, the configuration is split into three separate files based on their competencies, all located in the root directory of the project:
 
 - `.env`: General configuration for the application.
@@ -64,7 +70,7 @@ This project relies on a `.env` file for configuration. To simplify management a
 
 Ensure all these files are properly configured before running the project.
 
-### Steps
+## Steps
 1. Clone the repository:
    ```bash
    git clone https://github.com/your-username/ft_transcendence.git
@@ -87,9 +93,9 @@ Ensure all these files are properly configured before running the project.
 
 ---
 
-## Technologies Used
+# Technologies Used
 
-### Backend
+## Backend
 
 - Nest.js (Node.js framework): A progressive Node.js framework for building scalable and maintainable server-side applications, leveraging TypeScript for type safety and modern development practices.
 - PostgreSQL: A powerful, open-source relational database system for managing application data.
@@ -97,14 +103,14 @@ Ensure all these files are properly configured before running the project.
 - OAuth2 and JWT handling: OAuth2 provides secure delegated access to resources, while JWT (JSON Web Tokens) handles user authentication and session management.
 - Passport.js: Middleware for Node.js that simplifies authentication using various strategies, including OAuth2.
 
-### Frontend
+## Frontend
 
 - React.js: A JavaScript library for building user interfaces with a component-based architecture.
 - TypeScript: A strongly typed programming language that builds on JavaScript, enhancing developer productivity and code quality.
 
 ---
 
-## Authors
+# Authors
 
 The project was developed by the following contributors (in alphabetical order):
 
@@ -121,3 +127,4 @@ The project was developed by the following contributors (in alphabetical order):
   [<img alt="GitHub" height="32px" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" />](https://github.com/OthelloPlusPlus)
   [<img alt="LinkedIn" height="32px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/600px-LinkedIn_logo_initials.png" />](https://nl.linkedin.com/in/orlando-hengelmolen)
 
+---
