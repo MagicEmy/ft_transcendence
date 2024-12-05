@@ -78,7 +78,7 @@ REACT_APP_GATEWAY_PORT=
 # authentication service
 REACT_APP_AUTH_PORT=
 
-# Authentication dm-auth-test app with LOCALHOST
+# Authentication 
 REDIRECT_URL=
 OAUTH_UID=
 OAUTH_SECRET=
