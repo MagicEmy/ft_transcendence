@@ -1,5 +1,5 @@
 DOCKER :=	docker
-DCKR_COMP :=	${DOCKER}-compose
+DCKR_COMP :=	${DOCKER} compose
 
 all:
 	$(DCKR_COMP) up --build
